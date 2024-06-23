@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.Views;
 using SubtitlesApp.ViewModels;
-using SubtitlesApp.Core.Interfaces;
+using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Settings;
-using SubtitlesApp.Core.Interfaces.Socket;
+using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Infrastructure.Common.Services.Clients;
 

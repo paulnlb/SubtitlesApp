@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\SubtitlesApp.Application\SubtitlesApp.Application.csproj" />
     <ProjectReference Include="..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
   </ItemGroup>
 

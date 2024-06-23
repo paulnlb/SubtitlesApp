@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.Socket;
+using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;

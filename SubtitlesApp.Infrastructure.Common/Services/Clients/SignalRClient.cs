@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.Socket;
+using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Application.Interfaces.Socket;
 
 namespace SubtitlesApp.Infrastructure.Common.Services.Clients;
 

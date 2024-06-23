@@ -1,6 +1,6 @@
 ﻿using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
 using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.NativeCodec;
-using SubtitlesApp.Core.Interfaces;
+using SubtitlesApp.Application.Interfaces;
 
 namespace SubtitlesApp.Helpers;
 

@@ -1,5 +1,5 @@
-﻿using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.Socket;
+﻿using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Application.Interfaces.Socket;
 using System.Net.Sockets;
 using Socket = System.Net.Sockets.Socket;
 

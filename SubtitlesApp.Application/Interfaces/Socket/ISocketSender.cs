@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Core.Interfaces.Socket;
+﻿namespace SubtitlesApp.Application.Interfaces.Socket;
 
 /// <summary>
 /// Allows sending media data to the specified endpoint

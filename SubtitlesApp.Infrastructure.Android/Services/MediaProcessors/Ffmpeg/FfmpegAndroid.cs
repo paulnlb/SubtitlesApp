@@ -3,8 +3,8 @@ using Java.Interop;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.Interfaces.Socket;
-using SubtitlesApp.Core.Interfaces;
+using SubtitlesApp.Application.Interfaces.Socket;
+using SubtitlesApp.Application.Interfaces;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
 

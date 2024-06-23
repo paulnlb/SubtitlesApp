@@ -1,7 +1,7 @@
-﻿using SubtitlesApp.Core.Interfaces.Socket;
+﻿using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Models;
 
-namespace SubtitlesApp.Core.Interfaces;
+namespace SubtitlesApp.Application.Interfaces;
 
 /// <summary>
 /// Sends media to remote server

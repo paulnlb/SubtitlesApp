@@ -1,6 +1,5 @@
 ﻿using Android.Media;
-using SubtitlesApp.Core.Interfaces.Socket;
-using SubtitlesApp.Core.Models;
+using SubtitlesApp.Application.Interfaces.Socket;
 using System.Diagnostics;
 using static Android.Media.MediaCodec;
 

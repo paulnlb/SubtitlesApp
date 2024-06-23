@@ -1,8 +1,8 @@
 ﻿using Android.Media;
 using Java.Lang;
 using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.Socket;
+using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.NativeCodec;

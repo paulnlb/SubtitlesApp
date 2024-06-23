@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Core.Interfaces;
+﻿namespace SubtitlesApp.Application.Interfaces;
 
 /// <summary>
 ///     App settings
