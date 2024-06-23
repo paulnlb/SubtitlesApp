@@ -6,13 +6,13 @@ namespace SubtitlesApp.Helpers;
 
 public static partial class MediaProcessorFactory
 {
-    public static partial IMediaProcessor CreateFfmpeg(string sourcePath)
+    public static partial IMediaProcessor CreateFfmpeg(ISettingsService settings)
     {
-        return new FfmpegAndroid(sourcePath);
+        return new FfmpegAndroid(settings);
     }
 
-    public static partial IMediaProcessor CreateNative(string sourcePath)
+    public static partial IMediaProcessor CreateNative(ISettingsService settings)
     {
-        return new NativeCodecAndroid(sourcePath);
+        return new NativeCodecAndroid(settings);
     }
 }

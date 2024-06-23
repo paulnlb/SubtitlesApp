@@ -1,5 +1,6 @@
 ﻿using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Shared.DTOs;
 
 namespace SubtitlesApp.Application.Interfaces;
 
@@ -9,22 +10,16 @@ namespace SubtitlesApp.Application.Interfaces;
 public interface IMediaProcessor : IDisposable
 {
     /// <summary>
-    /// Media source path
+    ///     Exctract audio from source
     /// </summary>
-    string SourcePath { get; }
-
-    /// <summary>
-    ///     Audio information (format, sample rate etc)
-    /// </summary>
-    TrimmedAudioMetadata TrimmedAudioMetadata { get; }
-
-    /// <summary>
-    /// Exctract audio from source and pass into Socket
-    /// </summary>
-    /// <param name="startTime">Start time for exctracted audio</param>
-    /// <param name="endTime">End time for exctracted audio</param>
+    /// <param name="sourcePath"></param>
+    /// <param name="startTime"></param>
+    /// <param name="duration"></param>
     /// <param name="cancellationToken"></param>
-    /// <param name="destinationSocket">ISocketSender instance where the processed output is passed</param>
     /// <returns></returns>
-    Task ExtractAudioAsync(ISocketSender destinationSocket, CancellationToken cancellationToken);
+    (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(
+        string sourcePath,
+        TimeSpan startTime,
+        int duration,
+        CancellationToken cancellationToken);
 }

@@ -36,12 +36,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     IMediaProcessor _mediaProcessor;
 
     readonly ISettingsService _settings;
-    readonly ISocketListener _socketListener;
     readonly ISignalRClient _signalrClient;
 
     public MediaElementViewModel(
         ISettingsService settings,
-        ISocketListener socketListener,
         ISignalRClient signalRClient)
     {
         #region observable props
@@ -59,7 +57,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         #region private props
 
         _settings = settings;
-        _socketListener = socketListener;
         _signalrClient = signalRClient;
 
         _cts = new CancellationTokenSource();
@@ -111,25 +108,19 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         ClearSubtitles();
 
-        var start = position;
-
         TextBoxContent = "Sending to server...";
 
         try
         {
             _cts.Token.ThrowIfCancellationRequested();
 
-            var audioMetadata = _mediaProcessor.TrimmedAudioMetadata;
-            audioMetadata.SetTimeBoundaries(start, TimeSpan.FromSeconds(TranscribeBufferLength));
+            (var metadata, var audioChunks) = _mediaProcessor.ExtractAudioAsync(
+                MediaPath,
+                position,
+                TranscribeBufferLength,
+                _cts.Token);
 
-            var socketSender = new UnixSocketSender(_settings);
-
-            var extractAudioTask = _mediaProcessor.ExtractAudioAsync(socketSender, _cts.Token);
-            var sendAudioTask = _signalrClient.SendAsync(_socketListener, audioMetadata, _cts.Token);
-
-            await Task.WhenAll(extractAudioTask, sendAudioTask);
-
-            socketSender.Close();
+            await _signalrClient.SendAsync(audioChunks, metadata, _cts.Token);
         }
         catch (Exception ex)
         {
@@ -151,9 +142,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             RegisterSignalRHandlers();
             await ConnectToServerAsync();
 
-            _socketListener.StartListening();
-
-            _mediaProcessor = MediaProcessorFactory.CreateFfmpeg(MediaPath);
+            _mediaProcessor = MediaProcessorFactory.CreateFfmpeg(_settings);
         }
     }
 
@@ -174,7 +163,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     public async Task CleanAsync()
     {
-        _socketListener.Close();
         await _signalrClient.StopConnectionAsync();
         _mediaProcessor.Dispose();
     }

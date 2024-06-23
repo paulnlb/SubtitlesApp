@@ -1,5 +1,6 @@
 ﻿using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Shared.DTOs;
 
 namespace SubtitlesApp.Application.Interfaces;
 
@@ -11,5 +12,5 @@ public interface ISignalRClient : IAbstractClient
 
     Task StopConnectionAsync();
 
-    Task SendToHubAsync(ISocketListener socket, string hubMethodName, TrimmedAudioMetadata audioMetadata, CancellationToken cancellationToken = default);
+    Task SendToHubAsync(IAsyncEnumerable<byte[]> bytesEnumerable, string hubMethodName, TrimmedAudioMetadataDTO audioMetadata, CancellationToken cancellationToken = default);
 }

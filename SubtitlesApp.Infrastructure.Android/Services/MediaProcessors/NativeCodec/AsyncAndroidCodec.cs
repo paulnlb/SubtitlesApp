@@ -17,8 +17,6 @@ public class AsyncAndroidCodec : IDisposable
     readonly long _startTimeUs;
     readonly long _endTimeUs;
 
-    readonly TaskCompletionSource _tcs;
-
     public long StartTimeUs => _startTimeUs;
 
     public long EndTimeUs => _endTimeUs;
@@ -30,13 +28,11 @@ public class AsyncAndroidCodec : IDisposable
         MediaFormat format,
         TimeSpan startTime,
         TimeSpan endTime,
-        ISocketSender socket,
-        TaskCompletionSource tcs)
+        ISocketSender socket)
     {
         _mediaExtractor = mediaExtractor;
         _format = format;
         _socket = socket;
-        _tcs = tcs;
 
         _startTimeUs = (long)startTime.TotalMicroseconds;
         _endTimeUs = (long)endTime.TotalMicroseconds;
@@ -67,8 +63,6 @@ public class AsyncAndroidCodec : IDisposable
         Debug.WriteLine($"{DateTime.Now}: Decoder finished");
 
         _socket.CompleteWrite();
-
-        _tcs.TrySetResult();
 
         Dispose();
     }

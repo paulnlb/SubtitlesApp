@@ -5,53 +5,72 @@ using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Shared.DTOs;
+using Android.Media;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
 
 public class FfmpegAndroid : IMediaProcessor
 {
-    readonly string _srcPath;
+    readonly ISocketListener _socketListener;
 
     readonly TrimmedAudioMetadata _audioMetadata;
 
-    public FfmpegAndroid(string sourcePath, int sampleRate = 16000, int channelsCount = 1)
+    bool _disposed;
+
+    public FfmpegAndroid(ISettingsService settings)
     {
-        _srcPath = sourcePath;
         _audioMetadata = new()
         {
-            SampleRate = sampleRate,
-            ChannelsCount = channelsCount,
+            SampleRate = 16000,
+            ChannelsCount = 1,
             AudioFormat = AudioFormats.Wave
         };
+
+        _socketListener = new UnixSocketListener(settings);
+
+        _socketListener.StartListening();
     }
-
-    public string SourcePath => _srcPath;
-
-    public TrimmedAudioMetadata TrimmedAudioMetadata => _audioMetadata;
 
     public void Dispose()
     {
-        // Do nothing
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
-    public async Task ExtractAudioAsync(ISocketSender destinationSocket, CancellationToken cancellationToken)
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            _socketListener.Close();
+        }
+
+        _disposed = true;
+    }
+
+    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, int duration, CancellationToken cancellationToken)
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
-        var startTime = _audioMetadata.StartTimeOffset;
-        var endTime = _audioMetadata.EndTime;
+
+        _audioMetadata.SetTimeBoundaries(startTime, duration);
 
         var ffmpegCommand = $"-y " +
-            $"-i \"{_srcPath}\" " +
-            $"-ss {startTime.TotalMilliseconds}ms -to {endTime.TotalMilliseconds}ms " +
+            $"-i \"{sourcePath}\" " +
+            $"-ss {startTime.TotalMilliseconds}ms -to {_audioMetadata.EndTime.TotalMilliseconds}ms " +
             $"-vn " +
             $"-ar {_audioMetadata.SampleRate} " +
             $"-ac {_audioMetadata.ChannelsCount} " +
             $"-f {_audioMetadata.AudioFormat} ";
 
-        ffmpegCommand += destinationSocket switch
+        ffmpegCommand += _socketListener switch
         {
-            UnixSocketSender => $"unix://{destinationSocket.Endpoint}",
-            _ => throw new NotSupportedException($"{destinationSocket.GetType()} is not supported"),
+            UnixSocketListener => $"unix://{_socketListener.Endpoint}",
+            _ => throw new NotSupportedException($"{_socketListener.GetType()} is not supported"),
         };
 
         if (cancellationToken.IsCancellationRequested)
@@ -59,33 +78,44 @@ public class FfmpegAndroid : IMediaProcessor
             FFmpegKit.Cancel();
         }
 
-        if (!string.IsNullOrEmpty(_srcPath))
+        if (!string.IsNullOrEmpty(sourcePath))
         {
-            var tcs = new TaskCompletionSource();
-            var callback = new FfmpegCallback(tcs);
+            var callback = new FfmpegCallback();
 
             FFmpegKit.ExecuteAsync(ffmpegCommand, callback);
+        }
 
-            using (cancellationToken.Register(() => tcs.TrySetCanceled()))
-            {
-                await tcs.Task;
-            }
+        var bytesEnumerable = GetAudioChunks(16 * 1024);
+
+        var trimmedAudioMetadata = new TrimmedAudioMetadataDTO()
+        {
+            AudioFormat = _audioMetadata.AudioFormat,
+            SampleRate = _audioMetadata.SampleRate,
+            ChannelsCount = _audioMetadata.ChannelsCount,
+            StartTimeOffset = _audioMetadata.StartTimeOffset
+        };
+
+        return (trimmedAudioMetadata, bytesEnumerable);
+    }
+
+    private async IAsyncEnumerable<byte[]> GetAudioChunks(int chunkSize)
+    {
+        await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize))
+        {
+            yield return bytes;
         }
     }
 }
 
 public class FfmpegCallback : Java.Lang.Object, IFFmpegSessionCompleteCallback
 {
-    private readonly TaskCompletionSource _tcs;
 
-    public FfmpegCallback(TaskCompletionSource tcs)
+    public FfmpegCallback()
     {
-        _tcs = tcs;
     }
 
     public void Apply(FFmpegSession? p0)
     {
-        _tcs.TrySetResult();
     }
 
     public void Disposed()

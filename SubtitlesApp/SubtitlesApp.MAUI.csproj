@@ -71,6 +71,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\SubtitlesApp.Application\SubtitlesApp.Application.csproj" />
 	  <ProjectReference Include="..\SubtitlesApp.Infrastructure.Common\SubtitlesApp.Infrastructure.Common.csproj" />
+	  <ProjectReference Include="..\SubtitlesApp.Shared\SubtitlesApp.Shared.csproj" />
 	</ItemGroup>
 
   <ItemGroup>

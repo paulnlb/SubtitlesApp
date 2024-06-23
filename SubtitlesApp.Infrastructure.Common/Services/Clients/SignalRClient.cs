@@ -2,6 +2,7 @@
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Application.Interfaces.Socket;
+using SubtitlesApp.Shared.DTOs;
 
 namespace SubtitlesApp.Infrastructure.Common.Services.Clients;
 
@@ -64,18 +65,14 @@ public class SignalRClient : ISignalRClient
         }
     }
 
-    public async Task SendAsync(ISocketListener socketListener, TrimmedAudioMetadata audioMetadata, CancellationToken cancellationToken = default)
+    public async Task SendAsync(IAsyncEnumerable<byte[]> bytesEnumerable, TrimmedAudioMetadataDTO audioMetadata, CancellationToken cancellationToken = default)
     {
-        await SendToHubAsync(socketListener, "TranscribeAudio", audioMetadata, cancellationToken);
+        await SendToHubAsync(bytesEnumerable, "TranscribeAudio", audioMetadata, cancellationToken);
     }
 
-    public async Task SendToHubAsync(ISocketListener socket, string hubMethodName, TrimmedAudioMetadata audioMetadata, CancellationToken cancellationToken = default)
+    public async Task SendToHubAsync(IAsyncEnumerable<byte[]> bytesEnumerable, string hubMethodName, TrimmedAudioMetadataDTO audioMetadata, CancellationToken cancellationToken = default)
     {
-        var chunkSize = 16 * 1024;
-
         cancellationToken.ThrowIfCancellationRequested();
-
-        var bytesEnumerable = socket.ReceiveAsync(chunkSize);
 
         await _connection.SendAsync(hubMethodName, bytesEnumerable, audioMetadata);
     }

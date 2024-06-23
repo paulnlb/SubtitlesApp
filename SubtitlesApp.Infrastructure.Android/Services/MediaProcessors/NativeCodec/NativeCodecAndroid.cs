@@ -1,82 +1,76 @@
 ﻿using Android.Media;
 using Java.Lang;
-using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Application.Interfaces.Socket;
+using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Infrastructure.Common.Services.Sockets;
+using SubtitlesApp.Shared.DTOs;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.NativeCodec;
 
 public class NativeCodecAndroid : IMediaProcessor
 {
     readonly MediaExtractor _mediaExtractor;
-    readonly MediaFormat _format;
-    readonly string _srcPath;
+
+    MediaFormat _format;
+    string _srcPath;
+
     readonly TrimmedAudioMetadata _audioMetadata;
+
+    readonly ISocketListener _socketListener;
+    ISocketSender _socketSender;
+    readonly ISettingsService _settings;
 
     bool _disposed;
 
-    public NativeCodecAndroid(string sourcePath)
+    public NativeCodecAndroid(ISettingsService settings)
     {
+        _socketListener = new UnixSocketListener(settings);
+        _socketListener.StartListening();
+
+        _settings = settings;
+
         _mediaExtractor = new MediaExtractor();
-        _mediaExtractor.SetDataSource(sourcePath);
 
-        _srcPath = sourcePath;
-
-        int audioTrackIndex = -1;
-        for (int i = 0; i < _mediaExtractor.TrackCount; i++)
-        {
-            _format = _mediaExtractor.GetTrackFormat(i);
-            var mime = _format.GetString(MediaFormat.KeyMime);
-            if (mime != null && mime.StartsWith("audio/"))
-            {
-                audioTrackIndex = i;
-                _mediaExtractor.SelectTrack(i);
-                break;
-            }
-        }
-
-        if (audioTrackIndex == -1)
-        {
-            throw new RuntimeException("No audio track found in the video file.");
-        }
-
-        _audioMetadata = new()
-        {
-            SampleRate = _format.GetInteger(MediaFormat.KeySampleRate),
-            ChannelsCount = _format.GetInteger(MediaFormat.KeyChannelCount),
-            AudioFormat = AudioFormats.PCM,
-        };
+        _audioMetadata = new();
     }
 
-    public string SourcePath => _srcPath;
-
-    public TrimmedAudioMetadata TrimmedAudioMetadata => _audioMetadata;
-
-    public async Task ExtractAudioAsync(ISocketSender destinationSocket, CancellationToken cancellationToken)
+    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, int duration, CancellationToken cancellationToken)
     {
-        var startTime = _audioMetadata.StartTimeOffset;
-        var endTime = _audioMetadata.EndTime;
+        _audioMetadata.SetTimeBoundaries(startTime, duration);
 
-        destinationSocket.Connect();
+        SetDataSource(sourcePath);
 
-        var tcs = new TaskCompletionSource();
+        _socketSender = _socketListener switch
+        {
+            UnixSocketListener => new UnixSocketSender(_settings),
+            _ => throw new NotSupportedException($"{_socketListener.GetType()} is not supported"),
+        };
+
+        _socketSender.Connect();
 
         var asyncCodec = new AsyncAndroidCodec(
             _mediaExtractor,
             _format,
             startTime,
-            endTime,
-            destinationSocket,
-            tcs);
+            _audioMetadata.EndTime,
+            _socketSender);
 
         asyncCodec.Configure();
         asyncCodec.Start();
 
-        using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+        var bytesEnumerable = GetAudioChunks(16 * 1024);
+
+        var trimmedAudioMetadata = new TrimmedAudioMetadataDTO()
         {
-            await tcs.Task;
-        }
+            AudioFormat = _audioMetadata.AudioFormat,
+            SampleRate = _audioMetadata.SampleRate,
+            ChannelsCount = _audioMetadata.ChannelsCount,
+            StartTimeOffset = _audioMetadata.StartTimeOffset
+        };
+
+        return (trimmedAudioMetadata, bytesEnumerable);
     }
 
     public void Dispose()
@@ -94,9 +88,53 @@ public class NativeCodecAndroid : IMediaProcessor
 
         if (disposing)
         {
+            _socketListener.Close();
             _mediaExtractor.Release();
         }
 
         _disposed = true;
+    }
+
+    private async IAsyncEnumerable<byte[]> GetAudioChunks(int chunkSize)
+    {
+        await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize))
+        {
+            yield return bytes;
+        }
+
+        _socketSender.Close();
+    }
+
+    private void SetDataSource(string sourcePath)
+    {
+        if (sourcePath == _srcPath)
+        {
+            return;
+        }
+
+        _mediaExtractor.SetDataSource(sourcePath);
+        _srcPath = sourcePath;
+
+        int audioTrackIndex = -1;
+        for (int i = 0; i < _mediaExtractor.TrackCount; i++)
+        {
+            _format = _mediaExtractor.GetTrackFormat(i);
+            var mime = _format.GetString(MediaFormat.KeyMime);
+            if (mime != null && mime.StartsWith("audio/"))
+            {
+                audioTrackIndex = i;
+                _mediaExtractor.SelectTrack(i);
+                break;
+            }
+        }
+
+        if (audioTrackIndex == -1)
+        {
+            throw new RuntimeException("No audio track found in the file.");
+        }
+
+        _audioMetadata.SampleRate = _format.GetInteger(MediaFormat.KeySampleRate);
+        _audioMetadata.ChannelsCount = _format.GetInteger(MediaFormat.KeyChannelCount);
+        _audioMetadata.AudioFormat = AudioFormats.PCM;
     }
 }

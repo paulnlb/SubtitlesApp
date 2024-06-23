@@ -38,7 +38,6 @@ namespace SubtitlesApp
 #else
             builder.Services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
 #endif
-            builder.Services.AddScoped<ISocketListener, UnixSocketListener>();
             builder.Services.AddScoped<ISignalRClient, SignalRClient>();
 
             return builder.Build();
