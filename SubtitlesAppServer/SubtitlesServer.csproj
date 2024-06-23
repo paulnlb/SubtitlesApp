@@ -17,4 +17,8 @@
     <Folder Include="WhisperModels\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
+  </ItemGroup>
+
 </Project>

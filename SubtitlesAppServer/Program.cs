@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.SignalR;
 using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
-using SubtitlesAppServer.Constants;
-using SubtitlesAppServer.Models;
+using SubtitlesApp.Core.Constants;
+using SubtitlesApp.Core.Models;
 using Whisper.net;
 using Whisper.net.Ggml;
 
@@ -33,11 +33,11 @@ public class Subtitle
 
 public interface IWaveService
 {
-    Task<MemoryStream> WriteToWaveStreamAsync(IAsyncEnumerable<byte[]> dataChunks, AudioMetadata audioMetadata, CancellationToken cancellationToken);
+    Task<MemoryStream> WriteToWaveStreamAsync(IAsyncEnumerable<byte[]> dataChunks, TrimmedAudioMetadata audioMetadata, CancellationToken cancellationToken);
 }
 public class WaveService : IWaveService
 {
-    public async Task<MemoryStream> WriteToWaveStreamAsync(IAsyncEnumerable<byte[]> dataChunks, AudioMetadata audioMetadata, CancellationToken cancellationToken)
+    public async Task<MemoryStream> WriteToWaveStreamAsync(IAsyncEnumerable<byte[]> dataChunks, TrimmedAudioMetadata audioMetadata, CancellationToken cancellationToken)
     {
         MemoryStream waveStream;
 
@@ -130,7 +130,7 @@ public class WaveService : IWaveService
 
 public class MyHub : Hub
 {
-    public async Task TranscribeAudio([FromKeyedServices("wave")] IWaveService waveService, IAsyncEnumerable<byte[]> dataChunks, AudioMetadata audioMetadata)
+    public async Task TranscribeAudio([FromKeyedServices("wave")] IWaveService waveService, IAsyncEnumerable<byte[]> dataChunks, TrimmedAudioMetadata audioMetadata)
     {
         Console.WriteLine("Connected");
 
