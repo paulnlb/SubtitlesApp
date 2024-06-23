@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Jars\ffmpeg-kit-full-6.0-2.LTS.aar" />
+    <None Remove="Jars\smart-exception-java-0.2.1-javadoc.jar" />
+  </ItemGroup>
+</Project>
