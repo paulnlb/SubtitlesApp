@@ -1,12 +1,11 @@
 ﻿using Com.Arthenica.Ffmpegkit;
 using Java.Interop;
+using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Application.Interfaces.Socket;
+using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
-using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Application.Interfaces.Socket;
-using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Shared.DTOs;
-using Android.Media;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
 
@@ -18,18 +17,17 @@ public class FfmpegAndroid : IMediaProcessor
 
     bool _disposed;
 
-    public FfmpegAndroid(ISettingsService settings)
+    public FfmpegAndroid(ISocketListener socketListener)
     {
+        _socketListener = socketListener;
+        _socketListener.StartListening();
+
         _audioMetadata = new()
         {
             SampleRate = 16000,
             ChannelsCount = 1,
             AudioFormat = AudioFormats.Wave
         };
-
-        _socketListener = new UnixSocketListener(settings);
-
-        _socketListener.StartListening();
     }
 
     public void Dispose()

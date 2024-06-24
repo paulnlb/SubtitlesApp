@@ -1,10 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Application.Interfaces;
-using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Helpers;
-using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -33,14 +30,12 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     CancellationTokenSource _cts;
 
-    IMediaProcessor _mediaProcessor;
-
-    readonly ISettingsService _settings;
+    readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
 
     public MediaElementViewModel(
-        ISettingsService settings,
-        ISignalRClient signalRClient)
+        ISignalRClient signalRClient,
+        IMediaProcessor mediaProcessor)
     {
         #region observable props
 
@@ -56,8 +51,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         #region private props
 
-        _settings = settings;
         _signalrClient = signalRClient;
+        _mediaProcessor = mediaProcessor;
 
         _cts = new CancellationTokenSource();
 
@@ -141,8 +136,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             RegisterSignalRHandlers();
             await ConnectToServerAsync();
-
-            _mediaProcessor = MediaProcessorFactory.CreateFfmpeg(_settings);
         }
     }
 

@@ -62,7 +62,7 @@ public class AsyncAndroidCodec : IDisposable
     {
         Debug.WriteLine($"{DateTime.Now}: Decoder finished");
 
-        _socket.CompleteWrite();
+        _socket.CompleteWriting();
 
         Dispose();
     }

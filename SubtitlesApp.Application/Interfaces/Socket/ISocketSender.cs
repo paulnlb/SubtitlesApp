@@ -16,6 +16,11 @@ public interface ISocketSender
     void Connect();
 
     /// <summary>
+    /// Signals the end of the media data writing
+    /// </summary>
+    void CompleteWriting();
+
+    /// <summary>
     /// Send a chunk of media data to the socket
     /// </summary>
     /// <param name="bytes">Data chunk</param>
@@ -23,9 +28,9 @@ public interface ISocketSender
     Task SendAsync(byte[] bytes);
 
     /// <summary>
-    /// Signal that write operation is completed
+    /// Closes the socket connection and allows reuse of the socket
     /// </summary>
-    void CompleteWrite();
+    void Disconnect();
 
     /// <summary>
     /// Release all the socket recources

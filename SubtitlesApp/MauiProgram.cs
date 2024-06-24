@@ -7,6 +7,11 @@ using SubtitlesApp.Settings;
 using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Infrastructure.Common.Services.Clients;
+using SubtitlesApp.Extensions;
+
+#if ANDROID
+using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
+#endif
 
 namespace SubtitlesApp
 {
@@ -38,7 +43,7 @@ namespace SubtitlesApp
 #else
             builder.Services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
 #endif
-            builder.Services.AddScoped<ISignalRClient, SignalRClient>();
+            builder.Services.AddSubtitlesAppServices();
 
             return builder.Build();
         }

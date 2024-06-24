@@ -19,17 +19,15 @@ public class NativeCodecAndroid : IMediaProcessor
     readonly TrimmedAudioMetadata _audioMetadata;
 
     readonly ISocketListener _socketListener;
-    ISocketSender _socketSender;
-    readonly ISettingsService _settings;
+    readonly ISocketSender _socketSender;
 
     bool _disposed;
 
-    public NativeCodecAndroid(ISettingsService settings)
+    public NativeCodecAndroid(ISocketListener socketListener, ISocketSender socketSender)
     {
-        _socketListener = new UnixSocketListener(settings);
+        _socketSender = socketSender;
+        _socketListener = socketListener;
         _socketListener.StartListening();
-
-        _settings = settings;
 
         _mediaExtractor = new MediaExtractor();
 
@@ -40,13 +38,10 @@ public class NativeCodecAndroid : IMediaProcessor
     {
         _audioMetadata.SetTimeBoundaries(startTime, duration);
 
-        SetDataSource(sourcePath);
-
-        _socketSender = _socketListener switch
+        if (sourcePath != _srcPath)
         {
-            UnixSocketListener => new UnixSocketSender(_settings),
-            _ => throw new NotSupportedException($"{_socketListener.GetType()} is not supported"),
-        };
+            SetDataSource(sourcePath);
+        }
 
         _socketSender.Connect();
 
@@ -102,16 +97,12 @@ public class NativeCodecAndroid : IMediaProcessor
             yield return bytes;
         }
 
-        _socketSender.Close();
+        // allow reuse of the socketSender in the next ExtractAudioAsync invocation
+        _socketSender.Disconnect();
     }
 
     private void SetDataSource(string sourcePath)
     {
-        if (sourcePath == _srcPath)
-        {
-            return;
-        }
-
         _mediaExtractor.SetDataSource(sourcePath);
         _srcPath = sourcePath;
 

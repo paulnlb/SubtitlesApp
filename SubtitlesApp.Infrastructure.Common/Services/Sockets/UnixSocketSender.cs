@@ -9,6 +9,9 @@ public class UnixSocketSender : ISocketSender
     readonly string _endpoint;
     readonly Socket _udSocket;
 
+    bool _isCurrentlyWriting = false;
+    bool _connected = false;
+
     public UnixSocketSender(ISettingsService settings)
     {
         _endpoint = settings.UnixSocketPath;
@@ -20,27 +23,57 @@ public class UnixSocketSender : ISocketSender
 
     public void Close()
     {
-        _udSocket.Shutdown(SocketShutdown.Both);
+        if (_isCurrentlyWriting)
+        {
+            throw new InvalidOperationException("Cannot close while writing");
+        }
+
         _udSocket.Close();
+
+        _connected = false;
     }
 
-    public void CompleteWrite()
+    public void CompleteWriting()
     {
         _udSocket.Shutdown(SocketShutdown.Send);
+
+        _isCurrentlyWriting = false;
     }
 
     public void Connect()
     {
         var udsEndpointObject = new UnixDomainSocketEndPoint(_endpoint);
         _udSocket.Connect(udsEndpointObject);
+
+        _connected = true;
+    }
+
+    public void Disconnect()
+    {
+        if (_isCurrentlyWriting)
+        {
+            throw new InvalidOperationException("Cannot disconnect while writing");
+        }
+
+        if (_connected)
+        {
+            _udSocket.Disconnect(true);
+        }
     }
 
     public async Task SendAsync(byte[] bytes)
     {
+        if (!_connected)
+        {
+            throw new InvalidOperationException("Socket is not connected");
+        }
+
         int bytesSent = 0;
         while (bytesSent < bytes.Length)
         {
             bytesSent += await _udSocket.SendAsync(new ArraySegment<byte>(bytes, bytesSent, bytes.Length - bytesSent), SocketFlags.None);
         }
+
+        _isCurrentlyWriting = true;
     }
 }
