@@ -1,10 +1,13 @@
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Application.Services;
 using SubtitlesServer.Hubs;
+using SubtitlesServer.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddKeyedScoped<IWaveService, WaveService>("wave");
+builder.Services.AddKeyedScoped<ITranscriptionService, TranscriptionService>("transcription");
+builder.Services.AddScoped<IWhisperService, WhisperService>();
+builder.Services.AddScoped<IWaveService, WaveService>();
 
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();

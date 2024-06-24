@@ -5,7 +5,7 @@ using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Shared.DTOs;
 using SubtitlesServer.Application.Interfaces;
 
-namespace SubtitlesServer.Application.Services;
+namespace SubtitlesServer.Infrastructure.Services;
 
 public class WaveService : IWaveService
 {

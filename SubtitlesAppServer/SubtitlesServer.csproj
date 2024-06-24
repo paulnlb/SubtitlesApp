@@ -8,19 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.6" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="Whisper.net" Version="1.4.7" />
-    <PackageReference Include="Whisper.net.Runtime" Version="1.4.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="WhisperModels\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
     <ProjectReference Include="..\SubtitlesApp.Shared\SubtitlesApp.Shared.csproj" />
     <ProjectReference Include="..\SubtitlesServer.Applications\SubtitlesServer.Application.csproj" />
+    <ProjectReference Include="..\SubtitlesServer.Infrastructure\SubtitlesServer.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
