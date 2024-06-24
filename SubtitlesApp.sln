@@ -29,7 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesApp.Application", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{DEF51250-CCC5-4A6C-8A86-005BD83CEF4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesApp.Shared", "SubtitlesApp.Shared\SubtitlesApp.Shared.csproj", "{0B341B2E-CB0C-4A73-AB2D-929060A3F356}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesApp.Shared", "SubtitlesApp.Shared\SubtitlesApp.Shared.csproj", "{0B341B2E-CB0C-4A73-AB2D-929060A3F356}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.Application", "SubtitlesServer.Applications\SubtitlesServer.Application.csproj", "{467821F7-763C-4404-9061-4651F1EFC869}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +109,14 @@ Global
 		{0B341B2E-CB0C-4A73-AB2D-929060A3F356}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0B341B2E-CB0C-4A73-AB2D-929060A3F356}.Release|x64.ActiveCfg = Release|Any CPU
 		{0B341B2E-CB0C-4A73-AB2D-929060A3F356}.Release|x64.Build.0 = Release|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Debug|x64.Build.0 = Debug|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Release|Any CPU.Build.0 = Release|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Release|x64.ActiveCfg = Release|Any CPU
+		{467821F7-763C-4404-9061-4651F1EFC869}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -123,6 +133,7 @@ Global
 		{1B345EEA-DA62-47B5-94F7-FA50AEF62C0E} = {B9A2B3E1-A1BE-4391-BA43-BFCD4AC212EF}
 		{F394CBC3-1A38-4EE4-AA76-5D7533168E2F} = {1B345EEA-DA62-47B5-94F7-FA50AEF62C0E}
 		{0B341B2E-CB0C-4A73-AB2D-929060A3F356} = {DEF51250-CCC5-4A6C-8A86-005BD83CEF4A}
+		{467821F7-763C-4404-9061-4651F1EFC869} = {A7DDFB26-2BAF-486C-8795-4F58F4723D6E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4C33A8E8-745E-464A-9A42-ACDEF454AFAE}
