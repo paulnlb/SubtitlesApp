@@ -14,12 +14,12 @@ internal static class DependencyInjectionExtensions
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
         #if ANDROID
-        services.AddScoped<IMediaProcessor, FfmpegAndroid>();
+        services.AddTransient<IMediaProcessor, FfmpegAndroid>();
         #endif
 
-        services.AddScoped<ISocketListener, UnixSocketListener>();
-        services.AddScoped<ISocketSender, UnixSocketSender>();
+        services.AddTransient<ISocketListener, UnixSocketListener>();
+        services.AddTransient<ISocketSender, UnixSocketSender>();
 
-        services.AddScoped<ISignalRClient, SignalRClient>();
+        services.AddTransient<ISignalRClient, SignalRClient>();
     }
 }
