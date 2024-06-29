@@ -1,5 +1,6 @@
 ﻿using SubtitlesApp.Core.Models;
 using SubtitlesServer.Application.Interfaces;
+using System.Runtime.CompilerServices;
 using Whisper.net;
 using Whisper.net.Ggml;
 
@@ -7,15 +8,22 @@ namespace SubtitlesServer.Infrastructure.Services;
 
 public class WhisperService : IWhisperService
 {
-    public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(MemoryStream audioStream, TimeSpan startTimeOffset)
+    public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
+        MemoryStream audioStream, 
+        TimeSpan startTimeOffset,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         // whisper load
         var modelPath = Path.Combine("..", "SubtitlesServer.Infrastructure", "WhisperModels", "ggml-small.bin");
         if (!File.Exists(modelPath))
         {
-            using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(GgmlType.Small);
+            using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(
+                GgmlType.Small,
+                QuantizationType.NoQuantization,
+                cancellationToken);
+
             using var fileWriter = File.OpenWrite(modelPath);
-            await modelStream.CopyToAsync(fileWriter);
+            await modelStream.CopyToAsync(fileWriter, cancellationToken);
         }
 
         using var whisperFactory = WhisperFactory.FromPath(modelPath);
@@ -26,7 +34,7 @@ public class WhisperService : IWhisperService
 
         Console.WriteLine("Whisper loaded");
 
-        var segments = processor.ProcessAsync(audioStream);
+        var segments = processor.ProcessAsync(audioStream, cancellationToken);
 
         Console.WriteLine("Starting transcribing...");
 

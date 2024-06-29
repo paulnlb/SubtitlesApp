@@ -6,5 +6,8 @@ namespace SubtitlesServer.Application.Interfaces;
 
 public interface ITranscriptionService
 {
-    IAsyncEnumerable<Subtitle> TranscribeAudioAsync(IAsyncEnumerable<byte[]> dataChunks, TrimmedAudioMetadataDTO audioMetadata);
+    IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
+        IAsyncEnumerable<byte[]> dataChunks,
+        TrimmedAudioMetadataDTO audioMetadata,
+        CancellationToken cancellationToken = default);
 }

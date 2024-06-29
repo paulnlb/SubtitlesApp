@@ -15,13 +15,15 @@ public class WhisperHub : Hub
 
         await Clients.Caller.SendAsync("SetStatus", "Transcribing...");
 
-        var subtitles = transcriptionService.TranscribeAudioAsync(dataChunks, audioMetadata);
+        var subtitles = transcriptionService.TranscribeAudioAsync(dataChunks, audioMetadata, CancellationToken.None);
 
         await foreach (var subtitle in subtitles)
         {
             Console.WriteLine($"{subtitle.StartTime}: {subtitle.Text}");
+
             await Clients.Caller.SendAsync("ShowSubtitle", subtitle);
         }
+
         await Clients.Caller.SendAsync("SetStatus", "Done.");
     }
 }
