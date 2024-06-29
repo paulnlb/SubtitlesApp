@@ -57,8 +57,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _cts = new CancellationTokenSource();
 
         #endregion
-
-        TranscribeCommand = new AsyncRelayCommand<TimeSpan>(TranscribeAsync);
     }
 
     #region public properties
@@ -90,13 +88,13 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         ShownSubtitlesText.Clear();
     }
 
-    public ICommand TranscribeCommand { get; }
-
+    [RelayCommand]
     public async Task TranscribeAsync(TimeSpan position)
     {
         lock (_lock)
         {
             _cts.Cancel();
+            _signalrClient.CancelTranscription();
             _cts.Dispose();
             _cts = new CancellationTokenSource();
         }
