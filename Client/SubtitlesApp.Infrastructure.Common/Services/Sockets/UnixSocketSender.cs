@@ -61,19 +61,36 @@ public class UnixSocketSender : ISocketSender
         }
     }
 
-    public async Task SendAsync(byte[] bytes)
+    public async Task SendAsync(byte[] bytes, CancellationToken cancellationToken = default)
     {
         if (!_connected)
         {
             throw new InvalidOperationException("Socket is not connected");
         }
-
-        int bytesSent = 0;
-        while (bytesSent < bytes.Length)
+        try
         {
-            bytesSent += await _udSocket.SendAsync(new ArraySegment<byte>(bytes, bytesSent, bytes.Length - bytesSent), SocketFlags.None);
+            await SendBytesAsync(bytes, cancellationToken);
+        }
+        catch (OperationCanceledException ex)
+        {
+            _isCurrentlyWriting = false;
+
+            throw new OperationCanceledException("Send operation was cancelled", ex);
         }
 
         _isCurrentlyWriting = true;
+    }
+
+    private async Task SendBytesAsync(byte[] bytes, CancellationToken cancellationToken)
+    {
+        int bytesSent = 0;
+
+        while (bytesSent < bytes.Length)
+        {
+            bytesSent += await _udSocket.SendAsync(
+                new ArraySegment<byte>(bytes, bytesSent, bytes.Length - bytesSent),
+                SocketFlags.None,
+                cancellationToken);
+        }
     }
 }

@@ -25,7 +25,7 @@ public interface ISocketSender
     /// </summary>
     /// <param name="bytes">Data chunk</param>
     /// <returns></returns>
-    Task SendAsync(byte[] bytes);
+    Task SendAsync(byte[] bytes, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Closes the socket connection and allows reuse of the socket

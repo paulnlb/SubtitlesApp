@@ -1,6 +1,7 @@
 ﻿using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Application.Interfaces.Socket;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using Socket = System.Net.Sockets.Socket;
 
 namespace SubtitlesApp.Infrastructure.Common.Services.Sockets;
@@ -40,23 +41,37 @@ public class UnixSocketListener : ISocketListener
         _isListening = true;
     }
 
-    public async IAsyncEnumerable<byte[]> ReceiveAsync(int chunkSize)
+    public async IAsyncEnumerable<byte[]> ReceiveAsync(int chunkSize, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (!_isListening)
         {
             throw new InvalidOperationException("Socket is not listening");
         }
 
-        var acceptedSocket = await _udSocket.AcceptAsync();
+        var acceptedSocket = await _udSocket.AcceptAsync(cancellationToken);
 
         byte[] buffer = new byte[chunkSize];
 
         int bytesRead;
-        while ((bytesRead = await acceptedSocket.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None)) > 0)
+
+        try
         {
-            byte[] chunk = new byte[bytesRead];
-            Array.Copy(buffer, chunk, bytesRead);
-            yield return chunk;
+            while ((bytesRead =
+                await acceptedSocket.ReceiveAsync(
+                    new ArraySegment<byte>(buffer),
+                    SocketFlags.None,
+                    cancellationToken)) > 0)
+            {
+                byte[] chunk = new byte[bytesRead];
+                Array.Copy(buffer, chunk, bytesRead);
+                yield return chunk;
+            }
+        }
+
+        finally
+        {
+            acceptedSocket.Shutdown(SocketShutdown.Both);
+            acceptedSocket.Close();
         }
     }
 }

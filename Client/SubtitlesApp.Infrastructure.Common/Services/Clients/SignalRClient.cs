@@ -72,6 +72,6 @@ public class SignalRClient : ISignalRClient
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        await _connection.SendAsync(hubMethodName, bytesEnumerable, audioMetadata);
+        await _connection.SendAsync(hubMethodName, bytesEnumerable, audioMetadata, cancellationToken);
     }
 }
