@@ -4,9 +4,6 @@ using SubtitlesApp.Views;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Settings;
-using SubtitlesApp.Application.Interfaces.Socket;
-using SubtitlesApp.Infrastructure.Common.Services.Sockets;
-using SubtitlesApp.Infrastructure.Common.Services.Clients;
 using SubtitlesApp.Extensions;
 
 #if ANDROID

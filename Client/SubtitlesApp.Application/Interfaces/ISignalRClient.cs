@@ -1,6 +1,4 @@
-﻿using SubtitlesApp.Application.Interfaces.Socket;
-using SubtitlesApp.Core.Models;
-using SubtitlesApp.Shared.DTOs;
+﻿using SubtitlesApp.Shared.DTOs;
 
 namespace SubtitlesApp.Application.Interfaces;
 

@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SubtitlesApp.Application\SubtitlesApp.Application.csproj" />
-    <ProjectReference Include="..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@ using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
 
 namespace SubtitlesApp.Extensions;
 
-internal static class DependencyInjectionExtensions
+internal static class AddServicesExtensions
 {
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
