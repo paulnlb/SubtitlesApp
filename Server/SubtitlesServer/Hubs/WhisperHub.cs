@@ -27,6 +27,8 @@ public class WhisperHub : Hub
             await Clients.Caller.SendAsync("ShowSubtitle", subtitle);
         }
 
+        cancellationManager.RemoveTask(Context.ConnectionId);
+
         await Clients.Caller.SendAsync("SetStatus", "Done.");
     }
 

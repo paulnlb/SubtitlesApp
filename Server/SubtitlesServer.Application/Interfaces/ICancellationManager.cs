@@ -17,4 +17,10 @@ public interface ICancellationManager
     /// <param name="key">Unique task identifier</param>
     /// <returns>Cancellation token for the task</returns>
     CancellationToken RegisterTask(string key);
+
+    /// <summary>
+    /// Removes a task from the cancellation manager.
+    /// </summary>
+    /// <param name="key">Unique task identifier</param>
+    void RemoveTask(string key);
 }
