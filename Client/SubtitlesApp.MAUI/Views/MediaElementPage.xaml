@@ -54,7 +54,7 @@
                 <Button Grid.Column="0" Text="Play" Clicked="OnPlayClicked" />
                 <Button Grid.Column="1" Text="Pause" Clicked="OnPauseClicked" />
                 <Button Grid.Column="2" Text="Stop" Clicked="OnStopClicked" />
-                <Button Grid.Column="3" Text="Transcribe" Command="{Binding TranscribeCommand}" CommandParameter="{Binding Source={x:Reference MediaElement}, Path=Position}"/>
+                <Button Grid.Column="3" Text="Transcribe" Clicked="OnTranscribeClicked"/>
                 <Button Grid.Column="4" Text="Clear" Command="{Binding ClearSubtitlesCommand}"/>
             </Grid>
 
