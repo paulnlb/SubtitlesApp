@@ -28,7 +28,7 @@ public class WhisperService : IWhisperService
 
         using var whisperFactory = WhisperFactory.FromPath(modelPath);
 
-        using var processor = whisperFactory.CreateBuilder()
+        var processor = whisperFactory.CreateBuilder()
             .WithLanguage("en")
             .Build();
 
@@ -38,16 +38,27 @@ public class WhisperService : IWhisperService
 
         Console.WriteLine("Starting transcribing...");
 
-        await foreach (var result in segments)
+        try
         {
-            var subtitle = new Subtitle()
+            await foreach (var result in segments)
             {
-                StartTime = result.Start + startTimeOffset,
-                Text = result.Text,
-                EndTime = result.End + startTimeOffset,
-            };
+                cancellationToken.ThrowIfCancellationRequested();
 
-            yield return subtitle;
+                var subtitle = new Subtitle()
+                {
+                    StartTime = result.Start + startTimeOffset,
+                    Text = result.Text,
+                    EndTime = result.End + startTimeOffset,
+                };
+
+                yield return subtitle;
+            }
+        }
+        finally
+        {
+            // Dispose the processor explicitly using Async pattern 
+            // to support cancellation.
+            await processor.DisposeAsync();
         }
     }
 }
