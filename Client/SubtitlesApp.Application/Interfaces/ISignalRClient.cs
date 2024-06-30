@@ -11,4 +11,6 @@ public interface ISignalRClient : IAbstractClient
     Task StopConnectionAsync();
 
     Task SendToHubAsync(IAsyncEnumerable<byte[]> bytesEnumerable, string hubMethodName, TrimmedAudioMetadataDTO audioMetadata, CancellationToken cancellationToken = default);
+
+    void CancelTranscription();
 }

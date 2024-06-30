@@ -137,4 +137,16 @@ public partial class MediaElementPage : ContentPage
     {
         MediaElement.Pause();
     }
+
+    void OnTranscribeClicked(object? sender, EventArgs e)
+    {
+        var transcribeCommand = _viewModel.TranscribeCommand;
+
+        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
+        {
+            transcribeCommand.Cancel();
+        }
+
+        transcribeCommand.Execute(MediaElement.Position);
+    }
 }

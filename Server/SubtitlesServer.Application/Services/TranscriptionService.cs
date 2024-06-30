@@ -1,6 +1,7 @@
 ﻿using SubtitlesApp.Core.Models;
 using SubtitlesApp.Shared.DTOs;
 using SubtitlesServer.Application.Interfaces;
+using System.Runtime.CompilerServices;
 
 namespace SubtitlesServer.Application.Services;
 
@@ -15,13 +16,16 @@ public class TranscriptionService : ITranscriptionService
         _whisperService = whisperService;
     }
 
-    public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(IAsyncEnumerable<byte[]> dataChunks, TrimmedAudioMetadataDTO audioMetadata)
+    public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
+        IAsyncEnumerable<byte[]> dataChunks, 
+        TrimmedAudioMetadataDTO audioMetadata,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        using var waveStream = await _waveService.WriteToWaveStreamAsync(dataChunks, audioMetadata, CancellationToken.None);
+        using var waveStream = await _waveService.WriteToWaveStreamAsync(dataChunks, audioMetadata, cancellationToken);
 
         Console.WriteLine("Wave read");
 
-        var subtitles = _whisperService.TranscribeAudioAsync(waveStream, audioMetadata.StartTimeOffset);
+        var subtitles = _whisperService.TranscribeAudioAsync(waveStream, audioMetadata.StartTimeOffset, cancellationToken);
 
         await foreach (var subtitle in subtitles)
         {

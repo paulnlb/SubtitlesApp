@@ -6,6 +6,7 @@ using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Shared.DTOs;
+using System.Runtime.CompilerServices;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
 
@@ -74,6 +75,8 @@ public class FfmpegAndroid : IMediaProcessor
         if (cancellationToken.IsCancellationRequested)
         {
             FFmpegKit.Cancel();
+
+            throw new OperationCanceledException("Ffmpeg processing was cancelled");
         }
 
         if (!string.IsNullOrEmpty(sourcePath))
@@ -83,7 +86,7 @@ public class FfmpegAndroid : IMediaProcessor
             FFmpegKit.ExecuteAsync(ffmpegCommand, callback);
         }
 
-        var bytesEnumerable = GetAudioChunks(16 * 1024);
+        var bytesEnumerable = GetAudioChunksAsync(16 * 1024, cancellationToken);
 
         var trimmedAudioMetadata = new TrimmedAudioMetadataDTO()
         {
@@ -96,9 +99,11 @@ public class FfmpegAndroid : IMediaProcessor
         return (trimmedAudioMetadata, bytesEnumerable);
     }
 
-    private async IAsyncEnumerable<byte[]> GetAudioChunks(int chunkSize)
+    private async IAsyncEnumerable<byte[]> GetAudioChunksAsync(
+        int chunkSize,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize))
+        await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize, cancellationToken))
         {
             yield return bytes;
         }

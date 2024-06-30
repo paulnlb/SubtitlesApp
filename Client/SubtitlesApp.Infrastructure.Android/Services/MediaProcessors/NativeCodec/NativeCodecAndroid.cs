@@ -4,8 +4,8 @@ using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Shared.DTOs;
+using System.Runtime.CompilerServices;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.NativeCodec;
 
@@ -34,7 +34,11 @@ public class NativeCodecAndroid : IMediaProcessor
         _audioMetadata = new();
     }
 
-    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, int duration, CancellationToken cancellationToken)
+    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(
+        string sourcePath,
+        TimeSpan startTime,
+        int duration,
+        CancellationToken cancellationToken)
     {
         _audioMetadata.SetTimeBoundaries(startTime, duration);
 
@@ -55,7 +59,10 @@ public class NativeCodecAndroid : IMediaProcessor
         asyncCodec.Configure();
         asyncCodec.Start();
 
-        var bytesEnumerable = GetAudioChunks(16 * 1024);
+        var bytesEnumerable = GetAudioChunksAsync(
+            16 * 1024,
+            asyncCodec,
+            cancellationToken);
 
         var trimmedAudioMetadata = new TrimmedAudioMetadataDTO()
         {
@@ -90,15 +97,24 @@ public class NativeCodecAndroid : IMediaProcessor
         _disposed = true;
     }
 
-    private async IAsyncEnumerable<byte[]> GetAudioChunks(int chunkSize)
+    private async IAsyncEnumerable<byte[]> GetAudioChunksAsync(int chunkSize,
+        AsyncAndroidCodec asyncCodec,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize))
+        try
         {
-            yield return bytes;
+            await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize, cancellationToken))
+            {
+                yield return bytes;
+            }
         }
+        finally
+        {
+            asyncCodec.Dispose();
 
-        // allow reuse of the socketSender in the next ExtractAudioAsync invocation
-        _socketSender.Disconnect();
+            // allow reuse of the socketSender in the next ExtractAudioAsync invocation
+            _socketSender.Disconnect();
+        }
     }
 
     private void SetDataSource(string sourcePath)

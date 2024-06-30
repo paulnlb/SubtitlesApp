@@ -9,7 +9,10 @@ namespace SubtitlesServer.Infrastructure.Services;
 
 public class WaveService : IWaveService
 {
-    public async Task<MemoryStream> WriteToWaveStreamAsync(IAsyncEnumerable<byte[]> dataChunks, TrimmedAudioMetadataDTO audioMetadata, CancellationToken cancellationToken)
+    public async Task<MemoryStream> WriteToWaveStreamAsync(
+        IAsyncEnumerable<byte[]> dataChunks,
+        TrimmedAudioMetadataDTO audioMetadata,
+        CancellationToken cancellationToken = default)
     {
         MemoryStream waveStream;
 
@@ -32,16 +35,19 @@ public class WaveService : IWaveService
 
         if (audioMetadata.SampleRate != 16000)
         {
-            var resampledWav = await ResampleWavAsync(waveStream, 16000);
+            waveStream.Dispose();
+
+            waveStream = ResampleWav(waveStream, 16000);
 
             Console.WriteLine("Wave resampled");
-            waveStream.Dispose();
-            return resampledWav;
         }
         return waveStream;
     }
 
-    private async Task<MemoryStream> WriteRawToWaveAsync(IAsyncEnumerable<byte[]> dataChunks, WaveFormat waveFormat, CancellationToken cancellationToken)
+    private static async Task<MemoryStream> WriteRawToWaveAsync(
+        IAsyncEnumerable<byte[]> dataChunks,
+        WaveFormat waveFormat, 
+        CancellationToken cancellationToken = default)
     {
         var memoryStream = new MemoryStream();
 
@@ -59,7 +65,9 @@ public class WaveService : IWaveService
         return memoryStream;
     }
 
-    private async Task<MemoryStream> WritePreprocessedWave(IAsyncEnumerable<byte[]> dataChunks, CancellationToken cancellationToken)
+    private static async Task<MemoryStream> WritePreprocessedWave(
+        IAsyncEnumerable<byte[]> dataChunks, 
+        CancellationToken cancellationToken)
     {
         var memoryStream = new MemoryStream();
 
@@ -73,7 +81,7 @@ public class WaveService : IWaveService
         return memoryStream;
     }
 
-    private async Task<MemoryStream> ResampleWavAsync(Stream inputStream, int samplingRate)
+    private MemoryStream ResampleWav(Stream inputStream, int samplingRate)
     {
         inputStream.Position = 0L;
 

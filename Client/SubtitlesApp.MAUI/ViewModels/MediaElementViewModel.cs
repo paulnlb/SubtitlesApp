@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Models;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -25,10 +24,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [ObservableProperty]
     int _transcribeBufferLength;
     #endregion
-
-    readonly object _lock = new();
-
-    CancellationTokenSource _cts;
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
@@ -54,11 +49,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _signalrClient = signalRClient;
         _mediaProcessor = mediaProcessor;
 
-        _cts = new CancellationTokenSource();
-
         #endregion
-
-        TranscribeCommand = new AsyncRelayCommand<TimeSpan>(TranscribeAsync);
     }
 
     #region public properties
@@ -90,16 +81,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         ShownSubtitlesText.Clear();
     }
 
-    public ICommand TranscribeCommand { get; }
-
-    public async Task TranscribeAsync(TimeSpan position)
+    [RelayCommand]
+    public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
-        lock (_lock)
-        {
-            _cts.Cancel();
-            _cts.Dispose();
-            _cts = new CancellationTokenSource();
-        }
+        _signalrClient.CancelTranscription();
 
         ClearSubtitles();
 
@@ -107,15 +92,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         try
         {
-            _cts.Token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             (var metadata, var audioChunks) = _mediaProcessor.ExtractAudioAsync(
                 MediaPath,
                 position,
                 TranscribeBufferLength,
-                _cts.Token);
+            cancellationToken);
 
-            await _signalrClient.SendAsync(audioChunks, metadata, _cts.Token);
+            await _signalrClient.SendAsync(audioChunks, metadata, cancellationToken);
         }
         catch (Exception ex)
         {
