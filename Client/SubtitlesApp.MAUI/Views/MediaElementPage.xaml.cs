@@ -3,7 +3,6 @@ using CommunityToolkit.Maui.Views;
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.ViewModels;
 using System.ComponentModel;
-using LayoutAlignment = Microsoft.Maui.Primitives.LayoutAlignment;
 
 namespace SubtitlesApp.Views;
 
@@ -11,7 +10,7 @@ public partial class MediaElementPage : ContentPage
 {
     readonly ILogger logger;
 
-    MediaElementViewModel _viewModel;
+    readonly MediaElementViewModel _viewModel;
 
     public MediaElementPage(MediaElementViewModel viewModel, ILogger<MediaElementPage> logger)
 	{
@@ -61,38 +60,19 @@ public partial class MediaElementPage : ContentPage
         PositionSlider.Value = e.Position.TotalSeconds;
     }
 
-    async void OnSeekCompleted(object? sender, EventArgs e)
+    void OnSeekCompleted(object? sender, EventArgs e)
     {
-    }
+        var transcribeCommand = _viewModel.TranscribeCommand;
+        var clearCommand = _viewModel.ClearSubtitlesCommand;
 
-    void OnVolumeMinusClicked(object? sender, EventArgs e)
-    {
-        if (MediaElement.Volume >= 0)
+        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
         {
-            if (MediaElement.Volume < .1)
-            {
-                MediaElement.Volume = 0;
-
-                return;
-            }
-
-            MediaElement.Volume -= .1;
+            transcribeCommand.Cancel();
         }
-    }
 
-    void OnVolumePlusClicked(object? sender, EventArgs e)
-    {
-        if (MediaElement.Volume < 1)
-        {
-            if (MediaElement.Volume > .9)
-            {
-                MediaElement.Volume = 1;
+        clearCommand.Execute(null);
 
-                return;
-            }
-
-            MediaElement.Volume += .1;
-        }
+        transcribeCommand.Execute(MediaElement.Position);
     }
 
     void OnPlayClicked(object? sender, EventArgs e)
@@ -136,17 +116,5 @@ public partial class MediaElementPage : ContentPage
     void Slider_DragStarted(object sender, EventArgs e)
     {
         MediaElement.Pause();
-    }
-
-    void OnTranscribeClicked(object? sender, EventArgs e)
-    {
-        var transcribeCommand = _viewModel.TranscribeCommand;
-
-        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
-        {
-            transcribeCommand.Cancel();
-        }
-
-        transcribeCommand.Execute(MediaElement.Position);
     }
 }
