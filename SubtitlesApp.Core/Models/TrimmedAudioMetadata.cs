@@ -28,4 +28,11 @@ public class TrimmedAudioMetadata
         EndTime = startTime + timeSpanDuration;
         Duration = timeSpanDuration;
     }
+
+    public void SetTimeBoundaries(TimeSpan startTime, TimeSpan endTime)
+    {
+        StartTimeOffset = startTime;
+        EndTime = endTime;
+        Duration = endTime - startTime;
+    }
 }
