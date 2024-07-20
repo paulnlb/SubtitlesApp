@@ -10,4 +10,6 @@ public interface ISettingsService
     string HubAddress { get; set; }
 
     string UnixSocketPath { get; set; }
+
+    int TranscribeBufferLength { get; set; }
 }
