@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
 using Microsoft.Extensions.Logging;
+using SubtitlesApp.Shared.Extensions;
 using SubtitlesApp.ViewModels;
 using System.ComponentModel;
 
@@ -13,8 +14,8 @@ public partial class MediaElementPage : ContentPage
     readonly MediaElementViewModel _viewModel;
 
     public MediaElementPage(MediaElementViewModel viewModel, ILogger<MediaElementPage> logger)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
 
         BindingContext = viewModel;
         _viewModel = viewModel;
@@ -29,6 +30,7 @@ public partial class MediaElementPage : ContentPage
         {
             logger.LogInformation("Duration: {newDuration}", MediaElement.Duration);
             PositionSlider.Maximum = MediaElement.Duration.TotalSeconds;
+            _viewModel.MediaDuration = MediaElement.Duration;
         }
     }
 
@@ -50,29 +52,34 @@ public partial class MediaElementPage : ContentPage
 
     void OnPositionChanged(object? sender, MediaPositionChangedEventArgs e)
     {
-        var subtitle = _viewModel.Subtitles.FirstOrDefault(s => (int)s.StartTime.TotalSeconds == (int)e.Position.TotalSeconds);
-        if (subtitle != null && !_viewModel.ShownSubtitles.Contains(subtitle))
+        var currentPosition = e.Position;
+        var subtitles = _viewModel.Subtitles;
+        var transcribeCommand = _viewModel.TranscribeCommand;
+
+        (var shouldTranscribe, var transcribeStartTime) = _viewModel.ShouldTranscribe(currentPosition);
+
+        if (shouldTranscribe && transcribeStartTime != null)
         {
-            _viewModel.ShownSubtitlesText.Add(subtitle.Text);
-            _viewModel.ShownSubtitles.Add(subtitle);
+            transcribeCommand.Execute(transcribeStartTime);
+        }
+        else
+        {
+            (var subtitle, var index) = subtitles.BinarySearch(currentPosition);
+
+            if (subtitle != null)
+            {
+                SubsCollection.ScrollTo(index);
+
+                SubsCollection.SelectedItem = subtitle;
+            }
         }
 
-        PositionSlider.Value = e.Position.TotalSeconds;
+        PositionSlider.Value = currentPosition.TotalSeconds;
     }
 
     void OnSeekCompleted(object? sender, EventArgs e)
     {
-        var transcribeCommand = _viewModel.TranscribeCommand;
-        var clearCommand = _viewModel.ClearSubtitlesCommand;
-
-        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
-        {
-            transcribeCommand.Cancel();
-        }
-
-        clearCommand.Execute(null);
-
-        transcribeCommand.Execute(MediaElement.Position);
+        
     }
 
     void OnPlayClicked(object? sender, EventArgs e)
@@ -107,10 +114,22 @@ public partial class MediaElementPage : ContentPage
     {
         ArgumentNullException.ThrowIfNull(sender);
 
+        _viewModel.TextBoxContent = "Ready.";
+
+        var transcribeCommand = _viewModel.TranscribeCommand;
+
+        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
+        {
+            transcribeCommand.Cancel();
+        }
+
         var newValue = ((Slider)sender).Value;
         await MediaElement.SeekTo(TimeSpan.FromSeconds(newValue), CancellationToken.None);
 
-        MediaElement.Play();
+        if (MediaElement.CurrentState == MediaElementState.Paused)
+        {
+            MediaElement.Play();
+        }
     }
 
     void Slider_DragStarted(object sender, EventArgs e)
