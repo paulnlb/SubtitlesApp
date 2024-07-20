@@ -44,11 +44,13 @@ public class WhisperService : IWhisperService
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var startTime = result.Start + startTimeOffset;
+                var endTime = result.End + startTimeOffset;
+
                 var subtitle = new Subtitle()
                 {
-                    StartTime = result.Start + startTimeOffset,
                     Text = result.Text,
-                    EndTime = result.End + startTimeOffset,
+                    TimeInterval = new TimeInterval(startTime, endTime),
                 };
 
                 yield return subtitle;

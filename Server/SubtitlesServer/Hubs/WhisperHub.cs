@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SubtitlesApp.Shared.DTOs;
 using SubtitlesServer.Application.Interfaces;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SubtitlesServer.Hubs;
 
@@ -22,14 +23,25 @@ public class WhisperHub : Hub
 
         await foreach (var subtitle in subtitles)
         {
-            Console.WriteLine($"{subtitle.StartTime}: {subtitle.Text}");
+            Console.WriteLine($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}");
 
-            await Clients.Caller.SendAsync("ShowSubtitle", subtitle);
+            var subtitleDto = new SubtitleDTO
+            {
+                TimeInterval = new TimeIntervalDTO() { 
+                    StartTime = subtitle.TimeInterval.StartTime,
+                    EndTime = subtitle.TimeInterval.EndTime
+                },
+                Text = subtitle.Text
+            };
+
+            await Clients.Caller.SendAsync("ShowSubtitle", subtitleDto);
         }
 
         cancellationManager.RemoveTask(Context.ConnectionId);
 
-        await Clients.Caller.SendAsync("SetStatus", "Done.");
+        await Clients.Caller.SendAsync("SetStatusAndEditTimeline", "Done.", audioMetadata);
+
+        Console.WriteLine("Transcribing done.");
     }
 
     public async Task CancelTranscription([FromKeyedServices("cancellationManager")] ICancellationManager cancellationManager)
