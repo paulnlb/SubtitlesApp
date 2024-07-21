@@ -17,7 +17,11 @@ public class WhisperMockHub : Hub
 
         await Task.Delay(1000);
 
-        for (int i = 0; i < 30; i+=2)
+        var max = audioMetadata.EndTime - audioMetadata.StartTimeOffset;
+
+        Console.WriteLine($"Max: {max}");
+
+        for (int i = 0; i < max.TotalSeconds; i+=2)
         {
             TimeSpan startTime;
             TimeSpan endTime;

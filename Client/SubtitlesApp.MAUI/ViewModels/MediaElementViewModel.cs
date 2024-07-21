@@ -150,6 +150,55 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         await _signalrClient.StopConnectionAsync();
         _mediaProcessor.Dispose();
     }
+
+    public void SetCurrentSub(TimeSpan position)
+    {
+        if (CurrentSubtitle != null && CurrentSubtitle.TimeInterval.ContainsTime(position))
+        {
+            return;
+        }
+
+        (var subtitle, _) = Subtitles.BinarySearch(position);
+
+        if (subtitle != null)
+        {
+            if (CurrentSubtitle != null)
+            {
+                CurrentSubtitle.IsShown = false;
+            }
+
+            subtitle.IsShown = true;
+
+            CurrentSubtitle = subtitle;
+        }
+    }
+
+    public (bool ShouldTranscribe, TimeSpan? TranscribeStartTime) ShouldTranscribe(TimeSpan position)
+    {
+        (var currentTimeInterval, _) = CoveredTimeIntervals.BinarySearch(position);
+
+        var isTimeSuitableForTranscribe =
+            currentTimeInterval == null ||
+            currentTimeInterval.EndTime - position <= TimeSpan.FromSeconds(15);
+
+        TimeSpan? transcribeStartTime = currentTimeInterval == null ? position : currentTimeInterval.EndTime;
+
+        if (transcribeStartTime >= MediaDuration)
+        {
+            isTimeSuitableForTranscribe = false;
+        }
+
+        var shouldTranscribe = isTimeSuitableForTranscribe &&
+            TextBoxContent != "Transcribing..." &&
+            TextBoxContent != "Sending to server...";
+
+        if (!shouldTranscribe)
+        {
+            transcribeStartTime = null;
+        }
+
+        return (shouldTranscribe, transcribeStartTime);
+    }
     #endregion
 
     #region private methods
@@ -194,33 +243,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     void SetStatus(string status)
     {
         TextBoxContent = status;
-    }
-
-    public (bool ShouldTranscribe, TimeSpan? TranscribeStartTime) ShouldTranscribe(TimeSpan position)
-    {
-        (var currentTimeInterval, _) = CoveredTimeIntervals.BinarySearch(position);
-
-        var isTimeSuitableForTranscribe = 
-            currentTimeInterval == null || 
-            currentTimeInterval.EndTime - position <= TimeSpan.FromSeconds(15);
-
-        TimeSpan? transcribeStartTime = currentTimeInterval == null ? position : currentTimeInterval.EndTime;
-
-        if (transcribeStartTime >= MediaDuration)
-        {
-            isTimeSuitableForTranscribe = false;
-        }
-
-        var shouldTranscribe = isTimeSuitableForTranscribe &&
-            TextBoxContent != "Transcribing..." &&
-            TextBoxContent != "Sending to server...";
-
-        if (!shouldTranscribe)
-        {
-            transcribeStartTime = null;
-        }
-
-        return (shouldTranscribe, transcribeStartTime);
     }
     #endregion
 }

@@ -76,10 +76,17 @@
                         ItemsSource="{Binding Subtitles}" 
                         ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"
+                        SelectionChanged="OnSelectionChanged"
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Label Text="{Binding Text}"/>
+                    <Label Text="{Binding Text}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsShown}" Value="True">
+                                <Setter Property="BackgroundColor" Value="Orange" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

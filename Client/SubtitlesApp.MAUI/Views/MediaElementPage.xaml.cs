@@ -1,7 +1,7 @@
 using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
 using Microsoft.Extensions.Logging;
-using SubtitlesApp.Shared.Extensions;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.ViewModels;
 using System.ComponentModel;
 
@@ -22,6 +22,7 @@ public partial class MediaElementPage : ContentPage
 
         this.logger = logger;
         MediaElement.PropertyChanged += MediaElement_PropertyChanged;
+        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
     void MediaElement_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -31,6 +32,19 @@ public partial class MediaElementPage : ContentPage
             logger.LogInformation("Duration: {newDuration}", MediaElement.Duration);
             PositionSlider.Maximum = MediaElement.Duration.TotalSeconds;
             _viewModel.MediaDuration = MediaElement.Duration;
+        }
+    }
+
+    void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        var vm = sender as MediaElementViewModel;
+
+        if (e.PropertyName == nameof(vm.CurrentSubtitle))
+        {
+            if (vm?.CurrentSubtitle != null)
+            {
+                SubsCollection.ScrollTo(vm.CurrentSubtitle);
+            }
         }
     }
 
@@ -53,7 +67,6 @@ public partial class MediaElementPage : ContentPage
     void OnPositionChanged(object? sender, MediaPositionChangedEventArgs e)
     {
         var currentPosition = e.Position;
-        var subtitles = _viewModel.Subtitles;
         var transcribeCommand = _viewModel.TranscribeCommand;
 
         (var shouldTranscribe, var transcribeStartTime) = _viewModel.ShouldTranscribe(currentPosition);
@@ -64,14 +77,7 @@ public partial class MediaElementPage : ContentPage
         }
         else
         {
-            (var subtitle, var index) = subtitles.BinarySearch(currentPosition);
-
-            if (subtitle != null)
-            {
-                SubsCollection.ScrollTo(index);
-
-                SubsCollection.SelectedItem = subtitle;
-            }
+            _viewModel.SetCurrentSub(currentPosition);
         }
 
         PositionSlider.Value = currentPosition.TotalSeconds;
@@ -135,5 +141,15 @@ public partial class MediaElementPage : ContentPage
     void Slider_DragStarted(object sender, EventArgs e)
     {
         MediaElement.Pause();
+    }
+
+    async void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is Subtitle subtitle)
+        {
+            await MediaElement.SeekTo(subtitle.TimeInterval.StartTime, CancellationToken.None);
+
+            SubsCollection.SelectedItem = null;
+        }
     }
 }
