@@ -2,6 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Shared.Extensions;
 using System.Collections.ObjectModel;
 
 namespace SubtitlesApp.ViewModels;
@@ -9,8 +11,9 @@ namespace SubtitlesApp.ViewModels;
 public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
 {
     #region observable properties
+
     [ObservableProperty]
-    ICollection<string> _shownSubtitlesText;
+    ObservableCollection<Subtitle> _subtitles;
 
     [ObservableProperty]
     double _scrollViewHeight;
@@ -23,24 +26,27 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     int _transcribeBufferLength;
+
+    [ObservableProperty]
+    Subtitle _currentSubtitle;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
+    readonly List<TimeInterval> _coveredTimeIntervals;
 
     public MediaElementViewModel(
         ISignalRClient signalRClient,
-        IMediaProcessor mediaProcessor)
+        IMediaProcessor mediaProcessor,
+        ISettingsService settings)
     {
         #region observable props
 
         ScrollViewHeight = 200;
         TextBoxContent = "";
         MediaPath = null;
-        ShownSubtitlesText = new ObservableCollection<string>();
-        Subtitles = new List<Subtitle>();
-        ShownSubtitles = new List<Subtitle>();
-        TranscribeBufferLength = 30;
+        Subtitles = [];
+        TranscribeBufferLength = settings.TranscribeBufferLength;
 
         #endregion
 
@@ -48,14 +54,16 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         _signalrClient = signalRClient;
         _mediaProcessor = mediaProcessor;
+        _coveredTimeIntervals = [];
 
         #endregion
     }
 
     #region public properties
-    public ICollection<Subtitle> Subtitles { get; set; }
+    public List<TimeInterval> CoveredTimeIntervals => _coveredTimeIntervals;
 
-    public ICollection<Subtitle> ShownSubtitles { get; set; }
+    public TimeSpan MediaDuration { get; set; }
+
     #endregion
 
     #region commands
@@ -75,18 +83,16 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    public void ClearSubtitles()
-    {
-        ShownSubtitles.Clear();
-        ShownSubtitlesText.Clear();
-    }
-
-    [RelayCommand]
     public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
         _signalrClient.CancelTranscription();
 
-        ClearSubtitles();
+        var endTime = position.Add(TimeSpan.FromSeconds(TranscribeBufferLength));
+
+        if (endTime > MediaDuration)
+        {
+            endTime = MediaDuration;
+        }
 
         TextBoxContent = "Sending to server...";
 
@@ -97,8 +103,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             (var metadata, var audioChunks) = _mediaProcessor.ExtractAudioAsync(
                 MediaPath,
                 position,
-                TranscribeBufferLength,
-            cancellationToken);
+                endTime,
+                cancellationToken);
 
             await _signalrClient.SendAsync(audioChunks, metadata, cancellationToken);
         }
@@ -144,23 +150,96 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         await _signalrClient.StopConnectionAsync();
         _mediaProcessor.Dispose();
     }
+
+    public void SetCurrentSub(TimeSpan position)
+    {
+        if (CurrentSubtitle != null && CurrentSubtitle.TimeInterval.ContainsTime(position))
+        {
+            return;
+        }
+
+        (var subtitle, _) = Subtitles.BinarySearch(position);
+
+        if (subtitle != null)
+        {
+            if (CurrentSubtitle != null)
+            {
+                CurrentSubtitle.IsShown = false;
+            }
+
+            subtitle.IsShown = true;
+
+            CurrentSubtitle = subtitle;
+        }
+    }
+
+    public (bool ShouldTranscribe, TimeSpan? TranscribeStartTime) ShouldTranscribe(TimeSpan position)
+    {
+        (var currentTimeInterval, _) = CoveredTimeIntervals.BinarySearch(position);
+
+        var isTimeSuitableForTranscribe =
+            currentTimeInterval == null ||
+            currentTimeInterval.EndTime - position <= TimeSpan.FromSeconds(15);
+
+        TimeSpan? transcribeStartTime = currentTimeInterval == null ? position : currentTimeInterval.EndTime;
+
+        if (transcribeStartTime >= MediaDuration)
+        {
+            isTimeSuitableForTranscribe = false;
+        }
+
+        var shouldTranscribe = isTimeSuitableForTranscribe &&
+            TextBoxContent != "Transcribing..." &&
+            TextBoxContent != "Sending to server...";
+
+        if (!shouldTranscribe)
+        {
+            transcribeStartTime = null;
+        }
+
+        return (shouldTranscribe, transcribeStartTime);
+    }
     #endregion
 
     #region private methods
     void RegisterSignalRHandlers()
     {
-        Action<Subtitle> showSub = ShowSubtitle;
+        Action<SubtitleDTO> showSub = ShowSubtitle;
+        Action<string, TrimmedAudioMetadataDTO> setStatusWithMetadata = SetStatusAndEditTimeline;
         Action<string> setStatus = SetStatus;
 
         _signalrClient.RegisterHandler(nameof(ShowSubtitle), showSub);
         _signalrClient.RegisterHandler(nameof(SetStatus), setStatus);
+        _signalrClient.RegisterHandler(nameof(SetStatusAndEditTimeline), setStatusWithMetadata);
     }
 
-    void ShowSubtitle(Subtitle subtitle)
+    void ShowSubtitle(SubtitleDTO subtitleDTO)
     {
-        Subtitles.Add(subtitle);
+        var timeInterval = new TimeInterval(subtitleDTO.TimeInterval.StartTime, subtitleDTO.TimeInterval.EndTime);
+
+        var subtitle = new Subtitle()
+        {
+            Text = subtitleDTO.Text,
+            TimeInterval = timeInterval
+        };
+
+        Subtitles.Insert(subtitle);
     }
 
+    void SetStatusAndEditTimeline(string status, TrimmedAudioMetadataDTO audioMetadata)
+    {
+        if (status == "Done.")
+        {
+            var endTime = audioMetadata.EndTime;
+            var startTime = audioMetadata.StartTimeOffset;
+
+            var newInterval = new TimeInterval(startTime, endTime);
+
+            _coveredTimeIntervals.Insert(newInterval);
+        }
+
+        TextBoxContent = status;
+    }
     void SetStatus(string status)
     {
         TextBoxContent = status;

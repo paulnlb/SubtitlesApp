@@ -13,6 +13,9 @@ public class SettingsService : ISettingsService
     private const string _unixSocketPathKey = "unix_socket_path";
     private const string _unixSocketPath = "media.sock";
 
+    private const string _transcribeBufferLengthKey = "transcribe_buffer_length";
+    private const int _transcribeBufferLength = 30;
+
     public string HubAddress
     {
         get => Preferences.Get(_hubAddressKey, _hubAddress);
@@ -29,5 +32,11 @@ public class SettingsService : ISettingsService
     {
         get => Preferences.Get(_baseUrlKey, _baseUrl);
         set => Preferences.Set(_baseUrlKey, value);
+    }
+
+    public int TranscribeBufferLength
+    {
+        get => Preferences.Get(_transcribeBufferLengthKey, _transcribeBufferLength);
+        set => Preferences.Set(_transcribeBufferLengthKey, value);
     }
 }

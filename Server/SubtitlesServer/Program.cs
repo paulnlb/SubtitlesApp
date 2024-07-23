@@ -18,5 +18,6 @@ var app = builder.Build();
 
 app.MapRazorPages();
 app.MapHub<WhisperHub>("/whisperHub");
+app.MapHub<WhisperMockHub>("/whisperMockHub");
 
 app.Run();

@@ -35,6 +35,18 @@ public class SignalRClient : ISignalRClient
         }
     }
 
+    public void RegisterHandler<T1, T2>(string handlerName, Action<T1, T2> handler)
+    {
+        if (_connection.State != HubConnectionState.Connected)
+        {
+            _connection.On(handlerName, handler);
+        }
+        else
+        {
+            throw new ArgumentException("Cannot register handlers while the connection is established with a hub.");
+        }
+    }
+
     public async Task<(bool ConnectionResult, string ConnectionMessage)> TryConnectAsync()
     {
         try

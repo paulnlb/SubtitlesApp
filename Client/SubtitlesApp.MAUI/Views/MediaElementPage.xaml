@@ -5,79 +5,90 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
-             x:DataType="viewModels:MediaElementViewModel"
              x:Class="SubtitlesApp.Views.MediaElementPage"
              Title="MediaElement">
+
     <ContentPage.Resources>
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanConverter" />
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
     </ContentPage.Resources>
-    <ScrollView>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="220" />
-                <RowDefinition Height="50" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            
-            <toolkit:MediaElement
-                x:Name="MediaElement"
-                Source="{Binding MediaPath}"
-                ShouldAutoPlay="False"
-                MediaEnded="OnMediaEnded"
-                MediaFailed="OnMediaFailed"
-                MediaOpened="OnMediaOpened"
-                PositionChanged="OnPositionChanged"
-                StateChanged="OnStateChanged"
-                SeekCompleted="OnSeekCompleted"
-                ShouldShowPlaybackControls="False"/>
 
-            <HorizontalStackLayout Grid.Row="1" Padding="0,0,0,15">
-                <Label HorizontalOptions="Center">
-                    <Label.Text>
-                        <MultiBinding StringFormat="{}Position: {0}/{1} - Current State: {2}">
-                            <Binding Path="Position" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
-                            <Binding Path="Duration" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
-                            <Binding Path="CurrentState" Source="{x:Reference MediaElement}" />
-                        </MultiBinding>
-                    </Label.Text>
-                </Label>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="220" />
+            <RowDefinition Height="50" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
 
-            </HorizontalStackLayout>
+        <toolkit:MediaElement
+            x:Name="MediaElement"
+            Grid.Row="0"
+            Source="{Binding MediaPath}"
+            ShouldAutoPlay="False"
+            MediaEnded="OnMediaEnded"
+            MediaFailed="OnMediaFailed"
+            MediaOpened="OnMediaOpened"
+            PositionChanged="OnPositionChanged"
+            StateChanged="OnStateChanged"
+            SeekCompleted="OnSeekCompleted"
+            ShouldShowPlaybackControls="False"/>
 
-            <Grid Grid.Row="2" Padding="0,10,0,10" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="5">
-                <Button Grid.Column="0" Text="Play" Clicked="OnPlayClicked" />
-                <Button Grid.Column="1" Text="Pause" Clicked="OnPauseClicked" />
-                <Button Grid.Column="2" Text="Stop" Clicked="OnStopClicked" />
-            </Grid>
+        <HorizontalStackLayout Grid.Row="1" Padding="0,0,0,15">
+            <Label HorizontalOptions="Center">
+                <Label.Text>
+                    <MultiBinding StringFormat="{}Position: {0}/{1} - Current State: {2}">
+                        <Binding Path="Position" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
+                        <Binding Path="Duration" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
+                        <Binding Path="CurrentState" Source="{x:Reference MediaElement}" />
+                    </MultiBinding>
+                </Label.Text>
+            </Label>
 
-            <Slider
-                x:Name="PositionSlider"
-                Grid.Row="3"
-                MinimumTrackColor="Gray"
-                DragStarted="Slider_DragStarted"
-                DragCompleted="Slider_DragCompleted"/>
+        </HorizontalStackLayout>
 
-            <Entry Grid.Row="5" x:Name="IntegerEntry" 
-               Placeholder="Enter a buffer (in seconds)" 
-               Keyboard="Numeric"
-               ReturnCommand="{Binding ChangeAudioLengthCommand}"
-               ReturnCommandParameter="{Binding Source={RelativeSource Self}, Path=Text}"/>
-
-            <Entry Grid.Row="6" Text="{Binding TextBoxContent}" IsReadOnly="True" />
-
-            <CollectionView Grid.Row="7" ItemsSource="{Binding ShownSubtitlesText}" ItemsUpdatingScrollMode="KeepLastItemInView">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Label Text="{Binding .}" />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+        <Grid Grid.Row="2" Padding="0,10,0,10" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="5">
+            <Button Grid.Column="0" Text="Play" Clicked="OnPlayClicked" />
+            <Button Grid.Column="1" Text="Pause" Clicked="OnPauseClicked" />
+            <Button Grid.Column="2" Text="Stop" Clicked="OnStopClicked" />
         </Grid>
-    </ScrollView>
+
+        <Slider
+            x:Name="PositionSlider"
+            Grid.Row="3"
+            MinimumTrackColor="Gray"
+            DragStarted="Slider_DragStarted"
+            DragCompleted="Slider_DragCompleted"/>
+
+        <Entry Grid.Row="4" x:Name="IntegerEntry" 
+           Placeholder="Enter a buffer (in seconds)" 
+           Keyboard="Numeric"
+           ReturnCommand="{Binding ChangeAudioLengthCommand}"
+           ReturnCommandParameter="{Binding Source={RelativeSource Self}, Path=Text}"/>
+
+        <Entry Grid.Row="5" Text="{Binding TextBoxContent}" IsReadOnly="True" />
+
+        <CollectionView x:Name="SubsCollection" 
+                        Grid.Row="6" 
+                        ItemsSource="{Binding Subtitles}" 
+                        ItemsUpdatingScrollMode="KeepScrollOffset"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelectionChanged"
+                        >
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding Text}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsShown}" Value="True">
+                                <Setter Property="BackgroundColor" Value="Orange" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentPage>

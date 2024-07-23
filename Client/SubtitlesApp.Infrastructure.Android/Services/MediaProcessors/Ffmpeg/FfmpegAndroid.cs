@@ -52,11 +52,11 @@ public class FfmpegAndroid : IMediaProcessor
         _disposed = true;
     }
 
-    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, int duration, CancellationToken cancellationToken)
+    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
-        _audioMetadata.SetTimeBoundaries(startTime, duration);
+        _audioMetadata.SetTimeBoundaries(startTime, endTime);
 
         var ffmpegCommand = $"-y " +
             $"-i \"{sourcePath}\" " +
@@ -93,7 +93,8 @@ public class FfmpegAndroid : IMediaProcessor
             AudioFormat = _audioMetadata.AudioFormat,
             SampleRate = _audioMetadata.SampleRate,
             ChannelsCount = _audioMetadata.ChannelsCount,
-            StartTimeOffset = _audioMetadata.StartTimeOffset
+            StartTimeOffset = _audioMetadata.StartTimeOffset,
+            EndTime = _audioMetadata.EndTime
         };
 
         return (trimmedAudioMetadata, bytesEnumerable);

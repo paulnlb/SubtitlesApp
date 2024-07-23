@@ -9,4 +9,6 @@ public class TrimmedAudioMetadataDTO
     public string AudioFormat { get; set; }
 
     public TimeSpan StartTimeOffset { get; set; }
+
+    public TimeSpan EndTime { get; set; }
 }

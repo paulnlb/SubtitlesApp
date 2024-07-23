@@ -37,10 +37,10 @@ public class NativeCodecAndroid : IMediaProcessor
     public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
-        int duration,
+        TimeSpan endTime,
         CancellationToken cancellationToken)
     {
-        _audioMetadata.SetTimeBoundaries(startTime, duration);
+        _audioMetadata.SetTimeBoundaries(startTime, endTime);
 
         if (sourcePath != _srcPath)
         {
@@ -69,7 +69,8 @@ public class NativeCodecAndroid : IMediaProcessor
             AudioFormat = _audioMetadata.AudioFormat,
             SampleRate = _audioMetadata.SampleRate,
             ChannelsCount = _audioMetadata.ChannelsCount,
-            StartTimeOffset = _audioMetadata.StartTimeOffset
+            StartTimeOffset = _audioMetadata.StartTimeOffset,
+            EndTime = _audioMetadata.EndTime
         };
 
         return (trimmedAudioMetadata, bytesEnumerable);

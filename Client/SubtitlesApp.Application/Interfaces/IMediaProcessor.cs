@@ -18,6 +18,6 @@ public interface IMediaProcessor : IDisposable
     (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
-        int duration,
+        TimeSpan endTime,
         CancellationToken cancellationToken);
 }

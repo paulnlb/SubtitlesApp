@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
 using Microsoft.Extensions.Logging;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.ViewModels;
 using System.ComponentModel;
 
@@ -13,14 +14,15 @@ public partial class MediaElementPage : ContentPage
     readonly MediaElementViewModel _viewModel;
 
     public MediaElementPage(MediaElementViewModel viewModel, ILogger<MediaElementPage> logger)
-	{
-		InitializeComponent();
+    {
+        InitializeComponent();
 
         BindingContext = viewModel;
         _viewModel = viewModel;
 
         this.logger = logger;
         MediaElement.PropertyChanged += MediaElement_PropertyChanged;
+        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
     void MediaElement_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -29,6 +31,20 @@ public partial class MediaElementPage : ContentPage
         {
             logger.LogInformation("Duration: {newDuration}", MediaElement.Duration);
             PositionSlider.Maximum = MediaElement.Duration.TotalSeconds;
+            _viewModel.MediaDuration = MediaElement.Duration;
+        }
+    }
+
+    void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        var vm = sender as MediaElementViewModel;
+
+        if (e.PropertyName == nameof(vm.CurrentSubtitle))
+        {
+            if (vm?.CurrentSubtitle != null)
+            {
+                SubsCollection.ScrollTo(vm.CurrentSubtitle);
+            }
         }
     }
 
@@ -50,29 +66,26 @@ public partial class MediaElementPage : ContentPage
 
     void OnPositionChanged(object? sender, MediaPositionChangedEventArgs e)
     {
-        var subtitle = _viewModel.Subtitles.FirstOrDefault(s => (int)s.StartTime.TotalSeconds == (int)e.Position.TotalSeconds);
-        if (subtitle != null && !_viewModel.ShownSubtitles.Contains(subtitle))
+        var currentPosition = e.Position;
+        var transcribeCommand = _viewModel.TranscribeCommand;
+
+        (var shouldTranscribe, var transcribeStartTime) = _viewModel.ShouldTranscribe(currentPosition);
+
+        if (shouldTranscribe && transcribeStartTime != null)
         {
-            _viewModel.ShownSubtitlesText.Add(subtitle.Text);
-            _viewModel.ShownSubtitles.Add(subtitle);
+            transcribeCommand.Execute(transcribeStartTime);
+        }
+        else
+        {
+            _viewModel.SetCurrentSub(currentPosition);
         }
 
-        PositionSlider.Value = e.Position.TotalSeconds;
+        PositionSlider.Value = currentPosition.TotalSeconds;
     }
 
     void OnSeekCompleted(object? sender, EventArgs e)
     {
-        var transcribeCommand = _viewModel.TranscribeCommand;
-        var clearCommand = _viewModel.ClearSubtitlesCommand;
-
-        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
-        {
-            transcribeCommand.Cancel();
-        }
-
-        clearCommand.Execute(null);
-
-        transcribeCommand.Execute(MediaElement.Position);
+        
     }
 
     void OnPlayClicked(object? sender, EventArgs e)
@@ -107,14 +120,36 @@ public partial class MediaElementPage : ContentPage
     {
         ArgumentNullException.ThrowIfNull(sender);
 
+        _viewModel.TextBoxContent = "Ready.";
+
+        var transcribeCommand = _viewModel.TranscribeCommand;
+
+        if (transcribeCommand.IsRunning && transcribeCommand.CanBeCanceled)
+        {
+            transcribeCommand.Cancel();
+        }
+
         var newValue = ((Slider)sender).Value;
         await MediaElement.SeekTo(TimeSpan.FromSeconds(newValue), CancellationToken.None);
 
-        MediaElement.Play();
+        if (MediaElement.CurrentState == MediaElementState.Paused)
+        {
+            MediaElement.Play();
+        }
     }
 
     void Slider_DragStarted(object sender, EventArgs e)
     {
         MediaElement.Pause();
+    }
+
+    async void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is Subtitle subtitle)
+        {
+            await MediaElement.SeekTo(subtitle.TimeInterval.StartTime, CancellationToken.None);
+
+            SubsCollection.SelectedItem = null;
+        }
     }
 }

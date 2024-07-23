@@ -370,3 +370,4 @@ SettingsServiceDevelopment.cs
 
 # Whisper models
 WhisperModels/
+/Server/SubtitlesServer/Properties/launchSettings.json
