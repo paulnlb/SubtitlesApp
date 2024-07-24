@@ -9,8 +9,10 @@
              Title="MediaElement">
 
     <ContentPage.Resources>
-        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanConverter" />
+        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+        <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
+        <converters:SubtitleToStartTimeConverter x:Key="SubtitleToStartTimeConverter" />
     </ContentPage.Resources>
 
     <Grid>
@@ -29,13 +31,15 @@
             Grid.Row="0"
             Source="{Binding MediaPath}"
             ShouldAutoPlay="False"
-            MediaEnded="OnMediaEnded"
-            MediaFailed="OnMediaFailed"
-            MediaOpened="OnMediaOpened"
-            PositionChanged="OnPositionChanged"
-            StateChanged="OnStateChanged"
-            SeekCompleted="OnSeekCompleted"
-            ShouldShowPlaybackControls="False"/>
+            ShouldShowPlaybackControls="False">
+
+            <toolkit:MediaElement.Behaviors>
+                <toolkit:EventToCommandBehavior
+                EventName="PositionChanged"
+                Command="{Binding ChangePositionCommand}"
+                CommandParameter="{Binding Source={x:Reference MediaElement}, Path=Position}"/>
+            </toolkit:MediaElement.Behaviors>
+        </toolkit:MediaElement>
 
         <HorizontalStackLayout Grid.Row="1" Padding="0,0,0,15">
             <Label HorizontalOptions="Center">
@@ -51,17 +55,25 @@
         </HorizontalStackLayout>
 
         <Grid Grid.Row="2" Padding="0,10,0,10" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="5">
-            <Button Grid.Column="0" Text="Play" Clicked="OnPlayClicked" />
-            <Button Grid.Column="1" Text="Pause" Clicked="OnPauseClicked" />
-            <Button Grid.Column="2" Text="Stop" Clicked="OnStopClicked" />
+            <Button Grid.Column="0" Text="Play" Command="{Binding PlayCommand}" />
+            <Button Grid.Column="1" Text="Pause" Command="{Binding PauseCommand}"/>
+            <Button Grid.Column="2" Text="Stop" Command="{Binding StopCommand}" />
         </Grid>
 
         <Slider
             x:Name="PositionSlider"
             Grid.Row="3"
+            Value="{Binding Source={x:Reference MediaElement}, Path=Position, Converter={StaticResource TimeSpanToSecondsConverter}}"
+            Maximum="{Binding Source={x:Reference MediaElement}, Path=Duration, Converter={StaticResource TimeSpanToSecondsConverter}}"
             MinimumTrackColor="Gray"
-            DragStarted="Slider_DragStarted"
-            DragCompleted="Slider_DragCompleted"/>
+            DragStartedCommand="{Binding PauseCommand}">
+            <Slider.Behaviors>
+                <toolkit:EventToCommandBehavior
+                    EventName="DragCompleted"
+                    Command="{Binding SeekToCommand}"
+                    CommandParameter="{Binding Source={x:Reference PositionSlider}, Path=Value, Converter={StaticResource SecondsToTimeSpanConverter}}"/>
+            </Slider.Behaviors>
+        </Slider>
 
         <Entry Grid.Row="4" x:Name="IntegerEntry" 
            Placeholder="Enter a buffer (in seconds)" 
@@ -76,7 +88,8 @@
                         ItemsSource="{Binding Subtitles}" 
                         ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"
-                        SelectionChanged="OnSelectionChanged"
+                        SelectionChangedCommand="{Binding SeekToCommand}"
+                        SelectionChangedCommandParameter="{Binding Source={x:Reference SubsCollection}, Path=SelectedItem, Converter={StaticResource SubtitleToStartTimeConverter}}"
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate>
