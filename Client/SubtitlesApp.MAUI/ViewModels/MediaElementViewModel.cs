@@ -85,13 +85,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    public async Task ChangePosition(TimeSpan currentPosition, CancellationToken cancellationToken)
+    public async Task ChangePositionAsync(TimeSpan currentPosition)
     {
         (var shouldTranscribe, var transcribeStartTime) = ShouldTranscribe(currentPosition);
 
         if (shouldTranscribe && transcribeStartTime != null)
         {
-            await TranscribeAsync(transcribeStartTime.Value, cancellationToken);
+            TextBoxContent = "Sending to server...";
+
+            await TranscribeAsync(transcribeStartTime.Value, CancellationToken.None);
         }
         else
         {
@@ -258,7 +260,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         return (shouldTranscribe, transcribeStartTime);
     }
 
-    public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
+    async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
         _signalrClient.CancelTranscription();
 
@@ -268,8 +270,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             endTime = MediaDuration;
         }
-
-        TextBoxContent = "Sending to server...";
 
         try
         {
