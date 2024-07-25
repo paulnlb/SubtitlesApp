@@ -1,7 +1,4 @@
-using CommunityToolkit.Maui.Core.Primitives;
 using CommunityToolkit.Maui.Views;
-using Microsoft.Extensions.Logging;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Enums;
 using SubtitlesApp.ViewModels;
 using System.ComponentModel;
@@ -16,26 +13,10 @@ public partial class MediaElementPage : ContentPage
 
         BindingContext = viewModel;
 
-        viewModel.PropertyChanged += ViewModel_CurrenSubChanged;
         viewModel.PropertyChanged += ViewModel_SeekChanged;
         viewModel.PropertyChanged += ViewModel_PlayerStateChanged;
 
         MediaElement.SetBinding(MediaElement.DurationProperty, nameof(MediaElementViewModel.MediaDuration));
-    }
-
-    void ViewModel_CurrenSubChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is not MediaElementViewModel vm)
-        {
-            return;
-        }
-
-        if (e.PropertyName == nameof(vm.CurrentSubtitle) && vm.CurrentSubtitle != null)
-        {
-            SubsCollection.SelectedItem = null;
-
-            SubsCollection.ScrollTo(vm.CurrentSubtitle);
-        }
     }
 
     async void ViewModel_SeekChanged(object? sender, PropertyChangedEventArgs e)
@@ -49,10 +30,8 @@ public partial class MediaElementPage : ContentPage
         {
             await MediaElement.SeekTo(vm.LastSeekedPosition, CancellationToken.None);
 
-            if (MediaElement.CurrentState == MediaElementState.Paused)
-            {
-                MediaElement.Play();
-            }
+            // unselect the current subtitle
+            SubsCollection.SelectedItem = null;
         }
     }
 

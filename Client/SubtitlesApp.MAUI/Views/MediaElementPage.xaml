@@ -85,8 +85,8 @@
 
         <CollectionView x:Name="SubsCollection" 
                         Grid.Row="6" 
-                        ItemsSource="{Binding Subtitles}" 
-                        ItemsUpdatingScrollMode="KeepScrollOffset"
+                        ItemsSource="{Binding ShownSubtitles}" 
+                        ItemsUpdatingScrollMode="KeepLastItemInView"
                         SelectionMode="Single"
                         SelectionChangedCommand="{Binding SeekToCommand}"
                         SelectionChangedCommandParameter="{Binding Source={x:Reference SubsCollection}, Path=SelectedItem, Converter={StaticResource SubtitleToStartTimeConverter}}"
@@ -95,7 +95,7 @@
                 <DataTemplate>
                     <Label Text="{Binding Text}">
                         <Label.Triggers>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsShown}" Value="True">
+                            <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="True">
                                 <Setter Property="BackgroundColor" Value="Orange" />
                             </DataTrigger>
                         </Label.Triggers>
