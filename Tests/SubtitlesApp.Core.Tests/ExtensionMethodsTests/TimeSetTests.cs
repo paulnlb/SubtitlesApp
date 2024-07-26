@@ -2,15 +2,69 @@ using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Core.Tests.ExtensionMethodsTests;
 
-public class TimeIntervalsSetTests
+public class TimeSetTests
 {
     TimeSet _timeSet;
 
     [SetUp]
     public void Setup()
     {
-        _timeSet = new TimeSet();
+        _timeSet = new TimeSetLinkedList();
     }
+
+    #region get by time stamp
+    [Test(Description = "Get by time stamp from empty TimeSet")]
+    public void GetByTimeStampFromEmptyTimeSet_ShouldReturnNull()
+    {
+        (var interval, var index) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(interval, Is.Null);
+            Assert.That(index, Is.EqualTo(-1));
+        });
+    }
+
+    [Test(Description = "Get by time stamp from TimeSet with one interval")]
+    public void GetByTimeStampFromTimeSetWithOneInterval_ShouldReturnInterval()
+    {
+        var timeInterval = new TimeInterval(0, 10);
+
+        _timeSet.Insert(timeInterval);
+        (var intervalFromList, var index) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(intervalFromList, Is.EqualTo(timeInterval));
+            Assert.That(index, Is.EqualTo(0));
+        });
+    }
+
+    [Test(Description = "Get by time stamp from TimeSet with two intervals")]
+    public void GetByTimeStampFromTimeSetWithTwoIntervals_ShouldReturnInterval()
+    {
+        var timeInterval1 = new TimeInterval(0, 10);
+        var timeInterval2 = new TimeInterval(11, 20);
+
+        _timeSet.Insert(timeInterval1);
+        _timeSet.Insert(timeInterval2);
+
+        (var intervalFromList1, var index1) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        (var intervalFromList2, var index2) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(15));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(intervalFromList1, Is.EqualTo(timeInterval1));
+            Assert.That(index1, Is.EqualTo(0));
+
+            Assert.That(intervalFromList2, Is.EqualTo(timeInterval2));
+            Assert.That(index2, Is.EqualTo(1));
+        });
+    }
+
+    #endregion
+
+    #region insert
 
     [Test(Description = "Insert one time interval in empty TimeSet")]
     public void InsertOneInterval()
@@ -62,6 +116,23 @@ public class TimeIntervalsSetTests
         Assert.That(intervalFromList, Is.Not.Null);
         Assert.That(intervalFromList.ContainsTime(TimeSpan.Zero));
         Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(14)));
+    }
+
+    [Test(Description = "Insert two identical time intervals in TimeSet")]
+    public void InsertTwoIdenticalIntervals_ShouldResultOneInterval()
+    {
+        var timeInterval1 = new TimeInterval(0, 10);
+        var timeInterval2 = new TimeInterval(0, 10);
+
+        _timeSet.Insert(timeInterval1);
+        _timeSet.Insert(timeInterval2);
+
+        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+
+        Assert.That(_timeSet.Count, Is.EqualTo(1));
+        Assert.That(intervalFromList, Is.Not.Null);
+        Assert.That(intervalFromList.ContainsTime(TimeSpan.Zero));
+        Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(9)));
     }
 
     [Test(Description = "Insert two adjacent time intervals in TimeSet")]
@@ -226,9 +297,9 @@ public class TimeIntervalsSetTests
         (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
-        Assert.That(intervalFromList, Is.Not.Null);
-        Assert.That(intervalFromList.ContainsTime(TimeSpan.Zero));
-        Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(19)));
+        Assert.That(intervalFromList, Is.Not.Null, "Resulted interval is null");
+        Assert.That(intervalFromList.ContainsTime(TimeSpan.Zero), "Resulted interval does not contain 0.");
+        Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(19)), "Resulted interval does not contain 19.");
     }
 
     [Test(Description = "Insert two NON overlapping intervals" +
@@ -276,4 +347,5 @@ public class TimeIntervalsSetTests
         Assert.That(intervalFromList.ContainsTime(TimeSpan.Zero));
         Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(19)));
     }
+    #endregion
 }

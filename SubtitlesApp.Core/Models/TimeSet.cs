@@ -4,7 +4,7 @@ namespace SubtitlesApp.Core.Models;
 
 public class TimeSet
 {
-    protected List<TimeInterval> _timeIntervals = [];
+    private readonly List<TimeInterval> _timeIntervals = [];
 
     public virtual int Count { get => _timeIntervals.Count; }
 
