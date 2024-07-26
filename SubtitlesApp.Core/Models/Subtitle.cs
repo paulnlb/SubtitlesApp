@@ -5,20 +5,20 @@ namespace SubtitlesApp.Core.Models;
 
 public class Subtitle : INotifyPropertyChanged
 {
-    bool _isShown = false;
+    bool _isHighlighted = false;
 
     public TimeInterval TimeInterval { get; set; }
 
     public string Text { get; set; }
 
-    public bool IsShown
+    public bool IsHighlighted
     {
-        get => _isShown;
+        get => _isHighlighted;
         set
         {
-            if (_isShown != value)
+            if (_isHighlighted != value)
             {
-                _isShown = value;
+                _isHighlighted = value;
                 OnPropertyChanged();
             }
         }

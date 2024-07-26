@@ -23,8 +23,6 @@ public class WhisperHub : Hub
 
         await foreach (var subtitle in subtitles)
         {
-            Console.WriteLine($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}");
-
             var subtitleDto = new SubtitleDTO
             {
                 TimeInterval = new TimeIntervalDTO() { 
@@ -34,7 +32,11 @@ public class WhisperHub : Hub
                 Text = subtitle.Text
             };
 
+            Console.Write($"=> ");
+
             await Clients.Caller.SendAsync("ShowSubtitle", subtitleDto);
+
+            Console.Write($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}\n");
         }
 
         cancellationManager.RemoveTask(Context.ConnectionId);
