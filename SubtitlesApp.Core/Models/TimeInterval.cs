@@ -14,6 +14,12 @@ public class TimeInterval
         EndTime = endTime;
     }
 
+    public TimeInterval(int startTimeSec, int endTimeSec)
+    {
+        StartTime = TimeSpan.FromSeconds(startTimeSec);
+        EndTime = TimeSpan.FromSeconds(endTimeSec);
+    }
+
     public TimeSpan StartTime { get; }
 
     public TimeSpan EndTime { get; }
