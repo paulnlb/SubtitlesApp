@@ -6,7 +6,6 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Shared.DTOs;
 using SubtitlesApp.Shared.Extensions;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -44,6 +43,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     readonly List<TimeInterval> _coveredTimeIntervals;
 
     TimeSpan _currentPosition;
+    TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
 
     public MediaElementViewModel(
         ISignalRClient signalRClient,
@@ -101,7 +101,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         if (shouldTranscribe && transcribeStartTime != null)
         {
-            TextBoxContent = "Sending to server...";
+            _transcribeStatus = TranscribeStatus.Transcribing;
 
             await TranscribeAsync(transcribeStartTime.Value, CancellationToken.None);
         }
@@ -114,8 +114,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     public void SeekTo(TimeSpan position)
     {
-        Debug.WriteLine($"SeekTo raised");
-        TextBoxContent = "Ready.";
+        _transcribeStatus = TranscribeStatus.NotTranscribing;
 
         LastSeekedPosition = position;
 
@@ -215,6 +214,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         if (status == "Done.")
         {
+            _transcribeStatus = TranscribeStatus.NotTranscribing;
+
             var endTime = audioMetadata.EndTime;
             var startTime = audioMetadata.StartTimeOffset;
 
@@ -256,7 +257,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         // if not, search in the non-shown subtitles collection
         if (shownSubtitle == null)
         {
-            (var nonShownSubtitle, _) = Subtitles.BinarySearch(position);
+            (var nonShownSubtitle, var nonShownIndex) = Subtitles.BinarySearch(position);
 
             // if found, highlight it and move it to the shown collection
             if (nonShownSubtitle != null)
@@ -270,8 +271,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
                 CurrentSubtitle = nonShownSubtitle;
 
-                Subtitles.Remove(nonShownSubtitle);
                 ShownSubtitles.Insert(nonShownSubtitle);
+                Subtitles.RemoveAt(nonShownIndex);
             }
         }
     }
@@ -292,8 +293,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
 
         var shouldTranscribe = isTimeSuitableForTranscribe &&
-            TextBoxContent != "Transcribing..." &&
-            TextBoxContent != "Sending to server...";
+            _transcribeStatus == TranscribeStatus.NotTranscribing;
 
         if (!shouldTranscribe)
         {
@@ -323,6 +323,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
                 position,
                 endTime,
                 cancellationToken);
+
+            TextBoxContent = "Sending to server...";
 
             await _signalrClient.SendAsync(audioChunks, metadata, cancellationToken);
         }
