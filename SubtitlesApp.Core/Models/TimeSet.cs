@@ -11,36 +11,6 @@ public class TimeSet
 
     public int Count { get => _timeIntervals.Count; }
 
-    public void Insert(TimeInterval newInterval)
-    {
-        (var leftNode, var rightNode) = GetNeighborNodesOf(newInterval);
-
-        var nextNodeToLeft = leftNode == null ? _timeIntervals.First : leftNode.Next;
-
-        if (nextNodeToLeft != null)
-        {
-            RemoveNodeIfOverlaps(nextNodeToLeft, ref newInterval);
-        }
-
-        var prevNodeToRight = rightNode == null ? _timeIntervals.Last : rightNode.Previous;
-
-        if (prevNodeToRight != null)
-        {
-            RemoveNodeIfOverlaps(prevNodeToRight, ref newInterval);
-        }
-
-        RemoveSubListBetween(leftNode, rightNode);
-
-        if (leftNode?.List == null)
-        {
-            _timeIntervals.AddFirst(newInterval);
-        }
-        else
-        {
-            _timeIntervals.AddAfter(leftNode, newInterval);
-        }
-    }
-
     public (TimeInterval? Interval, int index) GetByTimeStamp(TimeSpan timeStamp)
     {
         var currentNode = _timeIntervals.First;
@@ -60,53 +30,61 @@ public class TimeSet
         return (null, -1);
     }
 
-    (LinkedListNode<TimeInterval>? LeftNode, LinkedListNode<TimeInterval>? RightNode) GetNeighborNodesOf(TimeInterval newInterval)
+    public void Insert(TimeInterval newInterval)
+    {
+        (var insertAfterNode, var updatedInterval) = UpdateAndFindInsertionPoint(newInterval);
+
+        if (insertAfterNode?.List == null)
+        {
+            _timeIntervals.AddFirst(updatedInterval);
+        }
+        else
+        {
+            _timeIntervals.AddAfter(insertAfterNode, updatedInterval);
+        }
+    }
+
+    (LinkedListNode<TimeInterval>? InsertAfterNode, TimeInterval UpdatedInterval) UpdateAndFindInsertionPoint(TimeInterval intervalToInsert)
     {
         var currentNode = _timeIntervals.First;
-        LinkedListNode<TimeInterval>? leftNode = null;
-        LinkedListNode<TimeInterval>? rightNode = null;
+        LinkedListNode<TimeInterval>? insertAfterNode = null;
 
         while (currentNode != null)
         {
-            if (currentNode.Value.IsEarlierThan(newInterval.StartTime))
+            var currentInterval = currentNode.Value;
+
+            if (currentInterval.OverlapsOrAdjacentTo(intervalToInsert))
             {
-                leftNode = currentNode;
+                intervalToInsert = intervalToInsert.Union(currentInterval);
+
+                currentNode = RemoveCurrentNode(currentNode);
+
+                continue;
             }
-            else if (currentNode.Value.IsLaterThan(newInterval.EndTime))
+            else if (currentInterval.IsEarlierThan(intervalToInsert.StartTime))
             {
-                rightNode = currentNode;
+                insertAfterNode = currentNode;
+            }
+            else if (currentInterval.IsLaterThan(intervalToInsert.EndTime))
+            {
                 break;
             }
 
             currentNode = currentNode.Next;
         }
 
-        return (leftNode, rightNode);
-    }
-
-    void RemoveSubListBetween(LinkedListNode<TimeInterval>? start, LinkedListNode<TimeInterval>? end)
-    {
-        var currentNode = start == null ? _timeIntervals.First : start.Next;
-
-        while (currentNode != end && currentNode != null)
-        {
-            var nextNode = currentNode.Next;
-            _timeIntervals.Remove(currentNode);
-            currentNode = nextNode;
-        }
+        return (insertAfterNode, intervalToInsert);
     }
 
     /// <summary>
-    ///     Removes the node if it overlaps with the interval and updates the interval to be the union of the two.
+    /// Removes the current node from the linked list and returns the next node.
     /// </summary>
-    /// <param name="node"></param>
-    /// <param name="interval"></param>
-    void RemoveNodeIfOverlaps(LinkedListNode<TimeInterval> node, ref TimeInterval interval)
+    /// <param name="currentNode">The current node to be removed.</param>
+    /// <returns>The next node in the linked list.</returns>
+    private LinkedListNode<TimeInterval>? RemoveCurrentNode(LinkedListNode<TimeInterval> currentNode)
     {
-        if (node.Value.OverlapsOrAdjacentTo(interval))
-        {
-            interval = interval.Union(node.Value);
-            _timeIntervals.Remove(node);
-        }
+        var nextNode = currentNode.Next;
+        _timeIntervals.Remove(currentNode);
+        return nextNode;
     }
 }
