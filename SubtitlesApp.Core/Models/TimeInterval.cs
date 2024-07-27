@@ -14,6 +14,12 @@ public class TimeInterval
         EndTime = endTime;
     }
 
+    public TimeInterval(int startTimeSec, int endTimeSec)
+    {
+        StartTime = TimeSpan.FromSeconds(startTimeSec);
+        EndTime = TimeSpan.FromSeconds(endTimeSec);
+    }
+
     public TimeSpan StartTime { get; }
 
     public TimeSpan EndTime { get; }
@@ -22,7 +28,7 @@ public class TimeInterval
         StartTime <= time && EndTime > time;
 
     public bool IsEarlierThan(TimeSpan time) =>
-        StartTime < time && EndTime < time;
+        StartTime < time && EndTime <= time;
 
     public bool IsLaterThan(TimeSpan time) =>
         StartTime > time && EndTime > time;
@@ -35,6 +41,11 @@ public class TimeInterval
     public bool IsAdjacentTo(TimeInterval other)
     {
         return EndTime == other.StartTime || StartTime == other.EndTime;
+    }
+
+    public bool OverlapsOrAdjacentTo(TimeInterval other)
+    {
+        return Overlaps(other) || IsAdjacentTo(other);
     }
 
     public TimeInterval Union(TimeInterval other)

@@ -40,7 +40,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
-    readonly List<TimeInterval> _coveredTimeIntervals;
+    readonly TimeSet _coveredTimeIntervals;
 
     TimeSpan _currentPosition;
     TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
@@ -64,7 +64,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         _signalrClient = signalRClient;
         _mediaProcessor = mediaProcessor;
-        _coveredTimeIntervals = [];
+        _coveredTimeIntervals = new TimeSet();
         _currentPosition = TimeSpan.Zero;
 
         #endregion
@@ -208,6 +208,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             Subtitles.Insert(subtitle);
         }
+
+        _coveredTimeIntervals.Insert(timeInterval);
     }
 
     void SetStatusAndEditTimeline(string status, TrimmedAudioMetadataDTO audioMetadata)
@@ -279,7 +281,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     (bool ShouldTranscribe, TimeSpan? TranscribeStartTime) ShouldTranscribe(TimeSpan position)
     {
-        (var currentTimeInterval, _) = _coveredTimeIntervals.BinarySearch(position);
+        (var currentTimeInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
 
         var isTimeSuitableForTranscribe =
             currentTimeInterval == null ||
