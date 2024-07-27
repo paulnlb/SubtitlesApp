@@ -62,6 +62,38 @@ public class TimeSetTests
         });
     }
 
+    [Test(Description = "Get by the same time stamp from TimeSet twice to test the cache works and speeds up the retrieval")]
+    [TestCase(998)]
+    [TestCase(598)]
+    [TestCase(398)]
+    public void GetByTimeStampTwice_ShouldReturnIntervalFasterAtSecondAttempt(int secondToSearch)
+    {
+        var timeSpanToSearch = TimeSpan.FromSeconds(secondToSearch);
+
+        // insert 100 intervals
+        for (int i = 0; i < 1000; i+=10)
+        {
+            _timeSet.Insert(new TimeInterval(i, i + 9));
+        }
+
+        var watch1 = System.Diagnostics.Stopwatch.StartNew();
+        _ = _timeSet.GetByTimeStamp(timeSpanToSearch);
+        watch1.Stop();
+
+        var watch2 = System.Diagnostics.Stopwatch.StartNew();
+        _ = _timeSet.GetByTimeStamp(timeSpanToSearch);
+        watch2.Stop();
+
+        var elapsedTime1 = watch1.ElapsedTicks;
+        var elapsedTime2 = watch2.ElapsedTicks;
+
+        TestContext.Out.WriteLine($"Search the {timeSpanToSearch} time without cache: {elapsedTime1} ticks");
+        TestContext.Out.WriteLine($"Search the {timeSpanToSearch} time with cache: {elapsedTime2} ticks");
+
+        Assert.That(elapsedTime2, Is.LessThan(elapsedTime1));
+    }
+
+
     #endregion
 
     #region insert

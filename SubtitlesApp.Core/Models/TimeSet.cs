@@ -9,10 +9,18 @@ public class TimeSet
 {
     private readonly LinkedList<TimeInterval> _timeIntervals = [];
 
+    private TimeInterval? _cachedTimeInterval;
+    private int _cachedIndex = -1;
+
     public int Count { get => _timeIntervals.Count; }
 
     public (TimeInterval? Interval, int index) GetByTimeStamp(TimeSpan timeStamp)
     {
+        if (_cachedTimeInterval?.ContainsTime(timeStamp) == true)
+        {
+            return (_cachedTimeInterval, _cachedIndex);
+        }
+
         var currentNode = _timeIntervals.First;
         var index = 0;
 
@@ -20,6 +28,9 @@ public class TimeSet
         {
             if (currentNode.Value.ContainsTime(timeStamp))
             {
+                _cachedTimeInterval = currentNode.Value;
+                _cachedIndex = index;
+
                 return (currentNode.Value, index);
             }
 
@@ -42,6 +53,9 @@ public class TimeSet
         {
             _timeIntervals.AddAfter(insertAfterNode, updatedInterval);
         }
+
+        _cachedTimeInterval = null;
+        _cachedIndex = -1;
     }
 
     (LinkedListNode<TimeInterval>? InsertAfterNode, TimeInterval UpdatedInterval) UpdateAndFindInsertionPoint(TimeInterval intervalToInsert)
