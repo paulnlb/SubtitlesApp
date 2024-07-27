@@ -9,7 +9,7 @@ public class TimeSetTests
     [SetUp]
     public void Setup()
     {
-        _timeSet = new TimeSetLinkedList();
+        _timeSet = new TimeSet();
     }
 
     #region get by time stamp

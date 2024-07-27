@@ -64,7 +64,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         _signalrClient = signalRClient;
         _mediaProcessor = mediaProcessor;
-        _coveredTimeIntervals = new TimeSetLinkedList();
+        _coveredTimeIntervals = new TimeSet();
         _currentPosition = TimeSpan.Zero;
 
         #endregion

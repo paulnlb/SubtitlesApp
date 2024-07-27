@@ -2,103 +2,111 @@
 
 namespace SubtitlesApp.Core.Models;
 
+/// <summary>
+///     Represents a set of time intervals. The intervals are stored in LinkedList and are sorted by their start time.
+/// </summary>
 public class TimeSet
 {
-    private readonly List<TimeInterval> _timeIntervals = [];
+    private readonly LinkedList<TimeInterval> _timeIntervals = [];
 
-    public virtual int Count { get => _timeIntervals.Count; }
+    public int Count { get => _timeIntervals.Count; }
 
-    public virtual void Insert(TimeInterval newInterval)
+    public void Insert(TimeInterval newInterval)
     {
-        (_, int index) = GetLaterClosestTo(newInterval.EndTime);
+        (var leftNode, var rightNode) = GetNeighborNodesOf(newInterval);
 
-        if (index == -1)
+        var nextNodeToLeft = leftNode == null ? _timeIntervals.First : leftNode.Next;
+
+        if (nextNodeToLeft != null)
         {
-            index = _timeIntervals.Count;
+            RemoveNodeIfOverlaps(nextNodeToLeft, ref newInterval);
         }
 
-        var overlapsOrAdjacentLeft = index > 0 && (_timeIntervals[index - 1].Overlaps(newInterval) ||
-            _timeIntervals[index - 1].IsAdjacentTo(newInterval));
+        var prevNodeToRight = rightNode == null ? _timeIntervals.Last : rightNode.Previous;
 
-        var overlapsOrAdjacentRight = index < _timeIntervals.Count && (_timeIntervals[index].Overlaps(newInterval) ||
-            _timeIntervals[index].IsAdjacentTo(newInterval));
+        if (prevNodeToRight != null)
+        {
+            RemoveNodeIfOverlaps(prevNodeToRight, ref newInterval);
+        }
 
-        if (overlapsOrAdjacentLeft && overlapsOrAdjacentRight)
+        RemoveSubListBetween(leftNode, rightNode);
+
+        if (leftNode?.List == null)
         {
-            _timeIntervals[index - 1] = _timeIntervals[index - 1].Union(_timeIntervals[index]);
-            _timeIntervals.RemoveAt(index);
-        }
-        else if (overlapsOrAdjacentLeft)
-        {
-            _timeIntervals[index - 1] = _timeIntervals[index - 1].Union(newInterval);
-        }
-        else if (overlapsOrAdjacentRight)
-        {
-            _timeIntervals[index] = _timeIntervals[index].Union(newInterval);
+            _timeIntervals.AddFirst(newInterval);
         }
         else
         {
-            _timeIntervals.Insert(index, newInterval);
+            _timeIntervals.AddAfter(leftNode, newInterval);
         }
     }
 
-    public virtual (TimeInterval? Interval, int index) GetByTimeStamp(TimeSpan timeStamp)
+    public (TimeInterval? Interval, int index) GetByTimeStamp(TimeSpan timeStamp)
     {
-        int low = 0;
-        int high = _timeIntervals.Count - 1;
+        var currentNode = _timeIntervals.First;
+        var index = 0;
 
-        while (low <= high)
+        while (currentNode != null)
         {
-            int mid = low + (high - low) / 2;
-            var midVal = _timeIntervals[mid];
+            if (currentNode.Value.ContainsTime(timeStamp))
+            {
+                return (currentNode.Value, index);
+            }
 
-            if (midVal.ContainsTime(timeStamp))
-            {
-                return (midVal, mid);
-            }
-            else if (midVal.IsEarlierThan(timeStamp))
-            {
-                low = mid + 1;
-            }
-            else
-            {
-                high = mid - 1;
-            }
+            currentNode = currentNode.Next;
+            index++;
         }
 
         return (null, -1);
     }
 
-    (TimeInterval? Sub, int index) GetLaterClosestTo(TimeSpan timeStamp)
+    (LinkedListNode<TimeInterval>? LeftNode, LinkedListNode<TimeInterval>? RightNode) GetNeighborNodesOf(TimeInterval newInterval)
     {
-        int low = 0;
-        int high = _timeIntervals.Count - 1;
-        int mid = low + (high - low) / 2;
+        var currentNode = _timeIntervals.First;
+        LinkedListNode<TimeInterval>? leftNode = null;
+        LinkedListNode<TimeInterval>? rightNode = null;
 
-        if (_timeIntervals.Count == 0)
-            return (null, 0);
-
-        if (_timeIntervals[0].StartTime >= timeStamp)
-            return (_timeIntervals[0], 0);
-        if (_timeIntervals[^1].EndTime <= timeStamp)
-            return (null, -1);
-
-        while (low < high)
+        while (currentNode != null)
         {
-            var midVal = _timeIntervals[mid];
-
-            if (midVal.IsEarlierThan(timeStamp))
+            if (currentNode.Value.IsEarlierThan(newInterval.StartTime))
             {
-                low = mid + 1;
+                leftNode = currentNode;
             }
-            else
+            else if (currentNode.Value.IsLaterThan(newInterval.EndTime))
             {
-                high = mid;
+                rightNode = currentNode;
+                break;
             }
 
-            mid = low + (high - low) / 2;
+            currentNode = currentNode.Next;
         }
 
-        return (_timeIntervals[mid], mid);
+        return (leftNode, rightNode);
+    }
+
+    void RemoveSubListBetween(LinkedListNode<TimeInterval>? start, LinkedListNode<TimeInterval>? end)
+    {
+        var currentNode = start == null ? _timeIntervals.First : start.Next;
+
+        while (currentNode != end && currentNode != null)
+        {
+            var nextNode = currentNode.Next;
+            _timeIntervals.Remove(currentNode);
+            currentNode = nextNode;
+        }
+    }
+
+    /// <summary>
+    ///     Removes the node if it overlaps with the interval and updates the interval to be the union of the two.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="interval"></param>
+    void RemoveNodeIfOverlaps(LinkedListNode<TimeInterval> node, ref TimeInterval interval)
+    {
+        if (node.Value.OverlapsOrAdjacentTo(interval))
+        {
+            interval = interval.Union(node.Value);
+            _timeIntervals.Remove(node);
+        }
     }
 }
