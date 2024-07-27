@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui.Core.Extensions;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Enums;
@@ -199,15 +200,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             Text = subtitleDTO.Text,
             TimeInterval = timeInterval
         };
-
-        if (subtitle.TimeInterval.StartTime <= _currentPosition)
-        {
-            ShownSubtitles.Insert(subtitle);
-        }
-        else
-        {
-            Subtitles.Insert(subtitle);
-        }
+        
+        Subtitles.Insert(subtitle);
 
         _coveredTimeIntervals.Insert(timeInterval);
     }
@@ -240,42 +234,36 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             return;
         }
 
-        // check if the subtitle is already shown
-        (var shownSubtitle, _) = ShownSubtitles.BinarySearch(position);
+        (var sub, var index) = Subtitles.BinarySearch(position);
 
-        // if it is, highlight it
-        if (shownSubtitle != null)
+        if (sub != null)
         {
+            // this condition checks if the subtitle with given index
+            // should come right after the last shown subtitle
+            // if not, it means that the user has seeked to a different position
+            // and the shown subtitles should be aligned with the current position
+            // either by cutting the shown subtitles or by adding the missing ones
+            if (ShownSubtitles.Count != index)
+            {
+                // subtitle with given index should be last in the list
+                // so we take all the elements before it
+                // and then add the subtitle with given index out of this block
+                ShownSubtitles = Subtitles
+                .Take(index)
+                .ToObservableCollection();
+            }
+
+            ShownSubtitles.Add(sub);
+
+            // highlight the current subtitle after adding it to the list
             if (CurrentSubtitle != null)
             {
                 CurrentSubtitle.IsHighlighted = false;
             }
 
-            shownSubtitle.IsHighlighted = true;
+            sub.IsHighlighted = true;
 
-            CurrentSubtitle = shownSubtitle;
-        }
-
-        // if not, search in the non-shown subtitles collection
-        if (shownSubtitle == null)
-        {
-            (var nonShownSubtitle, var nonShownIndex) = Subtitles.BinarySearch(position);
-
-            // if found, highlight it and move it to the shown collection
-            if (nonShownSubtitle != null)
-            {
-                if (CurrentSubtitle != null)
-                {
-                    CurrentSubtitle.IsHighlighted = false;
-                }
-
-                nonShownSubtitle.IsHighlighted = true;
-
-                CurrentSubtitle = nonShownSubtitle;
-
-                ShownSubtitles.Insert(nonShownSubtitle);
-                Subtitles.RemoveAt(nonShownIndex);
-            }
+            CurrentSubtitle = sub;
         }
     }
 
