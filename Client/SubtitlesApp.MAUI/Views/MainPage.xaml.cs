@@ -1,4 +1,6 @@
-﻿namespace SubtitlesApp.Views;
+﻿using SubtitlesApp.Services;
+
+namespace SubtitlesApp.Views;
 
 public partial class MainPage : ContentPage
 {
@@ -23,25 +25,16 @@ public partial class MainPage : ContentPage
             case loadLocalResource:
                 await Permissions.RequestAsync<Permissions.StorageRead>();
                 await Permissions.RequestAsync<Permissions.StorageWrite>();
-                PickOptions pickopt = new()
+
+                string? path = null;
+
+#if ANDROID
+                path = await MediaChooser.PickVideoAsync();
+#endif
+
+                if (path != null)
                 {
-                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                        {
-                            { DevicePlatform.iOS, new[] { "public.video" } }, // UTType values
-                            { DevicePlatform.Android, new[] { "video/*" } }, // MIME types
-                            { DevicePlatform.WinUI, new[] { "mp4", "avi" } }, // file extensions
-                            { DevicePlatform.macOS, new[] { "public.video" } }, // UTType values
-                            { DevicePlatform.Tizen, new[] { "video/*" } }, // MIME types
-                        }),
-
-                    PickerTitle = "Select an audio to transcribe"
-                };
-
-                var file = await FilePicker.Default.PickAsync(pickopt);
-
-                if (file != null)
-                {
-                    OpenMediaElementPage(file.FullPath);
+                    OpenMediaElementPage(path);
                 }
 
                 return;
