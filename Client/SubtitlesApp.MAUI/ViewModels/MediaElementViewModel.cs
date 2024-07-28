@@ -18,9 +18,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     ObservableCollection<Subtitle> _subtitles;
 
     [ObservableProperty]
-    ObservableCollection<Subtitle> _shownSubtitles;
-
-    [ObservableProperty]
     string _textBoxContent;
 
     [ObservableProperty]
@@ -30,6 +27,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     int _transcribeBufferLength;
 
     [ObservableProperty]
+    int _currentSubtitleIndex = -1;
+
+    [ObservableProperty]
     Subtitle? _currentSubtitle;
 
     [ObservableProperty]
@@ -37,13 +37,16 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     MediaPlayerStates _playerState;
+
+    [ObservableProperty]
+    TimeSpan _currentPosition;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
     readonly TimeSet _coveredTimeIntervals;
 
-    TimeSpan _currentPosition;
+    
     TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
 
     public MediaElementViewModel(
@@ -56,7 +59,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         TextBoxContent = "";
         MediaPath = null;
         Subtitles = [];
-        ShownSubtitles = [];
         TranscribeBufferLength = settings.TranscribeBufferLength;
 
         #endregion
@@ -96,7 +98,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     public async Task ChangePositionAsync(TimeSpan currentPosition)
     {
-        _currentPosition = currentPosition;
+        CurrentPosition = currentPosition;
 
         (var shouldTranscribe, var transcribeStartTime) = ShouldTranscribe(currentPosition);
 
@@ -120,6 +122,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         LastSeekedPosition = position;
 
         Play();
+    }
+
+    [RelayCommand]
+    public void SeekToSub(Subtitle subtitle)
+    {
+        if (subtitle != CurrentSubtitle && subtitle != null)
+        {
+            SeekTo(subtitle.TimeInterval.StartTime);
+        }
     }
 
     [RelayCommand]
@@ -238,24 +249,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         if (sub != null)
         {
-            // this condition checks if the subtitle with given index
-            // should come right after the last shown subtitle
-            // if not, it means that the user has seeked to a different position
-            // and the shown subtitles should be aligned with the current position
-            // either by cutting the shown subtitles or by adding the missing ones
-            if (ShownSubtitles.Count != index)
-            {
-                // subtitle with given index should be last in the list
-                // so we take all the elements before it
-                // and then add the subtitle with given index out of this block
-                ShownSubtitles = Subtitles
-                .Take(index)
-                .ToObservableCollection();
-            }
-
-            ShownSubtitles.Add(sub);
-
-            // highlight the current subtitle after adding it to the list
+            // highlight the current subtitle
             if (CurrentSubtitle != null)
             {
                 CurrentSubtitle.IsHighlighted = false;
@@ -264,6 +258,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             sub.IsHighlighted = true;
 
             CurrentSubtitle = sub;
+            CurrentSubtitleIndex = index;
         }
     }
 

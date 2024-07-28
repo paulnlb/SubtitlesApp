@@ -63,7 +63,7 @@
         <Slider
             x:Name="PositionSlider"
             Grid.Row="3"
-            Value="{Binding Source={x:Reference MediaElement}, Path=Position, Converter={StaticResource TimeSpanToSecondsConverter}}"
+            Value="{Binding CurrentPosition, Converter={StaticResource TimeSpanToSecondsConverter}}"
             Maximum="{Binding Source={x:Reference MediaElement}, Path=Duration, Converter={StaticResource TimeSpanToSecondsConverter}}"
             MinimumTrackColor="Gray"
             DragStartedCommand="{Binding PauseCommand}">
@@ -85,18 +85,18 @@
 
         <CollectionView x:Name="SubsCollection" 
                         Grid.Row="6" 
-                        ItemsSource="{Binding ShownSubtitles}" 
-                        ItemsUpdatingScrollMode="KeepLastItemInView"
+                        ItemsSource="{Binding Subtitles}"
+                        ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"
-                        SelectionChangedCommand="{Binding SeekToCommand}"
-                        SelectionChangedCommandParameter="{Binding Source={x:Reference SubsCollection}, Path=SelectedItem, Converter={StaticResource SubtitleToStartTimeConverter}}"
+                        SelectionChangedCommand="{Binding SeekToSubCommand}"
+                        SelectionChangedCommandParameter="{Binding Source={x:Reference SubsCollection}, Path=SelectedItem}"
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Label Text="{Binding Text}">
                         <Label.Triggers>
                             <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="True">
-                                <Setter Property="BackgroundColor" Value="Orange" />
+                                <Setter Property="BackgroundColor" Value="Grey" />
                             </DataTrigger>
                         </Label.Triggers>
                     </Label>
