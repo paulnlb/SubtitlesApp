@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Maui.Core.Extensions;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Enums;
@@ -17,9 +18,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     ObservableCollection<Subtitle> _subtitles;
 
     [ObservableProperty]
-    ObservableCollection<Subtitle> _shownSubtitles;
-
-    [ObservableProperty]
     string _textBoxContent;
 
     [ObservableProperty]
@@ -29,6 +27,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     int _transcribeBufferLength;
 
     [ObservableProperty]
+    int _currentSubtitleIndex = -1;
+
+    [ObservableProperty]
     Subtitle? _currentSubtitle;
 
     [ObservableProperty]
@@ -36,13 +37,16 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     MediaPlayerStates _playerState;
+
+    [ObservableProperty]
+    TimeSpan _currentPosition;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
     readonly TimeSet _coveredTimeIntervals;
 
-    TimeSpan _currentPosition;
+    
     TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
 
     public MediaElementViewModel(
@@ -55,7 +59,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         TextBoxContent = "";
         MediaPath = null;
         Subtitles = [];
-        ShownSubtitles = [];
         TranscribeBufferLength = settings.TranscribeBufferLength;
 
         #endregion
@@ -95,7 +98,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     public async Task ChangePositionAsync(TimeSpan currentPosition)
     {
-        _currentPosition = currentPosition;
+        CurrentPosition = currentPosition;
 
         (var shouldTranscribe, var transcribeStartTime) = ShouldTranscribe(currentPosition);
 
@@ -119,6 +122,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         LastSeekedPosition = position;
 
         Play();
+    }
+
+    [RelayCommand]
+    public void SeekToSub(Subtitle subtitle)
+    {
+        if (subtitle != CurrentSubtitle && subtitle != null)
+        {
+            SeekTo(subtitle.TimeInterval.StartTime);
+        }
     }
 
     [RelayCommand]
@@ -199,15 +211,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             Text = subtitleDTO.Text,
             TimeInterval = timeInterval
         };
-
-        if (subtitle.TimeInterval.StartTime <= _currentPosition)
-        {
-            ShownSubtitles.Insert(subtitle);
-        }
-        else
-        {
-            Subtitles.Insert(subtitle);
-        }
+        
+        Subtitles.Insert(subtitle);
 
         _coveredTimeIntervals.Insert(timeInterval);
     }
@@ -240,42 +245,20 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             return;
         }
 
-        // check if the subtitle is already shown
-        (var shownSubtitle, _) = ShownSubtitles.BinarySearch(position);
+        (var sub, var index) = Subtitles.BinarySearch(position);
 
-        // if it is, highlight it
-        if (shownSubtitle != null)
+        if (sub != null)
         {
+            // highlight the current subtitle
             if (CurrentSubtitle != null)
             {
                 CurrentSubtitle.IsHighlighted = false;
             }
 
-            shownSubtitle.IsHighlighted = true;
+            sub.IsHighlighted = true;
 
-            CurrentSubtitle = shownSubtitle;
-        }
-
-        // if not, search in the non-shown subtitles collection
-        if (shownSubtitle == null)
-        {
-            (var nonShownSubtitle, var nonShownIndex) = Subtitles.BinarySearch(position);
-
-            // if found, highlight it and move it to the shown collection
-            if (nonShownSubtitle != null)
-            {
-                if (CurrentSubtitle != null)
-                {
-                    CurrentSubtitle.IsHighlighted = false;
-                }
-
-                nonShownSubtitle.IsHighlighted = true;
-
-                CurrentSubtitle = nonShownSubtitle;
-
-                ShownSubtitles.Insert(nonShownSubtitle);
-                Subtitles.RemoveAt(nonShownIndex);
-            }
+            CurrentSubtitle = sub;
+            CurrentSubtitleIndex = index;
         }
     }
 
