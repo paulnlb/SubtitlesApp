@@ -15,14 +15,14 @@ public class WhisperMockHub : Hub
 
         await Clients.Caller.SendAsync("SetStatus", "Transcribing...");
 
-        var listChunks = new List<byte[]>();
+        //var listChunks = new List<byte[]>();
 
-        await foreach (var chunk in dataChunks)
-        {
-            listChunks.Add(chunk);
-        }
+        //await foreach (var chunk in dataChunks)
+        //{
+        //    listChunks.Add(chunk);
+        //}
 
-        await Task.Delay(1000);
+        //await Task.Delay(1000);
 
         var max = audioMetadata.EndTime - audioMetadata.StartTimeOffset;
 
@@ -58,6 +58,8 @@ public class WhisperMockHub : Hub
         }
 
         await Clients.Caller.SendAsync("SetStatusAndEditTimeline", "Done.", audioMetadata);
+
+        Console.WriteLine("Done");
     }
 
     public async Task CancelTranscription([FromKeyedServices("cancellationManager")] ICancellationManager cancellationManager)

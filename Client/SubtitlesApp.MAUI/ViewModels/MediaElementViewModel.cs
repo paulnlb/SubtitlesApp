@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Maui.Core.Extensions;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Enums;
@@ -7,6 +6,7 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Shared.DTOs;
 using SubtitlesApp.Shared.Extensions;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -40,14 +40,14 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     TimeSpan _currentPosition;
+
+    [ObservableProperty]
+    TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISignalRClient _signalrClient;
     readonly TimeSet _coveredTimeIntervals;
-
-    
-    TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
 
     public MediaElementViewModel(
         ISignalRClient signalRClient,
@@ -71,6 +71,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _currentPosition = TimeSpan.Zero;
 
         #endregion
+
+        PropertyChanged += VM_PropertyChanged;
+
     }
 
     #region public properties
@@ -96,17 +99,13 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    public async Task ChangePositionAsync(TimeSpan currentPosition)
+    public void ChangePosition(TimeSpan currentPosition)
     {
         CurrentPosition = currentPosition;
 
-        (var shouldTranscribe, var transcribeStartTime) = ShouldTranscribe(currentPosition);
-
-        if (shouldTranscribe && transcribeStartTime != null)
+        if (ShouldTranscribe(currentPosition))
         {
-            _transcribeStatus = TranscribeStatus.Transcribing;
-
-            await TranscribeAsync(transcribeStartTime.Value, CancellationToken.None);
+            TranscribeStatus = TranscribeStatus.Transcribing;
         }
         else
         {
@@ -117,7 +116,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     public void SeekTo(TimeSpan position)
     {
-        _transcribeStatus = TranscribeStatus.NotTranscribing;
+        TranscribeStatus = TranscribeStatus.NotTranscribing;
 
         LastSeekedPosition = position;
 
@@ -149,6 +148,48 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     public void Stop()
     {
         PlayerState = MediaPlayerStates.Stopped;
+    }
+
+    [RelayCommand]
+    public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
+    {
+        (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
+
+        var startTime = currentInterval == null ? position : currentInterval.EndTime;
+
+        if (startTime >= MediaDuration)
+        {
+            TranscribeStatus = TranscribeStatus.NotTranscribing;
+            return;
+        }
+
+        _signalrClient.CancelTranscription();
+
+        var endTime = startTime.Add(TimeSpan.FromSeconds(TranscribeBufferLength));
+
+        if (endTime > MediaDuration)
+        {
+            endTime = MediaDuration;
+        }
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            (var metadata, var audioChunks) = _mediaProcessor.ExtractAudioAsync(
+                MediaPath,
+                startTime,
+                endTime,
+                cancellationToken);
+
+            TextBoxContent = "Sending to server...";
+
+            await _signalrClient.SendAsync(audioChunks, metadata, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            TextBoxContent = ex.Message;
+        }
     }
     #endregion
 
@@ -221,14 +262,14 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         if (status == "Done.")
         {
-            _transcribeStatus = TranscribeStatus.NotTranscribing;
-
             var endTime = audioMetadata.EndTime;
             var startTime = audioMetadata.StartTimeOffset;
 
             var newInterval = new TimeInterval(startTime, endTime);
 
             _coveredTimeIntervals.Insert(newInterval);
+
+            TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
 
         TextBoxContent = status;
@@ -262,60 +303,25 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
     }
 
-    (bool ShouldTranscribe, TimeSpan? TranscribeStartTime) ShouldTranscribe(TimeSpan position)
+    bool ShouldTranscribe(TimeSpan position)
     {
-        (var currentTimeInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
+        (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
 
         var isTimeSuitableForTranscribe =
-            currentTimeInterval == null ||
-            currentTimeInterval.EndTime - position <= TimeSpan.FromSeconds(15);
-
-        TimeSpan? transcribeStartTime = currentTimeInterval == null ? position : currentTimeInterval.EndTime;
-
-        if (transcribeStartTime >= MediaDuration)
-        {
-            isTimeSuitableForTranscribe = false;
-        }
+            currentInterval == null ||
+            currentInterval.EndTime - position <= TimeSpan.FromSeconds(15);
 
         var shouldTranscribe = isTimeSuitableForTranscribe &&
-            _transcribeStatus == TranscribeStatus.NotTranscribing;
+            TranscribeStatus == TranscribeStatus.NotTranscribing;
 
-        if (!shouldTranscribe)
-        {
-            transcribeStartTime = null;
-        }
-
-        return (shouldTranscribe, transcribeStartTime);
+        return shouldTranscribe;
     }
 
-    async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
+    private async void VM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        _signalrClient.CancelTranscription();
-
-        var endTime = position.Add(TimeSpan.FromSeconds(TranscribeBufferLength));
-
-        if (endTime > MediaDuration)
+        if (e.PropertyName == nameof(TranscribeStatus) && TranscribeStatus == TranscribeStatus.Transcribing)
         {
-            endTime = MediaDuration;
-        }
-
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            (var metadata, var audioChunks) = _mediaProcessor.ExtractAudioAsync(
-                MediaPath,
-                position,
-                endTime,
-                cancellationToken);
-
-            TextBoxContent = "Sending to server...";
-
-            await _signalrClient.SendAsync(audioChunks, metadata, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            TextBoxContent = ex.Message;
+            await TranscribeAsync(CurrentPosition, CancellationToken.None);
         }
     }
     #endregion
