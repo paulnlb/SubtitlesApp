@@ -1,31 +1,31 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SubtitlesApp.Shared.DTOs;
 using SubtitlesServer.Application.Interfaces;
-using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.CompilerServices;
 
 namespace SubtitlesServer.Hubs;
 
 public class WhisperHub : Hub
 {
-    public async Task TranscribeAudio(
+    public async IAsyncEnumerable<SubtitleDTO> TranscribeAudio(
         [FromKeyedServices("transcription")] ITranscriptionService transcriptionService,
-        [FromKeyedServices("cancellationManager")] ICancellationManager cancellationManager,
         IAsyncEnumerable<byte[]> dataChunks,
-        TrimmedAudioMetadataDTO audioMetadata)
+        TrimmedAudioMetadataDTO audioMetadata,
+        [EnumeratorCancellation]
+        CancellationToken cancellationToken)
     {
         Console.WriteLine("Connected");
 
-        await Clients.Caller.SendAsync("SetStatus", "Transcribing...");
-
-        var cancellationToken = cancellationManager.RegisterTask(Context.ConnectionId);
-
         var subtitles = transcriptionService.TranscribeAudioAsync(dataChunks, audioMetadata, cancellationToken);
+
+        await Clients.Caller.SendAsync("SetStatus", "Transcribing...", cancellationToken: cancellationToken);
 
         await foreach (var subtitle in subtitles)
         {
             var subtitleDto = new SubtitleDTO
             {
-                TimeInterval = new TimeIntervalDTO() { 
+                TimeInterval = new TimeIntervalDTO()
+                {
                     StartTime = subtitle.TimeInterval.StartTime,
                     EndTime = subtitle.TimeInterval.EndTime
                 },
@@ -34,22 +34,13 @@ public class WhisperHub : Hub
 
             Console.Write($"=> ");
 
-            await Clients.Caller.SendAsync("ShowSubtitle", subtitleDto);
+            yield return subtitleDto;
 
             Console.Write($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}\n");
         }
 
-        cancellationManager.RemoveTask(Context.ConnectionId);
-
-        await Clients.Caller.SendAsync("SetStatusAndEditTimeline", "Done.", audioMetadata);
+        await Clients.Caller.SendAsync("SetStatus", "Done.", cancellationToken: cancellationToken);
 
         Console.WriteLine("Transcribing done.");
-    }
-
-    public async Task CancelTranscription([FromKeyedServices("cancellationManager")] ICancellationManager cancellationManager)
-    {
-        cancellationManager.CancelTask(Context.ConnectionId);
-
-        await Clients.Caller.SendAsync("SetStatus", "Transcritption cancelled.");
     }
 }

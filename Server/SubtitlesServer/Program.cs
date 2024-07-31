@@ -9,8 +9,6 @@ builder.Services.AddKeyedScoped<ITranscriptionService, TranscriptionService>("tr
 builder.Services.AddScoped<IWhisperService, WhisperService>();
 builder.Services.AddScoped<IWaveService, WaveService>();
 
-builder.Services.AddKeyedSingleton<ICancellationManager, CancellationManager>("cancellationManager");
-
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 

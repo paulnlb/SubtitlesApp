@@ -20,6 +20,16 @@ public class TimeInterval
         EndTime = TimeSpan.FromSeconds(endTimeSec);
     }
 
+    /// <summary>
+    /// Copy constructor
+    /// </summary>
+    /// <param name="timeInterval"></param>
+    public TimeInterval(TimeInterval timeInterval)
+    {
+        StartTime = timeInterval.StartTime;
+        EndTime = timeInterval.EndTime;
+    }
+
     public TimeSpan StartTime { get; }
 
     public TimeSpan EndTime { get; }

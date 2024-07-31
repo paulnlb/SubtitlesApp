@@ -23,8 +23,6 @@ public class TranscriptionService : ITranscriptionService
     {
         using var waveStream = await _waveService.WriteToWaveStreamAsync(dataChunks, audioMetadata, cancellationToken);
 
-        Console.WriteLine("Wave read");
-
         var subtitles = _whisperService.TranscribeAudioAsync(waveStream, audioMetadata.StartTimeOffset, cancellationToken);
 
         await foreach (var subtitle in subtitles)
