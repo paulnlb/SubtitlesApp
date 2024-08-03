@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.Shared.DTOs;
-using SubtitlesServer.Application.Interfaces;
+using System.Runtime.CompilerServices;
 
 namespace SubtitlesServer.Hubs;
 
 public class WhisperMockHub : Hub
 {
-    public async Task TranscribeAudio(
+    public async IAsyncEnumerable<SubtitleDTO> TranscribeAudio(
         IAsyncEnumerable<byte[]> dataChunks,
-        TrimmedAudioMetadataDTO audioMetadata)
+        TrimmedAudioMetadataDTO audioMetadata,
+        [EnumeratorCancellation]
+        CancellationToken cancellationToken)
     {
         Console.WriteLine("Connected");
 
@@ -22,7 +23,7 @@ public class WhisperMockHub : Hub
             listChunks.Add(chunk);
         }
 
-        await Task.Delay(1000);
+        //await Task.Delay(1000);
 
         var max = audioMetadata.EndTime - audioMetadata.StartTimeOffset;
 
@@ -54,14 +55,13 @@ public class WhisperMockHub : Hub
 
             Console.WriteLine($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}");
 
-            await Clients.Caller.SendAsync("ShowSubtitle", subtitle);
+            await Task.Delay(0, cancellationToken);
+
+            yield return subtitle;
         }
 
-        await Clients.Caller.SendAsync("SetStatusAndEditTimeline", "Done.", audioMetadata);
-    }
+        await Clients.Caller.SendAsync("SetStatus", "Done.");
 
-    public async Task CancelTranscription([FromKeyedServices("cancellationManager")] ICancellationManager cancellationManager)
-    {
-        await Clients.Caller.SendAsync("SetStatus", "Transcritption cancelled.");
+        Console.WriteLine("Done");
     }
 }

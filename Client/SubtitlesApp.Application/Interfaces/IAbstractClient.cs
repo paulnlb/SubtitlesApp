@@ -17,4 +17,15 @@ public interface IAbstractClient
         IAsyncEnumerable<byte[]> bytesEnumerable,
         TrimmedAudioMetadataDTO audioMetadata,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Send media represented in byte chunks to the server and receive subtitles
+    /// </summary>
+    /// <param name="bytesEnumerable">Data to send</param>
+    /// <param name="audioMetadata">Audio metadata</param>
+    /// <returns></returns>
+    IAsyncEnumerable<SubtitleDTO> StreamAsync(
+        IAsyncEnumerable<byte[]> bytesEnumerable,
+        TrimmedAudioMetadataDTO audioMetadata,
+        CancellationToken cancellationToken = default);
 }

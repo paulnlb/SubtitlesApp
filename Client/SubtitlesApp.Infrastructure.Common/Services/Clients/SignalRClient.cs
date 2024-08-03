@@ -91,4 +91,11 @@ public class SignalRClient : ISignalRClient
     {
         _connection.SendAsync("CancelTranscription");
     }
+
+    public IAsyncEnumerable<SubtitleDTO> StreamAsync(IAsyncEnumerable<byte[]> bytesEnumerable, TrimmedAudioMetadataDTO audioMetadata, CancellationToken cancellationToken = default)
+    {
+        var stream = _connection.StreamAsync<SubtitleDTO>("TranscribeAudio", bytesEnumerable, audioMetadata, cancellationToken);
+
+        return stream;
+    }
 }
