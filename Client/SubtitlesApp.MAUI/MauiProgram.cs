@@ -5,6 +5,7 @@ using SubtitlesApp.ViewModels;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Settings;
 using SubtitlesApp.Extensions;
+using MauiPageFullScreen;
 
 #if ANDROID
 using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
@@ -19,6 +20,7 @@ namespace SubtitlesApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseFullScreen()
                 .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitMediaElement()
                 .ConfigureFonts(fonts =>

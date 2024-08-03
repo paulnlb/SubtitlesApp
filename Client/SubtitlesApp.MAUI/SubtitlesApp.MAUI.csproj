@@ -54,9 +54,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\fast_forward_icon.png" />
+	  <None Remove="Resources\Images\fast_rewind_icon.png" />
+	  <None Remove="Resources\Images\pause_icon.png" />
+	  <None Remove="Resources\Images\play_icon.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="3.1.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+		<PackageReference Include="FullScreenStatus.Maui" Version="1.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.6" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.40" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.40" />

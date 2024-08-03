@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MauiPageFullScreen;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Models;
@@ -7,7 +8,6 @@ using SubtitlesApp.Shared.DTOs;
 using SubtitlesApp.Shared.Extensions;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Threading;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -44,6 +44,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
+
+    [ObservableProperty]
+    bool _isPlayerControlsVisible = true;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
@@ -156,9 +159,60 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
+    public void PlayPause()
+    {
+        if (PlayerState == MediaPlayerStates.Playing)
+        {
+            Pause();
+        }
+        else
+        {
+            Play();
+        }
+    }
+
+    [RelayCommand]
     public void Stop()
     {
         PlayerState = MediaPlayerStates.Stopped;
+    }
+
+    [RelayCommand]
+    public void TogglePlayerControls()
+    {
+        IsPlayerControlsVisible = !IsPlayerControlsVisible;
+    }
+
+    [RelayCommand]
+    public void FastForward()
+    {
+        var newPosition = CurrentPosition.Add(TimeSpan.FromSeconds(5));
+
+        if (newPosition > MediaDuration)
+        {
+            newPosition = MediaDuration;
+        }
+
+        SeekTo(newPosition);
+    }
+
+    [RelayCommand]
+    public void Rewind()
+    {
+        var newPosition = CurrentPosition.Subtract(TimeSpan.FromSeconds(5));
+
+        if (newPosition < TimeSpan.Zero)
+        {
+            newPosition = TimeSpan.Zero;
+        }
+
+        SeekTo(newPosition);
+    }
+
+    [RelayCommand]
+    public void ToggleFullScreen()
+    {
+        Controls.ToggleFullScreenStatus();
     }
 
     [RelayCommand]
