@@ -5,33 +5,38 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+             xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
              x:Class="SubtitlesApp.Views.MediaElementPage"
-             Title="MediaElement">
+             x:DataType="viewModels:MediaElementViewModel">
 
     <ContentPage.Resources>
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
         <converters:SubtitleToStartTimeConverter x:Key="SubtitleToStartTimeConverter" />
+        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
     </ContentPage.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="220" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="50" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="50" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
         <toolkit:MediaElement
             x:Name="MediaElement"
             Grid.Row="0"
+            Aspect="AspectFit"
+            MaximumHeightRequest="500"
             Source="{Binding MediaPath}"
             ShouldAutoPlay="False"
             ShouldShowPlaybackControls="False">
+
+            <toolkit:MediaElement.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding TogglePlayerControlsCommand}" />
+            </toolkit:MediaElement.GestureRecognizers>
 
             <toolkit:MediaElement.Behaviors>
                 <toolkit:EventToCommandBehavior
@@ -41,50 +46,140 @@
             </toolkit:MediaElement.Behaviors>
         </toolkit:MediaElement>
 
-        <HorizontalStackLayout Grid.Row="1" Padding="0,0,0,15">
-            <Label HorizontalOptions="Center">
+        <Grid x:Name="PlayerControls"
+              Grid.Row="0"
+              Padding="10"
+              BackgroundColor="#B3000000"
+              IsVisible="{Binding IsPlayerControlsVisible}"
+              RowDefinitions="2*, 10*, *, *"
+              RowSpacing="5"
+              ColumnDefinitions="*, *, *">
+
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding TogglePlayerControlsCommand}" />
+                <SwipeGestureRecognizer Command="{Binding ToggleFullScreenCommand}" Direction="Down" />
+            </Grid.GestureRecognizers>
+
+            <Label Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
+                Grid.Row="0"
+                Grid.ColumnSpan="2"
+                LineBreakMode="TailTruncation"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                FontSize="16" />
+
+            <Picker x:Name="LanguagePicker"
+                Grid.Row="0"
+                Grid.Column="3"
+                VerticalOptions="Center"
+                HorizontalOptions="End"
+                Title="Language">
+                <!-- Items for Picker will be added dynamically in the code-behind -->
+            </Picker>
+
+            <!-- Second Row -->
+            <!-- Button for Rewind, Play/Pause, and Forward -->
+            <Button ImageSource="fast_rewind_icon.png"
+                    HeightRequest="50"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#33FFFFFF"
+                    Command="{Binding RewindCommand}"/>
+
+            <Button ImageSource="play_icon.png"
+                    HeightRequest="50"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#33FFFFFF"
+                    Command="{Binding PlayPauseCommand}">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding PlayerState}" Value="Paused">
+                        <Setter Property="ImageSource" Value="play_icon.png" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding PlayerState}" Value="Playing">
+                        <Setter Property="ImageSource" Value="pause_icon.png" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button"
+                                 Binding="{Binding Source={x:Reference MediaElement}, Path=CurrentState}" 
+                                 Value="Buffering">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+            <ActivityIndicator
+                HeightRequest="50"
+                Grid.Row="1"
+                Grid.Column="1"
+                IsRunning="False" >
+                <ActivityIndicator.Triggers>
+                    <DataTrigger TargetType="ActivityIndicator" 
+                                 Binding="{Binding Source={x:Reference MediaElement}, Path=CurrentState}" 
+                                 Value="Buffering">
+                        <Setter Property="IsRunning" Value="True" />
+                    </DataTrigger>
+                </ActivityIndicator.Triggers>
+            </ActivityIndicator>
+
+            <Button ImageSource="fast_forward_icon.png"
+                    HeightRequest="50"
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#33FFFFFF"
+                    Command="{Binding FastForwardCommand}"/>
+
+            <!-- Third Row -->
+            <!-- Time display -->
+            <Label
+                Grid.Row="2"
+                Grid.Column="0"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Grid.ColumnSpan="3" >
                 <Label.Text>
-                    <MultiBinding StringFormat="{}Position: {0}/{1} - Current State: {2}">
+                    <MultiBinding StringFormat="{}{0}/{1}">
                         <Binding Path="Position" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
                         <Binding Path="Duration" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
-                        <Binding Path="CurrentState" Source="{x:Reference MediaElement}" />
                     </MultiBinding>
                 </Label.Text>
             </Label>
 
-        </HorizontalStackLayout>
-
-        <Grid Grid.Row="2" Padding="0,10,0,10" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="5">
-            <Button Grid.Column="0" Text="Play" Command="{Binding PlayCommand}" />
-            <Button Grid.Column="1" Text="Pause" Command="{Binding PauseCommand}"/>
-            <Button Grid.Column="2" Text="Stop" Command="{Binding StopCommand}" />
+            <!--Fourth Row-->
+            <!-- Seek bar -->
+            <Slider
+                x:Name="PositionSlider"
+                Grid.Row="3"
+                Grid.ColumnSpan="3"
+                VerticalOptions="Center"
+                Value="{Binding CurrentPosition, Converter={StaticResource TimeSpanToSecondsConverter}}"
+                Maximum="{Binding Source={x:Reference MediaElement}, Path=Duration, Converter={StaticResource TimeSpanToSecondsConverter}}"
+                MaximumTrackColor="White"
+                DragStartedCommand="{Binding PauseCommand}">
+                <Slider.Behaviors>
+                    <toolkit:EventToCommandBehavior
+                        EventName="DragCompleted"
+                        Command="{Binding SeekToCommand}"
+                        CommandParameter="{Binding Source={x:Reference PositionSlider}, Path=Value, Converter={StaticResource SecondsToTimeSpanConverter}}"/>
+                </Slider.Behaviors>
+            </Slider>
         </Grid>
 
-        <Slider
-            x:Name="PositionSlider"
-            Grid.Row="3"
-            Value="{Binding CurrentPosition, Converter={StaticResource TimeSpanToSecondsConverter}}"
-            Maximum="{Binding Source={x:Reference MediaElement}, Path=Duration, Converter={StaticResource TimeSpanToSecondsConverter}}"
-            MinimumTrackColor="Gray"
-            DragStartedCommand="{Binding PauseCommand}">
-            <Slider.Behaviors>
-                <toolkit:EventToCommandBehavior
-                    EventName="DragCompleted"
-                    Command="{Binding SeekToCommand}"
-                    CommandParameter="{Binding Source={x:Reference PositionSlider}, Path=Value, Converter={StaticResource SecondsToTimeSpanConverter}}"/>
-            </Slider.Behaviors>
-        </Slider>
+        <Entry Grid.Row="1" Text="{Binding TextBoxContent}" IsReadOnly="True" />
 
-        <Entry Grid.Row="4" x:Name="IntegerEntry" 
+        <Entry Grid.Row="2" x:Name="IntegerEntry" 
            Placeholder="Enter a buffer (in seconds)" 
            Keyboard="Numeric"
            ReturnCommand="{Binding ChangeAudioLengthCommand}"
            ReturnCommandParameter="{Binding Source={RelativeSource Self}, Path=Text}"/>
 
-        <Entry Grid.Row="5" Text="{Binding TextBoxContent}" IsReadOnly="True" />
-
         <CollectionView x:Name="SubsCollection" 
-                        Grid.Row="6" 
+                        Grid.Row="3"
                         ItemsSource="{Binding Subtitles}"
                         ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"
@@ -92,7 +187,7 @@
                         SelectionChangedCommandParameter="{Binding Source={x:Reference SubsCollection}, Path=SelectedItem}"
                         >
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="coreModels:Subtitle">
                     <Label Text="{Binding Text}">
                         <Label.Triggers>
                             <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="True">

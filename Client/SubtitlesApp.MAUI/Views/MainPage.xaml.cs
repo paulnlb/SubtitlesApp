@@ -5,7 +5,7 @@ namespace SubtitlesApp.Views;
 public partial class MainPage : ContentPage
 {
     const string loadOnlineVideo = "Load Online Video (Not implemented)";
-    const string loadLocalResource = "Load Local Resource";
+    const string loadLocalResource = "Choose Local Video From Device";
 
     public MainPage()
     {

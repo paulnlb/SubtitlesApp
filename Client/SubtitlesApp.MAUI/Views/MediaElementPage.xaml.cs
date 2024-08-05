@@ -1,6 +1,5 @@
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.Core.Enums;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.ViewModels;
 using System.ComponentModel;
 using System.Diagnostics;
