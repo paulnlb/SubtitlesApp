@@ -7,8 +7,7 @@
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
              xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
              x:Class="SubtitlesApp.Views.MediaElementPage"
-             x:DataType="viewModels:MediaElementViewModel"
-             Title="MediaElement">
+             x:DataType="viewModels:MediaElementViewModel">
 
     <ContentPage.Resources>
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
@@ -23,7 +22,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="50" />
             <RowDefinition Height="50" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition />
         </Grid.RowDefinitions>
 
         <toolkit:MediaElement
@@ -180,7 +179,7 @@
            ReturnCommandParameter="{Binding Source={RelativeSource Self}, Path=Text}"/>
 
         <CollectionView x:Name="SubsCollection" 
-                        Grid.Row="3" 
+                        Grid.Row="3"
                         ItemsSource="{Binding Subtitles}"
                         ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"

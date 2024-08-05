@@ -45,7 +45,7 @@ public class WhisperMockHub : Hub
                 endTime = TimeSpan.FromSeconds(audioMetadata.StartTimeOffset.TotalSeconds + i + 2);
             }
 
-            var text = $"Subtitle ({startTime.Minutes}m, {startTime.Seconds}s)";
+            var text = $"Subtitle ({startTime.Minutes}m, {startTime.Seconds}s) \nTest";
 
             var subtitle = new SubtitleDTO
             {
