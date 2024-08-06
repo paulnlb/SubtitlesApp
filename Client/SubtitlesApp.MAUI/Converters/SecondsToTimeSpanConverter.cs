@@ -4,7 +4,7 @@ namespace SubtitlesApp.Converters;
 
 internal class SecondsToTimeSpanConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is double seconds)
         {
@@ -14,7 +14,7 @@ internal class SecondsToTimeSpanConverter : IValueConverter
         return TimeSpan.Zero;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is TimeSpan timeSpan)
         {

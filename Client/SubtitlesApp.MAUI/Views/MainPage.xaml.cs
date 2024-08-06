@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Services;
+﻿using SubtitlesApp.Application.Interfaces;
 
 namespace SubtitlesApp.Views;
 
@@ -7,8 +7,12 @@ public partial class MainPage : ContentPage
     const string loadOnlineVideo = "Load Online Video (Not implemented)";
     const string loadLocalResource = "Choose Local Video From Device";
 
-    public MainPage()
+    readonly IVideoPicker _videoPicker;
+
+    public MainPage(IVideoPicker videoPicker)
     {
+        _videoPicker = videoPicker;
+
         InitializeComponent();
     }
 
@@ -23,14 +27,15 @@ public partial class MainPage : ContentPage
                 return;
 
             case loadLocalResource:
-                await Permissions.RequestAsync<Permissions.StorageRead>();
-                await Permissions.RequestAsync<Permissions.StorageWrite>();
 
-                string? path = null;
+                var permissionsGranded = await RequestPermissions();
 
-#if ANDROID
-                path = await MediaChooser.PickVideoAsync();
-#endif
+                if (!permissionsGranded)
+                {
+                    return;
+                }
+
+                var path = await _videoPicker.PickAsync();
 
                 if (path != null)
                 {
@@ -45,5 +50,23 @@ public partial class MainPage : ContentPage
     {
         if (path != null || path != string.Empty)
             Shell.Current.GoToAsync($"{nameof(MediaElementPage)}?open={path}");
+    }
+
+    async Task<bool> RequestPermissions()
+    {
+        var readPermissionStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
+        var writePermissionStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
+
+        if (readPermissionStatus != PermissionStatus.Granted || writePermissionStatus != PermissionStatus.Granted)
+        {
+            await DisplayAlert(
+                "Permission Denied",
+                "You must grant permission to read and write to storage. Please turn on permissions in settings.",
+                "Got it");
+
+            return false;
+        }
+
+        return true;
     }
 }

@@ -2,6 +2,7 @@
 using SubtitlesApp.Application.Interfaces.Socket;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Infrastructure.Common.Services.Clients;
+using SubtitlesApp.Services;
 
 #if ANDROID
 using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
@@ -16,6 +17,8 @@ internal static class AddServicesExtensions
         #if ANDROID
         services.AddTransient<IMediaProcessor, FfmpegAndroid>();
         #endif
+
+        services.AddTransient<IVideoPicker, VideoPicker>();
 
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();

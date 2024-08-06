@@ -1,15 +1,16 @@
-﻿#if ANDROID
-using Android.Content;
+﻿using Android.Content;
 using SubtitlesApp.Infrastructure.Android.Services.File;
 using SubtitlesApp.Platforms.Android;
-#endif
 
 namespace SubtitlesApp.Services;
 
-public static class MediaChooser
+/// <summary>
+///  Reimplementation of the VideoPicker class to avoid copying to cache
+///  https://github.com/dotnet/maui/issues/6015
+/// </summary>
+public partial class VideoPicker
 {
-#if ANDROID
-    public static async Task<string?> PickVideoAsync()
+    public partial async Task<string?> PickAsync()
     {
         var currentActivity = Platform.CurrentActivity ?? await Platform.WaitForActivityAsync();
 
@@ -46,5 +47,4 @@ public static class MediaChooser
             return null;
         }
     }
-#endif
 }
