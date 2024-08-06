@@ -13,7 +13,6 @@
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
         <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
-        <converters:SubtitleToStartTimeConverter x:Key="SubtitleToStartTimeConverter" />
         <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
     </ContentPage.Resources>
 
@@ -49,7 +48,7 @@
         <Grid x:Name="PlayerControls"
               Grid.Row="0"
               Padding="10"
-              BackgroundColor="#B3000000"
+              BackgroundColor="#80000000"
               IsVisible="{Binding IsPlayerControlsVisible}"
               RowDefinitions="2*, 10*, *, *"
               RowSpacing="5"
@@ -57,25 +56,16 @@
 
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsCommand}" />
-                <SwipeGestureRecognizer Command="{Binding ToggleFullScreenCommand}" Direction="Down" />
             </Grid.GestureRecognizers>
 
             <Label Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
+                   TextColor="White"
                 Grid.Row="0"
                 Grid.ColumnSpan="2"
                 LineBreakMode="TailTruncation"
                 VerticalOptions="Center"
                 HorizontalOptions="Start"
                 FontSize="16" />
-
-            <Picker x:Name="LanguagePicker"
-                Grid.Row="0"
-                Grid.Column="3"
-                VerticalOptions="Center"
-                HorizontalOptions="End"
-                Title="Language">
-                <!-- Items for Picker will be added dynamically in the code-behind -->
-            </Picker>
 
             <!-- Second Row -->
             <!-- Button for Rewind, Play/Pause, and Forward -->
@@ -137,6 +127,7 @@
             <!-- Third Row -->
             <!-- Time display -->
             <Label
+                TextColor="White"
                 Grid.Row="2"
                 Grid.Column="0"
                 VerticalOptions="Center"

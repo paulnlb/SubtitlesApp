@@ -34,6 +34,7 @@ namespace SubtitlesApp
 #endif
 
             builder.Services.AddTransientWithShellRoute<MediaElementPage, MediaElementViewModel>("MediaElement");
+            builder.Services.AddSingleton<MainPage>();
 
             builder.Services.AddSingleton(Preferences.Default);
 
