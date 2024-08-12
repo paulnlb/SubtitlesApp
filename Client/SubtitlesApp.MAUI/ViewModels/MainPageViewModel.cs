@@ -1,12 +1,14 @@
-﻿using CommunityToolkit.Maui.Views;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Windows.Input;
 
 namespace SubtitlesApp.ViewModels;
 
-public class MainPageViewModel
+public partial class MainPageViewModel : ObservableObject
 {
     public MainPageViewModel()
     {
     }
+
+    [RelayCommand]
+    public void OpenSettings() => Shell.Current.GoToAsync($"settings");
 }

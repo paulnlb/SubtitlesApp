@@ -1,4 +1,5 @@
 ﻿using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
 
@@ -9,9 +10,11 @@ public partial class MainPage : ContentPage
 
     readonly IVideoPicker _videoPicker;
 
-    public MainPage(IVideoPicker videoPicker)
+    public MainPage(IVideoPicker videoPicker, MainPageViewModel vm)
     {
         _videoPicker = videoPicker;
+
+        BindingContext = vm;
 
         InitializeComponent();
     }
@@ -48,7 +51,7 @@ public partial class MainPage : ContentPage
 
     void OpenMediaElementPage(string path)
     {
-        if (path != null || path != string.Empty)
+        if (!string.IsNullOrEmpty(path))
             Shell.Current.GoToAsync($"{nameof(MediaElementPage)}?open={path}");
     }
 

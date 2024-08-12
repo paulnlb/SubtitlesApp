@@ -1,7 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="SubtitlesApp.Views.MainPage">
+             xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+             x:Class="SubtitlesApp.Views.MainPage"
+             x:DataType="viewModels:MainPageViewModel">
 
     <ScrollView>
         <VerticalStackLayout
@@ -30,6 +32,13 @@
                 SemanticProperties.Hint="Opens a file to view"
                 HorizontalOptions="Fill"
                 Clicked="ChangeSourceClicked"/>
+
+            <Button
+                x:Name="SettingsBtn"
+                Text="App settings" 
+                SemanticProperties.Hint="Opens app settings"
+                HorizontalOptions="Fill"
+                Command="{Binding OpenSettingsCommand}"/>
         </VerticalStackLayout>
     </ScrollView>
 

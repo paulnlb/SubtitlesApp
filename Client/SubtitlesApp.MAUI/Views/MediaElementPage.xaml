@@ -20,7 +20,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="50" />
-            <RowDefinition Height="50" />
             <RowDefinition />
         </Grid.RowDefinitions>
 
@@ -163,14 +162,8 @@
 
         <Entry Grid.Row="1" Text="{Binding TextBoxContent}" IsReadOnly="True" />
 
-        <Entry Grid.Row="2" x:Name="IntegerEntry" 
-           Placeholder="Enter a buffer (in seconds)" 
-           Keyboard="Numeric"
-           ReturnCommand="{Binding ChangeAudioLengthCommand}"
-           ReturnCommandParameter="{Binding Source={RelativeSource Self}, Path=Text}"/>
-
         <CollectionView x:Name="SubsCollection" 
-                        Grid.Row="3"
+                        Grid.Row="2"
                         ItemsSource="{Binding Subtitles}"
                         ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"
