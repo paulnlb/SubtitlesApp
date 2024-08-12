@@ -20,10 +20,19 @@ public class TrimmedAudioMetadata
     /// <param name="startTime"></param>
     /// <param name="endTime"></param>
     /// <param name="duration"></param>
-    public void SetTimeBoundaries(TimeSpan startTime, TimeSpan duration)
+    public void SetTimeBoundaries(TimeSpan startTime, int duration)
+    {
+        var timeSpanDuration = TimeSpan.FromSeconds(duration);
+
+        StartTimeOffset = startTime;
+        EndTime = startTime + timeSpanDuration;
+        Duration = timeSpanDuration;
+    }
+
+    public void SetTimeBoundaries(TimeSpan startTime, TimeSpan endTime)
     {
         StartTimeOffset = startTime;
-        EndTime = startTime + duration;
-        Duration = duration;
+        EndTime = endTime;
+        Duration = endTime - startTime;
     }
 }

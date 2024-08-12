@@ -1,10 +1,31 @@
-﻿namespace SubtitlesApp.Core.Models;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
-public class Subtitle
+namespace SubtitlesApp.Core.Models;
+
+public class Subtitle : INotifyPropertyChanged
 {
-    public TimeSpan StartTime { get; set; }
+    bool _isHighlighted = false;
 
-    public TimeSpan EndTime { get; set; }
+    public TimeInterval TimeInterval { get; set; }
 
     public string Text { get; set; }
+
+    public bool IsHighlighted
+    {
+        get => _isHighlighted;
+        set
+        {
+            if (_isHighlighted != value)
+            {
+                _isHighlighted = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

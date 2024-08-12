@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FfmpegAndroidBinding\FfmpegAndroidBinding.csproj" />
+    <ProjectReference Include="..\SubtitlesApp.Application\SubtitlesApp.Application.csproj" />
+    <ProjectReference Include="..\SubtitlesApp.Infrastructure.Common\SubtitlesApp.Infrastructure.Common.csproj" />
+  </ItemGroup>
+
+</Project>

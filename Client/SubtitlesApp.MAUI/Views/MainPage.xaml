@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+             x:Class="SubtitlesApp.Views.MainPage"
+             x:DataType="viewModels:MainPageViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+            <Image
+                Margin="0, 40, 0, 0"
+                Source="subtitles.png"
+                HeightRequest="175"
+                Aspect="AspectFit"/>
+
+            <Label
+                Text="Welcome to SubtitlesApp!"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Label
+                Text="Transcribe any video using OpenAI Whisper"
+                Style="{StaticResource SubHeadline}"
+                SemanticProperties.HeadingLevel="Level2"
+                SemanticProperties.Description="Transcribe any video using OpenAI Whisper" />
+
+            <Button
+                x:Name="CounterBtn"
+                Text="Open a file" 
+                SemanticProperties.Hint="Opens a file to view"
+                HorizontalOptions="Fill"
+                Clicked="ChangeSourceClicked"/>
+
+            <Button
+                x:Name="SettingsBtn"
+                Text="App settings" 
+                SemanticProperties.Hint="Opens app settings"
+                HorizontalOptions="Fill"
+                Command="{Binding OpenSettingsCommand}"/>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
