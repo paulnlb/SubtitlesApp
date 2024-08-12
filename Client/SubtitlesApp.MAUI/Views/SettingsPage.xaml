@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+             x:Class="SubtitlesApp.Views.SettingsPage"
+             x:DataType="viewModels:SettingsViewModel"
+             Title="Settings">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Entry">
+                <Setter Property="Margin" Value="0, 0, 0, 20" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <VerticalStackLayout Margin="20, 30">
+        <Label Text="Backend base url" />
+        <Entry Text="{Binding BackendBaseUrl}" />
+
+        <Label Text="Transcribe buffer length (in seconds)" />
+        <Entry Text="{Binding TranscribeBufferLength}" Keyboard="Numeric"/>
+
+        <Label Text="Whisper hub address" IsVisible="{Binding IsDevelopment}" />
+        <Entry Text="{Binding HubAddress}" IsVisible="{Binding IsDevelopment}" />
+    </VerticalStackLayout>
+</ContentPage>

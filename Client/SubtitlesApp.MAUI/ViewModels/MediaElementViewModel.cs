@@ -91,20 +91,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #region commands
 
     [RelayCommand]
-    public void ChangeAudioLength(string text)
-    {
-        if (int.TryParse(text, out int audioLength))
-        {
-            TranscribeBufferLength = audioLength;
-            SetStatus($"Transcribe buffer set to {TranscribeBufferLength} seconds.");
-        }
-        else
-        {
-            SetStatus($"Value {text} is invalid.");
-        }
-    }
-
-    [RelayCommand]
     public void ChangePosition(TimeSpan currentPosition)
     {
         CurrentPosition = currentPosition;

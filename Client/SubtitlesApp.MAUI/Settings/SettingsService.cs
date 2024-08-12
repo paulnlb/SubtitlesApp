@@ -11,10 +11,10 @@ public class SettingsService : ISettingsService
     private const string _hubAddress = "/whisperHub";
 
     private const string _unixSocketPathKey = "unix_socket_path";
-    private const string _unixSocketPath = "media.sock";
+    private readonly string _unixSocketPath = Path.Combine(FileSystem.Current.AppDataDirectory, "media.sock");
 
     private const string _transcribeBufferLengthKey = "transcribe_buffer_length";
-    private const int _transcribeBufferLength = 30;
+    private const int _transcribeBufferLength = 60;
 
     public string HubAddress
     {
