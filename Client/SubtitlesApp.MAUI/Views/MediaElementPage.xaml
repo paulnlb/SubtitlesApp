@@ -6,6 +6,7 @@
              xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
              xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
+             xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
              x:Class="SubtitlesApp.Views.MediaElementPage"
              x:DataType="viewModels:MediaElementViewModel">
 
@@ -23,142 +24,13 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <toolkit:MediaElement
-            x:Name="MediaElement"
-            Grid.Row="0"
-            Aspect="AspectFit"
-            MaximumHeightRequest="500"
-            Source="{Binding MediaPath}"
-            ShouldAutoPlay="False"
-            ShouldShowPlaybackControls="False">
-
-            <toolkit:MediaElement.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding TogglePlayerControlsCommand}" />
-            </toolkit:MediaElement.GestureRecognizers>
-
-            <toolkit:MediaElement.Behaviors>
-                <toolkit:EventToCommandBehavior
-                EventName="PositionChanged"
-                Command="{Binding ChangePositionCommand}"
-                CommandParameter="{Binding Source={x:Reference MediaElement}, Path=Position}"/>
-            </toolkit:MediaElement.Behaviors>
-        </toolkit:MediaElement>
-
-        <Grid x:Name="PlayerControls"
-              Grid.Row="0"
-              Padding="10"
-              BackgroundColor="#80000000"
-              IsVisible="{Binding IsPlayerControlsVisible}"
-              RowDefinitions="2*, 10*, *, *"
-              RowSpacing="5"
-              ColumnDefinitions="*, *, *">
-
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding TogglePlayerControlsCommand}" />
-            </Grid.GestureRecognizers>
-
-            <Label Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
-                   TextColor="White"
-                Grid.Row="0"
-                Grid.ColumnSpan="2"
-                LineBreakMode="TailTruncation"
-                VerticalOptions="Center"
-                HorizontalOptions="Start"
-                FontSize="16" />
-
-            <!-- Second Row -->
-            <!-- Button for Rewind, Play/Pause, and Forward -->
-            <Button ImageSource="fast_rewind_icon.png"
-                    HeightRequest="50"
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#33FFFFFF"
-                    Command="{Binding RewindCommand}"/>
-
-            <Button ImageSource="play_icon.png"
-                    HeightRequest="50"
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#33FFFFFF"
-                    Command="{Binding PlayPauseCommand}">
-                <Button.Triggers>
-                    <DataTrigger TargetType="Button" Binding="{Binding PlayerState}" Value="Paused">
-                        <Setter Property="ImageSource" Value="play_icon.png" />
-                    </DataTrigger>
-                    <DataTrigger TargetType="Button" Binding="{Binding PlayerState}" Value="Playing">
-                        <Setter Property="ImageSource" Value="pause_icon.png" />
-                    </DataTrigger>
-                    <DataTrigger TargetType="Button"
-                                 Binding="{Binding Source={x:Reference MediaElement}, Path=CurrentState}" 
-                                 Value="Buffering">
-                        <Setter Property="IsVisible" Value="False" />
-                    </DataTrigger>
-                </Button.Triggers>
-            </Button>
-
-            <ActivityIndicator
-                HeightRequest="50"
-                Grid.Row="1"
-                Grid.Column="1"
-                IsRunning="False" >
-                <ActivityIndicator.Triggers>
-                    <DataTrigger TargetType="ActivityIndicator" 
-                                 Binding="{Binding Source={x:Reference MediaElement}, Path=CurrentState}" 
-                                 Value="Buffering">
-                        <Setter Property="IsRunning" Value="True" />
-                    </DataTrigger>
-                </ActivityIndicator.Triggers>
-            </ActivityIndicator>
-
-            <Button ImageSource="fast_forward_icon.png"
-                    HeightRequest="50"
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#33FFFFFF"
-                    Command="{Binding FastForwardCommand}"/>
-
-            <!-- Third Row -->
-            <!-- Time display -->
-            <Label
-                TextColor="White"
-                Grid.Row="2"
-                Grid.Column="0"
-                VerticalOptions="Center"
-                HorizontalOptions="Start"
-                Grid.ColumnSpan="3" >
-                <Label.Text>
-                    <MultiBinding StringFormat="{}{0}/{1}">
-                        <Binding Path="Position" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
-                        <Binding Path="Duration" Source="{x:Reference MediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
-                    </MultiBinding>
-                </Label.Text>
-            </Label>
-
-            <!--Fourth Row-->
-            <!-- Seek bar -->
-            <Slider
-                x:Name="PositionSlider"
-                Grid.Row="3"
-                Grid.ColumnSpan="3"
-                VerticalOptions="Center"
-                Value="{Binding CurrentPosition, Converter={StaticResource TimeSpanToSecondsConverter}}"
-                Maximum="{Binding Source={x:Reference MediaElement}, Path=Duration, Converter={StaticResource TimeSpanToSecondsConverter}}"
-                MaximumTrackColor="White"
-                DragStartedCommand="{Binding PauseCommand}">
-                <Slider.Behaviors>
-                    <toolkit:EventToCommandBehavior
-                        EventName="DragCompleted"
-                        Command="{Binding SeekToCommand}"
-                        CommandParameter="{Binding Source={x:Reference PositionSlider}, Path=Value, Converter={StaticResource SecondsToTimeSpanConverter}}"/>
-                </Slider.Behaviors>
-            </Slider>
-        </Grid>
+        <customControls:MediaPlayer Grid.Row="0"
+                                    x:Name="mediaPlayer"
+                                    MediaSource="{Binding MediaPath}"
+                                    SeekCompletedCommand="{Binding SeekToCommand}"
+                                    SeekCompletedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
+                                    PositionChangedCommand="{Binding ChangePositionCommand}"
+                                    PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"/>
 
         <Entry Grid.Row="1" Text="{Binding TextBoxContent}" IsReadOnly="True" />
 
@@ -167,8 +39,7 @@
                         ItemsSource="{Binding Subtitles}"
                         ItemsUpdatingScrollMode="KeepScrollOffset"
                         SelectionMode="Single"
-                        SelectionChangedCommand="{Binding SeekToSubCommand}"
-                        SelectionChangedCommandParameter="{Binding Source={x:Reference SubsCollection}, Path=SelectedItem}"
+                        SelectionChanged="OnSubSelectionChanged"
                         >
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="coreModels:Subtitle">

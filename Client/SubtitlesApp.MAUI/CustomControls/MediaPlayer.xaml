@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+             x:Class="SubtitlesApp.CustomControls.MediaPlayer"
+             x:Name="this">
+    <ContentView.Resources>
+        <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+        <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
+        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
+        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
+    </ContentView.Resources>
+    
+    <Grid BindingContext="{x:Reference this}"
+          RowDefinitions="*" ColumnDefinitions="*">
+        <toolkit:MediaElement
+            x:Name="MauiMediaElement"
+            Grid.Row="0"
+            Aspect="AspectFit"
+            MaximumHeightRequest="500"
+            Source="{Binding MediaSource}"
+            ShouldAutoPlay="False"
+            ShouldShowPlaybackControls="False">
+
+            <toolkit:MediaElement.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnMediaElementTapped" />
+            </toolkit:MediaElement.GestureRecognizers>
+
+            <toolkit:MediaElement.Behaviors>
+                <toolkit:EventToCommandBehavior
+                    EventName="PositionChanged"
+                    Command="{Binding PositionChangedCommand}"
+                    CommandParameter="{Binding PositionChangedCommandParameter}"/>
+                <toolkit:EventToCommandBehavior
+                    EventName="SeekCompleted"
+                    Command="{Binding SeekCompletedCommand}"
+                    CommandParameter="{Binding SeekCompletedCommandParameter}"/>
+            </toolkit:MediaElement.Behaviors>
+        </toolkit:MediaElement>
+
+        <Grid x:Name="PlayerControls"
+              Grid.Row="0"
+              Padding="10"
+              BackgroundColor="#80000000"
+              IsVisible="{Binding PlayerControlsVisible}"
+              RowDefinitions="2*, 10*, *, *"
+              RowSpacing="5"
+              ColumnDefinitions="*, *, *">
+
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnMediaElementTapped" />
+            </Grid.GestureRecognizers>
+
+            <Label Text="{Binding MediaSource, Converter={x:StaticResource PathToFileNameConverter}}"
+                   TextColor="White"
+                   Grid.Row="0"
+                   Grid.ColumnSpan="2"
+                   LineBreakMode="TailTruncation"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"
+                   FontSize="16" />
+
+             <!--Second Row 
+             Button for Rewind, Play/Pause, and Forward--> 
+            <Button ImageSource="fast_rewind_icon.png"
+                    HeightRequest="50"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#33FFFFFF"
+                    Clicked="OnRewindTapped"/>
+
+            <Button ImageSource="play_icon.png"
+                    HeightRequest="50"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#33FFFFFF"
+                    Clicked="OnPlayPauseTapped">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" Value="Paused">
+                        <Setter Property="ImageSource" Value="play_icon.png" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button" Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" Value="Playing">
+                        <Setter Property="ImageSource" Value="pause_icon.png" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button"
+                         Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" 
+                         Value="Buffering">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+            <ActivityIndicator
+                HeightRequest="50"
+                Grid.Row="1"
+                Grid.Column="1"
+                IsRunning="False" >
+                <ActivityIndicator.Triggers>
+                    <DataTrigger TargetType="ActivityIndicator" 
+                         Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" 
+                         Value="Buffering">
+                        <Setter Property="IsRunning" Value="True" />
+                    </DataTrigger>
+                </ActivityIndicator.Triggers>
+            </ActivityIndicator>
+
+            <Button ImageSource="fast_forward_icon.png"
+                    HeightRequest="50"
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    BackgroundColor="#33FFFFFF"
+                    Clicked="OnFastForwardTapped"/>
+
+             <!--Third Row 
+             Time display--> 
+            <Label
+                TextColor="White"
+                Grid.Row="2"
+                Grid.Column="0"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Grid.ColumnSpan="3" >
+                <Label.Text>
+                    <MultiBinding StringFormat="{}{0}/{1}">
+                        <Binding Path="Position" Source="{x:Reference MauiMediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
+                        <Binding Path="Duration" Source="{x:Reference MauiMediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
+                    </MultiBinding>
+                </Label.Text>
+            </Label>
+
+            <!--Fourth Row
+             Seek bar-->
+            <Slider
+                x:Name="PositionSlider"
+                Grid.Row="3"
+                Grid.ColumnSpan="3"
+                VerticalOptions="Center"
+                MaximumTrackColor="White"
+                DragStarted="OnDragStarted"
+                DragCompleted="OnDragCompleted" />
+        </Grid>
+    </Grid>
+</ContentView>

@@ -34,9 +34,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     Subtitle? _currentSubtitle;
 
     [ObservableProperty]
-    TimeSpan _lastSeekedPosition;
-
-    [ObservableProperty]
     MediaPlayerStates _playerState;
 
     [ObservableProperty]
@@ -44,9 +41,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
-
-    [ObservableProperty]
-    bool _isPlayerControlsVisible = true;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
@@ -117,82 +111,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             TranscribeStatus = TranscribeStatus.NotTranscribing;
             _timelineBeingTranscribed = null;
         }
-
-        LastSeekedPosition = position;
-
-        Play();
-    }
-
-    [RelayCommand]
-    public void SeekToSub(Subtitle subtitle)
-    {
-        if (subtitle != CurrentSubtitle && subtitle !=null)
-        {
-            SeekTo(subtitle.TimeInterval.StartTime);
-        }
-    }
-
-    [RelayCommand]
-    public void Pause()
-    {
-        PlayerState = MediaPlayerStates.Paused;
-    }
-
-    [RelayCommand]
-    public void Play()
-    {
-        PlayerState = MediaPlayerStates.Playing;
-    }
-
-    [RelayCommand]
-    public void PlayPause()
-    {
-        if (PlayerState == MediaPlayerStates.Playing)
-        {
-            Pause();
-        }
-        else
-        {
-            Play();
-        }
-    }
-
-    [RelayCommand]
-    public void Stop()
-    {
-        PlayerState = MediaPlayerStates.Stopped;
-    }
-
-    [RelayCommand]
-    public void TogglePlayerControls()
-    {
-        IsPlayerControlsVisible = !IsPlayerControlsVisible;
-    }
-
-    [RelayCommand]
-    public void FastForward()
-    {
-        var newPosition = CurrentPosition.Add(TimeSpan.FromSeconds(5));
-
-        if (newPosition > MediaDuration)
-        {
-            newPosition = MediaDuration;
-        }
-
-        SeekTo(newPosition);
-    }
-
-    [RelayCommand]
-    public void Rewind()
-    {
-        var newPosition = CurrentPosition.Subtract(TimeSpan.FromSeconds(5));
-
-        if (newPosition < TimeSpan.Zero)
-        {
-            newPosition = TimeSpan.Zero;
-        }
-
-        SeekTo(newPosition);
     }
 
     [RelayCommand]
