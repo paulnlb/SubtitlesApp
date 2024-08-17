@@ -8,7 +8,7 @@
              x:Class="SubtitlesApp.Views.MediaElementPage"
              x:DataType="viewModels:MediaElementViewModel">
 
-    <Grid>
+    <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="50" />
@@ -19,12 +19,14 @@
                                     x:Name="mediaPlayer"
                                     MediaSource="{Binding MediaPath}"
                                     Duration ="{Binding MediaDuration, Mode=OneWayToSource}"
+                                    MediaSwiped="OnMediaElementSwiped"
                                     SeekCompletedCommand="{Binding SeekToCommand}"
                                     SeekCompletedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                                     PositionChangedCommand="{Binding ChangePositionCommand}"
-                                    PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"/>
+                                    PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}">
+        </customControls:MediaPlayer>
 
-        <Entry Grid.Row="1" Text="{Binding TextBoxContent}" IsReadOnly="True" />
+        <Entry x:Name="statusField" Grid.Row="1" Text="{Binding TextBoxContent}" IsReadOnly="True" />
 
         <customControls:SubsCollection Grid.Row="2"
                                        x:Name="subsCollection"

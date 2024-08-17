@@ -18,6 +18,8 @@
             x:Name="MauiMediaElement"
             Grid.Row="0"
             Aspect="AspectFit"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
             MaximumHeightRequest="500"
             Source="{Binding MediaSource}"
             ShouldAutoPlay="False"
@@ -25,6 +27,10 @@
 
             <toolkit:MediaElement.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnMediaElementTapped" />
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Down"/>
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Up"/>
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Left"/>
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Right"/>
             </toolkit:MediaElement.GestureRecognizers>
 
             <toolkit:MediaElement.Behaviors>
@@ -50,6 +56,10 @@
 
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnMediaElementTapped" />
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Down"/>
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Up"/>
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Left"/>
+                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Right"/>
             </Grid.GestureRecognizers>
 
             <Label Text="{Binding MediaSource, Converter={x:StaticResource PathToFileNameConverter}}"
