@@ -101,6 +101,9 @@
     <MauiXaml Update="CustomControls\MediaPlayer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomControls\SubsCollection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\MediaElementPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

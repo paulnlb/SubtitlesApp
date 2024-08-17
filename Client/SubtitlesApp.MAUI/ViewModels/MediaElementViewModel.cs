@@ -28,15 +28,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     int _transcribeBufferLength;
 
     [ObservableProperty]
-    int _currentSubtitleIndex = -1;
-
-    [ObservableProperty]
-    Subtitle? _currentSubtitle;
-
-    [ObservableProperty]
-    MediaPlayerStates _playerState;
-
-    [ObservableProperty]
     TimeSpan _currentPosition;
 
     [ObservableProperty]
@@ -92,10 +83,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (ShouldTranscribe(currentPosition))
         {
             TranscribeStatus = TranscribeStatus.Transcribing;
-        }
-        else
-        {
-            SetCurrentSub(currentPosition);
         }
     }
 
@@ -278,30 +265,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     void SetStatus(string status)
     {
         TextBoxContent = status;
-    }
-
-    void SetCurrentSub(TimeSpan position)
-    {
-        if (CurrentSubtitle?.TimeInterval.ContainsTime(position) == true)
-        {
-            return;
-        }
-
-        (var sub, var index) = Subtitles.BinarySearch(position);
-
-        if (sub != null)
-        {
-            // highlight the current subtitle
-            if (CurrentSubtitle != null)
-            {
-                CurrentSubtitle.IsHighlighted = false;
-            }
-
-            sub.IsHighlighted = true;
-
-            CurrentSubtitle = sub;
-            CurrentSubtitleIndex = index;
-        }
     }
 
     bool ShouldTranscribe(TimeSpan position)

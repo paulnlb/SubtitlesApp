@@ -4,18 +4,9 @@
              xmlns:views="clr-namespace:SubtitlesApp.Views"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
-             xmlns:converters="clr-namespace:SubtitlesApp.Converters"
-             xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
              xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
              x:Class="SubtitlesApp.Views.MediaElementPage"
              x:DataType="viewModels:MediaElementViewModel">
-
-    <ContentPage.Resources>
-        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
-        <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
-        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
-    </ContentPage.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -27,6 +18,7 @@
         <customControls:MediaPlayer Grid.Row="0"
                                     x:Name="mediaPlayer"
                                     MediaSource="{Binding MediaPath}"
+                                    Duration ="{Binding MediaDuration, Mode=OneWayToSource}"
                                     SeekCompletedCommand="{Binding SeekToCommand}"
                                     SeekCompletedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                                     PositionChangedCommand="{Binding ChangePositionCommand}"
@@ -34,24 +26,10 @@
 
         <Entry Grid.Row="1" Text="{Binding TextBoxContent}" IsReadOnly="True" />
 
-        <CollectionView x:Name="SubsCollection" 
-                        Grid.Row="2"
-                        ItemsSource="{Binding Subtitles}"
-                        ItemsUpdatingScrollMode="KeepScrollOffset"
-                        SelectionMode="Single"
-                        SelectionChanged="OnSubSelectionChanged"
-                        >
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="coreModels:Subtitle">
-                    <Label Text="{Binding Text}">
-                        <Label.Triggers>
-                            <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="True">
-                                <Setter Property="BackgroundColor" Value="Grey" />
-                            </DataTrigger>
-                        </Label.Triggers>
-                    </Label>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+        <customControls:SubsCollection Grid.Row="2"
+                                       x:Name="subsCollection"
+                                       SubsSource="{Binding Subtitles}"
+                                       CurrentTimePosition="{Binding Source={x:Reference mediaPlayer}, Path=Position}"
+                                       SubtileTapped="OnSubtileTapped"/>
     </Grid>
 </ContentPage>
