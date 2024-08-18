@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiPageFullScreen;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Models;
@@ -101,12 +100,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    public void ToggleFullScreen()
-    {
-        Controls.ToggleFullScreenStatus();
-    }
-
-    [RelayCommand]
     public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
         _timelineBeingTranscribed = GetTimeIntervalForTranscription(position);
@@ -134,16 +127,17 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
 
             _coveredTimeIntervals.Insert(new TimeInterval(_timelineBeingTranscribed));
+
+            TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
         catch (Exception ex)
         {
             TextBoxContent = ex.Message;
+            TranscribeStatus = TranscribeStatus.Error;
         }
         finally
         {
             _timelineBeingTranscribed = null;
-
-            TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
     }
     #endregion

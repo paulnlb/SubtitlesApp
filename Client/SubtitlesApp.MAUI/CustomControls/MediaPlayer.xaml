@@ -25,14 +25,6 @@
             ShouldAutoPlay="False"
             ShouldShowPlaybackControls="False">
 
-            <toolkit:MediaElement.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnMediaElementTapped" />
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Down"/>
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Up"/>
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Left"/>
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Right"/>
-            </toolkit:MediaElement.GestureRecognizers>
-
             <toolkit:MediaElement.Behaviors>
                 <toolkit:EventToCommandBehavior
                     EventName="PositionChanged"
@@ -53,14 +45,6 @@
               RowDefinitions="2*, 10*, *, *"
               RowSpacing="5"
               ColumnDefinitions="*, *, *">
-
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnMediaElementTapped" />
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Down"/>
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Up"/>
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Left"/>
-                <SwipeGestureRecognizer Swiped="OnMediaElementSwiped" Direction="Right"/>
-            </Grid.GestureRecognizers>
 
             <Label Text="{Binding MediaSource, Converter={x:StaticResource PathToFileNameConverter}}"
                    TextColor="White"

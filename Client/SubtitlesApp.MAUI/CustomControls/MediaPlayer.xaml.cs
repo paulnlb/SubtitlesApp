@@ -37,8 +37,6 @@ public partial class MediaPlayer : ContentView
     public static readonly BindableProperty PositionProperty =
             BindableProperty.Create(nameof(Position), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero);
 
-    public event EventHandler<SwipedEventArgs>? MediaSwiped;
-
     public string MediaSource
     {
         get => (string)GetValue(MediaSourceProperty);
@@ -114,10 +112,6 @@ public partial class MediaPlayer : ContentView
     #endregion
 
     #region private event handlers
-    void OnMediaElementTapped(object sender, EventArgs e)
-    {
-        PlayerControlsVisible = !PlayerControlsVisible;
-    }
 
     async void OnRewindTapped(object sender, EventArgs e)
     {
@@ -180,11 +174,6 @@ public partial class MediaPlayer : ContentView
             PositionSlider.Maximum = MauiMediaElement.Duration.TotalSeconds;
             SetValue(DurationProperty, MauiMediaElement.Duration);
         }
-    }
-
-    void OnMediaElementSwiped(object sender, SwipedEventArgs e)
-    {
-        MediaSwiped?.Invoke(sender, e);
     }
 
     #endregion

@@ -1,6 +1,5 @@
-using MauiPageFullScreen;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.CustomControls;
+using SubtitlesApp.Services;
 using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
@@ -12,8 +11,6 @@ public partial class MediaElementPage : ContentPage
         InitializeComponent();
 
         BindingContext = viewModel;
-
-        DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
     }
 
     async void OnSubtileTapped(object sender, SubtitleTappedEventArgs e)
@@ -31,92 +28,94 @@ public partial class MediaElementPage : ContentPage
         mediaPlayer.DisconnectHandler();
     }
 
-    void OnMediaElementSwiped(object sender, SwipedEventArgs e)
+    protected override bool OnBackButtonPressed()
     {
-        if (e.Direction == SwipeDirection.Down && DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        if (!customLayout.IsSideChildVisible)
         {
-            Controls.FullScreen();
-            mainGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
-            mainGrid.RowDefinitions[1].Height = new GridLength(0);
-            mainGrid.RowDefinitions[2].Height = new GridLength(0);
+            customLayout.IsSideChildVisible = true;
+
+            if (customLayout.Orientation == StackOrientation.Vertical) 
+            {
+                FullScreenWrapper.RestoreScreen();
+            }
+            return true;
         }
 
-        if (e.Direction == SwipeDirection.Up && DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        Dispatcher.Dispatch(async () =>
         {
-            Controls.RestoreScreen();
-            mainGrid.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Auto);
-            mainGrid.RowDefinitions[1].Height = new GridLength(50);
-            mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
-        }
+            var userWantsToExit = await DisplayAlert(
+                "Achtung",
+                "Are you sure you want to exit player?",
+                "Yes",
+                "Cancel");
 
-        if (e.Direction == SwipeDirection.Left && DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Landscape)
-        {
-            mainGrid.ColumnDefinitions[0].Width = new GridLength(2, GridUnitType.Star);
-            mainGrid.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
-        }
+            if (userWantsToExit)
+            {
+                await Shell.Current.Navigation.PopAsync();
+            }
+        });
 
-        if (e.Direction == SwipeDirection.Right && DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Landscape)
+        return true;
+    }
+
+    void OnOrientationChanged(object sender, LayoutChangedEventArgs e)
+    {
+        if (e.Orientation == StackOrientation.Horizontal)
         {
-            mainGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
-            mainGrid.ColumnDefinitions[1].Width = new GridLength(0);
+            FullScreenWrapper.SetFullScreen();
+        }
+        else if (e.Orientation == StackOrientation.Vertical && customLayout.IsSideChildVisible)
+        {
+            FullScreenWrapper.RestoreScreen();
         }
     }
 
-    void OnMainDisplayInfoChanged(object sender, DisplayInfoChangedEventArgs e)
+    void OnPlayerTapped(object sender, EventArgs e)
     {
-        if (e.DisplayInfo.Orientation == DisplayOrientation.Landscape)
+        mediaPlayer.PlayerControlsVisible = !mediaPlayer.PlayerControlsVisible;
+
+        if (!mediaPlayer.PlayerControlsVisible && !customLayout.IsSideChildVisible)
         {
-            Controls.FullScreen();
-            SetLandScapeLayout();
-        }
-        else
-        {
-            Controls.RestoreScreen();
-            SetPortraitLayout();
+            FullScreenWrapper.SetFullScreen();
         }
     }
 
-    void SetLandScapeLayout()
+    void OnPlayerSwiped(object sender, SwipedEventArgs e)
     {
-        mainGrid.RowDefinitions = new RowDefinitionCollection
-            {
-                new RowDefinition { Height = new GridLength(50) },
-                new RowDefinition { Height = new GridLength(1, GridUnitType.Star) },
-            };
-        mainGrid.ColumnDefinitions = new ColumnDefinitionCollection
-            {
-                new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
-                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
-            };
-
-        mainGrid.SetRowSpan(mediaPlayer, 2);
-        mainGrid.SetColumn(mediaPlayer, 0);
-
-        mainGrid.SetColumn(statusField, 1);
-        mainGrid.SetRow(statusField, 0);
-
-        mainGrid.SetColumn(subsCollection, 1);
-        mainGrid.SetRow(subsCollection, 1);
+        if (customLayout.Orientation == StackOrientation.Horizontal)
+        {
+            HandleHorizontalSwipe(e.Direction);
+        }
+        else if (customLayout.Orientation == StackOrientation.Vertical)
+        {
+            HandleVerticalSwipe(e.Direction);
+        }
     }
 
-    void SetPortraitLayout()
+    void HandleHorizontalSwipe(SwipeDirection direction)
     {
-        mainGrid.RowDefinitions = new RowDefinitionCollection
-            {
-                new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) },
-                new RowDefinition { Height = new GridLength(50) },
-                new RowDefinition { Height = new GridLength(1, GridUnitType.Star) },
-            };
-        mainGrid.ColumnDefinitions = new ColumnDefinitionCollection
-            {
-                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
-            };
+        if (direction == SwipeDirection.Left && !customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = true;
+        }
+        else if (direction == SwipeDirection.Right && customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = false;
+            FullScreenWrapper.SetFullScreen();
+        }
+    }
 
-        mainGrid.SetRow(mediaPlayer, 0);
-        mainGrid.SetRowSpan(mediaPlayer, 1);
-
-        mainGrid.SetRow(statusField, 1);
-
-        mainGrid.SetRow(subsCollection, 2);
+    void HandleVerticalSwipe(SwipeDirection direction)
+    {
+        if (direction == SwipeDirection.Up && !customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = true;
+            FullScreenWrapper.RestoreScreen();
+        }
+        else if (direction == SwipeDirection.Down && customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = false;
+            FullScreenWrapper.SetFullScreen();
+        }
     }
 }
