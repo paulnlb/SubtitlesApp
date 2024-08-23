@@ -1,5 +1,5 @@
+using MauiPageFullScreen;
 using SubtitlesApp.CustomControls;
-using SubtitlesApp.Services;
 using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
@@ -36,7 +36,7 @@ public partial class MediaElementPage : ContentPage
 
             if (customLayout.Orientation == StackOrientation.Vertical) 
             {
-                FullScreenWrapper.RestoreScreen();
+                Controls.RestoreScreen();
             }
             return true;
         }
@@ -62,11 +62,11 @@ public partial class MediaElementPage : ContentPage
     {
         if (e.Orientation == StackOrientation.Horizontal)
         {
-            FullScreenWrapper.SetFullScreen();
+            Controls.FullScreen();
         }
         else if (e.Orientation == StackOrientation.Vertical && customLayout.IsSideChildVisible)
         {
-            FullScreenWrapper.RestoreScreen();
+            Controls.RestoreScreen();
         }
     }
 
@@ -76,7 +76,7 @@ public partial class MediaElementPage : ContentPage
 
         if (!mediaPlayer.PlayerControlsVisible && !customLayout.IsSideChildVisible)
         {
-            FullScreenWrapper.SetFullScreen();
+            Controls.FullScreen();
         }
     }
 
@@ -101,7 +101,7 @@ public partial class MediaElementPage : ContentPage
         else if (direction == SwipeDirection.Right && customLayout.IsSideChildVisible)
         {
             customLayout.IsSideChildVisible = false;
-            FullScreenWrapper.SetFullScreen();
+            Controls.FullScreen();
         }
     }
 
@@ -110,12 +110,12 @@ public partial class MediaElementPage : ContentPage
         if (direction == SwipeDirection.Up && !customLayout.IsSideChildVisible)
         {
             customLayout.IsSideChildVisible = true;
-            FullScreenWrapper.RestoreScreen();
+            Controls.RestoreScreen();
         }
         else if (direction == SwipeDirection.Down && customLayout.IsSideChildVisible)
         {
             customLayout.IsSideChildVisible = false;
-            FullScreenWrapper.SetFullScreen();
+            Controls.FullScreen();
         }
     }
 }
