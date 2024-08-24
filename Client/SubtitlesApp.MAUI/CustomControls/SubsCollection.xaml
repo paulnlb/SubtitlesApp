@@ -4,21 +4,33 @@
              xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
              x:Class="SubtitlesApp.CustomControls.SubsCollection"
              x:Name="this">
-    <CollectionView x:Name="subsCollectionView" 
+    <Grid>
+        <CollectionView x:Name="subsCollectionView" 
                     BindingContext="{x:Reference this}"
-                ItemsSource="{Binding SubsSource}"
-                ItemsUpdatingScrollMode="KeepScrollOffset"
-                SelectionMode="Single"
-                SelectionChanged="OnSubSelectionChanged">
-        <CollectionView.ItemTemplate>
-            <DataTemplate x:DataType="coreModels:Subtitle">
-                <Label Text="{Binding Text}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnSubTapped" 
+                    ItemsSource="{Binding SubsSource}"
+                    ItemsUpdatingScrollMode="KeepScrollOffset"
+                    SelectionMode="Single"
+                    SelectionChanged="OnSubSelectionChanged"
+                        Scrolled="OnScrolled">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="coreModels:Subtitle">
+                    <Label Text="{Binding Text}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSubTapped" 
                                               CommandParameter="{Binding .}"/>
-                    </Label.GestureRecognizers>
-                </Label>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button x:Name="scrollToCurrentButton"
+                BindingContext="{x:Reference this}"
+                Text="Scroll to current subtitle"
+                Clicked="OnScrollToCurrentClicked"
+                VerticalOptions="End"
+                HorizontalOptions="Center"
+                HeightRequest="40"
+                Margin="0, 0, 0, 10"
+                IsVisible="{Binding IsScrollButtonVisible}"/>
+    </Grid>
 </ContentView>

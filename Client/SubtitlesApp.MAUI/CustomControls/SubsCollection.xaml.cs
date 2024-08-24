@@ -7,6 +7,9 @@ namespace SubtitlesApp.CustomControls;
 
 public partial class SubsCollection : ContentView
 {
+    private int _currentSubIndex = 0;
+    private bool _autoScrollEnabled = true;
+
 	public SubsCollection()
 	{
 		InitializeComponent();
@@ -18,6 +21,9 @@ public partial class SubsCollection : ContentView
     public static readonly BindableProperty CurrentTimePositionProperty = 
             BindableProperty.Create(nameof(CurrentTimePosition), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, propertyChanged: OnCurrentTimePositionChanged);
 
+    public static readonly BindableProperty IsScrollButtonVisibleProperty = 
+        BindableProperty.Create(nameof(IsScrollButtonVisible), typeof(bool), typeof(MediaPlayer), false);
+
     public ObservableCollection<Subtitle> SubsSource
 	{
         get => (ObservableCollection<Subtitle>)GetValue(SubsSourceProperty);
@@ -28,6 +34,12 @@ public partial class SubsCollection : ContentView
     {
         get => (TimeSpan)GetValue(CurrentTimePositionProperty);
         set => SetValue(CurrentTimePositionProperty, value);
+    }
+
+    public bool IsScrollButtonVisible
+    {
+        get => (bool)GetValue(IsScrollButtonVisibleProperty);
+        set => SetValue(IsScrollButtonVisibleProperty, value);
     }
 
     public event EventHandler<SubtitleTappedEventArgs>? SubtileTapped;
@@ -44,18 +56,19 @@ public partial class SubsCollection : ContentView
                 return;
             }
 
-            (var sub, _) = subsCollection.SubsSource.BinarySearch(newPosition);
+            var(sub, index) = subsCollection.SubsSource.BinarySearch(newPosition);
 
             if (sub != null)
             {
                 subsCollection.subsCollectionView.SelectedItem = sub;
+                subsCollection._currentSubIndex = index;
             }
         }
     }
 
     async void OnSubSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (SubsSource is null)
+        if (!_autoScrollEnabled || SubsSource is null || SubsSource.Count == 0)
         {
             return;
         }
@@ -69,11 +82,38 @@ public partial class SubsCollection : ContentView
         }
     }
 
+    void OnScrolled(object sender, ItemsViewScrolledEventArgs e)
+    {
+        if(e.FirstVisibleItemIndex > _currentSubIndex || e.LastVisibleItemIndex < _currentSubIndex)
+        {
+            _autoScrollEnabled = false;
+            IsScrollButtonVisible = true;
+        }
+        else
+        {
+            _autoScrollEnabled = true;
+            IsScrollButtonVisible = false;
+        }
+    }
+
     void OnSubTapped(object sender, TappedEventArgs e)
     {
         if (e.Parameter is Subtitle sub)
         {
             SubtileTapped?.Invoke(this, new SubtitleTappedEventArgs(sub));
+        }
+    }
+
+    async void OnScrollToCurrentClicked(object sender, EventArgs e)
+    {
+        _autoScrollEnabled = true;
+
+        if (subsCollectionView.SelectedItem is Subtitle subtitle)
+        {
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await TryScrollToSub(subtitle);
+            });
         }
     }
 
