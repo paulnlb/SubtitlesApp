@@ -130,6 +130,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
             TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
+        catch (OperationCanceledException)
+        {
+            TranscribeStatus = TranscribeStatus.NotTranscribing;
+        }
         catch (Exception ex)
         {
             TextBoxContent = ex.Message;

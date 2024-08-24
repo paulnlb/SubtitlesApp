@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using SubtitlesApp.Shared.DTOs;
+using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
 using System.Runtime.CompilerServices;
 
@@ -8,7 +10,9 @@ namespace SubtitlesServer.Hubs;
 public class WhisperHub : Hub
 {
     public async IAsyncEnumerable<SubtitleDTO> TranscribeAudio(
-        [FromKeyedServices("transcription")] ITranscriptionService transcriptionService,
+        ITranscriptionService transcriptionService,
+        IOptions<SpeechToTextConfigs> speechToTextConfig,
+        IOptions<WhisperConfigs> whisperConfigs,
         IAsyncEnumerable<byte[]> dataChunks,
         TrimmedAudioMetadataDTO audioMetadata,
         [EnumeratorCancellation]
@@ -16,7 +20,12 @@ public class WhisperHub : Hub
     {
         Console.WriteLine("Connected");
 
-        var subtitles = transcriptionService.TranscribeAudioAsync(dataChunks, audioMetadata, cancellationToken);
+        var subtitles = transcriptionService.TranscribeAudioAsync(
+            dataChunks,
+            audioMetadata,
+            speechToTextConfig.Value,
+            whisperConfigs.Value,
+            cancellationToken);
 
         await Clients.Caller.SendAsync("SetStatus", "Transcribing...", cancellationToken: cancellationToken);
 
@@ -26,8 +35,8 @@ public class WhisperHub : Hub
             {
                 TimeInterval = new TimeIntervalDTO()
                 {
-                    StartTime = subtitle.TimeInterval.StartTime,
-                    EndTime = subtitle.TimeInterval.EndTime
+                    StartTime = subtitle.TimeInterval.StartTime + audioMetadata.StartTimeOffset,
+                    EndTime = subtitle.TimeInterval.EndTime + audioMetadata.StartTimeOffset
                 },
                 Text = subtitle.Text
             };
@@ -36,7 +45,7 @@ public class WhisperHub : Hub
 
             yield return subtitleDto;
 
-            Console.Write($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}\n");
+            Console.Write($"{subtitleDto.TimeInterval.StartTime}: {subtitleDto.Text}\n");
         }
 
         await Clients.Caller.SendAsync("SetStatus", "Done.", cancellationToken: cancellationToken);
