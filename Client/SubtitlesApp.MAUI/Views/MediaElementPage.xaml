@@ -39,7 +39,7 @@
         </customControls:CustomLayout.MainChild>
         
         <customControls:CustomLayout.SideChild>
-            <Grid RowDefinitions="50, *">
+            <Grid RowDefinitions="50, *" Padding="5, 0">
                 <Entry Grid.Row="0" Text="{Binding TextBoxContent}" IsReadOnly="True"/>
                 <customControls:SubsCollection
                     x:Name="subsCollection"

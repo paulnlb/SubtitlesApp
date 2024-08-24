@@ -109,7 +109,7 @@ public class CustomLayout : ContentView
         layout._sideChild = (View)newValue;
 
         // bind is visible property
-        layout._sideChild.SetBinding(IsVisibleProperty, new Binding(nameof(IsSideChildVisible), source: layout));
+        layout._sideChild.SetBinding(IsVisibleProperty, new Binding(nameof(IsSideChildVisible), source: layout, mode: BindingMode.OneWay));
 
         layout._grid.Children.Add(layout._sideChild);
         layout.UpdateLayout(layout.Orientation);
