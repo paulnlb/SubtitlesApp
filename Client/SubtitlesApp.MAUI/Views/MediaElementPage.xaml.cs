@@ -1,8 +1,6 @@
-using CommunityToolkit.Maui.Views;
-using SubtitlesApp.Core.Enums;
+using MauiPageFullScreen;
+using SubtitlesApp.CustomControls;
 using SubtitlesApp.ViewModels;
-using System.ComponentModel;
-using System.Diagnostics;
 
 namespace SubtitlesApp.Views;
 
@@ -13,69 +11,12 @@ public partial class MediaElementPage : ContentPage
         InitializeComponent();
 
         BindingContext = viewModel;
-
-        viewModel.PropertyChanged += ViewModel_SeekChanged;
-        viewModel.PropertyChanged += ViewModel_PlayerStateChanged;
-
-        MediaElement.SetBinding(MediaElement.DurationProperty, nameof(MediaElementViewModel.MediaDuration));
-
-        viewModel.PropertyChanged += ViewModel_CurrentSubChanged;
     }
 
-    async void ViewModel_CurrentSubChanged(object? sender, PropertyChangedEventArgs e)
+    async void OnSubtileTapped(object sender, SubtitleTappedEventArgs e)
     {
-        if (sender is not MediaElementViewModel vm)
-        {
-            return;
-        }
-
-        if (e.PropertyName == nameof(vm.CurrentSubtitleIndex) && vm.CurrentSubtitleIndex != -1)
-        {
-            await MainThread.InvokeOnMainThreadAsync(async() =>
-            {
-                await TryScrollToSub(vm.CurrentSubtitleIndex);
-            });
-        }
-    }
-
-    async void ViewModel_SeekChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is not MediaElementViewModel vm)
-        {
-            return;
-        }
-
-        if (e.PropertyName == nameof(vm.LastSeekedPosition))
-        {
-            await MediaElement.SeekTo(vm.LastSeekedPosition, CancellationToken.None);
-
-            // unselect the current subtitle
-            SubsCollection.SelectedItem = null;
-        }
-    }
-
-    void ViewModel_PlayerStateChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (sender is not MediaElementViewModel vm)
-        {
-            return;
-        }
-
-        if (e.PropertyName == nameof(vm.PlayerState))
-        {
-            switch (vm.PlayerState)
-            {
-                case MediaPlayerStates.Playing:
-                    MediaElement.Play();
-                    break;
-                case MediaPlayerStates.Paused:
-                    MediaElement.Pause();
-                    break;
-                case MediaPlayerStates.Stopped:
-                    MediaElement.Stop();
-                    break;
-            }
-        }
+        var subtitle = e.Subtitle;
+        await mediaPlayer.SeekTo(subtitle.TimeInterval.StartTime, CancellationToken.None);
     }
 
     protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -83,37 +24,98 @@ public partial class MediaElementPage : ContentPage
         base.OnNavigatedFrom(args);
         var vm = (MediaElementViewModel)BindingContext;
         await vm.CleanAsync();
-        MediaElement.Stop();
-        MediaElement.Handler?.DisconnectHandler();
+        mediaPlayer.Stop();
+        mediaPlayer.DisconnectHandler();
     }
 
-    async Task TryScrollToSub(int index, int attemptsNumber = 2)
+    protected override bool OnBackButtonPressed()
     {
-        Exception? exception = null;
-
-        while (attemptsNumber > 0)
+        if (!customLayout.IsSideChildVisible)
         {
-            try
+            customLayout.IsSideChildVisible = true;
+
+            if (customLayout.Orientation == StackOrientation.Vertical) 
             {
-                SubsCollection.ScrollTo(index);
-
-                exception = null;
-                break;
+                Controls.RestoreScreen();
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"\"{ex.Message}\" was caught. Trying to scroll again. Attemts remaining: {attemptsNumber}");
-                exception = ex;
-            }
-
-            await Task.Delay(200);
-
-            attemptsNumber--;
+            return true;
         }
 
-        if (exception != null)
+        Dispatcher.Dispatch(async () =>
         {
-            throw exception;
+            var userWantsToExit = await DisplayAlert(
+                "Achtung",
+                "Are you sure you want to exit player?",
+                "Yes",
+                "Cancel");
+
+            if (userWantsToExit)
+            {
+                await Shell.Current.Navigation.PopAsync();
+            }
+        });
+
+        return true;
+    }
+
+    void OnOrientationChanged(object sender, LayoutChangedEventArgs e)
+    {
+        if (e.Orientation == StackOrientation.Horizontal)
+        {
+            Controls.FullScreen();
+        }
+        else if (e.Orientation == StackOrientation.Vertical && customLayout.IsSideChildVisible)
+        {
+            Controls.RestoreScreen();
+        }
+    }
+
+    void OnPlayerTapped(object sender, EventArgs e)
+    {
+        mediaPlayer.PlayerControlsVisible = !mediaPlayer.PlayerControlsVisible;
+
+        if (!mediaPlayer.PlayerControlsVisible && !customLayout.IsSideChildVisible)
+        {
+            Controls.FullScreen();
+        }
+    }
+
+    void OnPlayerSwiped(object sender, SwipedEventArgs e)
+    {
+        if (customLayout.Orientation == StackOrientation.Horizontal)
+        {
+            HandleHorizontalSwipe(e.Direction);
+        }
+        else if (customLayout.Orientation == StackOrientation.Vertical)
+        {
+            HandleVerticalSwipe(e.Direction);
+        }
+    }
+
+    void HandleHorizontalSwipe(SwipeDirection direction)
+    {
+        if (direction == SwipeDirection.Left && !customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = true;
+        }
+        else if (direction == SwipeDirection.Right && customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = false;
+            Controls.FullScreen();
+        }
+    }
+
+    void HandleVerticalSwipe(SwipeDirection direction)
+    {
+        if (direction == SwipeDirection.Up && !customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = true;
+            Controls.RestoreScreen();
+        }
+        else if (direction == SwipeDirection.Down && customLayout.IsSideChildVisible)
+        {
+            customLayout.IsSideChildVisible = false;
+            Controls.FullScreen();
         }
     }
 }

@@ -68,7 +68,7 @@
 		<PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="3.1.1" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-		<PackageReference Include="FullScreenStatus.Maui" Version="1.0.5" />
+		<PackageReference Include="FullScreenStatus.Maui.Fork" Version="1.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.6" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.40" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.40" />
@@ -86,6 +86,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="CustomControls\MediaPlayer.xaml.cs">
+      <DependentUpon>MediaPlayer.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\MediaElementPage.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
@@ -95,6 +98,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="CustomControls\MediaPlayer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="CustomControls\SubsCollection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\MediaElementPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

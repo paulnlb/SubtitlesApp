@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiPageFullScreen;
 using SubtitlesApp.Application.Interfaces;
 using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Models;
@@ -28,25 +27,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     int _transcribeBufferLength;
 
     [ObservableProperty]
-    int _currentSubtitleIndex = -1;
-
-    [ObservableProperty]
-    Subtitle? _currentSubtitle;
-
-    [ObservableProperty]
-    TimeSpan _lastSeekedPosition;
-
-    [ObservableProperty]
-    MediaPlayerStates _playerState;
-
-    [ObservableProperty]
     TimeSpan _currentPosition;
 
     [ObservableProperty]
     TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
-
-    [ObservableProperty]
-    bool _isPlayerControlsVisible = true;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
@@ -99,10 +83,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             TranscribeStatus = TranscribeStatus.Transcribing;
         }
-        else
-        {
-            SetCurrentSub(currentPosition);
-        }
     }
 
     [RelayCommand]
@@ -117,88 +97,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             TranscribeStatus = TranscribeStatus.NotTranscribing;
             _timelineBeingTranscribed = null;
         }
-
-        LastSeekedPosition = position;
-
-        Play();
-    }
-
-    [RelayCommand]
-    public void SeekToSub(Subtitle subtitle)
-    {
-        if (subtitle != CurrentSubtitle && subtitle !=null)
-        {
-            SeekTo(subtitle.TimeInterval.StartTime);
-        }
-    }
-
-    [RelayCommand]
-    public void Pause()
-    {
-        PlayerState = MediaPlayerStates.Paused;
-    }
-
-    [RelayCommand]
-    public void Play()
-    {
-        PlayerState = MediaPlayerStates.Playing;
-    }
-
-    [RelayCommand]
-    public void PlayPause()
-    {
-        if (PlayerState == MediaPlayerStates.Playing)
-        {
-            Pause();
-        }
-        else
-        {
-            Play();
-        }
-    }
-
-    [RelayCommand]
-    public void Stop()
-    {
-        PlayerState = MediaPlayerStates.Stopped;
-    }
-
-    [RelayCommand]
-    public void TogglePlayerControls()
-    {
-        IsPlayerControlsVisible = !IsPlayerControlsVisible;
-    }
-
-    [RelayCommand]
-    public void FastForward()
-    {
-        var newPosition = CurrentPosition.Add(TimeSpan.FromSeconds(5));
-
-        if (newPosition > MediaDuration)
-        {
-            newPosition = MediaDuration;
-        }
-
-        SeekTo(newPosition);
-    }
-
-    [RelayCommand]
-    public void Rewind()
-    {
-        var newPosition = CurrentPosition.Subtract(TimeSpan.FromSeconds(5));
-
-        if (newPosition < TimeSpan.Zero)
-        {
-            newPosition = TimeSpan.Zero;
-        }
-
-        SeekTo(newPosition);
-    }
-
-    [RelayCommand]
-    public void ToggleFullScreen()
-    {
-        Controls.ToggleFullScreenStatus();
     }
 
     [RelayCommand]
@@ -229,16 +127,17 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
 
             _coveredTimeIntervals.Insert(new TimeInterval(_timelineBeingTranscribed));
+
+            TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
         catch (Exception ex)
         {
             TextBoxContent = ex.Message;
+            TranscribeStatus = TranscribeStatus.Error;
         }
         finally
         {
             _timelineBeingTranscribed = null;
-
-            TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
     }
     #endregion
@@ -360,30 +259,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     void SetStatus(string status)
     {
         TextBoxContent = status;
-    }
-
-    void SetCurrentSub(TimeSpan position)
-    {
-        if (CurrentSubtitle?.TimeInterval.ContainsTime(position) == true)
-        {
-            return;
-        }
-
-        (var sub, var index) = Subtitles.BinarySearch(position);
-
-        if (sub != null)
-        {
-            // highlight the current subtitle
-            if (CurrentSubtitle != null)
-            {
-                CurrentSubtitle.IsHighlighted = false;
-            }
-
-            sub.IsHighlighted = true;
-
-            CurrentSubtitle = sub;
-            CurrentSubtitleIndex = index;
-        }
     }
 
     bool ShouldTranscribe(TimeSpan position)
