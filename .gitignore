@@ -369,5 +369,6 @@ Jars/
 SettingsServiceDevelopment.cs
 
 # Whisper models
-WhisperModels/
+*.bin
+
 /Server/SubtitlesServer/Properties/launchSettings.json
