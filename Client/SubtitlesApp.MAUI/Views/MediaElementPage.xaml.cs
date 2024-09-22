@@ -19,13 +19,20 @@ public partial class MediaElementPage : ContentPage
         await mediaPlayer.SeekTo(subtitle.TimeInterval.StartTime, CancellationToken.None);
     }
 
+    protected override void OnDisappearing()
+    {
+        customLayout.Unsubscribe();
+
+        base.OnDisappearing();
+    }
     protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
-        base.OnNavigatedFrom(args);
         var vm = (MediaElementViewModel)BindingContext;
         await vm.CleanAsync();
         mediaPlayer.Stop();
         mediaPlayer.DisconnectHandler();
+
+        base.OnNavigatedFrom(args);
     }
 
     protected override bool OnBackButtonPressed()

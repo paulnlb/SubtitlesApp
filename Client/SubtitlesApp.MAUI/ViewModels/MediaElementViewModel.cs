@@ -124,9 +124,19 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
             var subs = _signalrClient.StreamAsync(audioChunks, metadata, cancellationToken);
 
-            await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
+            var lastAddedSub = await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
 
-            _coveredTimeIntervals.Insert(new TimeInterval(_timelineBeingTranscribed));
+            if (lastAddedSub == null || _timelineBeingTranscribed.EndTime == MediaDuration)
+            {
+                _coveredTimeIntervals.Insert(new TimeInterval(_timelineBeingTranscribed));
+            }
+            else
+            {
+                _coveredTimeIntervals.Insert(
+                    new TimeInterval(
+                        _timelineBeingTranscribed.StartTime,
+                        lastAddedSub.TimeInterval.StartTime));
+            }
 
             TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
@@ -196,14 +206,16 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     /// <param name="batchLength"></param>
     /// <param name="delayMs"></param>
     /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    async Task AddToSubsList(
+    /// <returns>Last added subtitle</returns>
+    async Task<SubtitleDTO?> AddToSubsList(
         IAsyncEnumerable<SubtitleDTO> subsToAdd,
         int batchLength,
         int delayMs,
         CancellationToken cancellationToken)
     {
         int i = 0;
+        SubtitleDTO? lastSub = null;
+
         await foreach (var sub in subsToAdd)
         {
             if (i % batchLength == 0)
@@ -213,7 +225,11 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
             AddSubtitle(sub);
             i++;
+
+            lastSub = sub;
         }
+
+        return lastSub;
     }
 
     void AddSubtitle(SubtitleDTO subtitleDTO)

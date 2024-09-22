@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Views;
 using System.ComponentModel;
 using System.Windows.Input;
 
@@ -13,8 +14,8 @@ public partial class MediaPlayer : ContentView
         MauiMediaElement.PropertyChanged += MediaElementPropertyChanged;
     }
 
-    public static readonly BindableProperty MediaSourceProperty =
-            BindableProperty.Create(nameof(MediaSource), typeof(string), typeof(MediaPlayer), string.Empty);
+    public static readonly BindableProperty MediaPathProperty =
+            BindableProperty.Create(nameof(MediaPath), typeof(string), typeof(MediaPlayer), string.Empty);
 
     public static readonly BindableProperty PlayerControlsVisibleProperty =
             BindableProperty.Create(nameof(PlayerControlsVisible), typeof(bool), typeof(MediaPlayer), true);
@@ -37,10 +38,10 @@ public partial class MediaPlayer : ContentView
     public static readonly BindableProperty PositionProperty =
             BindableProperty.Create(nameof(Position), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero);
 
-    public string MediaSource
+    public string MediaPath
     {
-        get => (string)GetValue(MediaSourceProperty);
-        set => SetValue(MediaSourceProperty, value);
+        get => (string)GetValue(MediaPathProperty);
+        set => SetValue(MediaPathProperty, value);
     }
 
     public ICommand PositionChangedCommand 
@@ -106,6 +107,7 @@ public partial class MediaPlayer : ContentView
 
     public void DisconnectHandler()
     {
+        MauiMediaElement.PropertyChanged -= MediaElementPropertyChanged;
         MauiMediaElement.Handler?.DisconnectHandler();
     }
 

@@ -94,6 +94,11 @@ public class CustomLayout : ContentView
         UpdateLayout(Orientation);
     }
 
+    public void Unsubscribe()
+    {
+        DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
+    }
+
     private static void OnMainChildChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var layout = (CustomLayout)bindable;
@@ -109,7 +114,7 @@ public class CustomLayout : ContentView
         layout._sideChild = (View)newValue;
 
         // bind is visible property
-        layout._sideChild.SetBinding(IsVisibleProperty, new Binding(nameof(IsSideChildVisible), source: layout));
+        layout._sideChild.SetBinding(IsVisibleProperty, new Binding(nameof(IsSideChildVisible), source: layout, mode: BindingMode.OneWay));
 
         layout._grid.Children.Add(layout._sideChild);
         layout.UpdateLayout(layout.Orientation);
