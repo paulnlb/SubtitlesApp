@@ -1,11 +1,13 @@
-﻿using SubtitlesApp.Application.Interfaces;
+﻿using CommunityToolkit.Maui.Views;
+using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.CustomControls;
 using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
 
 public partial class MainPage : ContentPage
 {
-    const string loadOnlineVideo = "Load Online Video (Not implemented)";
+    const string loadOnlineVideo = "Load Online Video";
     const string loadLocalResource = "Choose Local Video From Device";
 
     readonly IVideoPicker _videoPicker;
@@ -27,7 +29,15 @@ public partial class MainPage : ContentPage
         switch (result)
         {
             case loadOnlineVideo:
-                return;
+                var popup = new InputPopup();
+                var popupResult = await this.ShowPopupAsync(popup, CancellationToken.None);
+
+                if (popupResult is string stringPath && !string.IsNullOrEmpty(stringPath))
+                {
+                    OpenMediaElementPage(stringPath);
+                }
+
+                break;
 
             case loadLocalResource:
 
@@ -40,12 +50,12 @@ public partial class MainPage : ContentPage
 
                 var path = await _videoPicker.PickAsync();
 
-                if (path != null)
+                if (!string.IsNullOrEmpty(path))
                 {
                     OpenMediaElementPage(path);
                 }
 
-                return;
+                break;
         }
     }
 

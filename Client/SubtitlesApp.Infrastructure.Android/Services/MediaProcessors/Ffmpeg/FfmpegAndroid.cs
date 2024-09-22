@@ -6,6 +6,7 @@ using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Infrastructure.Common.Services.Sockets;
 using SubtitlesApp.Shared.DTOs;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
@@ -58,12 +59,14 @@ public class FfmpegAndroid : IMediaProcessor
 
         _audioMetadata.SetTimeBoundaries(startTime, endTime);
 
-        var ffmpegCommand = $"-y " +
+        var ffmpegCommand =
+            $"-ss {startTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} " +
+            $"-to {endTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} " +
             $"-i \"{sourcePath}\" " +
-            $"-ss {startTime.TotalMilliseconds}ms -to {_audioMetadata.EndTime.TotalMilliseconds}ms " +
             $"-vn " +
             $"-ar {_audioMetadata.SampleRate} " +
             $"-ac {_audioMetadata.ChannelsCount} " +
+            $"-y " +
             $"-f {_audioMetadata.AudioFormat} ";
 
         ffmpegCommand += _socketListener switch
