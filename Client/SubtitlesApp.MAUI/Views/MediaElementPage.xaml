@@ -20,8 +20,8 @@
         <customControls:CustomLayout.MainChild>
             <customControls:MediaPlayer
                 x:Name="mediaPlayer"
-                MediaSource="{Binding MediaPath}"
-                Duration ="{Binding MediaDuration, Mode=OneWayToSource}"
+                MediaPath="{Binding MediaPath}"
+                Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                 SeekCompletedCommand="{Binding SeekToCommand}"
                 SeekCompletedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                 PositionChangedCommand="{Binding ChangePositionCommand}"

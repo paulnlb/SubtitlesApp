@@ -21,7 +21,7 @@
             VerticalOptions="Center"
             HorizontalOptions="Center"
             MaximumHeightRequest="500"
-            Source="{Binding MediaSource}"
+            Source="{Binding MediaPath}"
             ShouldAutoPlay="False"
             ShouldShowPlaybackControls="False">
 
@@ -46,7 +46,7 @@
               RowSpacing="5"
               ColumnDefinitions="*, *, *">
 
-            <Label Text="{Binding MediaSource, Converter={x:StaticResource PathToFileNameConverter}}"
+            <Label Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
                    TextColor="White"
                    Grid.Row="0"
                    Grid.ColumnSpan="2"

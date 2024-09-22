@@ -87,9 +87,14 @@ public static class SubtitlesExtensions
             overlapsWithRight = list[index].TimeInterval.Overlaps(newSubtitle.TimeInterval);
         }
 
-        if (overlapsWithLeft || overlapsWithRight)
+        if (overlapsWithLeft)
         {
-            return;
+            list.RemoveAt(index - 1);
+            index--;
+        }
+        if (overlapsWithRight)
+        {
+            list.RemoveAt(index);
         }
 
         list.Insert(index, newSubtitle);

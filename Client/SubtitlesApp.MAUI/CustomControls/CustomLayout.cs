@@ -94,6 +94,11 @@ public class CustomLayout : ContentView
         UpdateLayout(Orientation);
     }
 
+    public void Unsubscribe()
+    {
+        DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
+    }
+
     private static void OnMainChildChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var layout = (CustomLayout)bindable;
