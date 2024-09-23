@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Shared.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 
 namespace SubtitlesServer.Application.Interfaces;
 

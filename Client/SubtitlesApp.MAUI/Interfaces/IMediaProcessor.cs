@@ -1,6 +1,6 @@
-﻿using SubtitlesApp.Shared.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 
-namespace SubtitlesApp.Application.Interfaces;
+namespace SubtitlesApp.Maui.Interfaces;
 
 /// <summary>
 /// Processes media and passes it to a socket or a file

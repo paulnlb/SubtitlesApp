@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Application.Interfaces;
+﻿using SubtitlesApp.Maui.Interfaces;
 
 namespace SubtitlesApp.Services;
 

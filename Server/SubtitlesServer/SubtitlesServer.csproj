@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
     <ProjectReference Include="..\SubtitlesServer.Application\SubtitlesServer.Application.csproj" />
     <ProjectReference Include="..\SubtitlesServer.Infrastructure\SubtitlesServer.Infrastructure.csproj" />
   </ItemGroup>

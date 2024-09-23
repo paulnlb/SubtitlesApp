@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Core.DTOs;
 using System.Runtime.CompilerServices;
 
 namespace SubtitlesServer.Hubs;

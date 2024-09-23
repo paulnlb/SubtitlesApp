@@ -1,5 +1,5 @@
 ﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
 using System.Runtime.CompilerServices;

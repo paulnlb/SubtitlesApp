@@ -9,8 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FfmpegAndroidBinding\FfmpegAndroidBinding.csproj" />
-    <ProjectReference Include="..\SubtitlesApp.Application\SubtitlesApp.Application.csproj" />
-    <ProjectReference Include="..\SubtitlesApp.Infrastructure.Common\SubtitlesApp.Infrastructure.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\MediaProcessors\Ffmpeg\" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ using Android.Provider;
 using Android.Text;
 using Java.IO;
 
-namespace SubtitlesApp.Infrastructure.Android.Services.File;
+namespace SubtitlesApp.Maui.Platforms.Android;
 
 public static class FilesHelper
 {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
-using SubtitlesApp.Application.Interfaces;
-using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Core.DTOs;
 
-namespace SubtitlesApp.Infrastructure.Common.Services.Clients;
+namespace SubtitlesApp.Maui.Services;
 
 public class SignalRClient : ISignalRClient
 {

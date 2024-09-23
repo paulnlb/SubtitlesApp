@@ -1,5 +1,5 @@
 ﻿using Android.Content;
-using SubtitlesApp.Infrastructure.Android.Services.File;
+using SubtitlesApp.Maui.Platforms.Android;
 using SubtitlesApp.Platforms.Android;
 
 namespace SubtitlesApp.Services;

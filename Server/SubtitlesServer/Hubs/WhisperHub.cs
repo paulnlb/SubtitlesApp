@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
 using System.Runtime.CompilerServices;

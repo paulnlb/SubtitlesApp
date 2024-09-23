@@ -1,12 +1,8 @@
-﻿using SubtitlesApp.Application.Interfaces;
-using SubtitlesApp.Application.Interfaces.Socket;
-using SubtitlesApp.Infrastructure.Common.Services.Sockets;
-using SubtitlesApp.Infrastructure.Common.Services.Clients;
-using SubtitlesApp.Services;
-
-#if ANDROID
-using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
-#endif
+﻿using SubtitlesApp.Services;
+using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Maui.Interfaces.Socket;
+using SubtitlesApp.Maui.Services.Sockets;
+using SubtitlesApp.Maui.Services;
 
 namespace SubtitlesApp.Extensions;
 
@@ -14,9 +10,7 @@ internal static class AddServicesExtensions
 {
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
-        #if ANDROID
-        services.AddTransient<IMediaProcessor, FfmpegAndroid>();
-        #endif
+        services.AddTransient<IMediaProcessor, FfmpegService>();
 
         services.AddTransient<IVideoPicker, VideoPicker>();
 

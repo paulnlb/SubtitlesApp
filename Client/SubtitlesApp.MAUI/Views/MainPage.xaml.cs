@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Maui.Views;
-using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Maui.Interfaces;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.ViewModels;
 

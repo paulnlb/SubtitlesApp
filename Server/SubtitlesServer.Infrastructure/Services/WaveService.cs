@@ -2,7 +2,7 @@
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Infrastructure.Services;

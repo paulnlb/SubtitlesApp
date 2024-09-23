@@ -1,8 +1,8 @@
-﻿using SubtitlesApp.Application.Interfaces;
-using SubtitlesApp.Application.Interfaces.Socket;
+﻿using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Maui.Interfaces.Socket;
 using System.Net.Sockets;
 
-namespace SubtitlesApp.Infrastructure.Common.Services.Sockets;
+namespace SubtitlesApp.Maui.Services.Sockets;
 
 public class UnixSocketSender : ISocketSender
 {

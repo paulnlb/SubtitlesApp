@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Application.Interfaces.Socket;
+﻿namespace SubtitlesApp.Maui.Interfaces.Socket;
 
 /// <summary>
 /// Allows receiving media data from the specified endpoint

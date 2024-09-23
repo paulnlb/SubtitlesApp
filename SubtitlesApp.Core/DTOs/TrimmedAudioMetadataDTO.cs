@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Shared.DTOs;
+﻿namespace SubtitlesApp.Core.DTOs;
 
 public class TrimmedAudioMetadataDTO
 {

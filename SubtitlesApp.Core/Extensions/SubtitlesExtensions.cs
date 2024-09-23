@@ -1,8 +1,7 @@
 ﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Shared.DTOs;
 using System.Collections.ObjectModel;
 
-namespace SubtitlesApp.Shared.Extensions;
+namespace SubtitlesApp.Core.Extensions;
 
 public static class SubtitlesExtensions
 {

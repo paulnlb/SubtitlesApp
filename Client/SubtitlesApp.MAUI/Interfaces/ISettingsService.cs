@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Application.Interfaces;
+﻿namespace SubtitlesApp.Maui.Interfaces;
 
 /// <summary>
 ///     App settings

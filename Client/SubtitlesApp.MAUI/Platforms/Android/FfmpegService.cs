@@ -1,17 +1,17 @@
 ﻿using Com.Arthenica.Ffmpegkit;
 using Java.Interop;
-using SubtitlesApp.Application.Interfaces;
-using SubtitlesApp.Application.Interfaces.Socket;
+using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Maui.Interfaces.Socket;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Infrastructure.Common.Services.Sockets;
-using SubtitlesApp.Shared.DTOs;
+using SubtitlesApp.Maui.Services.Sockets;
+using SubtitlesApp.Core.DTOs;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
+namespace SubtitlesApp.Services;
 
-public class FfmpegAndroid : IMediaProcessor
+public partial class FfmpegService : IMediaProcessor
 {
     readonly ISocketListener _socketListener;
 
@@ -19,7 +19,7 @@ public class FfmpegAndroid : IMediaProcessor
 
     bool _disposed;
 
-    public FfmpegAndroid(ISocketListener socketListener)
+    public FfmpegService(ISocketListener socketListener)
     {
         _socketListener = socketListener;
         _socketListener.StartListening();
@@ -32,7 +32,7 @@ public class FfmpegAndroid : IMediaProcessor
         };
     }
 
-    public void Dispose()
+    public partial void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
@@ -53,7 +53,7 @@ public class FfmpegAndroid : IMediaProcessor
         _disposed = true;
     }
 
-    public (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+    public partial (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
