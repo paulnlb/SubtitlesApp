@@ -1,4 +1,5 @@
-﻿using NAudio.Utils;
+﻿using Microsoft.Extensions.Logging;
+using NAudio.Utils;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using SubtitlesApp.Core.Constants;
@@ -7,11 +8,10 @@ using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Infrastructure.Services;
 
-public class WaveService : IWaveService
+public class WaveService(ILogger<WaveService> logger) : IWaveService
 {
     public async Task<MemoryStream> WriteToWaveStreamAsync(
-        IAsyncEnumerable<byte[]> dataChunks,
-        TrimmedAudioMetadataDTO audioMetadata,
+        TrimmedAudioDto audioMetadata,
         CancellationToken cancellationToken = default)
     {
         MemoryStream waveStream;
@@ -20,18 +20,18 @@ public class WaveService : IWaveService
         {
             var waveFormat = new WaveFormat(audioMetadata.SampleRate, audioMetadata.ChannelsCount);
 
-            waveStream = await WriteRawToWaveAsync(dataChunks, waveFormat, cancellationToken);
+            waveStream = await WriteRawToWaveAsync(audioMetadata.AudioBytes, waveFormat, cancellationToken);
         }
         else if (audioMetadata.AudioFormat == AudioFormats.Wave)
         {
-            waveStream = await WritePreprocessedWave(dataChunks, cancellationToken);
+            waveStream = await WritePreprocessedWave(audioMetadata.AudioBytes, cancellationToken);
         }
         else
         {
             throw new NotSupportedException($"Audio format \"{audioMetadata.AudioFormat}\" is not supported");
         }
 
-        Console.WriteLine("Wave read");
+        logger.LogInformation("Wave read");
 
         if (audioMetadata.SampleRate != 16000)
         {
@@ -39,13 +39,13 @@ public class WaveService : IWaveService
 
             waveStream = ResampleWav(waveStream, 16000);
 
-            Console.WriteLine("Wave resampled");
+            logger.LogInformation("Wave resampled");
         }
         return waveStream;
     }
 
     private static async Task<MemoryStream> WriteRawToWaveAsync(
-        IAsyncEnumerable<byte[]> dataChunks,
+        byte[] audioBytes,
         WaveFormat waveFormat, 
         CancellationToken cancellationToken = default)
     {
@@ -55,10 +55,7 @@ public class WaveService : IWaveService
 
         using var waveWriter = new WaveFileWriter(wrapperStream, waveFormat);
 
-        await foreach (var chunk in dataChunks)
-        {
-            await waveWriter.WriteAsync(chunk, cancellationToken);
-        }
+        await waveWriter.WriteAsync(audioBytes, cancellationToken);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 
@@ -66,15 +63,12 @@ public class WaveService : IWaveService
     }
 
     private static async Task<MemoryStream> WritePreprocessedWave(
-        IAsyncEnumerable<byte[]> dataChunks, 
+        byte[] audioBytes, 
         CancellationToken cancellationToken)
     {
         var memoryStream = new MemoryStream();
 
-        await foreach (var chunk in dataChunks)
-        {
-            await memoryStream.WriteAsync(chunk, cancellationToken);
-        }
+        await memoryStream.WriteAsync(audioBytes, cancellationToken);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
 

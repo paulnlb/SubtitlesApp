@@ -3,7 +3,7 @@
 namespace SubtitlesApp.Maui.Interfaces;
 
 /// <summary>
-/// Processes media and passes it to a socket or a file
+/// Processes media and returns audio bytes
 /// </summary>
 public interface IMediaProcessor : IDisposable
 {
@@ -12,10 +12,10 @@ public interface IMediaProcessor : IDisposable
     /// </summary>
     /// <param name="sourcePath"></param>
     /// <param name="startTime"></param>
-    /// <param name="duration"></param>
+    /// <param name="endTime"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(
+    Task<TrimmedAudioDto> ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
         TimeSpan endTime,

@@ -7,6 +7,7 @@ using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Extensions;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -34,15 +35,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
-    readonly ISignalRClient _signalrClient;
+    readonly ISubtitlesService _subtitlesService;
     readonly TimeSet _coveredTimeIntervals;
 
     TimeInterval? _timelineBeingTranscribed;
 
     public MediaElementViewModel(
-        ISignalRClient signalRClient,
         IMediaProcessor mediaProcessor,
-        ISettingsService settings)
+        ISettingsService settings,
+        ISubtitlesService subtitlesService)
     {
         #region observable props
 
@@ -55,8 +56,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         #region private props
 
-        _signalrClient = signalRClient;
         _mediaProcessor = mediaProcessor;
+        _subtitlesService = subtitlesService;
         _coveredTimeIntervals = new TimeSet();
         _currentPosition = TimeSpan.Zero;
 
@@ -114,15 +115,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            (var metadata, var audioChunks) = _mediaProcessor.ExtractAudioAsync(
+            var audio = await _mediaProcessor.ExtractAudioAsync(
                 MediaPath,
                 _timelineBeingTranscribed.StartTime,
                 _timelineBeingTranscribed.EndTime,
                 cancellationToken);
 
-            TextBoxContent = "Sending to server...";
+            TextBoxContent = "Transcribing...";
 
-            var subs = _signalrClient.StreamAsync(audioChunks, metadata, cancellationToken);
+            var subs = await _subtitlesService.GetSubsAsync(audio, cancellationToken);
 
             var lastAddedSub = await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
 
@@ -139,6 +140,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             }
 
             TranscribeStatus = TranscribeStatus.NotTranscribing;
+
+            TextBoxContent = "Transcribing done.";
         }
         catch (OperationCanceledException)
         {
@@ -157,32 +160,11 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #endregion
 
     #region public methods
-    async void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
+    void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("open", out object? value))
         {
             MediaPath = value.ToString();
-        }
-
-        if (MediaPath != null)
-        {
-            RegisterSignalRHandlers();
-            await ConnectToServerAsync();
-        }
-    }
-
-    // preserve as a future command for manual connection
-    public async Task ConnectToServerAsync()
-    {
-        var (isConnected, message) = await _signalrClient.TryConnectAsync();
-
-        if (isConnected)
-        {
-            TextBoxContent = message;
-        }
-        else
-        {
-            TextBoxContent = "Connection error:" + message;
         }
     }
 
@@ -192,7 +174,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             TranscribeCommand.Cancel();
         }
-        await _signalrClient.StopConnectionAsync();
         _mediaProcessor.Dispose();
     }
     #endregion
@@ -208,7 +189,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     /// <param name="cancellationToken"></param>
     /// <returns>Last added subtitle</returns>
     async Task<SubtitleDTO?> AddToSubsList(
-        IAsyncEnumerable<SubtitleDTO> subsToAdd,
+        List<SubtitleDTO> subsToAdd,
         int batchLength,
         int delayMs,
         CancellationToken cancellationToken)
@@ -216,7 +197,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         int i = 0;
         SubtitleDTO? lastSub = null;
 
-        await foreach (var sub in subsToAdd)
+        foreach (var sub in subsToAdd)
         {
             if (i % batchLength == 0)
             {
@@ -267,13 +248,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         endTime = endTime > MediaDuration ? MediaDuration : endTime;
 
         return new TimeInterval(startTime, endTime);
-    }
-
-    void RegisterSignalRHandlers()
-    {
-        Action<string> setStatus = SetStatus;
-
-        _signalrClient.RegisterHandler(nameof(SetStatus), setStatus);
     }
 
     void SetStatus(string status)

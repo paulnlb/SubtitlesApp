@@ -1,7 +1,9 @@
 ﻿namespace SubtitlesApp.Core.DTOs;
 
-public class TrimmedAudioMetadataDTO
+public class TrimmedAudioDto
 {
+    public byte[] AudioBytes { get; set; }
+
     public int SampleRate { get; set; }
 
     public int ChannelsCount { get; set; }

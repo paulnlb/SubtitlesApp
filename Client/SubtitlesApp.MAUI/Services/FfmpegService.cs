@@ -7,5 +7,5 @@ public partial class FfmpegService : IMediaProcessor
 {
     public partial void Dispose();
 
-    public partial (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken);
+    public partial Task<TrimmedAudioDto> ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken);
 }

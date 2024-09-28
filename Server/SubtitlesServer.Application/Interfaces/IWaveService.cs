@@ -5,7 +5,6 @@ namespace SubtitlesServer.Application.Interfaces;
 public interface IWaveService
 {
     Task<MemoryStream> WriteToWaveStreamAsync(
-        IAsyncEnumerable<byte[]> dataChunks,
-        TrimmedAudioMetadataDTO audioMetadata,
+        TrimmedAudioDto audioMetadata,
         CancellationToken cancellationToken = default);
 }

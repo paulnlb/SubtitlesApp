@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SubtitlesApp.Core.Models;
 using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
@@ -10,22 +12,29 @@ namespace SubtitlesServer.Infrastructure.Services;
 
 public class WhisperService : IWhisperService
 {
+    private readonly SpeechToTextConfigs _speechToTextConfigs;
+    private readonly WhisperConfigs _whisperConfigs;
     private readonly IMemoryCache _memoryCache;
+    private readonly ILogger _logger;
 
     public WhisperService(
-        IMemoryCache memoryCache)
+        ILogger<WhisperService> logger,
+        IMemoryCache memoryCache,
+        IOptions<SpeechToTextConfigs> speechToTextConfig,
+        IOptions<WhisperConfigs> whisperConfigs)
     {
+        _logger = logger;
         _memoryCache = memoryCache;
+        _speechToTextConfigs = speechToTextConfig.Value;
+        _whisperConfigs = whisperConfigs.Value;
     }
 
     public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
         MemoryStream audioStream,
-        SpeechToTextConfigs speechToTextConfigs,
-        WhisperConfigs whisperConfigs,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var parsedSize = Enum.TryParse(whisperConfigs.ModelSize, out GgmlType ggmlType);
-        var parsedQuantType = Enum.TryParse(whisperConfigs.QuantizationType, out QuantizationType quantizationType);
+        var parsedSize = Enum.TryParse(_whisperConfigs.ModelSize, out GgmlType ggmlType);
+        var parsedQuantType = Enum.TryParse(_whisperConfigs.QuantizationType, out QuantizationType quantizationType);
 
         if (!parsedSize || !parsedQuantType)
         {
@@ -41,7 +50,7 @@ public class WhisperService : IWhisperService
             buffer = await ReadModelBuffer(
                 ggmlType,
                 quantizationType,
-                Path.Combine(whisperConfigs.BinaryModelFolder, $"Whisper_{ggmlType}_{quantizationType}.bin"),
+                Path.Combine(_whisperConfigs.BinaryModelFolder, $"Whisper_{ggmlType}_{quantizationType}.bin"),
                 cancellationToken);
 
             SetCachedModelBuffer(
@@ -51,17 +60,17 @@ public class WhisperService : IWhisperService
                 TimeSpan.FromDays(1));
         }
 
-        using var whisperFactory = WhisperFactory.FromBuffer(buffer, useGpu: speechToTextConfigs.UseGpu);
+        using var whisperFactory = WhisperFactory.FromBuffer(buffer, useGpu: _speechToTextConfigs.UseGpu);
 
         var processor = whisperFactory.CreateBuilder()
-            .WithLanguage(speechToTextConfigs.Language)
-            .Build();
+            .WithLanguage(_speechToTextConfigs.Language)
+        .Build();
 
-        Console.WriteLine("Whisper loaded");
+        _logger.LogInformation("Whisper loaded");
 
         var segments = processor.ProcessAsync(audioStream, cancellationToken);
 
-        Console.WriteLine("Starting transcribing...");
+        _logger.LogInformation("Starting transcribing...");
         
         try
         {

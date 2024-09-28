@@ -7,7 +7,7 @@ public interface ISettingsService
 {
     string BackendBaseUrl { get; set; }
 
-    string HubAddress { get; set; }
+    string WhisperAddress { get; set; }
 
     string UnixSocketPath { get; set; }
 

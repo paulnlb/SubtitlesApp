@@ -1,35 +1,27 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.DTOs;
-using System.Runtime.CompilerServices;
 
-namespace SubtitlesServer.Hubs;
+namespace SubtitlesServer.Controllers;
 
-public class WhisperMockHub : Hub
+[Route("api/[controller]")]
+[ApiController]
+public class WhisperMockController(
+    ILogger<WhisperController> logger) : ControllerBase
 {
-    public async IAsyncEnumerable<SubtitleDTO> TranscribeAudio(
-        IAsyncEnumerable<byte[]> dataChunks,
-        TrimmedAudioMetadataDTO audioMetadata,
-        [EnumeratorCancellation]
+    [HttpPost("transcription")]
+    public async Task<List<SubtitleDTO>> TranscribeAudio(
+        [FromBody] TrimmedAudioDto audioMetadata,
         CancellationToken cancellationToken)
     {
-        Console.WriteLine("Connected");
-
-        await Clients.Caller.SendAsync("SetStatus", "Transcribing...");
-
-        var listChunks = new List<byte[]>();
-
-        await foreach (var chunk in dataChunks)
-        {
-            listChunks.Add(chunk);
-        }
-
-        //await Task.Delay(1000);
+        logger.LogInformation("Connected");
 
         var max = audioMetadata.EndTime - audioMetadata.StartTimeOffset;
 
-        Console.WriteLine($"Max: {max}");
+        logger.LogInformation("Max: {Max}", max);
 
-        for (int i = 0; i < max.TotalSeconds; i+=2)
+        var subs = new List<SubtitleDTO>();
+
+        for (int i = 0; i < max.TotalSeconds; i += 2)
         {
             TimeSpan startTime;
             TimeSpan endTime;
@@ -53,15 +45,15 @@ public class WhisperMockHub : Hub
                 Text = text
             };
 
-            Console.WriteLine($"{subtitle.TimeInterval.StartTime}: {subtitle.Text}");
+            logger.LogInformation("{StartTime}: {Text}", subtitle.TimeInterval.StartTime, subtitle.Text);
 
             await Task.Delay(0, cancellationToken);
 
-            yield return subtitle;
+            subs.Add(subtitle);
         }
 
-        await Clients.Caller.SendAsync("SetStatus", "Done.");
+        logger.LogInformation("Transcribing done.");
 
-        Console.WriteLine("Done");
+        return subs;
     }
 }

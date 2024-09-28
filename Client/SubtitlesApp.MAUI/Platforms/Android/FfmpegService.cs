@@ -53,7 +53,7 @@ public partial class FfmpegService : IMediaProcessor
         _disposed = true;
     }
 
-    public partial (TrimmedAudioMetadataDTO Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+    public partial async Task<TrimmedAudioDto> ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
@@ -89,10 +89,11 @@ public partial class FfmpegService : IMediaProcessor
             FFmpegKit.ExecuteAsync(ffmpegCommand, callback);
         }
 
-        var bytesEnumerable = GetAudioChunksAsync(16 * 1024, cancellationToken);
+        var audioBytes = await GetAudioBytesAsync(cancellationToken);
 
-        var trimmedAudioMetadata = new TrimmedAudioMetadataDTO()
+        var trimmedAudioMetadata = new TrimmedAudioDto()
         {
+            AudioBytes = audioBytes,
             AudioFormat = _audioMetadata.AudioFormat,
             SampleRate = _audioMetadata.SampleRate,
             ChannelsCount = _audioMetadata.ChannelsCount,
@@ -100,17 +101,20 @@ public partial class FfmpegService : IMediaProcessor
             EndTime = _audioMetadata.EndTime
         };
 
-        return (trimmedAudioMetadata, bytesEnumerable);
+        return trimmedAudioMetadata;
     }
 
-    private async IAsyncEnumerable<byte[]> GetAudioChunksAsync(
-        int chunkSize,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    private async Task<byte[]> GetAudioBytesAsync(
+        CancellationToken cancellationToken)
     {
-        await foreach (var bytes in _socketListener.ReceiveAsync(chunkSize, cancellationToken))
+        var audioChunks = new List<byte>();
+
+        await foreach (var chunk in _socketListener.ReceiveAsync(16 * 1024, cancellationToken))
         {
-            yield return bytes;
+            audioChunks.AddRange(chunk);
         }
+
+        return audioChunks.ToArray();
     }
 }
 

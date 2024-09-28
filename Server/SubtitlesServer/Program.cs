@@ -1,7 +1,6 @@
 using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Application.Services;
-using SubtitlesServer.Hubs;
 using SubtitlesServer.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,25 +12,26 @@ builder.Services.AddScoped<IWhisperService, WhisperService>();
 builder.Services.AddScoped<IWaveService, WaveService>();
 
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
+builder.Services.AddControllers();
+
+builder.Services.AddMvc();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "SubtitlesServer", Version = "v1" });
+});
 
 var app = builder.Build();
 
-app.MapRazorPages();
-
-app.Use(async (context, next) =>
+if (app.Environment.IsDevelopment())
 {
-    try
-    {
-        await next.Invoke();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex.Message);
-    }
-});
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-app.MapHub<WhisperHub>("/whisperHub");
-app.MapHub<WhisperMockHub>("/whisperMockHub");
+app.MapControllers();
+
+app.MapRazorPages();
 
 app.Run();
