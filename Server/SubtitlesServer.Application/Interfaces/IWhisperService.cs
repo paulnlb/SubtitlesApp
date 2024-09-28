@@ -5,6 +5,6 @@ namespace SubtitlesServer.Application.Interfaces;
 public interface IWhisperService
 {
     IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
-        MemoryStream audioStream,
+        byte[] audioBytes,
         CancellationToken cancellationToken = default);
 }

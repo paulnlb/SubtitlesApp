@@ -1,4 +1,5 @@
 ﻿using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Interfaces;
 
@@ -9,7 +10,7 @@ public interface ISubtitlesService
     /// </summary>
     /// <param name="audioMetadata">Audio metadata</param>
     /// <returns></returns>
-    Task<List<SubtitleDTO>> GetSubsAsync(
+    Task<Result<List<SubtitleDTO>>> GetSubsAsync(
         TrimmedAudioDto audioMetadata,
         CancellationToken cancellationToken = default);
 }

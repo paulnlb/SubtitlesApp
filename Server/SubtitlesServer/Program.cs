@@ -2,6 +2,7 @@ using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Application.Services;
 using SubtitlesServer.Infrastructure.Services;
+using SubtitlesServer.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,12 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "SubtitlesServer", Version = "v1" });
 });
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

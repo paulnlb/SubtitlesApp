@@ -38,7 +38,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     readonly ISubtitlesService _subtitlesService;
     readonly TimeSet _coveredTimeIntervals;
 
-    TimeInterval? _timelineBeingTranscribed;
+    TimeInterval? _currentlyTranscribedTimeline;
 
     public MediaElementViewModel(
         IMediaProcessor mediaProcessor,
@@ -92,20 +92,20 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
 
         if ((currentInterval == null || !currentInterval.ContainsTime(position)) &&
-            (_timelineBeingTranscribed == null || !_timelineBeingTranscribed.ContainsTime(position)))
+            (_currentlyTranscribedTimeline == null || !_currentlyTranscribedTimeline.ContainsTime(position)))
         {
             TranscribeCommand.Cancel();
             TranscribeStatus = TranscribeStatus.NotTranscribing;
-            _timelineBeingTranscribed = null;
+            _currentlyTranscribedTimeline = null;
         }
     }
 
     [RelayCommand]
     public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
-        _timelineBeingTranscribed = GetTimeIntervalForTranscription(position);
+        _currentlyTranscribedTimeline = GetTimeIntervalForTranscription(position);
 
-        if (_timelineBeingTranscribed == null)
+        if (_currentlyTranscribedTimeline == null)
         {
             TranscribeStatus = TranscribeStatus.NotTranscribing;
             return;
@@ -117,25 +117,34 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
             var audio = await _mediaProcessor.ExtractAudioAsync(
                 MediaPath,
-                _timelineBeingTranscribed.StartTime,
-                _timelineBeingTranscribed.EndTime,
+                _currentlyTranscribedTimeline.StartTime,
+                _currentlyTranscribedTimeline.EndTime,
                 cancellationToken);
 
             TextBoxContent = "Transcribing...";
 
-            var subs = await _subtitlesService.GetSubsAsync(audio, cancellationToken);
+            var subsResult = await _subtitlesService.GetSubsAsync(audio, cancellationToken);
 
+            if (subsResult.IsFailure)
+            {
+                TextBoxContent = subsResult.Error.Description;
+                TranscribeStatus = TranscribeStatus.Error;
+                return;
+            }
+
+            var subs = subsResult.Value;
+            
             var lastAddedSub = await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
 
-            if (lastAddedSub == null || _timelineBeingTranscribed.EndTime == MediaDuration)
+            if (lastAddedSub == null || _currentlyTranscribedTimeline.EndTime == MediaDuration)
             {
-                _coveredTimeIntervals.Insert(new TimeInterval(_timelineBeingTranscribed));
+                _coveredTimeIntervals.Insert(new TimeInterval(_currentlyTranscribedTimeline));
             }
             else
             {
                 _coveredTimeIntervals.Insert(
                     new TimeInterval(
-                        _timelineBeingTranscribed.StartTime,
+                        _currentlyTranscribedTimeline.StartTime,
                         lastAddedSub.TimeInterval.StartTime));
             }
 
@@ -147,14 +156,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         {
             TranscribeStatus = TranscribeStatus.NotTranscribing;
         }
-        catch (Exception ex)
-        {
-            TextBoxContent = ex.Message;
-            TranscribeStatus = TranscribeStatus.Error;
-        }
         finally
         {
-            _timelineBeingTranscribed = null;
+            _currentlyTranscribedTimeline = null;
         }
     }
     #endregion
@@ -248,11 +252,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         endTime = endTime > MediaDuration ? MediaDuration : endTime;
 
         return new TimeInterval(startTime, endTime);
-    }
-
-    void SetStatus(string status)
-    {
-        TextBoxContent = status;
     }
 
     bool ShouldTranscribe(TimeSpan position)

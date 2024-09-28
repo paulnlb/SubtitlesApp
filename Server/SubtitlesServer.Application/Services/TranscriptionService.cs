@@ -6,12 +6,10 @@ namespace SubtitlesServer.Application.Services;
 
 public class TranscriptionService : ITranscriptionService
 {
-    private readonly IWaveService _waveService;
     private readonly IWhisperService _whisperService;
 
-    public TranscriptionService(IWaveService waveService, IWhisperService whisperService)
+    public TranscriptionService(IWhisperService whisperService)
     {
-        _waveService = waveService;
         _whisperService = whisperService;
     }
 
@@ -19,10 +17,8 @@ public class TranscriptionService : ITranscriptionService
         TrimmedAudioDto audioMetadata,
         CancellationToken cancellationToken = default)
     {
-        using var waveStream = await _waveService.WriteToWaveStreamAsync(audioMetadata, cancellationToken);
-
         var subtitles = _whisperService.TranscribeAudioAsync(
-            waveStream,
+            audioMetadata.AudioBytes,
             cancellationToken);
 
         var subtitlesList = new List<SubtitleDTO>();

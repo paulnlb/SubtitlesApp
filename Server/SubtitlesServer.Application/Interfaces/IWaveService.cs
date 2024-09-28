@@ -1,10 +1,9 @@
 ﻿using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Result;
 
 namespace SubtitlesServer.Application.Interfaces;
 
 public interface IWaveService
 {
-    Task<MemoryStream> WriteToWaveStreamAsync(
-        TrimmedAudioDto audioMetadata,
-        CancellationToken cancellationToken = default);
+    Result ValidateAudio(TrimmedAudioDto audioMetadata);
 }

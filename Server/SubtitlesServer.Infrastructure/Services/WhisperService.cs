@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SubtitlesApp.Core.Models;
 using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
+using System.IO;
 using System.Runtime.CompilerServices;
 using Whisper.net;
 using Whisper.net.Ggml;
@@ -30,7 +31,7 @@ public class WhisperService : IWhisperService
     }
 
     public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
-        MemoryStream audioStream,
+        byte[] audioBytes,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var parsedSize = Enum.TryParse(_whisperConfigs.ModelSize, out GgmlType ggmlType);
@@ -67,6 +68,8 @@ public class WhisperService : IWhisperService
         .Build();
 
         _logger.LogInformation("Whisper loaded");
+
+        using var audioStream = new MemoryStream(audioBytes);
 
         var segments = processor.ProcessAsync(audioStream, cancellationToken);
 
