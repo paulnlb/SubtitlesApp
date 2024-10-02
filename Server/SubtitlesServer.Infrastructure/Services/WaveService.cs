@@ -1,5 +1,4 @@
-﻿using NAudio.Wave;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 using SubtitlesServer.Application.Interfaces;
 using System.Text;

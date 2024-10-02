@@ -58,7 +58,7 @@ public class WhisperMockController(
 
             logger.LogInformation("{StartTime}: {Text}", subtitle.TimeInterval.StartTime, subtitle.Text);
 
-            await Task.Delay(0, cancellationToken);
+            await Task.Delay(200, cancellationToken);
 
             subs.Add(subtitle);
         }

@@ -49,17 +49,21 @@ public class SubtitlesService : ISubtitlesService
                 return Result<List<SubtitleDTO>>.Failure(error);
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (HttpRequestException)
         {
             return Result<List<SubtitleDTO>>.Failure(new Error(ErrorCode.ConnectionError, "Error while connecting to the server. Check your connection and try again"));
         }
-        catch (WebException)
+        catch (WebException ex)
         {
-            return Result<List<SubtitleDTO>>.Failure(new Error(ErrorCode.ConnectionError, "Error while connecting to the server. Please try again later"));
+            return Result<List<SubtitleDTO>>.Failure(new Error(ErrorCode.ConnectionError, $"Error while connecting to the server: {ex.Message}"));
         }
         catch (Exception)
         {
-           return Result<List<SubtitleDTO>>.Failure(new Error(ErrorCode.InternalClientError, "An unknown error has occurred. Please try again later"));
+            return Result<List<SubtitleDTO>>.Failure(new Error(ErrorCode.InternalClientError, "An unknown error has occurred. Please try again later"));
         }
     }
 }

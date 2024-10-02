@@ -6,9 +6,8 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Extensions;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using SubtitlesApp.Interfaces;
-
+using SubtitlesApp.Core.Result;
 namespace SubtitlesApp.ViewModels;
 
 public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
@@ -28,17 +27,12 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     int _transcribeBufferLength;
 
     [ObservableProperty]
-    TimeSpan _currentPosition;
-
-    [ObservableProperty]
-    TranscribeStatus _transcribeStatus = TranscribeStatus.NotTranscribing;
+    TranscribeStatus _transcribeStatus = TranscribeStatus.Ready;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
     readonly ISubtitlesService _subtitlesService;
     readonly TimeSet _coveredTimeIntervals;
-
-    TimeInterval? _currentlyTranscribedTimeline;
 
     public MediaElementViewModel(
         IMediaProcessor mediaProcessor,
@@ -59,12 +53,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _mediaProcessor = mediaProcessor;
         _subtitlesService = subtitlesService;
         _coveredTimeIntervals = new TimeSet();
-        _currentPosition = TimeSpan.Zero;
 
         #endregion
-
-        PropertyChanged += VM_PropertyChanged;
-        TranscribeCommand.CanExecuteChanged += TC_OnCanExecuteChanged;
     }
 
     #region public properties
@@ -78,87 +68,95 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     public void ChangePosition(TimeSpan currentPosition)
     {
-        CurrentPosition = currentPosition;
-
-        if (ShouldTranscribe(currentPosition))
+        if (TranscribeStatus == TranscribeStatus.Ready
+            && ShouldTranscribeFrom(currentPosition))
         {
-            TranscribeStatus = TranscribeStatus.Transcribing;
+            TranscribeFromPositionCommand.ExecuteAsync(currentPosition);
         }
     }
 
     [RelayCommand]
     public void SeekTo(TimeSpan position)
     {
-        (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
-
-        if ((currentInterval == null || !currentInterval.ContainsTime(position)) &&
-            (_currentlyTranscribedTimeline == null || !_currentlyTranscribedTimeline.ContainsTime(position)))
+        if (TranscribeStatus == TranscribeStatus.Transcribing
+            && ShouldTranscribeFrom(position))
         {
-            TranscribeCommand.Cancel();
-            TranscribeStatus = TranscribeStatus.NotTranscribing;
-            _currentlyTranscribedTimeline = null;
+            TranscribeFromPositionCommand.Cancel();
         }
     }
 
     [RelayCommand]
-    public async Task TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
+    public async Task TranscribeFromPositionAsync(TimeSpan position, CancellationToken cancellationToken)
     {
-        _currentlyTranscribedTimeline = GetTimeIntervalForTranscription(position);
+        var task = TranscribeAsync(position, cancellationToken);
 
-        if (_currentlyTranscribedTimeline == null)
+        TextBoxContent = "Transcribing...";
+        TranscribeStatus = TranscribeStatus.Transcribing;
+
+        var result = await task;
+
+        if (result.IsSuccess)
         {
-            TranscribeStatus = TranscribeStatus.NotTranscribing;
-            return;
+            TextBoxContent = "Transcribing done.";
+            TranscribeStatus = TranscribeStatus.Ready;
+        }
+        else
+        {
+            TextBoxContent = result.Error.Description;
+            TranscribeStatus = TranscribeStatus.Error;
+        }
+    }
+
+    public async Task<Result> TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
+    {
+        var timeIntervalToTranslate = GetTimeIntervalForTranscription(position);
+
+        if (timeIntervalToTranslate == null)
+        {
+            return Result.Success();
         }
 
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var audio = await _mediaProcessor.ExtractAudioAsync(
                 MediaPath,
-                _currentlyTranscribedTimeline.StartTime,
-                _currentlyTranscribedTimeline.EndTime,
+                timeIntervalToTranslate.StartTime,
+                timeIntervalToTranslate.EndTime,
                 cancellationToken);
-
-            TextBoxContent = "Transcribing...";
 
             var subsResult = await _subtitlesService.GetSubsAsync(audio, cancellationToken);
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (subsResult.IsFailure)
             {
-                TextBoxContent = subsResult.Error.Description;
-                TranscribeStatus = TranscribeStatus.Error;
-                return;
+                return Result.Failure(subsResult.Error);
             }
 
             var subs = subsResult.Value;
             
-            var lastAddedSub = await AddToSubsList(subs, batchLength: 30, delayMs: 20, cancellationToken);
+            AddToObservableList(subs);
 
-            if (lastAddedSub == null || _currentlyTranscribedTimeline.EndTime == MediaDuration)
+            var lastAddedSub = subs.LastOrDefault();
+
+            if (lastAddedSub == null || timeIntervalToTranslate.EndTime == MediaDuration)
             {
-                _coveredTimeIntervals.Insert(new TimeInterval(_currentlyTranscribedTimeline));
+                _coveredTimeIntervals.Insert(
+                    new TimeInterval(timeIntervalToTranslate));
             }
             else
             {
                 _coveredTimeIntervals.Insert(
                     new TimeInterval(
-                        _currentlyTranscribedTimeline.StartTime,
+                        timeIntervalToTranslate.StartTime,
                         lastAddedSub.TimeInterval.StartTime));
             }
 
-            TranscribeStatus = TranscribeStatus.NotTranscribing;
-
-            TextBoxContent = "Transcribing done.";
+            return Result.Success();
         }
         catch (OperationCanceledException)
         {
-            TranscribeStatus = TranscribeStatus.NotTranscribing;
-        }
-        finally
-        {
-            _currentlyTranscribedTimeline = null;
+            return Result.Success();
         }
     }
     #endregion
@@ -172,12 +170,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
     }
 
-    public async Task CleanAsync()
+    public void Clean()
     {
-        if (TranscribeCommand.CanBeCanceled)
-        {
-            TranscribeCommand.Cancel();
-        }
+        TranscribeFromPositionCommand.Cancel();
         _mediaProcessor.Dispose();
     }
     #endregion
@@ -185,49 +180,25 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #region private methods
 
     /// <summary>
-    /// Adds subtitles to the list with a delay between each batch.
+    /// Adds subtitles to the list.
     /// </summary>
     /// <param name="subsToAdd"></param>
-    /// <param name="batchLength"></param>
-    /// <param name="delayMs"></param>
-    /// <param name="cancellationToken"></param>
     /// <returns>Last added subtitle</returns>
-    async Task<SubtitleDTO?> AddToSubsList(
-        List<SubtitleDTO> subsToAdd,
-        int batchLength,
-        int delayMs,
-        CancellationToken cancellationToken)
+    void AddToObservableList(
+        List<SubtitleDTO> subsToAdd)
     {
-        int i = 0;
-        SubtitleDTO? lastSub = null;
-
-        foreach (var sub in subsToAdd)
+        foreach (var subtitleDto in subsToAdd)
         {
-            if (i % batchLength == 0)
+            var timeInterval = new TimeInterval(subtitleDto.TimeInterval.StartTime, subtitleDto.TimeInterval.EndTime);
+
+            var subtitle = new Subtitle()
             {
-                await Task.Delay(delayMs, cancellationToken);
-            }
+                Text = subtitleDto.Text,
+                TimeInterval = timeInterval
+            };
 
-            AddSubtitle(sub);
-            i++;
-
-            lastSub = sub;
+            Subtitles.Insert(subtitle);
         }
-
-        return lastSub;
-    }
-
-    void AddSubtitle(SubtitleDTO subtitleDTO)
-    {
-        var timeInterval = new TimeInterval(subtitleDTO.TimeInterval.StartTime, subtitleDTO.TimeInterval.EndTime);
-
-        var subtitle = new Subtitle()
-        {
-            Text = subtitleDTO.Text,
-            TimeInterval = timeInterval
-        };
-
-        Subtitles.Insert(subtitle);
     }
 
     TimeInterval? GetTimeIntervalForTranscription(TimeSpan position)
@@ -249,12 +220,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         var endTime = startTime.Add(TimeSpan.FromSeconds(TranscribeBufferLength));
 
-        endTime = endTime > MediaDuration ? MediaDuration : endTime;
+        if (endTime > MediaDuration)
+        {
+            endTime = MediaDuration;
+        }
 
         return new TimeInterval(startTime, endTime);
     }
 
-    bool ShouldTranscribe(TimeSpan position)
+    bool ShouldTranscribeFrom(TimeSpan position)
     {
         (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
 
@@ -269,32 +243,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             currentInterval == null ||
             currentInterval.EndTime - position <= TimeSpan.FromSeconds(15);
 
-        var shouldTranscribe = isTimeSuitableForTranscribe &&
-            TranscribeStatus == TranscribeStatus.NotTranscribing;
-
-        return shouldTranscribe;
+        return isTimeSuitableForTranscribe;
     }
 
-    #endregion
-
-    #region event handlers
-    void VM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(TranscribeStatus) && TranscribeStatus == TranscribeStatus.Transcribing)
-        {
-            if (TranscribeCommand.CanExecute(CurrentPosition))
-            {
-                TranscribeCommand.ExecuteAsync(CurrentPosition);
-            }
-        }
-    }
-
-    void TC_OnCanExecuteChanged(object? sender, EventArgs e)
-    {
-        if (TranscribeStatus == TranscribeStatus.Transcribing && TranscribeCommand.CanExecute(CurrentPosition))
-        {
-            TranscribeCommand.ExecuteAsync(CurrentPosition);
-        }
-    }
     #endregion
 }

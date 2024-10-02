@@ -25,10 +25,10 @@ public partial class MediaElementPage : ContentPage
 
         base.OnDisappearing();
     }
-    protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
+    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
         var vm = (MediaElementViewModel)BindingContext;
-        await vm.CleanAsync();
+        vm.Clean();
         mediaPlayer.Stop();
         mediaPlayer.DisconnectHandler();
 
