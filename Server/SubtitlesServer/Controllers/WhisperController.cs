@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Controllers;
@@ -13,12 +12,16 @@ public class WhisperController(
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
-        [FromBody] TrimmedAudioDto audioMetadata,
+        IFormFile audioFile,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Connected");
 
-        var validationResult = waveService.ValidateAudio(audioMetadata);
+        using var audioStream = audioFile.OpenReadStream();
+        using var binaryReader = new BinaryReader(audioStream);
+        var audioBytes = binaryReader.ReadBytes((int)audioStream.Length);
+
+        var validationResult = waveService.ValidateAudio(audioBytes);
 
         if (validationResult.IsFailure)
         {
@@ -28,7 +31,7 @@ public class WhisperController(
         }
 
         var subtitles = await transcriptionService.TranscribeAudioAsync(
-            audioMetadata,
+            audioBytes,
             cancellationToken);
 
         logger.LogInformation("Transcribing done.");

@@ -10,7 +10,7 @@ public partial class FfmpegService : IMediaProcessor
         throw new NotImplementedException();
     }
 
-    public partial (TrimmedAudioDto Metadata, IAsyncEnumerable<byte[]> AudioBytes) ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+    public partial Task<byte[]> ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }

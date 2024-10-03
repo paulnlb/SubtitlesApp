@@ -7,7 +7,6 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Maui.Services.Sockets;
 using SubtitlesApp.Core.DTOs;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
 namespace SubtitlesApp.Services;
 
@@ -53,7 +52,7 @@ public partial class FfmpegService : IMediaProcessor
         _disposed = true;
     }
 
-    public partial async Task<TrimmedAudioDto> ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+    public partial Task<byte[]> ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
@@ -89,19 +88,7 @@ public partial class FfmpegService : IMediaProcessor
             FFmpegKit.ExecuteAsync(ffmpegCommand, callback);
         }
 
-        var audioBytes = await GetAudioBytesAsync(cancellationToken);
-
-        var trimmedAudioMetadata = new TrimmedAudioDto()
-        {
-            AudioBytes = audioBytes,
-            AudioFormat = _audioMetadata.AudioFormat,
-            SampleRate = _audioMetadata.SampleRate,
-            ChannelsCount = _audioMetadata.ChannelsCount,
-            StartTimeOffset = _audioMetadata.StartTimeOffset,
-            EndTime = _audioMetadata.EndTime
-        };
-
-        return trimmedAudioMetadata;
+        return GetAudioBytesAsync(cancellationToken);
     }
 
     private async Task<byte[]> GetAudioBytesAsync(

@@ -21,11 +21,16 @@ public class SubtitlesService : ISubtitlesService
         _settingsService = settingsService;
     }
 
-    public async Task<Result<List<SubtitleDTO>>> GetSubsAsync(TrimmedAudioDto audioMetadata, CancellationToken cancellationToken = default)
+    public async Task<Result<List<SubtitleDTO>>> GetSubsAsync(byte[] audioBytes, CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync(_settingsService.WhisperAddress, audioMetadata, cancellationToken);
+            var multipartContent = new MultipartFormDataContent
+            {
+                { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" }
+            };
+
+            var response = await _httpClient.PostAsync(_settingsService.WhisperAddress, multipartContent, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {

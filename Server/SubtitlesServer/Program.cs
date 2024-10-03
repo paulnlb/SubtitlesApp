@@ -1,6 +1,6 @@
-using SubtitlesServer.Application.Configs;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Application.Services;
+using SubtitlesServer.Infrastructure.Configs;
 using SubtitlesServer.Infrastructure.Services;
 using SubtitlesServer.Middlewares;
 
@@ -11,6 +11,7 @@ builder.Services.Configure<SpeechToTextConfigs>(builder.Configuration.GetSection
 builder.Services.Configure<WhisperConfigs>(builder.Configuration.GetSection("WhisperModelSettings"));
 builder.Services.AddScoped<IWhisperService, WhisperService>();
 builder.Services.AddScoped<IWaveService, WaveService>();
+builder.Services.AddSingleton<WhisperModelService>();
 
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();

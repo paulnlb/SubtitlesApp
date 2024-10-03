@@ -1,6 +1,4 @@
-﻿using SubtitlesApp.Core.DTOs;
-
-namespace SubtitlesApp.Maui.Interfaces;
+﻿namespace SubtitlesApp.Maui.Interfaces;
 
 /// <summary>
 /// Processes media and returns audio bytes
@@ -15,7 +13,7 @@ public interface IMediaProcessor : IDisposable
     /// <param name="endTime"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<TrimmedAudioDto> ExtractAudioAsync(
+    Task<byte[]> ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
         TimeSpan endTime,

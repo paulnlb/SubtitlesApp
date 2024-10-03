@@ -12,12 +12,16 @@ public class WhisperMockController(
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
-        [FromBody] TrimmedAudioDto audioMetadata,
+        IFormFile audioFile,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Connected");
 
-        var validationResult = waveService.ValidateAudio(audioMetadata);
+        using var audioStream = audioFile.OpenReadStream();
+        using var binaryReader = new BinaryReader(audioStream);
+        var audioBytes = binaryReader.ReadBytes((int)audioStream.Length);
+
+        var validationResult = waveService.ValidateAudio(audioBytes);
 
         if (validationResult.IsFailure)
         {
@@ -26,26 +30,26 @@ public class WhisperMockController(
             return BadRequest(validationResult.Error);
         }
 
-        var max = audioMetadata.EndTime - audioMetadata.StartTimeOffset;
+        var max = 30;
 
         logger.LogInformation("Max: {Max}", max);
 
         var subs = new List<SubtitleDTO>();
 
-        for (int i = 0; i < max.TotalSeconds; i += 2)
+        for (int i = 0; i < max; i += 2)
         {
             TimeSpan startTime;
             TimeSpan endTime;
 
             if (i % 10 == 0)
             {
-                startTime = TimeSpan.FromSeconds(audioMetadata.StartTimeOffset.TotalSeconds + i + 1);
-                endTime = TimeSpan.FromSeconds(audioMetadata.StartTimeOffset.TotalSeconds + i + 3);
+                startTime = TimeSpan.FromSeconds(i + 1);
+                endTime = TimeSpan.FromSeconds(i + 3);
             }
             else
             {
-                startTime = TimeSpan.FromSeconds(audioMetadata.StartTimeOffset.TotalSeconds + i);
-                endTime = TimeSpan.FromSeconds(audioMetadata.StartTimeOffset.TotalSeconds + i + 2);
+                startTime = TimeSpan.FromSeconds(i);
+                endTime = TimeSpan.FromSeconds(i + 2);
             }
 
             var text = $"Subtitle ({startTime.Minutes}m, {startTime.Seconds}s) \nTest";

@@ -1,11 +1,10 @@
-﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 
 namespace SubtitlesServer.Application.Interfaces;
 
 public interface ITranscriptionService
 {
     Task<List<SubtitleDTO>> TranscribeAudioAsync(
-        TrimmedAudioDto audioMetadata,
+        byte[] audioBytes,
         CancellationToken cancellationToken = default);
 }

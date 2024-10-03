@@ -11,6 +11,6 @@ public interface ISubtitlesService
     /// <param name="audioMetadata">Audio metadata</param>
     /// <returns></returns>
     Task<Result<List<SubtitleDTO>>> GetSubsAsync(
-        TrimmedAudioDto audioMetadata,
+        byte[] audioBytes,
         CancellationToken cancellationToken = default);
 }

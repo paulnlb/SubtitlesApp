@@ -134,8 +134,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             }
 
             var subs = subsResult.Value;
+
+            subs = AlignSubsByTime(subs, timeIntervalToTranslate.StartTime);
             
-            AddToObservableList(subs);
+            AddToObservables(subs);
 
             var lastAddedSub = subs.LastOrDefault();
 
@@ -180,16 +182,17 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #region private methods
 
     /// <summary>
-    /// Adds subtitles to the list.
+    /// Adds subtitles to the observable list.
     /// </summary>
     /// <param name="subsToAdd"></param>
-    /// <returns>Last added subtitle</returns>
-    void AddToObservableList(
-        List<SubtitleDTO> subsToAdd)
+    void AddToObservables(
+        IEnumerable<SubtitleDTO> subsToAdd)
     {
         foreach (var subtitleDto in subsToAdd)
         {
-            var timeInterval = new TimeInterval(subtitleDto.TimeInterval.StartTime, subtitleDto.TimeInterval.EndTime);
+            var timeInterval = new TimeInterval(
+                subtitleDto.TimeInterval.StartTime, 
+                subtitleDto.TimeInterval.EndTime);
 
             var subtitle = new Subtitle()
             {
@@ -199,6 +202,30 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
             Subtitles.Insert(subtitle);
         }
+    }
+
+    static List<SubtitleDTO> AlignSubsByTime(
+        List<SubtitleDTO> subsToAlign,
+        TimeSpan timeOffset)
+    {
+        var result = new List<SubtitleDTO>();
+
+        foreach (var subtitleDto in subsToAlign)
+        {
+            var timeInterval = new TimeIntervalDTO
+            {
+                StartTime = subtitleDto.TimeInterval.StartTime + timeOffset,
+                EndTime = subtitleDto.TimeInterval.EndTime + timeOffset,
+            };
+
+            result.Add(new SubtitleDTO
+            {
+                Text = subtitleDto.Text,
+                TimeInterval = timeInterval
+            });
+        }
+
+        return result;
     }
 
     TimeInterval? GetTimeIntervalForTranscription(TimeSpan position)

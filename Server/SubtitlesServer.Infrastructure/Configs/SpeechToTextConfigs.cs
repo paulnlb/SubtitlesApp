@@ -1,4 +1,4 @@
-﻿namespace SubtitlesServer.Application.Configs;
+﻿namespace SubtitlesServer.Infrastructure.Configs;
 
 public class SpeechToTextConfigs
 {

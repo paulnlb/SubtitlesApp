@@ -1,24 +1,16 @@
-﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Application.Services;
 
-public class TranscriptionService : ITranscriptionService
+public class TranscriptionService(IWhisperService whisperService) : ITranscriptionService
 {
-    private readonly IWhisperService _whisperService;
-
-    public TranscriptionService(IWhisperService whisperService)
-    {
-        _whisperService = whisperService;
-    }
-
     public async Task<List<SubtitleDTO>> TranscribeAudioAsync(
-        TrimmedAudioDto audioMetadata,
+        byte[] audioBytes,
         CancellationToken cancellationToken = default)
     {
-        var subtitles = _whisperService.TranscribeAudioAsync(
-            audioMetadata.AudioBytes,
+        var subtitles =  whisperService.TranscribeAudioAsync(
+            audioBytes,
             cancellationToken);
 
         var subtitlesList = new List<SubtitleDTO>();
@@ -29,8 +21,8 @@ public class TranscriptionService : ITranscriptionService
             {
                 TimeInterval = new TimeIntervalDTO()
                 {
-                    StartTime = subtitle.TimeInterval.StartTime + audioMetadata.StartTimeOffset,
-                    EndTime = subtitle.TimeInterval.EndTime + audioMetadata.StartTimeOffset
+                    StartTime = subtitle.TimeInterval.StartTime,
+                    EndTime = subtitle.TimeInterval.EndTime
                 },
                 Text = subtitle.Text
             };
