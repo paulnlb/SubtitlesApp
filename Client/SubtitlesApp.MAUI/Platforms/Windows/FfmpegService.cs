@@ -1,5 +1,4 @@
-﻿using SubtitlesApp.Maui.Interfaces;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.Services;
 

@@ -1,7 +1,6 @@
 ﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
-using SubtitlesApp.Maui.Interfaces;
 using System.Net;
 using System.Net.Http.Json;
 

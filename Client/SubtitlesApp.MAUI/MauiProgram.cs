@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.Views;
 using SubtitlesApp.ViewModels;
-using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Settings;
 using SubtitlesApp.Extensions;
 using MauiPageFullScreen;

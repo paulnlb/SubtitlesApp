@@ -1,9 +1,7 @@
-﻿using SubtitlesApp.Services;
-using SubtitlesApp.Maui.Interfaces;
-using SubtitlesApp.Maui.Interfaces.Socket;
-using SubtitlesApp.Maui.Services.Sockets;
-using SubtitlesApp.Maui.Services;
-using SubtitlesApp.Interfaces;
+﻿using SubtitlesApp.Interfaces;
+using SubtitlesApp.Interfaces.Socket;
+using SubtitlesApp.Services;
+using SubtitlesApp.Services.Sockets;
 
 namespace SubtitlesApp.Extensions;
 

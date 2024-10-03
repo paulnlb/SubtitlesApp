@@ -1,11 +1,10 @@
 ﻿using Com.Arthenica.Ffmpegkit;
 using Java.Interop;
-using SubtitlesApp.Maui.Interfaces;
-using SubtitlesApp.Maui.Interfaces.Socket;
+using SubtitlesApp.Interfaces;
+using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Maui.Services.Sockets;
-using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Services.Sockets;
 using System.Globalization;
 
 namespace SubtitlesApp.Services;

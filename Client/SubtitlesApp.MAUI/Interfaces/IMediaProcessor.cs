@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Maui.Interfaces;
+﻿namespace SubtitlesApp.Interfaces;
 
 /// <summary>
 /// Processes media and returns audio bytes

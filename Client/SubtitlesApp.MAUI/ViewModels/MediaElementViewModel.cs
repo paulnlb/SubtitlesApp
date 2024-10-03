@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Extensions;
 using System.Collections.ObjectModel;
-using SubtitlesApp.Interfaces;
 using SubtitlesApp.Core.Result;
 namespace SubtitlesApp.ViewModels;
 

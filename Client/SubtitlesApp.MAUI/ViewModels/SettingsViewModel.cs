@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SubtitlesApp.Maui.Interfaces;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Settings;
 
 namespace SubtitlesApp.ViewModels;
