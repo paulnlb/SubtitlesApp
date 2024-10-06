@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Settings;
 
 namespace SubtitlesApp.ViewModels;
@@ -37,12 +37,12 @@ public class SettingsViewModel : ObservableObject
 
     public bool IsDevelopment => _isDevelopment;
 
-    public string HubAddress
+    public string WhisperAddress
     {
-        get => _settingsService.HubAddress;
+        get => _settingsService.WhisperAddress;
         set
         {
-            _settingsService.HubAddress = value;
+            _settingsService.WhisperAddress = value;
             OnPropertyChanged();
         }
     }

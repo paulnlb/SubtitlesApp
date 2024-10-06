@@ -2,7 +2,7 @@
 
 public enum TranscribeStatus
 {
-    NotTranscribing,
+    Ready,
     Transcribing,
     Error
 }

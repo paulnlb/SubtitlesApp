@@ -70,19 +70,19 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
 		<PackageReference Include="FullScreenStatus.Maui.Fork" Version="1.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.40" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.40" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\SubtitlesApp.Application\SubtitlesApp.Application.csproj" />
-	  <ProjectReference Include="..\SubtitlesApp.Infrastructure.Common\SubtitlesApp.Infrastructure.Common.csproj" />
-	</ItemGroup>
-
   <ItemGroup Condition="$(TargetFramework.Contains('-android')) != false ">
-    <ProjectReference Include="..\SubtitlesApp.Infrastructure.Android\SubtitlesApp.Infrastructure.Android.csproj" />
+    <ProjectReference Include="..\FfmpegAndroidBinding\FfmpegAndroidBinding.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

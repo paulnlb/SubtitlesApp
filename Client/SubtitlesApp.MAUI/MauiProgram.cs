@@ -2,14 +2,11 @@
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.Views;
 using SubtitlesApp.ViewModels;
-using SubtitlesApp.Application.Interfaces;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Settings;
 using SubtitlesApp.Extensions;
 using MauiPageFullScreen;
 
-#if ANDROID
-using SubtitlesApp.Infrastructure.Android.Services.MediaProcessors.Ffmpeg;
-#endif
 
 namespace SubtitlesApp
 {

@@ -1,40 +1,35 @@
-﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Shared.DTOs;
-using SubtitlesServer.Application.Configs;
+﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Interfaces;
-using System.Runtime.CompilerServices;
 
 namespace SubtitlesServer.Application.Services;
 
-public class TranscriptionService : ITranscriptionService
+public class TranscriptionService(IWhisperService whisperService) : ITranscriptionService
 {
-    private readonly IWaveService _waveService;
-    private readonly IWhisperService _whisperService;
-
-    public TranscriptionService(IWaveService waveService, IWhisperService whisperService)
+    public async Task<List<SubtitleDTO>> TranscribeAudioAsync(
+        byte[] audioBytes,
+        CancellationToken cancellationToken = default)
     {
-        _waveService = waveService;
-        _whisperService = whisperService;
-    }
-
-    public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
-        IAsyncEnumerable<byte[]> dataChunks, 
-        TrimmedAudioMetadataDTO audioMetadata,
-        SpeechToTextConfigs speechToTextConfigs,
-        WhisperConfigs whisperConfigs,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        using var waveStream = await _waveService.WriteToWaveStreamAsync(dataChunks, audioMetadata, cancellationToken);
-
-        var subtitles = _whisperService.TranscribeAudioAsync(
-            waveStream,
-            speechToTextConfigs,
-            whisperConfigs,
+        var subtitles =  whisperService.TranscribeAudioAsync(
+            audioBytes,
             cancellationToken);
+
+        var subtitlesList = new List<SubtitleDTO>();
 
         await foreach (var subtitle in subtitles)
         {
-            yield return subtitle;
+            var subtitleDto = new SubtitleDTO
+            {
+                TimeInterval = new TimeIntervalDTO()
+                {
+                    StartTime = subtitle.TimeInterval.StartTime,
+                    EndTime = subtitle.TimeInterval.EndTime
+                },
+                Text = subtitle.Text
+            };
+
+            subtitlesList.Add(subtitleDto);
         }
+
+        return subtitlesList;
     }
 }

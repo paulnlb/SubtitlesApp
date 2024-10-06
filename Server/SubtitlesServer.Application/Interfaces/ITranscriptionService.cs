@@ -1,16 +1,10 @@
-﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Shared.DTOs;
-using SubtitlesServer.Application.Configs;
-
+﻿using SubtitlesApp.Core.DTOs;
 
 namespace SubtitlesServer.Application.Interfaces;
 
 public interface ITranscriptionService
 {
-    IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
-        IAsyncEnumerable<byte[]> dataChunks,
-        TrimmedAudioMetadataDTO audioMetadata,
-        SpeechToTextConfigs speechToTextConfigs,
-        WhisperConfigs whisperConfigs,
+    Task<List<SubtitleDTO>> TranscribeAudioAsync(
+        byte[] audioBytes,
         CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,5 @@
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Shared.Extensions;
+using SubtitlesApp.Core.Extensions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 

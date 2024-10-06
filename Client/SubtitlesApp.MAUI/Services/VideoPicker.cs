@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Application.Interfaces;
+﻿using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.Services;
 
