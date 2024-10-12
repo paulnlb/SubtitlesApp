@@ -7,8 +7,7 @@ using SubtitlesServer.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<ITranscriptionService, TranscriptionService>();
-builder.Services.Configure<SpeechToTextConfigs>(builder.Configuration.GetSection("SpeechToTextSettings"));
-builder.Services.Configure<WhisperConfigs>(builder.Configuration.GetSection("WhisperModelSettings"));
+builder.Services.Configure<WhisperConfig>(builder.Configuration.GetSection("WhisperModelSettings"));
 builder.Services.AddScoped<IWhisperService, WhisperService>();
 builder.Services.AddScoped<IWaveService, WaveService>();
 builder.Services.AddSingleton<WhisperModelService>();

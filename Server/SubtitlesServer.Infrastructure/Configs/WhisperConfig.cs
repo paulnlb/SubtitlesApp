@@ -2,7 +2,7 @@
 
 namespace SubtitlesServer.Infrastructure.Configs;
 
-public class WhisperConfigs
+public class WhisperConfig
 {
     public GgmlType ModelSize { get; set; }
 

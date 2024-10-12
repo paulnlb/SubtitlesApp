@@ -1,26 +1,22 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SubtitlesApp.Core.Models;
 using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Configs;
 using System.Runtime.CompilerServices;
 
 namespace SubtitlesServer.Infrastructure.Services;
 
 public class WhisperService(
     ILogger<WhisperService> logger,
-    IOptions<SpeechToTextConfigs> speechToTextConfigs,
     WhisperModelService whisperModelService) : IWhisperService
 {
     public async IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
         byte[] audioBytes,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var language = speechToTextConfigs.Value.Language;
         var factory = await whisperModelService.GetWhisperFactoryAsync();
 
         var processor = factory.CreateBuilder()
-            .WithLanguage(language)
+            .WithLanguage("auto")
             .Build();
 
         logger.LogInformation("Whisper loaded");

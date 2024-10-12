@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using SubtitlesServer.Infrastructure.Configs;
 using Whisper.net;
 using Whisper.net.Ggml;
@@ -7,26 +8,25 @@ namespace SubtitlesServer.Infrastructure.Services;
 
 public sealed class WhisperModelService : IDisposable
 {
-    private readonly WhisperConfigs _whisperConfigs;
-    private readonly SpeechToTextConfigs _speechToTextConfigs;
+    private readonly WhisperConfig _whisperConfigs;
     private readonly Lazy<Task<WhisperFactory>> _whisperFactoryTask;
 
     private bool _disposed = false;
 
     public WhisperModelService(
-        IOptions<WhisperConfigs> whisperConfigs,
-        IOptions<SpeechToTextConfigs> speechToTextConfigs)
+        IOptions<WhisperConfig> whisperConfigs,
+        IHostApplicationLifetime applicationLifetime)
     {
         _whisperConfigs = whisperConfigs.Value;
-        _speechToTextConfigs = speechToTextConfigs.Value;
 
         _whisperFactoryTask = new Lazy<Task<WhisperFactory>>(() =>
             GetFactoryAsync(
                 _whisperConfigs.ModelSize,
                 _whisperConfigs.QuantizationType,
-                _whisperConfigs.BinaryModelFolder,
-                _speechToTextConfigs.UseGpu)
+                _whisperConfigs.BinaryModelFolder)
         );
+
+        applicationLifetime.ApplicationStopping.Register(Dispose);
     }
 
     public Task<WhisperFactory> GetWhisperFactoryAsync()
@@ -38,7 +38,6 @@ public sealed class WhisperModelService : IDisposable
         GgmlType ggmlType,
         QuantizationType quantizationType,
         string binaryModelsFolder,
-        bool useGpu,
         CancellationToken cancellationToken = default)
     {
         var fullPath = Path.Combine(binaryModelsFolder, $"Whisper_{ggmlType}_{quantizationType}.bin");
@@ -54,7 +53,7 @@ public sealed class WhisperModelService : IDisposable
             await modelStream.CopyToAsync(fileWriter, cancellationToken);
         }
 
-        return WhisperFactory.FromPath(fullPath, useGpu: useGpu);
+        return WhisperFactory.FromPath(fullPath);
     }
 
     public void Dispose()
