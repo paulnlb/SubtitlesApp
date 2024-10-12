@@ -2,7 +2,7 @@
 using SubtitlesApp.Core.Result;
 using System.Text.Json;
 
-namespace SubtitlesServer.Middlewares;
+namespace SubtitlesServer.WhisperApi.Middlewares;
 
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {

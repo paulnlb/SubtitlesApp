@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesServer.Application.Constants;
 using SubtitlesServer.Application.Interfaces;
 
-namespace SubtitlesServer.Controllers;
+namespace SubtitlesServer.WhisperApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

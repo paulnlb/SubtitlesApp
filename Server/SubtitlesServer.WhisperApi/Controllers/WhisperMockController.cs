@@ -2,12 +2,12 @@
 using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Interfaces;
 
-namespace SubtitlesServer.Controllers;
+namespace SubtitlesServer.WhisperApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 public class WhisperMockController(
-    ILogger<WhisperController> logger,
+    ILogger<WhisperMockController> logger,
     IWaveService waveService) : ControllerBase
 {
     [HttpPost("transcription")]

@@ -6,7 +6,7 @@ using SubtitlesServer.Infrastructure.Configs;
 using SubtitlesServer.Infrastructure.Services;
 using System.Threading.RateLimiting;
 
-namespace SubtitlesServer.Extensions;
+namespace SubtitlesServer.WhisperApi.Extensions;
 
 public static class ServicesCollectionExtensions
 {

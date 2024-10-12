@@ -1,6 +1,6 @@
-using SubtitlesServer.Extensions;
+using SubtitlesServer.WhisperApi.Extensions;
 using SubtitlesServer.Infrastructure.Configs;
-using SubtitlesServer.Middlewares;
+using SubtitlesServer.WhisperApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +9,6 @@ builder.Services.AddAppServices();
 builder.Services.Configure<WhisperConfig>(builder.Configuration.GetSection("WhisperModelSettings"));
 
 builder.Services.AddControllers();
-
-builder.Services.AddMvc();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
