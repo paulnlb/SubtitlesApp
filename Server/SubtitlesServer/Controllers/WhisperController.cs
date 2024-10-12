@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using SubtitlesServer.Application.Constants;
 using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiterConstants.WhisperPolicy)]
 public class WhisperController(
     ILogger<WhisperController> logger,
     ITranscriptionService transcriptionService,

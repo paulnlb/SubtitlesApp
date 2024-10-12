@@ -1,30 +1,24 @@
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Application.Services;
+using SubtitlesServer.Extensions;
 using SubtitlesServer.Infrastructure.Configs;
-using SubtitlesServer.Infrastructure.Services;
 using SubtitlesServer.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<ITranscriptionService, TranscriptionService>();
-builder.Services.Configure<WhisperConfig>(builder.Configuration.GetSection("WhisperModelSettings"));
-builder.Services.AddScoped<IWhisperService, WhisperService>();
-builder.Services.AddScoped<IWaveService, WaveService>();
-builder.Services.AddSingleton<WhisperModelService>();
+builder.Services.AddAppServices();
 
-builder.Services.AddRazorPages();
+builder.Services.Configure<WhisperConfig>(builder.Configuration.GetSection("WhisperModelSettings"));
+
 builder.Services.AddControllers();
 
 builder.Services.AddMvc();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new() { Title = "SubtitlesServer", Version = "v1" });
-});
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddConcurrencyRateLimiter(builder.Configuration);
 
 var app = builder.Build();
 
@@ -38,6 +32,6 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
-app.MapRazorPages();
+app.UseRateLimiter();
 
 app.Run();
