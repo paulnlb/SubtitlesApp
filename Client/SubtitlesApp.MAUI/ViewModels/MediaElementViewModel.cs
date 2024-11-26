@@ -56,11 +56,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         #endregion
     }
 
-    #region public properties
-
     public TimeSpan MediaDuration { get; set; }
-
-    #endregion
 
     #region commands
 
@@ -129,7 +125,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
             if (subsResult.IsFailure)
             {
-                return Result.Failure(subsResult.Error);
+                return subsResult;
             }
 
             var subs = subsResult.Value;
@@ -240,7 +236,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         if (startTime <= TimeSpan.FromSeconds(1))
         {
-            // start from the beginning
+            // Start from the beginning
             startTime = TimeSpan.Zero;
         }
 
@@ -258,7 +254,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
 
-        // if the current interval is the last one and it covers the end of the media
+        // If the current interval is the last one and it covers the end of the media
         // return false
         if (currentInterval != null && currentInterval.EndTime >= MediaDuration)
         {
