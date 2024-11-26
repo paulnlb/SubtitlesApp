@@ -42,6 +42,7 @@ namespace SubtitlesApp
             builder.Services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
 #endif
             builder.Services.AddSubtitlesAppServices();
+            builder.Services.AddOidcClient();
 
             return builder.Build();
         }

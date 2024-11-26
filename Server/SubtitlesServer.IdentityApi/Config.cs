@@ -26,12 +26,13 @@ public static class Config
             RequireClientSecret = false,
 
             AllowedGrantTypes = GrantTypes.Code,
+            AllowOfflineAccess = true,
             
             // where to redirect to after login
-            RedirectUris = { "myapp://callback" },
+            RedirectUris = { "subtitlesapp://" },
 
             // where to redirect to after logout
-            PostLogoutRedirectUris = { "myapp://callback" },
+            PostLogoutRedirectUris = { "subtitlesapp://" },
 
             CoordinateLifetimeWithUserSession = true,
 

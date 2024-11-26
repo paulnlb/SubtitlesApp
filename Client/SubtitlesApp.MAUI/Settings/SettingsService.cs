@@ -16,6 +16,9 @@ public class SettingsService : ISettingsService
     private const string _transcribeBufferLengthKey = "transcribe_buffer_length";
     private const int _transcribeBufferLength = 60;
 
+    private const string _callBackUrlKey = "callback_url";
+    private const string _callBackUrl = "subtitlesapp://";
+
     public string WhisperAddress
     {
         get => Preferences.Get(_whisperAddressKey, _whisperAddress);
@@ -38,5 +41,11 @@ public class SettingsService : ISettingsService
     {
         get => Preferences.Get(_transcribeBufferLengthKey, _transcribeBufferLength);
         set => Preferences.Set(_transcribeBufferLengthKey, value);
+    }
+
+    public string CallBackUrl
+    {
+        get => Preferences.Get(_callBackUrlKey, _callBackUrl);
+        set => Preferences.Set(_callBackUrlKey, value);
     }
 }

@@ -5,10 +5,50 @@
              x:Class="SubtitlesApp.Views.MainPage"
              x:DataType="viewModels:MainPageViewModel">
 
-    <ScrollView>
+    <VerticalStackLayout>
         <VerticalStackLayout
+            x:Name="authorized"
             Padding="30,0"
-            Spacing="25">
+            Spacing="25"
+            IsVisible="{Binding IsLoggedIn}">
+            <Image
+                Margin="0, 40, 0, 0"
+                Source="subtitles.png"
+                HeightRequest="175"
+                Aspect="AspectFit"/>
+
+            <Label
+                Text="Welcome back to SubtitlesApp!"
+                Style="{StaticResource Headline}"
+                SemanticProperties.HeadingLevel="Level1" />
+
+            <Button
+                x:Name="CounterBtn"
+                Text="Open a file" 
+                SemanticProperties.Hint="Opens a file to view"
+                HorizontalOptions="Fill"
+                Clicked="ChangeSourceClicked"/>
+
+            <Button
+                x:Name="SettingsBtn"
+                Text="App settings" 
+                SemanticProperties.Hint="Opens app settings"
+                HorizontalOptions="Fill"
+                Command="{Binding OpenSettingsCommand}"/>
+
+            <Button
+                x:Name="LogoutBtn"
+                Text="Logout" 
+                SemanticProperties.Hint="Log out"
+                HorizontalOptions="Fill"
+                Command="{Binding LogOutCommand}"/>
+        </VerticalStackLayout>
+
+        <VerticalStackLayout
+            x:Name="unAuthorized"
+            Padding="30,0"
+            Spacing="25"
+            IsVisible="{Binding IsLoggedOut}">
             <Image
                 Margin="0, 40, 0, 0"
                 Source="subtitles.png"
@@ -27,19 +67,12 @@
                 SemanticProperties.Description="Transcribe any video using OpenAI Whisper" />
 
             <Button
-                x:Name="CounterBtn"
-                Text="Open a file" 
-                SemanticProperties.Hint="Opens a file to view"
+                x:Name="LoginBtn"
+                Text="Log in" 
+                SemanticProperties.Hint="Log out"
                 HorizontalOptions="Fill"
-                Clicked="ChangeSourceClicked"/>
-
-            <Button
-                x:Name="SettingsBtn"
-                Text="App settings" 
-                SemanticProperties.Hint="Opens app settings"
-                HorizontalOptions="Fill"
-                Command="{Binding OpenSettingsCommand}"/>
+                Command="{Binding LogInCommand}"/>
         </VerticalStackLayout>
-    </ScrollView>
+    </VerticalStackLayout>
 
 </ContentPage>

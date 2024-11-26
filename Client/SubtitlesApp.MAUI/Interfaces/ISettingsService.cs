@@ -12,4 +12,6 @@ public interface ISettingsService
     string UnixSocketPath { get; set; }
 
     int TranscribeBufferLength { get; set; }
+
+    string CallBackUrl { get; set; }
 }
