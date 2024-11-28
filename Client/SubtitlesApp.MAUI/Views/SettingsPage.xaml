@@ -20,7 +20,7 @@
         <Label Text="Transcribe buffer length (in seconds)" />
         <Entry Text="{Binding TranscribeBufferLength}" Keyboard="Numeric"/>
 
-        <Label Text="Whisper endpoint address" IsVisible="{Binding IsDevelopment}" />
+        <Label Text="Transcription endpoint address" IsVisible="{Binding IsDevelopment}" />
         <Entry Text="{Binding WhisperAddress}" IsVisible="{Binding IsDevelopment}" />
     </VerticalStackLayout>
 </ContentPage>

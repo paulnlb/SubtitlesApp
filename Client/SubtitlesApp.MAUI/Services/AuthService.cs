@@ -7,8 +7,14 @@ using Result = SubtitlesApp.Core.Result.Result;
 
 namespace SubtitlesApp.Services;
 
-public class AuthService(OidcClient oidcClient) : IAuthService
+public class AuthService : IAuthService
 {
+    private readonly OidcClient _oidcClient;
+
+    public AuthService(OidcClient oidcClient)
+    {
+        _oidcClient = oidcClient;
+    }
     public Task<string?> GetAccesTokenAsync()
     {
         return SecureStorage.Default.GetAsync(SecurityConstants.AccessToken);
@@ -24,7 +30,7 @@ public class AuthService(OidcClient oidcClient) : IAuthService
 
     public async Task<Result> LogInAsync()
     {
-        var result = await oidcClient.LoginAsync();
+        var result = await _oidcClient.LoginAsync();
 
         if (result.IsError)
         {
@@ -44,7 +50,7 @@ public class AuthService(OidcClient oidcClient) : IAuthService
             IdTokenHint = await SecureStorage.Default.GetAsync(SecurityConstants.IdToken),
         };
 
-        var result = await oidcClient.LogoutAsync(logoutRequest);
+        var result = await _oidcClient.LogoutAsync(logoutRequest);
 
         if (result.IsError)
         {
@@ -60,7 +66,7 @@ public class AuthService(OidcClient oidcClient) : IAuthService
     public async Task<Result> RefreshAccessTokenAsync()
     {
         var refreshToken = await SecureStorage.Default.GetAsync(SecurityConstants.RefreshToken);
-        var refreshTokenResult = await oidcClient.RefreshTokenAsync(refreshToken);
+        var refreshTokenResult = await _oidcClient.RefreshTokenAsync(refreshToken);
         if (refreshTokenResult.IsError)
         {
             var error = new Error(ErrorCode.AuthenticationError, refreshTokenResult.Error);

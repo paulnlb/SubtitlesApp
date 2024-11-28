@@ -5,10 +5,7 @@ namespace SubtitlesApp.Settings;
 public class SettingsService : ISettingsService
 {
     private const string _baseUrlKey = "backend_base_url";
-    private const string _baseUrl = "http://localhost:8080/api/whisper/";
-
-    private const string _whisperAddressKey = "whisper_address";
-    private const string _whisperAddress = "transcription";
+    private const string _baseUrl = "http://localhost:8080/";
 
     private const string _unixSocketPathKey = "unix_socket_path";
     private readonly string _unixSocketPath = Path.Combine(FileSystem.Current.AppDataDirectory, "media.sock");
@@ -16,13 +13,13 @@ public class SettingsService : ISettingsService
     private const string _transcribeBufferLengthKey = "transcribe_buffer_length";
     private const int _transcribeBufferLength = 60;
 
-    private const string _callBackUrlKey = "callback_url";
-    private const string _callBackUrl = "subtitlesapp://";
+    private const string _transcriptionPathKey = "transcription_path";
+    private const string _transcriptionPath = "api/whisper/transcription";
 
-    public string WhisperAddress
+    public string TranscriptionPath
     {
-        get => Preferences.Get(_whisperAddressKey, _whisperAddress);
-        set => Preferences.Set(_whisperAddressKey, value);
+        get => Preferences.Get(_transcriptionPathKey, _transcriptionPath);
+        set => Preferences.Set(_transcriptionPathKey, value);
     }
 
     public string UnixSocketPath
@@ -41,11 +38,5 @@ public class SettingsService : ISettingsService
     {
         get => Preferences.Get(_transcribeBufferLengthKey, _transcribeBufferLength);
         set => Preferences.Set(_transcribeBufferLengthKey, value);
-    }
-
-    public string CallBackUrl
-    {
-        get => Preferences.Get(_callBackUrlKey, _callBackUrl);
-        set => Preferences.Set(_callBackUrlKey, value);
     }
 }

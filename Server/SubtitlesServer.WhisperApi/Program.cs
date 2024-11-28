@@ -18,6 +18,9 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddConcurrencyRateLimiter(builder.Configuration);
 
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
@@ -28,7 +31,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapControllers();
+app.UseAuthorization();
+
+app.MapControllers().RequireAuthorization();
 
 app.UseRateLimiter();
 

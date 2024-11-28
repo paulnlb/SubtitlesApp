@@ -29,7 +29,7 @@ public class SubtitlesService : ISubtitlesService
                 { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" }
             };
 
-            var response = await _httpClient.PostAsync(_settingsService.WhisperAddress, multipartContent, cancellationToken);
+            var response = await _httpClient.PostAsync(_settingsService.TranscriptionPath, multipartContent, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {

@@ -37,13 +37,12 @@ internal static class AddServicesExtensions
         // setup OidcClient
         services.AddSingleton(new OidcClient(new()
         {
-            Authority = "https://192.168.1.102:5001",
-
+            Authority = "https://192.168.1.101:7201/identity",
             ClientId = "interactive.public",
             Scope = "openid profile api offline_access",
+            HttpClientFactory = httpClientFactory,
             RedirectUri = "subtitlesapp://",
             PostLogoutRedirectUri = "subtitlesapp://",
-            HttpClientFactory = httpClientFactory,
 
             Browser = new MauiAuthenticationBrowser()
         }));
