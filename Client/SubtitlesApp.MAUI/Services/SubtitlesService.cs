@@ -2,6 +2,7 @@
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace SubtitlesApp.Services;
@@ -10,14 +11,20 @@ public class SubtitlesService : ISubtitlesService
 {
     private readonly HttpClient _httpClient;
     private readonly ISettingsService _settingsService;
+    private readonly IAuthService _authService;
 
-    public SubtitlesService(HttpClient httpClient, ISettingsService settingsService)
+    public SubtitlesService(
+        HttpClient httpClient, 
+        ISettingsService settingsService,
+        IAuthService authService)
     {
         _httpClient = httpClient;
 
         _httpClient.BaseAddress = new Uri(settingsService.BackendBaseUrl);
 
         _settingsService = settingsService;
+
+        _authService = authService;
     }
 
     public async Task<Result<List<SubtitleDTO>>> GetSubsAsync(byte[] audioBytes, CancellationToken cancellationToken = default)
@@ -28,6 +35,10 @@ public class SubtitlesService : ISubtitlesService
             {
                 { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" }
             };
+
+            var token = await _authService.GetAccessTokenAsync();
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var response = await _httpClient.PostAsync(_settingsService.TranscriptionPath, multipartContent, cancellationToken);
 
@@ -44,6 +55,11 @@ public class SubtitlesService : ISubtitlesService
 
                 return Result<List<SubtitleDTO>>.Failure(error);
             }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                var error = new Error(ErrorCode.Unauthorized, "You are not authorized to access this resource");
+                return Result<List<SubtitleDTO>>.Failure(error);
+            }
             else
             {
                 var error = new Error(
@@ -57,7 +73,7 @@ public class SubtitlesService : ISubtitlesService
         {
             throw;
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
             return Result<List<SubtitleDTO>>.Failure(new Error(ErrorCode.ConnectionError, "Error while connecting to the server. Check your connection and try again"));
         }

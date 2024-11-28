@@ -18,8 +18,8 @@ public partial class MainPageViewModel : ObservableObject
     {
         _authService = authService;
 
-        _isLoggedIn = _authService.GetAccesTokenAsync().Result is not null;
-        _isLoggedOut = !_isLoggedIn;
+        _isLoggedOut = string.IsNullOrEmpty(_authService.GetAccessTokenAsync().Result);
+        _isLoggedIn = !_isLoggedOut;
     }
 
     [RelayCommand]

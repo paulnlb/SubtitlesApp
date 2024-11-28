@@ -15,17 +15,36 @@ public class AuthService : IAuthService
     {
         _oidcClient = oidcClient;
     }
-    public Task<string?> GetAccesTokenAsync()
+    public async Task<string> GetAccessTokenAsync()
     {
-        return SecureStorage.Default.GetAsync(SecurityConstants.AccessToken);
+        var token = await SecureStorage.Default.GetAsync(SecurityConstants.AccessToken).ConfigureAwait(false);
+
+        if (token == null)
+        {
+            return string.Empty;
+        }
+
+        if (!await IsAccessTokenExpired(5))
+        {
+            return token;
+        }
+
+        var refreshTokenResult = await RefreshAccessTokenAsync();
+
+        if (refreshTokenResult.IsFailure)
+        {
+            return string.Empty;
+        }
+
+        return await GetAccessTokenAsync();
     }
 
-    public async Task<bool> IsAccessTokenExpired()
+    public async Task<bool> IsAccessTokenExpired(uint minutesBeforeExpiration = 0)
     {
-        var expiredAtStr = await SecureStorage.Default.GetAsync(SecurityConstants.AccessTokenExpiresAt);
+        var expiredAtStr = await SecureStorage.Default.GetAsync(SecurityConstants.AccessTokenExpiresAt).ConfigureAwait(false);
         var expiredAt = expiredAtStr == null ? default : DateTime.Parse(expiredAtStr, CultureInfo.CurrentCulture);
 
-        return expiredAt <= DateTime.Now;
+        return expiredAt < DateTime.Now.AddMinutes(minutesBeforeExpiration);
     }
 
     public async Task<Result> LogInAsync()
@@ -47,7 +66,7 @@ public class AuthService : IAuthService
     {
         var logoutRequest = new LogoutRequest
         {
-            IdTokenHint = await SecureStorage.Default.GetAsync(SecurityConstants.IdToken),
+            IdTokenHint = await SecureStorage.Default.GetAsync(SecurityConstants.IdToken).ConfigureAwait(false),
         };
 
         var result = await _oidcClient.LogoutAsync(logoutRequest);
@@ -65,7 +84,7 @@ public class AuthService : IAuthService
 
     public async Task<Result> RefreshAccessTokenAsync()
     {
-        var refreshToken = await SecureStorage.Default.GetAsync(SecurityConstants.RefreshToken);
+        var refreshToken = await SecureStorage.Default.GetAsync(SecurityConstants.RefreshToken).ConfigureAwait(false);
         var refreshTokenResult = await _oidcClient.RefreshTokenAsync(refreshToken);
         if (refreshTokenResult.IsError)
         {
@@ -73,20 +92,18 @@ public class AuthService : IAuthService
             return Result.Failure(error);
         }
 
-        await SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, refreshTokenResult.AccessToken);
-        await SecureStorage.Default.SetAsync(SecurityConstants.AccessTokenExpiresAt, refreshTokenResult.AccessTokenExpiration.ToString(CultureInfo.CurrentCulture));
+        await SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, refreshTokenResult.AccessToken).ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.AccessTokenExpiresAt, refreshTokenResult.AccessTokenExpiration.ToString(CultureInfo.CurrentCulture)).ConfigureAwait(false);
 
         return Result.Success();
     }
 
     private static async Task SetAuthDataToStorage(LoginResult result)
     {
-        var setIdToken = SecureStorage.Default.SetAsync(SecurityConstants.IdToken, result.IdentityToken);
-        var setAccessToken = SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, result.AccessToken);
-        var setRefreshToken = SecureStorage.Default.SetAsync(SecurityConstants.RefreshToken, result.RefreshToken);
-        var setAccessTokenExpiration = SecureStorage.Default.SetAsync(SecurityConstants.AccessTokenExpiresAt, result.AccessTokenExpiration.ToString(CultureInfo.CurrentCulture));
-
-        await Task.WhenAll(setIdToken, setAccessToken, setRefreshToken, setAccessTokenExpiration);
+        await SecureStorage.Default.SetAsync(SecurityConstants.IdToken, result.IdentityToken).ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, result.AccessToken).ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.RefreshToken, result.RefreshToken).ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.AccessTokenExpiresAt, result.AccessTokenExpiration.ToString(CultureInfo.CurrentCulture)).ConfigureAwait(false);
     }
 
     private static void ClearAuthDataFromStorage()

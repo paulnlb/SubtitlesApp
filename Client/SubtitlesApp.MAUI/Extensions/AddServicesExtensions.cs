@@ -18,8 +18,17 @@ internal static class AddServicesExtensions
         services.AddTransient<ISocketSender, UnixSocketSender>();
 
         services.AddScoped<ISubtitlesService, SubtitlesService>();
-        services.AddHttpClient<ISubtitlesService, SubtitlesService>();
         services.AddScoped<IAuthService, AuthService>();
+
+#if DEBUG
+        var service = new HttpsClientHandlerService();
+        var handler = service.GetPlatformMessageHandler();
+
+        services.AddHttpClient<ISubtitlesService, SubtitlesService>()
+            .ConfigurePrimaryHttpMessageHandler(() => handler);
+#else
+        services.AddHttpClient<ISubtitlesService, SubtitlesService>();
+#endif
     }
 
     public static void AddOidcClient(this IServiceCollection services)

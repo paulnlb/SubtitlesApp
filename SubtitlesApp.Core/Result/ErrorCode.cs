@@ -9,5 +9,6 @@ public enum ErrorCode
     ConnectionError,
     InvalidAudio,
     OperationCanceled,
-    AuthenticationError
+    AuthenticationError,
+    Unauthorized,
 }
