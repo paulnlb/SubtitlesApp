@@ -8,5 +8,7 @@ public enum ErrorCode
     InternalClientError,
     ConnectionError,
     InvalidAudio,
-    OperationCanceled
+    OperationCanceled,
+    AuthenticationError,
+    Unauthorized,
 }

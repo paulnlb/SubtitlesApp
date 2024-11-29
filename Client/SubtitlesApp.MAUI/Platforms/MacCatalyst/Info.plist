@@ -11,6 +11,19 @@
     <!-- Please consult https://developer.apple.com/documentation/bundleresources/information_property_list/lsapplicationcategorytype -->
     <!-- <key>LSApplicationCategoryType</key> -->
     <!-- <string>public.app-category.YOUR-CATEGORY-HERE</string> -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>SubtitlesApp</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>subtitlesapp</string>
+      </array>
+      <key>CFBundleTypeRole</key>
+      <string>Editor</string>
+    </dict>
+  </array>
 	<key>UIDeviceFamily</key>
 	<array>
 		<integer>2</integer>

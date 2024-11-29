@@ -39,4 +39,17 @@ public static class ServicesCollectionExtensions
                 return new ValueTask();
             });
     }
+
+    public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        var jwtConfig = new JwtConfig();
+        configuration.GetSection("JwtSettings").Bind(jwtConfig);
+        services.AddAuthentication()
+            .AddJwtBearer(options =>
+            {
+                options.Authority = jwtConfig.Authority;
+                options.TokenValidationParameters.ValidIssuer = jwtConfig.ValidIssuer;
+                options.TokenValidationParameters.ValidateAudience = jwtConfig.ValidateAudience;
+            });
+    }
 }

@@ -1,12 +1,47 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    public MainPageViewModel()
+    private readonly IAuthService _authService;
+
+    [ObservableProperty]
+    private bool _isLoggedIn;
+
+    [ObservableProperty]
+    private bool _isLoggedOut;
+
+    public MainPageViewModel(IAuthService authService)
     {
+        _authService = authService;
+
+        _isLoggedOut = string.IsNullOrEmpty(_authService.GetAccessTokenAsync().Result);
+        _isLoggedIn = !_isLoggedOut;
+    }
+
+    [RelayCommand]
+    public async Task LogInAsync()
+    {
+        var result = await _authService.LogInAsync();
+        if (result.IsSuccess)
+        {
+            IsLoggedIn = true;
+            IsLoggedOut = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task LogOutAsync()
+    {
+        var result = await _authService.LogOutAsync();
+        if (result.IsSuccess)
+        {
+            IsLoggedIn = false;
+            IsLoggedOut = true;
+        }
     }
 
     [RelayCommand]
