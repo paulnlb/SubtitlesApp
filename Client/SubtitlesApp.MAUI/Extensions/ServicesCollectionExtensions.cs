@@ -6,7 +6,7 @@ using SubtitlesApp.Services.Sockets;
 
 namespace SubtitlesApp.Extensions;
 
-internal static class AddServicesExtensions
+internal static class ServicesCollectionExtensions
 {
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
@@ -29,31 +29,9 @@ internal static class AddServicesExtensions
 #else
         services.AddHttpClient<ISubtitlesService, SubtitlesService>();
 #endif
-    }
 
-    public static void AddOidcClient(this IServiceCollection services)
-    {
-        Func<OidcClientOptions, HttpClient> httpClientFactory = default!;
-
-#if DEBUG
-        httpClientFactory = (options) =>
-        {
-            var handler = new HttpsClientHandlerService();
-            return new HttpClient(handler.GetPlatformMessageHandler());
-        };
-#endif
-
-        // setup OidcClient
-        services.AddSingleton(new OidcClient(new()
-        {
-            Authority = "https://192.168.1.101:7201/identity",
-            ClientId = "interactive.public",
-            Scope = "openid profile api offline_access",
-            HttpClientFactory = httpClientFactory,
-            RedirectUri = "subtitlesapp://",
-            PostLogoutRedirectUri = "subtitlesapp://",
-
-            Browser = new MauiAuthenticationBrowser()
-        }));
+        services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
+        services.AddScoped<HttpsClientHandlerService>();
+        services.AddSingleton<IAuthService, AuthService>();
     }
 }

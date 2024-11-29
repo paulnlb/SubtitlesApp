@@ -11,9 +11,12 @@ public class AuthService : IAuthService
 {
     private readonly OidcClient _oidcClient;
 
-    public AuthService(OidcClient oidcClient)
+    public AuthService(
+        ISettingsService settingsService,
+        IdentityModel.OidcClient.Browser.IBrowser browser,
+        HttpsClientHandlerService httpsClientHandlerService)
     {
-        _oidcClient = oidcClient;
+        _oidcClient = CreateOidcClient(settingsService, browser, httpsClientHandlerService);
     }
     public async Task<string> GetAccessTokenAsync()
     {
@@ -112,5 +115,32 @@ public class AuthService : IAuthService
         SecureStorage.Default.Remove(SecurityConstants.AccessToken);
         SecureStorage.Default.Remove(SecurityConstants.RefreshToken);
         SecureStorage.Default.Remove(SecurityConstants.AccessTokenExpiresAt);
+    }
+
+    private static OidcClient CreateOidcClient(
+        ISettingsService settingsService,
+        IdentityModel.OidcClient.Browser.IBrowser browser,
+        HttpsClientHandlerService httpsClientHandlerService)
+    {
+        var options = new OidcClientOptions
+        {
+            Authority = settingsService.BackendBaseUrl + settingsService.IdentityPath,
+            ClientId = settingsService.OidcClientId,
+            Scope = settingsService.OidcScope,
+            RedirectUri = settingsService.OidcRedirectUri,
+            PostLogoutRedirectUri = settingsService.OidcPostLogoutRedirectUri,
+            Browser = browser
+        };
+
+#if DEBUG
+        var debugMessageHandler = httpsClientHandlerService.GetPlatformMessageHandler();
+
+        options.HttpClientFactory = (options) =>
+        {
+            return new HttpClient(debugMessageHandler);
+        };
+#endif
+
+        return new OidcClient(options);
     }
 }

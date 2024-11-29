@@ -12,4 +12,14 @@ public interface ISettingsService
     string UnixSocketPath { get; set; }
 
     int TranscribeBufferLength { get; set; }
+
+    string IdentityPath { get; set; }
+
+    string OidcClientId { get; set; }
+
+    string OidcScope { get; set; }
+
+    string OidcRedirectUri { get; set; }
+
+    string OidcPostLogoutRedirectUri { get; set; }
 }
