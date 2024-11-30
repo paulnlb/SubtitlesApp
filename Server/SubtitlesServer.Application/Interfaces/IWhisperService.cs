@@ -6,5 +6,6 @@ public interface IWhisperService
 {
     IAsyncEnumerable<Subtitle> TranscribeAudioAsync(
         byte[] audioBytes,
+        string subtitlesLanguageCode,
         CancellationToken cancellationToken = default);
 }

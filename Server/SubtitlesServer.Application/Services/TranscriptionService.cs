@@ -7,10 +7,12 @@ public class TranscriptionService(IWhisperService whisperService) : ITranscripti
 {
     public async Task<List<SubtitleDTO>> TranscribeAudioAsync(
         byte[] audioBytes,
+        string subtitlesLanguageCode,
         CancellationToken cancellationToken = default)
     {
         var subtitles =  whisperService.TranscribeAudioAsync(
             audioBytes,
+            subtitlesLanguageCode,
             cancellationToken);
 
         var subtitlesList = new List<SubtitleDTO>();
@@ -24,7 +26,8 @@ public class TranscriptionService(IWhisperService whisperService) : ITranscripti
                     StartTime = subtitle.TimeInterval.StartTime,
                     EndTime = subtitle.TimeInterval.EndTime
                 },
-                Text = subtitle.Text
+                Text = subtitle.Text,
+                Language = subtitle.Language
             };
 
             subtitlesList.Add(subtitleDto);

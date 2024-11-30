@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.RateLimiting;
+using SubtitlesApp.Core.Services;
 using SubtitlesServer.Application.Constants;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Application.Services;
@@ -16,6 +17,7 @@ public static class ServicesCollectionExtensions
         services.AddScoped<IWhisperService, WhisperService>();
         services.AddScoped<IWaveService, WaveService>();
         services.AddSingleton<WhisperModelService>();
+        services.AddSingleton<LanguageService>();
     }
 
     public static void AddConcurrencyRateLimiter(this IServiceCollection services, IConfiguration configuration)

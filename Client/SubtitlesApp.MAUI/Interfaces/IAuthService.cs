@@ -15,7 +15,7 @@ public interface IAuthService
 
     Task<Result> LogOutAsync();
 
-    Task<string> GetAccessTokenAsync();
+    Task<string> GetAccessTokenAsync(bool refreshIfExpired = true);
 
     Task<Result> RefreshAccessTokenAsync();
 }

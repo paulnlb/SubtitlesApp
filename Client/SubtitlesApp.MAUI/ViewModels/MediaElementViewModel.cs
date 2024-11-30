@@ -7,6 +7,7 @@ using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Extensions;
 using System.Collections.ObjectModel;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Core.Services;
 namespace SubtitlesApp.ViewModels;
 
 public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
@@ -27,6 +28,12 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     TranscribeStatus _transcribeStatus = TranscribeStatus.Ready;
+
+    [ObservableProperty]
+    List<Language> _availableSubtitlesLanguages;
+
+    [ObservableProperty]
+    Language _selectedSubtitlesLanguage;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
@@ -36,7 +43,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     public MediaElementViewModel(
         IMediaProcessor mediaProcessor,
         ISettingsService settings,
-        ISubtitlesService subtitlesService)
+        ISubtitlesService subtitlesService,
+        LanguageService languageService)
     {
         #region observable props
 
@@ -44,6 +52,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         MediaPath = null;
         Subtitles = [];
         TranscribeBufferLength = settings.TranscribeBufferLength;
+        AvailableSubtitlesLanguages = languageService.GetAllLanguages();
+        SelectedSubtitlesLanguage = languageService.GetDefaultLanguage();
 
         #endregion
 
@@ -119,7 +129,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
                 timeIntervalToTranslate.EndTime,
                 cancellationToken);
 
-            var subsResult = await _subtitlesService.GetSubsAsync(audio, cancellationToken);
+            var subsResult = await _subtitlesService.GetSubsAsync(audio, SelectedSubtitlesLanguage, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 

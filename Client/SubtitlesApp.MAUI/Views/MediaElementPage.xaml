@@ -39,11 +39,26 @@
         </customControls:CustomLayout.MainChild>
         
         <customControls:CustomLayout.SideChild>
-            <Grid RowDefinitions="50, *" Padding="5, 0">
-                <Entry Grid.Row="0" Text="{Binding TextBoxContent}" IsReadOnly="True"/>
+            <Grid 
+                RowDefinitions="50, *"
+                ColumnDefinitions="5*, 2*"
+                Padding="5, 0">
+                <Entry 
+                    Grid.Row="0" 
+                    Grid.Column="0" 
+                    Text="{Binding TextBoxContent}" 
+                    IsReadOnly="True"/>
+                <Picker 
+                    Grid.Row="0" 
+                    Grid.Column="1"
+                    Title="Select a language"
+                    ItemsSource="{Binding AvailableSubtitlesLanguages}"
+                    ItemDisplayBinding="{Binding Name}"
+                    SelectedItem="{Binding SelectedSubtitlesLanguage}"/>
                 <customControls:SubsCollection
                     x:Name="subsCollection"
                     Grid.Row="1"
+                    Grid.ColumnSpan="2"
                     SubsSource="{Binding Subtitles}"
                     CurrentTimePosition="{Binding Source={x:Reference mediaPlayer}, Path=Position}"
                     SubtileTapped="OnSubtileTapped"/>
