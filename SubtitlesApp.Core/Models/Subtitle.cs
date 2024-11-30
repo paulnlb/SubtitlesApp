@@ -11,19 +11,9 @@ public class Subtitle : INotifyPropertyChanged
 
     public string Text { get; set; }
 
-    public bool IsHighlighted
-    {
-        get => _isHighlighted;
-        set
-        {
-            if (_isHighlighted != value)
-            {
-                _isHighlighted = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    public Language? Language { get; set; }
 
+    //TODO: Check if below is needed
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public void OnPropertyChanged([CallerMemberName] string propertyName = "") =>

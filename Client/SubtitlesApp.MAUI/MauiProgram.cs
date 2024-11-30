@@ -43,8 +43,6 @@ namespace SubtitlesApp
 #endif
             builder.Services.AddSubtitlesAppServices();
 
-            Preferences.Clear();
-
             return builder.Build();
         }
     }

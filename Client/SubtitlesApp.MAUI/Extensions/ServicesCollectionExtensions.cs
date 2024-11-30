@@ -1,4 +1,5 @@
 ﻿using IdentityModel.OidcClient;
+using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Services;
@@ -18,8 +19,6 @@ internal static class ServicesCollectionExtensions
         services.AddTransient<ISocketSender, UnixSocketSender>();
 
         services.AddScoped<ISubtitlesService, SubtitlesService>();
-        services.AddScoped<IAuthService, AuthService>();
-
 #if DEBUG
         var service = new HttpsClientHandlerService();
         var handler = service.GetPlatformMessageHandler();
@@ -33,5 +32,6 @@ internal static class ServicesCollectionExtensions
         services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
         services.AddScoped<HttpsClientHandlerService>();
         services.AddSingleton<IAuthService, AuthService>();
+        services.AddSingleton<LanguageService>();
     }
 }

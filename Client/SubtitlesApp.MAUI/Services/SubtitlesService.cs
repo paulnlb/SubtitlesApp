@@ -1,4 +1,6 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.Constants;
+using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
 using System.Net;
@@ -27,7 +29,10 @@ public class SubtitlesService : ISubtitlesService
         _authService = authService;
     }
 
-    public async Task<Result<List<SubtitleDTO>>> GetSubsAsync(byte[] audioBytes, CancellationToken cancellationToken = default)
+    public async Task<Result<List<SubtitleDTO>>> GetSubsAsync(
+        byte[] audioBytes,
+        Language language,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -38,9 +43,13 @@ public class SubtitlesService : ISubtitlesService
 
             var token = await _authService.GetAccessTokenAsync();
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            using var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranscriptionPath);
 
-            var response = await _httpClient.PostAsync(_settingsService.TranscriptionPath, multipartContent, cancellationToken);
+            request.Content = multipartContent;
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, language.Code);
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {

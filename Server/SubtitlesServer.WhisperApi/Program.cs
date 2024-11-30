@@ -33,7 +33,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 
-app.MapControllers().RequireAuthorization();
+app.MapControllers();
 
 app.UseRateLimiter();
 

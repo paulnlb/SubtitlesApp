@@ -18,13 +18,18 @@ public class AuthService : IAuthService
     {
         _oidcClient = CreateOidcClient(settingsService, browser, httpsClientHandlerService);
     }
-    public async Task<string> GetAccessTokenAsync()
+    public async Task<string> GetAccessTokenAsync(bool refreshIfExpired = true)
     {
         var token = await SecureStorage.Default.GetAsync(SecurityConstants.AccessToken).ConfigureAwait(false);
 
         if (token == null)
         {
             return string.Empty;
+        }
+
+        if (!refreshIfExpired)
+        {
+            return token;
         }
 
         if (!await IsAccessTokenExpired(5))

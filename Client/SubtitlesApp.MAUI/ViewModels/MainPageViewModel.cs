@@ -18,7 +18,7 @@ public partial class MainPageViewModel : ObservableObject
     {
         _authService = authService;
 
-        _isLoggedOut = string.IsNullOrEmpty(_authService.GetAccessTokenAsync().Result);
+        _isLoggedOut = string.IsNullOrEmpty(_authService.GetAccessTokenAsync(false).Result);
         _isLoggedIn = !_isLoggedOut;
     }
 
