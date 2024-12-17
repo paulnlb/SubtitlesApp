@@ -34,6 +34,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     Language _selectedSubtitlesLanguage;
+
+    [ObservableProperty]
+    Language? _translationLanguage;
     #endregion
 
     readonly IMediaProcessor _mediaProcessor;
