@@ -31,6 +31,9 @@ public class SettingsService : ISettingsService
     private const string _oidcPostLogoutRedirectUriKey = "oidc_post_logout_redirect_uri";
     private const string _oidcPostLogoutRedirectUri = "subtitlesapp://";
 
+    private const string _translationPathKey = "translation_path";
+    private const string _translationPath = "api/translation";
+
     public string TranscriptionPath
     {
         get => Preferences.Get(_transcriptionPathKey, _transcriptionPath);
@@ -83,5 +86,11 @@ public class SettingsService : ISettingsService
     {
         get => Preferences.Get(_oidcPostLogoutRedirectUriKey, _oidcPostLogoutRedirectUri);
         set => Preferences.Set(_oidcPostLogoutRedirectUriKey, value);
+    }
+
+    public string TranslationPath
+    {
+        get => Preferences.Get(_translationPathKey, _translationPath);
+        set => Preferences.Set(_translationPathKey, value);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using IdentityModel.OidcClient;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
@@ -25,13 +26,18 @@ internal static class ServicesCollectionExtensions
 
         services.AddHttpClient<ISubtitlesService, SubtitlesService>()
             .ConfigurePrimaryHttpMessageHandler(() => handler);
+        services.AddHttpClient<ITranslationService, TranslationService>()
+            .ConfigurePrimaryHttpMessageHandler(() => handler);
 #else
         services.AddHttpClient<ISubtitlesService, SubtitlesService>();
+        services.AddHttpClient<ITranslationService, TranslationService>();
 #endif
 
         services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
         services.AddScoped<HttpsClientHandlerService>();
         services.AddSingleton<IAuthService, AuthService>();
         services.AddSingleton<LanguageService>();
+        services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
+        services.AddScoped<ITranslationService, TranslationService>();
     }
 }

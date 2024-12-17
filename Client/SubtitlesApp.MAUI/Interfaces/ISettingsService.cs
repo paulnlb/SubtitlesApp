@@ -22,4 +22,6 @@ public interface ISettingsService
     string OidcRedirectUri { get; set; }
 
     string OidcPostLogoutRedirectUri { get; set; }
+
+    string TranslationPath { get; set; }
 }
