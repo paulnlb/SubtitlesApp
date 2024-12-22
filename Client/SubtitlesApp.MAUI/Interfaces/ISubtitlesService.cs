@@ -15,5 +15,6 @@ public interface ISubtitlesService
     Task<Result<List<SubtitleDTO>>> GetSubsAsync(
         byte[] audioBytes,
         string languageCode,
+        TimeSpan? timeOffset = null,
         CancellationToken cancellationToken = default);
 }

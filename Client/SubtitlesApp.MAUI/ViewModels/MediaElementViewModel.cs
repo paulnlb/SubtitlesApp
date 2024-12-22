@@ -58,6 +58,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     readonly ISubtitlesService _subtitlesService;
     readonly ITranslationService _translationService;
     readonly IPopupService _popupService;
+    readonly ISubtitlesTimeSetService _subtitlesTimeSetService;
     readonly TimeSet _coveredTimeIntervals;
 
     public MediaElementViewModel(
@@ -66,7 +67,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         ISubtitlesService subtitlesService,
         ITranslationService translationService,
         LanguageService languageService,
-        IPopupService popupService)
+        IPopupService popupService,
+        ISubtitlesTimeSetService subtitlesTimeSetService)
     {
         #region observable props
 
@@ -91,6 +93,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _subtitlesService = subtitlesService;
         _translationService = translationService;
         _popupService = popupService;
+        _subtitlesTimeSetService = subtitlesTimeSetService;
         _coveredTimeIntervals = new TimeSet();
 
         #endregion
@@ -101,10 +104,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #region commands
 
     [RelayCommand]
-    public void ChangePosition(TimeSpan currentPosition)
+    public void PositionChanged(TimeSpan currentPosition)
     {
         if (TranscribeStatus == TranscribeStatus.Ready
-            && ShouldTranscribeFrom(currentPosition))
+            && ShouldStartTranscription(currentPosition))
         {
             TranscribeFromPositionCommand.ExecuteAsync(currentPosition);
         }
@@ -113,10 +116,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    public void SeekTo(TimeSpan position)
+    public void SeekCompleted(TimeSpan position)
     {
         if (TranscribeStatus == TranscribeStatus.Transcribing
-            && ShouldTranscribeFrom(position))
+            && ShouldStartTranscription(position))
         {
             TranscribeFromPositionCommand.Cancel();
         }
@@ -220,7 +223,11 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     // Todo: Separation of conserns between this VM and SubtitlesService
     public async Task<Result> TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
-        var timeIntervalToTranscribe = GetTimeIntervalForTranscription(position);
+        var timeIntervalToTranscribe = _subtitlesTimeSetService.GetTimeIntervalForTranscription(
+            _coveredTimeIntervals,
+            position,
+            TimeSpan.FromSeconds(TranscribeBufferLength),
+            MediaDuration);
 
         if (timeIntervalToTranscribe == null)
         {
@@ -238,6 +245,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             var subsResult = await _subtitlesService.GetSubsAsync(
                 audio,
                 SubtitlesSettings.OriginalLanguage.Code,
+                timeIntervalToTranscribe.StartTime,
                 cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -248,8 +256,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             }
 
             var subs = subsResult.Value;
-
-            AlignSubsByTime(subs, timeIntervalToTranscribe.StartTime);
 
             if (SubtitlesSettings.TranslateToLanguage?.Code != null)
             {
@@ -413,65 +419,12 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
     }
 
-    static void AlignSubsByTime(
-        List<SubtitleDTO> subsToAlign,
-        TimeSpan timeOffset)
+    bool ShouldStartTranscription(TimeSpan position)
     {
-        foreach (var subtitleDto in subsToAlign)
-        {
-            var timeInterval = new TimeIntervalDTO
-            {
-                StartTime = subtitleDto.TimeInterval.StartTime + timeOffset,
-                EndTime = subtitleDto.TimeInterval.EndTime + timeOffset,
-            };
-
-            subtitleDto.TimeInterval = timeInterval;
-        }
-    }
-
-    TimeInterval? GetTimeIntervalForTranscription(TimeSpan position)
-    {
-        (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
-
-        var startTime = currentInterval == null ? position : currentInterval.EndTime;
-
-        if (startTime >= MediaDuration)
-        {
-            return null;
-        }
-
-        if (startTime <= TimeSpan.FromSeconds(1))
-        {
-            // Start from the beginning
-            startTime = TimeSpan.Zero;
-        }
-
-        var endTime = startTime.Add(TimeSpan.FromSeconds(TranscribeBufferLength));
-
-        if (endTime > MediaDuration)
-        {
-            endTime = MediaDuration;
-        }
-
-        return new TimeInterval(startTime, endTime);
-    }
-
-    bool ShouldTranscribeFrom(TimeSpan position)
-    {
-        (var currentInterval, _) = _coveredTimeIntervals.GetByTimeStamp(position);
-
-        // If the current interval is the last one and it covers the end of the media
-        // return false
-        if (currentInterval != null && currentInterval.EndTime >= MediaDuration)
-        {
-            return false;
-        }
-
-        var isTimeSuitableForTranscribe =
-            currentInterval == null ||
-            currentInterval.EndTime - position <= TimeSpan.FromSeconds(15);
-
-        return isTimeSuitableForTranscribe;
+        return _subtitlesTimeSetService.ShouldStartTranscription(
+            _coveredTimeIntervals,
+            position,
+            MediaDuration);
     }
 
     void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)
