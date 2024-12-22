@@ -14,7 +14,7 @@
     "SubtitlesServerBff": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "swagger",
       "applicationUrl": "https://0.0.0.0:7201;http://0.0.0.0:5045",
       "environmentVariables": {

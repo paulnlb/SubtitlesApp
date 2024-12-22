@@ -42,7 +42,7 @@ public class WhisperService(
                 {
                     Text = result.Text,
                     TimeInterval = new TimeInterval(result.Start, result.End),
-                    Language = languageService.GetLanguageByCode(result.Language)
+                    LanguageCode = result.Language
                 };
 
                 yield return subtitle;
