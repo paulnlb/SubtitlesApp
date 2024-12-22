@@ -1,4 +1,5 @@
 using MauiPageFullScreen;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.ViewModels;
 
@@ -11,12 +12,6 @@ public partial class MediaElementPage : ContentPage
         InitializeComponent();
 
         BindingContext = viewModel;
-    }
-
-    async void OnSubtileTapped(object sender, SubtitleTappedEventArgs e)
-    {
-        var subtitle = e.Subtitle;
-        await mediaPlayer.SeekTo(subtitle.TimeInterval.StartTime, CancellationToken.None);
     }
 
     protected override void OnDisappearing()

@@ -33,10 +33,15 @@ public partial class MediaPlayer : ContentView
             BindableProperty.Create(nameof(SeekCompletedCommandParameter), typeof(object), typeof(MediaPlayer), null);
 
     public static readonly BindableProperty DurationProperty =
-            BindableProperty.Create(nameof(Duration), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero);
+            BindableProperty.Create(nameof(Duration), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, BindingMode.OneWayToSource);
 
     public static readonly BindableProperty PositionProperty =
-            BindableProperty.Create(nameof(Position), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero);
+            BindableProperty.Create(nameof(Position), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, BindingMode.OneWayToSource);
+
+    public static readonly BindableProperty PositionToSeekProperty =
+            BindableProperty.Create(nameof(PositionToSeek), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, propertyChanged: OnPositionToSeekChanged);
+
+
 
     public string MediaPath
     {
@@ -77,11 +82,19 @@ public partial class MediaPlayer : ContentView
     public TimeSpan Duration
     {
         get => (TimeSpan)GetValue(DurationProperty);
+        set => SetValue(DurationProperty, value);
     }
 
     public TimeSpan Position
     {
         get => (TimeSpan)GetValue(PositionProperty);
+        set => SetValue(PositionProperty, value);
+    }
+
+    public TimeSpan PositionToSeek
+    {
+        get => (TimeSpan)GetValue(PositionToSeekProperty);
+        set => SetValue(PositionToSeekProperty, value);
     }
 
     #region public methods
@@ -100,7 +113,7 @@ public partial class MediaPlayer : ContentView
         MauiMediaElement.Stop();
     }
 
-    public async Task SeekTo(TimeSpan position, CancellationToken cancellationToken)
+    public async Task SeekTo(TimeSpan position, CancellationToken cancellationToken = default)
     {
         await MauiMediaElement.SeekTo(position, cancellationToken);
     }
@@ -115,6 +128,23 @@ public partial class MediaPlayer : ContentView
 
     #region private event handlers
 
+    static async void OnPositionToSeekChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        if (bindable is not MediaPlayer mediaPlayer)
+        {
+            return;
+        }
+
+        if (oldValue == newValue || 
+            oldValue is not TimeSpan || 
+            newValue is not TimeSpan newPosition)
+        { 
+            return;
+        }
+
+        await mediaPlayer.SeekTo(newPosition);
+    }
+
     async void OnRewindTapped(object sender, EventArgs e)
     {
         var newPosition = MauiMediaElement.Position.Subtract(TimeSpan.FromSeconds(5));
@@ -124,7 +154,7 @@ public partial class MediaPlayer : ContentView
             newPosition = TimeSpan.Zero;
         }
 
-        await MauiMediaElement.SeekTo(newPosition, CancellationToken.None);
+        await SeekTo(newPosition);
     }
 
     void OnPlayPauseTapped(object sender, EventArgs e)
@@ -148,7 +178,7 @@ public partial class MediaPlayer : ContentView
             newPosition = MauiMediaElement.Duration;
         }
 
-        await MauiMediaElement.SeekTo(newPosition, CancellationToken.None);
+        await SeekTo(newPosition);
     }
 
     void OnDragStarted(object sender, EventArgs e)

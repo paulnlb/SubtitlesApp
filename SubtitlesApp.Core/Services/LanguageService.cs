@@ -1,5 +1,6 @@
 ﻿using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Models;
+using System.Linq;
 
 namespace SubtitlesApp.Core.Services;
 
@@ -68,7 +69,12 @@ public class LanguageService
 
     public List<Language> GetAllLanguages()
     {
-        return _languages;
+        return _languages.ToList(); // copy to new list
+    }
+
+    public List<Language> GetLanguages(Func<Language, bool> predicate)
+    {
+        return _languages.Where(predicate).ToList(); // copy to new list
     }
 
     public Language GetDefaultLanguage()

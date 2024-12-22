@@ -14,6 +14,6 @@ public interface ISubtitlesService
     /// <param name="cancellationToken">Cancellation token</param>
     Task<Result<List<SubtitleDTO>>> GetSubsAsync(
         byte[] audioBytes,
-        Language language,
+        string languageCode,
         CancellationToken cancellationToken = default);
 }

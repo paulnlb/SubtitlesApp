@@ -6,20 +6,32 @@ using System.Net.Http.Json;
 
 namespace SubtitlesApp.Services;
 
-public class HttpRequestService<T>(IAuthService authService) : IHttpRequestService<T> where T : class, new()
+public class HttpRequestService<T> : IHttpRequestService<T> where T : class, new()
 {
+    private readonly HttpClient _httpClient;
+    private readonly IAuthService _authService;
+
+    public HttpRequestService(
+        IAuthService authService,
+        HttpClient client,
+        ISettingsService settingsService)
+    {
+        client.BaseAddress = new Uri(settingsService.BackendBaseUrl);
+        _httpClient = client;
+        _authService = authService;
+    }
+
     public async Task<Result<T>> SendAsync(
         HttpRequestMessage request,
-        HttpClient httpClient,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var token = await authService.GetAccessTokenAsync();
+            var token = await _authService.GetAccessTokenAsync();
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await httpClient.SendAsync(request, cancellationToken);
+            var response = await _httpClient.SendAsync(request, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -60,7 +72,7 @@ public class HttpRequestService<T>(IAuthService authService) : IHttpRequestServi
         {
             return Result<T>.Failure(new Error(ErrorCode.ConnectionError, $"Error while connecting to the server: {ex.Message}"));
         }
-        catch (Exception)
+        catch (Exception e)
         {
             return Result<T>.Failure(new Error(ErrorCode.InternalClientError, "An unknown error has occurred. Please try again later"));
         }

@@ -20,7 +20,6 @@
             Aspect="AspectFit"
             VerticalOptions="Center"
             HorizontalOptions="Center"
-            MaximumHeightRequest="500"
             Source="{Binding MediaPath}"
             ShouldAutoPlay="False"
             ShouldShowPlaybackControls="False">

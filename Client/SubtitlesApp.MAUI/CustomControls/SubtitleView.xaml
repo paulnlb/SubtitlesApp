@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
+             xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+             x:Class="SubtitlesApp.CustomControls.SubtitleView"
+             x:DataType="clientModels:VisualSubtitle"
+             x:Name="this">
+
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:IsTranslatableConverter x:Key="IsTranslatableConverter" />
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <SwipeView>
+        <Label Text="{Binding Text}"
+               FontSize="16"
+               BackgroundColor="{Binding IsHighlighted, Converter={StaticResource BoolToColorConverter}}">
+            <Label.GestureRecognizers>
+                <TapGestureRecognizer NumberOfTapsRequired="2"
+                                      Command="{Binding Source={x:Reference this}, Path=TappedCommand}"
+                                      CommandParameter="{Binding Source={x:Reference this}, Path=TappedCommandParameter}" />
+            </Label.GestureRecognizers>
+        </Label>
+
+        <SwipeView.RightItems>
+            <SwipeItems Mode="Reveal">
+                <SwipeItem Text="{Binding Translation.LanguageCode}"
+                           Invoked="OnSwiped"
+                           CommandParameter="{Binding .}">
+                    <SwipeItem.IsVisible>
+                        <MultiBinding Converter="{StaticResource IsTranslatableConverter}">
+                            <Binding Path="IsTranslated" />
+                            <Binding Path="Translation" />
+                        </MultiBinding>
+                    </SwipeItem.IsVisible>
+                </SwipeItem>
+            </SwipeItems>
+        </SwipeView.RightItems>
+        <SwipeView.LeftItems>
+            <SwipeItems Mode="Reveal">
+                <SwipeItem IsVisible="{Binding IsTranslated}"
+                           Text="{Binding Translation.LanguageCode}"
+                           Invoked="OnSwiped"
+                           CommandParameter="{Binding .}">
+                </SwipeItem>
+            </SwipeItems>
+        </SwipeView.LeftItems>
+    </SwipeView>
+</ContentView>
