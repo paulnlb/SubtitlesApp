@@ -8,5 +8,9 @@ public class SubtitleDTO
 
     public TimeIntervalDTO TimeInterval { get; set; }
 
-    public Language? Language { get; set; }
+    public string LanguageCode { get; set; }
+
+    public bool IsTranslated { get; set; }
+
+    public Translation? Translation { get; set; }
 }

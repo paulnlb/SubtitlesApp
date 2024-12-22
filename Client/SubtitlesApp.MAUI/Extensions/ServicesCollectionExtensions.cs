@@ -1,10 +1,13 @@
-﻿using IdentityModel.OidcClient;
+﻿using CommunityToolkit.Maui;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Services;
+using SubtitlesApp.CustomControls;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Services;
 using SubtitlesApp.Services.Sockets;
+using SubtitlesApp.ViewModels;
+using UraniumUI;
 
 namespace SubtitlesApp.Extensions;
 
@@ -12,32 +15,46 @@ internal static class ServicesCollectionExtensions
 {
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
+        #region transient
         services.AddTransient<IMediaProcessor, FfmpegService>();
-
         services.AddTransient<IVideoPicker, VideoPicker>();
-
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
+        #endregion
 
+        #region scoped
         services.AddScoped<ISubtitlesService, SubtitlesService>();
+        services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
+        services.AddScoped<HttpsClientHandlerService>();
+        services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
+        services.AddScoped<ITranslationService, TranslationService>();
+        #endregion
+
+        #region singleton
+        services.AddSingleton<IAuthService, AuthService>();
+        services.AddSingleton<LanguageService>();
+        #endregion
+
+        #region HttpClient
 #if DEBUG
         var service = new HttpsClientHandlerService();
         var handler = service.GetPlatformMessageHandler();
 
-        services.AddHttpClient<ISubtitlesService, SubtitlesService>()
-            .ConfigurePrimaryHttpMessageHandler(() => handler);
-        services.AddHttpClient<ITranslationService, TranslationService>()
+        services.AddHttpClient<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>()
             .ConfigurePrimaryHttpMessageHandler(() => handler);
 #else
         services.AddHttpClient<ISubtitlesService, SubtitlesService>();
         services.AddHttpClient<ITranslationService, TranslationService>();
 #endif
+        #endregion
 
-        services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
-        services.AddScoped<HttpsClientHandlerService>();
-        services.AddSingleton<IAuthService, AuthService>();
-        services.AddSingleton<LanguageService>();
-        services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
-        services.AddScoped<ITranslationService, TranslationService>();
+        #region popups
+        services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
+        services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
+        #endregion
+
+        #region third-party
+        services.AddCommunityToolkitDialogs();
+        #endregion
     }
 }

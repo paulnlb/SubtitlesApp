@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Application.Interfaces;
 
@@ -6,14 +8,15 @@ namespace SubtitlesServer.WhisperApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class WhisperMockController(
     ILogger<WhisperMockController> logger,
     IWaveService waveService) : ControllerBase
 {
     [HttpPost("transcription")]
-    public async Task<IActionResult> TranscribeAudio(
+    public IActionResult TranscribeAudio(
         IFormFile audioFile,
-        CancellationToken cancellationToken)
+        [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode)
     {
         logger.LogInformation("Connected");
 
@@ -30,7 +33,7 @@ public class WhisperMockController(
             return BadRequest(validationResult.Error);
         }
 
-        var max = 30;
+        var max = 60;
 
         logger.LogInformation("Max: {Max}", max);
 
@@ -57,12 +60,12 @@ public class WhisperMockController(
             var subtitle = new SubtitleDTO
             {
                 TimeInterval = new TimeIntervalDTO() { StartTime = startTime, EndTime = endTime },
-                Text = text
+                Text = text,
+                LanguageCode = subtitlesLanguageCode,
+                IsTranslated = false,
             };
 
             logger.LogInformation("{StartTime}: {Text}", subtitle.TimeInterval.StartTime, subtitle.Text);
-
-            await Task.Delay(200, cancellationToken);
 
             subs.Add(subtitle);
         }

@@ -6,6 +6,7 @@ using SubtitlesApp.Interfaces;
 using SubtitlesApp.Settings;
 using SubtitlesApp.Extensions;
 using MauiPageFullScreen;
+using UraniumUI;
 
 
 namespace SubtitlesApp
@@ -18,6 +19,8 @@ namespace SubtitlesApp
             builder
                 .UseMauiApp<App>()
                 .UseFullScreen()
+                .UseUraniumUI()
+                .UseUraniumUIMaterial()
                 .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitMediaElement()
                 .ConfigureFonts(fonts =>

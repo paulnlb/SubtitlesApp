@@ -8,26 +8,20 @@ namespace SubtitlesApp.Services;
 
 public class SubtitlesService : ISubtitlesService
 {
-    private readonly HttpClient _httpClient;
     private readonly IHttpRequestService<List<SubtitleDTO>> _httpRequestService;
     private readonly ISettingsService _settingsService;
 
     public SubtitlesService(
-        HttpClient httpClient, 
         ISettingsService settingsService,
         IHttpRequestService<List<SubtitleDTO>> httpRequestService)
     {
-        _httpClient = httpClient;
-
-        _httpClient.BaseAddress = new Uri(settingsService.BackendBaseUrl);
-
         _httpRequestService = httpRequestService;
         _settingsService = settingsService;
     }
 
     public Task<Result<List<SubtitleDTO>>> GetSubsAsync(
         byte[] audioBytes,
-        Language language,
+        string languageCode,
         CancellationToken cancellationToken = default)
     {
         var multipartContent = new MultipartFormDataContent
@@ -35,11 +29,11 @@ public class SubtitlesService : ISubtitlesService
             { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" }
         };
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranscriptionPath);
+        var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranscriptionPath);
 
         request.Content = multipartContent;
-        request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, language.Code);
+        request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, languageCode);
 
-        return _httpRequestService.SendAsync(request, _httpClient, cancellationToken);
+        return _httpRequestService.SendAsync(request, cancellationToken);
     }
 }

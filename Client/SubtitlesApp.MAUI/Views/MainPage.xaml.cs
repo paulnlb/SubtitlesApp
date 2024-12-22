@@ -45,6 +45,7 @@ public partial class MainPage : ContentPage
 
                 if (!permissionsGranded)
                 {
+                    AppInfo.Current.ShowSettingsUI();
                     return;
                 }
 
@@ -67,18 +68,18 @@ public partial class MainPage : ContentPage
 
     async Task<bool> RequestPermissions()
     {
-        var readPermissionStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
-        var writePermissionStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        //var readPermissionStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
+        //var writePermissionStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
 
-        if (readPermissionStatus != PermissionStatus.Granted || writePermissionStatus != PermissionStatus.Granted)
-        {
-            await DisplayAlert(
-                "Permission Denied",
-                "You must grant permission to read and write to storage. Please turn on permissions in settings.",
-                "Got it");
+        //if (readPermissionStatus != PermissionStatus.Granted || writePermissionStatus != PermissionStatus.Granted)
+        //{
+        //    await DisplayAlert(
+        //        "Permission Denied",
+        //        "You must grant permission to read and write to storage. Please turn on permissions in settings.",
+        //        "Got it");
 
-            return false;
-        }
+        //    return false;
+        //}
 
         return true;
     }

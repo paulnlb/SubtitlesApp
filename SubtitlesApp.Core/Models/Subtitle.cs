@@ -5,16 +5,87 @@ namespace SubtitlesApp.Core.Models;
 
 public class Subtitle : INotifyPropertyChanged
 {
-    bool _isHighlighted = false;
+    private string _text;
+    private string _languageCode;
+    private Translation? _translation;
+
+    private bool _isTranslated;
 
     public TimeInterval TimeInterval { get; set; }
 
-    public string Text { get; set; }
+    public string Text
+    {
+        get => _text;
+        set
+        {
+            if (_text != value)
+            {
+                _text = value;
+                OnPropertyChanged(nameof(Text));
+            }
+        }
+    }
+    public string LanguageCode
+    {
+        get => _languageCode;
+        set
+        {
+            if (_languageCode != value)
+            {
+                _languageCode = value;
+                OnPropertyChanged(nameof(LanguageCode));
+            }
+        }
+    }
 
-    public Language? Language { get; set; }
+    public bool IsTranslated
+    {
+        get => _isTranslated;
+        set
+        {
+            if (_isTranslated != value)
+            {
+                _isTranslated = value;
+                OnPropertyChanged(nameof(IsTranslated));
+            }
+        }
+    }
 
-    //TODO: Check if below is needed
+    public Translation? Translation
+    {
+        get => _translation;
+        set
+        {
+            if (_translation != value)
+            {
+                _translation = value;
+                OnPropertyChanged(nameof(Translation));
+            }
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public void ApplyTranslation()
+    {
+        if (Translation == null)
+        {
+            return;
+        }
+
+        var translatedText = Translation.Text;
+        var translateToLanguageCode = Translation.LanguageCode;
+
+        Translation = new Translation
+        {
+            LanguageCode = LanguageCode,
+            Text = Text,
+        };
+
+        LanguageCode = translateToLanguageCode;
+        Text = translatedText;
+        IsTranslated = !IsTranslated;
+    }
 
     public void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

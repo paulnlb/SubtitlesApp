@@ -1,29 +1,27 @@
 ﻿using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Services;
+using SubtitlesApp.Core.Models;
 using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Infrastructure.Services;
 
-public class TranslationService(LanguageService languageService) : ITranslationService
+public class TranslationService() : ITranslationService
 {
     public Task<List<SubtitleDTO>> TranslateAsync(TranslationRequestDto requestDto)
     {
         // temporary mock implementation
 
-        var result = new List<SubtitleDTO>();
+        var subtitles = requestDto.SourceSubtitles;
 
-        foreach (var subtitle in requestDto.SourceSubtitles)
+        foreach (var subtitle in subtitles)
         {
-            var translatedSub = new SubtitleDTO
+            subtitle.Translation = new Translation
             {
-                TimeInterval = subtitle.TimeInterval,
                 Text = $"[Translated to {requestDto.TargetLanguageCode}]" + subtitle.Text,
-                Language = languageService.GetLanguageByCode(requestDto.TargetLanguageCode)
+                LanguageCode = requestDto.TargetLanguageCode
             };
-
-            result.Add(translatedSub);
+            subtitle.IsTranslated = false;
         }
 
-        return Task.FromResult(result);
+        return Task.FromResult(subtitles);
     }
 }

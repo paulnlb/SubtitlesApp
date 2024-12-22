@@ -27,7 +27,7 @@ public class TranscriptionService(IWhisperService whisperService) : ITranscripti
                     EndTime = subtitle.TimeInterval.EndTime
                 },
                 Text = subtitle.Text,
-                Language = subtitle.Language
+                LanguageCode = subtitle.LanguageCode
             };
 
             subtitlesList.Add(subtitleDto);

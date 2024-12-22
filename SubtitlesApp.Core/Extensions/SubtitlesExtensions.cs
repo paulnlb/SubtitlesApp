@@ -5,7 +5,7 @@ namespace SubtitlesApp.Core.Extensions;
 
 public static class SubtitlesExtensions
 {
-    public static (Subtitle? Sub, int index) BinarySearch(this ObservableCollection<Subtitle> list, TimeSpan mediaTime)
+    public static (T? Sub, int index) BinarySearch<T>(this ObservableCollection<T> list, TimeSpan mediaTime) where T : Subtitle
     {
         int low = 0;
         int high = list.Count - 1;
@@ -32,7 +32,7 @@ public static class SubtitlesExtensions
         return (null, -1);
     }
 
-    public static (Subtitle? Sub, int index) GetLaterClosest(this ObservableCollection<Subtitle> list, TimeSpan mediaTime)
+    public static (T? Sub, int index) GetLaterClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime) where T : Subtitle
     {
         int low = 0;
         int high = list.Count - 1;
@@ -65,7 +65,7 @@ public static class SubtitlesExtensions
         return (list[mid], mid);
     }
 
-    public static void Insert(this ObservableCollection<Subtitle> list, Subtitle newSubtitle)
+    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle) where T: Subtitle
     {
         bool overlapsWithLeft = false;
         bool overlapsWithRight = false;

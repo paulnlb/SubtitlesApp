@@ -1,7 +1,6 @@
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Extensions;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
+using SubtitlesApp.ClientModels;
 
 namespace SubtitlesApp.CustomControls;
 
@@ -13,20 +12,23 @@ public partial class SubsCollection : ContentView
 	public SubsCollection()
 	{
 		InitializeComponent();
-	}
+    }
 
     public static readonly BindableProperty SubsSourceProperty =
-            BindableProperty.Create(nameof(SubsSource), typeof(ObservableCollection<Subtitle>), typeof(MediaPlayer), new ObservableCollection<Subtitle>());
+            BindableProperty.Create(nameof(SubsSource), typeof(ObservableCollection<VisualSubtitle>), typeof(SubsCollection), new ObservableCollection<VisualSubtitle>());
 
     public static readonly BindableProperty CurrentTimePositionProperty = 
-            BindableProperty.Create(nameof(CurrentTimePosition), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, propertyChanged: OnCurrentTimePositionChanged);
+            BindableProperty.Create(nameof(CurrentTimePosition), typeof(TimeSpan), typeof(SubsCollection), TimeSpan.Zero, propertyChanged: OnCurrentTimePositionChanged);
 
     public static readonly BindableProperty IsScrollButtonVisibleProperty = 
-        BindableProperty.Create(nameof(IsScrollButtonVisible), typeof(bool), typeof(MediaPlayer), false);
+        BindableProperty.Create(nameof(IsScrollButtonVisible), typeof(bool), typeof(SubsCollection), false);
 
-    public ObservableCollection<Subtitle> SubsSource
+    public static readonly BindableProperty ItemTemplateProperty = 
+        BindableProperty.Create(nameof(ItemTemplate), typeof(DataTemplate), typeof(SubsCollection), null);
+
+    public ObservableCollection<VisualSubtitle> SubsSource
 	{
-        get => (ObservableCollection<Subtitle>)GetValue(SubsSourceProperty);
+        get => (ObservableCollection<VisualSubtitle>)GetValue(SubsSourceProperty);
         set => SetValue(SubsSourceProperty, value);
     }
 
@@ -42,43 +44,61 @@ public partial class SubsCollection : ContentView
         set => SetValue(IsScrollButtonVisibleProperty, value);
     }
 
-    public event EventHandler<SubtitleTappedEventArgs>? SubtileTapped;
+    public DataTemplate ItemTemplate
+    {
+        get => (DataTemplate)GetValue(ItemTemplateProperty);
+        set => SetValue(ItemTemplateProperty, value);
+    }
+
+    VisualSubtitle? GetCurrentSubttle()
+    {
+        if (SubsSource == null || SubsSource.Count == 0)
+        {
+            return null;
+        }
+
+        return SubsSource[_currentSubIndex];
+    }
+
+    void ScrollToIndex(int index)
+    {
+        subsCollectionView.ScrollTo(index);
+    }
 
     static void OnCurrentTimePositionChanged(BindableObject bindable, object oldValue, object newValue)
     {
-        if (bindable is SubsCollection subsCollection)
-        {
-            var newPosition = (TimeSpan)newValue;
-
-            if (subsCollection.subsCollectionView.SelectedItem is Subtitle currentSub 
-                && currentSub.TimeInterval.ContainsTime(newPosition))
-            {
-                return;
-            }
-
-            var(sub, index) = subsCollection.SubsSource.BinarySearch(newPosition);
-
-            if (sub != null)
-            {
-                subsCollection.subsCollectionView.SelectedItem = sub;
-                subsCollection._currentSubIndex = index;
-            }
-        }
-    }
-
-    async void OnSubSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!_autoScrollEnabled || SubsSource is null || SubsSource.Count == 0)
+        if (bindable is not SubsCollection subsCollection)
         {
             return;
         }
 
-        if (e.CurrentSelection.FirstOrDefault() is Subtitle subtitle)
+        var newPosition = (TimeSpan)newValue;
+
+        var currentSub = subsCollection.GetCurrentSubttle();
+
+        if (currentSub == null)
         {
-            await MainThread.InvokeOnMainThreadAsync(async () =>
+            return;
+        }
+
+        if (currentSub.TimeInterval.ContainsTime(newPosition))
+        {
+            currentSub.IsHighlighted = true;
+            return;
+        }
+
+        var (newSub, index) = subsCollection.SubsSource.BinarySearch(newPosition);
+
+        if (newSub != null)
+        {
+            currentSub.IsHighlighted = false;
+            subsCollection._currentSubIndex = index;
+            subsCollection.GetCurrentSubttle()!.IsHighlighted = true;
+
+            if (subsCollection._autoScrollEnabled)
             {
-                await TryScrollToSub(subtitle);
-            });
+                subsCollection.ScrollToIndex(subsCollection._currentSubIndex);
+            }
         }
     }
 
@@ -96,64 +116,19 @@ public partial class SubsCollection : ContentView
         }
     }
 
-    void OnSubTapped(object sender, TappedEventArgs e)
+    void OnSwiped(object sender, EventArgs e)
     {
-        if (e.Parameter is Subtitle sub)
+        if (sender is SwipeItem swipeItem)
         {
-            SubtileTapped?.Invoke(this, new SubtitleTappedEventArgs(sub));
+            var subtitle = (VisualSubtitle)swipeItem.CommandParameter;
+            subtitle?.ApplyTranslation();
         }
     }
 
-    async void OnScrollToCurrentClicked(object sender, EventArgs e)
+    void OnScrollToCurrentClicked(object sender, EventArgs e)
     {
         _autoScrollEnabled = true;
 
-        if (subsCollectionView.SelectedItem is Subtitle subtitle)
-        {
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                await TryScrollToSub(subtitle);
-            });
-        }
-    }
-
-    async Task TryScrollToSub(Subtitle sub, int attemptsNumber = 2)
-    {
-        Exception? exception = null;
-
-        while (attemptsNumber > 0)
-        {
-            try
-            {
-                subsCollectionView.ScrollTo(sub);
-
-                exception = null;
-                break;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"\"{ex.Message}\" was caught. Trying to scroll again. Attemts remaining: {attemptsNumber}");
-                exception = ex;
-            }
-
-            await Task.Delay(200);
-
-            attemptsNumber--;
-        }
-
-        if (exception != null)
-        {
-            throw exception;
-        }
-    }
-}
-
-public class SubtitleTappedEventArgs : EventArgs
-{
-    public Subtitle Subtitle { get; }
-
-    public SubtitleTappedEventArgs(Subtitle subtitle)
-    {
-        Subtitle = subtitle;
+        ScrollToIndex(_currentSubIndex);
     }
 }
