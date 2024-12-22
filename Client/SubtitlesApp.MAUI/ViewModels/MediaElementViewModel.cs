@@ -84,7 +84,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             AvailableLanguages = languageService.GetAllLanguages(),
             OriginalLanguage = languageService.GetDefaultLanguage(),
             TranslateToLanguage = null,
-            BackgroundTranslation = true,
+            ShowTranslation = false,
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
         };
 
@@ -318,7 +318,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             AddToObservablesFromIndex(
                 subsTranslationResult.Value, 
                 startingIndex, 
-                !SubtitlesSettings.BackgroundTranslation);
+                SubtitlesSettings.ShowTranslation);
         }
     }
 
@@ -357,15 +357,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     void AddToObservablesFromIndex(
         IEnumerable<SubtitleDTO> subsToAdd,
         int insertIndex,
-        bool applyTranslation)
+        bool showTranslation)
     {
         foreach (var subtitleDto in subsToAdd)
         {
             var subtitle = _mapper.Map<VisualSubtitle>(subtitleDto);
 
-            if (applyTranslation)
+            if (showTranslation)
             {
-                subtitle.ApplyTranslation();
+                subtitle.SwitchToTranslation();
             }
 
             Subtitles[insertIndex] = subtitle;
@@ -430,13 +430,13 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         foreach (var subtitle in subtitlesToTranslate)
         {
-            if (SubtitlesSettings.BackgroundTranslation && subtitle.IsTranslated)
+            if (!SubtitlesSettings.ShowTranslation && subtitle.IsTranslated)
             {
-                subtitle.ApplyTranslation();
+                subtitle.RestoreOriginalLanguage();
             }
-            else if (!SubtitlesSettings.BackgroundTranslation && !subtitle.IsTranslated)
+            else if (SubtitlesSettings.ShowTranslation && !subtitle.IsTranslated)
             {
-                subtitle.ApplyTranslation();
+                subtitle.SwitchToTranslation();
             }
         }
     }
@@ -457,7 +457,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
 
         // Priority 3: Background translation switch is toggled
-        else if (newValue.BackgroundTranslation != oldValue?.BackgroundTranslation)
+        else if (newValue.ShowTranslation != oldValue?.ShowTranslation)
         {
             ApplyTranslations();
         }

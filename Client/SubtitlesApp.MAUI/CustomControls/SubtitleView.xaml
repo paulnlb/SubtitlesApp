@@ -28,7 +28,7 @@
         <SwipeView.RightItems>
             <SwipeItems Mode="Reveal">
                 <SwipeItem Text="{Binding Translation.LanguageCode}"
-                           Invoked="OnSwiped"
+                           Invoked="OnSwipedRight"
                            CommandParameter="{Binding .}">
                     <SwipeItem.IsVisible>
                         <MultiBinding Converter="{StaticResource IsTranslatableConverter}">
@@ -43,7 +43,7 @@
             <SwipeItems Mode="Reveal">
                 <SwipeItem IsVisible="{Binding IsTranslated}"
                            Text="{Binding Translation.LanguageCode}"
-                           Invoked="OnSwiped"
+                           Invoked="OnSwipedLeft"
                            CommandParameter="{Binding .}">
                 </SwipeItem>
             </SwipeItems>

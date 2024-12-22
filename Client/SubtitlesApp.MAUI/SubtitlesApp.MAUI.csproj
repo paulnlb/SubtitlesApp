@@ -122,9 +122,6 @@
     <MauiXaml Update="CustomControls\SubtitlesSettingsPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\SubsCollection.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="CustomControls\SubtitleView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

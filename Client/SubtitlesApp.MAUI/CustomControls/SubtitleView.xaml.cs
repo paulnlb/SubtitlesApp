@@ -50,8 +50,13 @@ public partial class SubtitleView : ContentView
         }
     }
 
-    void OnSwiped(object sender, EventArgs e)
+    void OnSwipedRight(object sender, EventArgs e)
     {
-        SubtitleSource?.ApplyTranslation();
+        SubtitleSource?.SwitchToTranslation();
+    }
+
+    void OnSwipedLeft(object sender, EventArgs e)
+    {
+        SubtitleSource?.RestoreOriginalLanguage();
     }
 }
