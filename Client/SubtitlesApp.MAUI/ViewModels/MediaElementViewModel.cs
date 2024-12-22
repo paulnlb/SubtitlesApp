@@ -11,6 +11,7 @@ using SubtitlesApp.Core.Services;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
 using CommunityToolkit.Maui.Core;
+using AutoMapper;
 namespace SubtitlesApp.ViewModels;
 
 public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
@@ -59,6 +60,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     readonly ITranslationService _translationService;
     readonly IPopupService _popupService;
     readonly ISubtitlesTimeSetService _subtitlesTimeSetService;
+    readonly IMapper _mapper;
     readonly TimeSet _coveredTimeIntervals;
 
     public MediaElementViewModel(
@@ -68,7 +70,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         ITranslationService translationService,
         LanguageService languageService,
         IPopupService popupService,
-        ISubtitlesTimeSetService subtitlesTimeSetService)
+        ISubtitlesTimeSetService subtitlesTimeSetService,
+        IMapper mapper)
     {
         #region observable props
 
@@ -94,6 +97,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _translationService = translationService;
         _popupService = popupService;
         _subtitlesTimeSetService = subtitlesTimeSetService;
+        _mapper = mapper;
         _coveredTimeIntervals = new TimeSet();
 
         #endregion
@@ -179,28 +183,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         var result = await _popupService.ShowPopupAsync<SubtitlesSettingsPopupViewModel>(vm => vm.Settings = SubtitlesSettings.ShallowCopy());
 
-        if (result is not SubtitlesSettings newSettings)
-        {
-            return;
-        }
-
-        // Priority 1: Language is changed
-        // Priority 2: Translation scope increased
-        if (newSettings.TranslateToLanguage != SubtitlesSettings.TranslateToLanguage ||
-            newSettings.WhichSubtitlesToTranslate < SubtitlesSettings.WhichSubtitlesToTranslate)
-        {
-            SubtitlesSettings = newSettings;
-            await TranslateAsync();
-        }
-
-        // Priority 3: Background translation switch is toggled
-        else if (newSettings.BackgroundTranslation != SubtitlesSettings.BackgroundTranslation)
-        {
-            SubtitlesSettings = newSettings;
-            ApplyTranslations();
-        }
-
-        else
+        if (result is SubtitlesSettings newSettings)
         {
             SubtitlesSettings = newSettings;
         }
@@ -210,7 +193,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     #region public methods
 
-    VisualSubtitle? GetCurrentSubttle()
+    VisualSubtitle? GetCurrentSubtitle()
     {
         if (Subtitles == null || Subtitles.Count == 0)
         {
@@ -320,19 +303,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             return;
         }
 
-        var subtitlesDtos = subtitlesToTranslate.Select(vs => new SubtitleDTO
-        {
-            TimeInterval = new TimeIntervalDTO
-            {
-                StartTime = vs.TimeInterval.StartTime,
-                EndTime = vs.TimeInterval.EndTime,
-            },
-            Text = vs.Text,
-            Translation = vs.Translation,
-            IsTranslated = false,
-            LanguageCode = vs.LanguageCode,
-        })
-            .ToList();
+        var subtitlesDtos = _mapper.Map<List<SubtitleDTO>>(subtitlesToTranslate);
 
         var request = new TranslationRequestDto
         {
@@ -344,7 +315,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         if (subsTranslationResult.IsSuccess)
         {
-            AddToObservablesFromIndex(subsTranslationResult.Value, startingIndex, !SubtitlesSettings.BackgroundTranslation);
+            AddToObservablesFromIndex(
+                subsTranslationResult.Value, 
+                startingIndex, 
+                !SubtitlesSettings.BackgroundTranslation);
         }
     }
 
@@ -374,17 +348,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         foreach (var subtitleDto in subsToAdd)
         {
-            var timeInterval = new TimeInterval(
-                subtitleDto.TimeInterval.StartTime, 
-                subtitleDto.TimeInterval.EndTime);
-
-            var subtitle = new VisualSubtitle()
-            {
-                Text = subtitleDto.Text,
-                TimeInterval = timeInterval,
-                LanguageCode = subtitleDto.LanguageCode,
-                Translation = subtitleDto.Translation,
-            };
+            var subtitle = _mapper.Map<VisualSubtitle>(subtitleDto);
 
             Subtitles.Insert(subtitle);
         }
@@ -397,17 +361,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         foreach (var subtitleDto in subsToAdd)
         {
-            var timeInterval = new TimeInterval(
-                subtitleDto.TimeInterval.StartTime,
-                subtitleDto.TimeInterval.EndTime);
-
-            var subtitle = new VisualSubtitle()
-            {
-                Text = subtitleDto.Text,
-                TimeInterval = timeInterval,
-                LanguageCode = subtitleDto.LanguageCode,
-                Translation = subtitleDto.Translation,
-            };
+            var subtitle = _mapper.Map<VisualSubtitle>(subtitleDto);
 
             if (applyTranslation)
             {
@@ -429,7 +383,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)
     {
-        var currentSubtitle = GetCurrentSubttle();
+        var currentSubtitle = GetCurrentSubtitle();
 
         if (currentSubtitle == null)
         {
@@ -484,6 +438,28 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             {
                 subtitle.ApplyTranslation();
             }
+        }
+    }
+
+    #endregion
+
+    #region event handlers
+
+    async partial void OnSubtitlesSettingsChanged(SubtitlesSettings? oldValue, SubtitlesSettings newValue)
+    {
+        // Priority 1: Language is changed
+        // OR
+        // Priority 2: Translation scope increased
+        if (newValue.TranslateToLanguage != oldValue?.TranslateToLanguage ||
+            newValue.WhichSubtitlesToTranslate < oldValue?.WhichSubtitlesToTranslate)
+        {
+            await TranslateAsync();
+        }
+
+        // Priority 3: Background translation switch is toggled
+        else if (newValue.BackgroundTranslation != oldValue?.BackgroundTranslation)
+        {
+            ApplyTranslations();
         }
     }
 

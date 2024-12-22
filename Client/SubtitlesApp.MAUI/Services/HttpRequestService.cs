@@ -64,7 +64,7 @@ public class HttpRequestService<T> : IHttpRequestService<T> where T : class, new
         {
             throw;
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
             return Result<T>.Failure(new Error(ErrorCode.ConnectionError, "Error while connecting to the server. Check your connection and try again"));
         }
@@ -72,7 +72,7 @@ public class HttpRequestService<T> : IHttpRequestService<T> where T : class, new
         {
             return Result<T>.Failure(new Error(ErrorCode.ConnectionError, $"Error while connecting to the server: {ex.Message}"));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return Result<T>.Failure(new Error(ErrorCode.InternalClientError, "An unknown error has occurred. Please try again later"));
         }

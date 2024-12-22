@@ -4,6 +4,7 @@ using SubtitlesApp.Core.Services;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
+using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
 using SubtitlesApp.Services.Sockets;
 using SubtitlesApp.ViewModels;
@@ -28,6 +29,7 @@ internal static class ServicesCollectionExtensions
         services.AddScoped<HttpsClientHandlerService>();
         services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
         services.AddScoped<ITranslationService, TranslationService>();
+        services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
         #endregion
 
         #region singleton
@@ -55,6 +57,7 @@ internal static class ServicesCollectionExtensions
 
         #region third-party
         services.AddCommunityToolkitDialogs();
+        services.AddAutoMapper(typeof(AutoMapperProfile));
         #endregion
     }
 }
