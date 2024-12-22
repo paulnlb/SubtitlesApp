@@ -1,17 +1,18 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AutoMapper;
+using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Core.Extensions;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SubtitlesApp.Interfaces;
-using SubtitlesApp.Core.Enums;
-using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Extensions;
-using System.Collections.ObjectModel;
-using SubtitlesApp.Core.Result;
-using SubtitlesApp.Core.Services;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
-using CommunityToolkit.Maui.Core;
-using AutoMapper;
+using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Enums;
+using SubtitlesApp.Core.Extensions;
+using SubtitlesApp.Core.Models;
+using SubtitlesApp.Core.Result;
+using SubtitlesApp.Core.Services;
+using SubtitlesApp.Interfaces;
+using System.Collections.ObjectModel;
 namespace SubtitlesApp.ViewModels;
 
 public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
@@ -193,17 +194,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     #region public methods
 
-    VisualSubtitle? GetCurrentSubtitle()
-    {
-        if (Subtitles == null || Subtitles.Count == 0)
-        {
-            return null;
-        }
-
-        return Subtitles[CurrentSubtitleIndex];
-    }
-
-    // Todo: Separation of conserns between this VM and SubtitlesService
     public async Task<Result> TranscribeAsync(TimeSpan position, CancellationToken cancellationToken)
     {
         var timeIntervalToTranscribe = _subtitlesTimeSetService.GetTimeIntervalForTranscription(
@@ -256,7 +246,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
                 }
             }
 
-            AddToObservables(subs);
+            Subtitles.InsertMany(_mapper.Map<ObservableCollection<VisualSubtitle>>(subs));
 
             var lastAddedSub = subs.LastOrDefault();
 
@@ -288,22 +278,14 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             return;
         }
 
-        var startingIndex = SubtitlesSettings.WhichSubtitlesToTranslate switch
-        {
-            SubtitlesCaptureMode.All => 0,
-            SubtitlesCaptureMode.VisibleAndNext => FirstVisibleSubtitleIndex,
-            SubtitlesCaptureMode.OnlyNext => LastVisibleSubtitleIndex + 1,
-            _ => throw new NotImplementedException()
-        };
+        var (skippedSubsNumber, subsToTranslate) = FilterSubtitlesByCurrentScope();
 
-        var subtitlesToTranslate = Subtitles.Skip(startingIndex);
-
-        if (!subtitlesToTranslate.Any())
+        if (!subsToTranslate.Any())
         {
             return;
         }
 
-        var subtitlesDtos = _mapper.Map<List<SubtitleDTO>>(subtitlesToTranslate);
+        var subtitlesDtos = _mapper.Map<List<SubtitleDTO>>(subsToTranslate);
 
         var request = new TranslationRequestDto
         {
@@ -315,18 +297,18 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         if (subsTranslationResult.IsSuccess)
         {
-            AddToObservablesFromIndex(
-                subsTranslationResult.Value, 
-                startingIndex, 
-                SubtitlesSettings.ShowTranslation);
-        }
-    }
+            var translatedSubs = _mapper.Map<ObservableCollection<VisualSubtitle>>(subsTranslationResult.Value);
 
-    void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        if (query.TryGetValue("open", out object? value))
-        {
-            MediaPath = value.ToString();
+            Subtitles.ReplaceMany(translatedSubs, skippedSubsNumber);
+
+            if (SubtitlesSettings.ShowTranslation)
+            {
+                Subtitles.SwitchToTranslations(skippedSubsNumber);
+            }
+            else
+            {
+                Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
+            }
         }
     }
 
@@ -338,39 +320,22 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     #endregion
 
     #region private methods
-
-    /// <summary>
-    /// Adds subtitles to the observable list.
-    /// </summary>
-    /// <param name="subsToAdd"></param>
-    void AddToObservables(
-        IEnumerable<SubtitleDTO> subsToAdd)
+    void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        foreach (var subtitleDto in subsToAdd)
+        if (query.TryGetValue("open", out object? value))
         {
-            var subtitle = _mapper.Map<VisualSubtitle>(subtitleDto);
-
-            Subtitles.Insert(subtitle);
+            MediaPath = value.ToString();
         }
     }
 
-    void AddToObservablesFromIndex(
-        IEnumerable<SubtitleDTO> subsToAdd,
-        int insertIndex,
-        bool showTranslation)
+    VisualSubtitle? GetCurrentSubtitle()
     {
-        foreach (var subtitleDto in subsToAdd)
+        if (Subtitles == null || Subtitles.Count == 0)
         {
-            var subtitle = _mapper.Map<VisualSubtitle>(subtitleDto);
-
-            if (showTranslation)
-            {
-                subtitle.SwitchToTranslation();
-            }
-
-            Subtitles[insertIndex] = subtitle;
-            insertIndex++;
+            return null;
         }
+
+        return Subtitles[CurrentSubtitleIndex];
     }
 
     bool ShouldStartTranscription(TimeSpan position)
@@ -411,9 +376,9 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
     }
 
-    void ApplyTranslations()
+    (int SkippedSubsNumber, IEnumerable<VisualSubtitle> FilteredSubs) FilterSubtitlesByCurrentScope()
     {
-        var startingIndex = SubtitlesSettings.WhichSubtitlesToTranslate switch
+        var skippedSubsNumber = SubtitlesSettings.WhichSubtitlesToTranslate switch
         {
             SubtitlesCaptureMode.All => 0,
             SubtitlesCaptureMode.VisibleAndNext => FirstVisibleSubtitleIndex,
@@ -421,24 +386,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             _ => throw new NotImplementedException()
         };
 
-        var subtitlesToTranslate = Subtitles.Skip(startingIndex);
-
-        if (!subtitlesToTranslate.Any())
-        {
-            return;
-        }
-
-        foreach (var subtitle in subtitlesToTranslate)
-        {
-            if (!SubtitlesSettings.ShowTranslation && subtitle.IsTranslated)
-            {
-                subtitle.RestoreOriginalLanguage();
-            }
-            else if (SubtitlesSettings.ShowTranslation && !subtitle.IsTranslated)
-            {
-                subtitle.SwitchToTranslation();
-            }
-        }
+        var subtitlesToTranslate = Subtitles.Skip(skippedSubsNumber);
+        return (skippedSubsNumber, subtitlesToTranslate);
     }
 
     #endregion
@@ -457,9 +406,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
 
         // Priority 3: Background translation switch is toggled
-        else if (newValue.ShowTranslation != oldValue?.ShowTranslation)
+        if (newValue.ShowTranslation != oldValue?.ShowTranslation && newValue.ShowTranslation)
         {
-            ApplyTranslations();
+            var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
+            Subtitles.SwitchToTranslations(skippedSubsNumber);
+        }
+        else if (newValue.ShowTranslation != oldValue?.ShowTranslation && !newValue.ShowTranslation)
+        {
+            var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
+            Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
         }
     }
 
