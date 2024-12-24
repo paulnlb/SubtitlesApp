@@ -125,6 +125,15 @@ public static class SubtitlesExtensions
         }
     }
 
+    public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, Action<T> foreachAction) where T : Subtitle
+    {
+        foreach (var item in newItems)
+        {
+            foreachAction(item);
+            list.Insert(item);
+        }
+    }
+
     public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, int skip = 0) where T : Subtitle
     {
         if (newItems.Count != list.Count - skip)
@@ -134,6 +143,20 @@ public static class SubtitlesExtensions
 
         for (int i = 0; i < newItems.Count; i++)
         {
+            list[skip + i] = newItems[i];
+        }
+    }
+
+    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, Action<T> foreachAction, int skip = 0) where T : Subtitle
+    {
+        if (newItems.Count != list.Count - skip)
+        {
+            throw new ArgumentException("ReplaceMany failed: new items lists sizes do not match");
+        }
+
+        for (int i = 0; i < newItems.Count; i++)
+        {
+            foreachAction(newItems[i]);
             list[skip + i] = newItems[i];
         }
     }

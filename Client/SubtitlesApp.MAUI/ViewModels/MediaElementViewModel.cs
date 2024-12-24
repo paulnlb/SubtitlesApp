@@ -238,6 +238,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
                     SourceSubtitles = subs,
                 };
 
+                // accept two params instead of one DTO
                 var subsTranslationResult = await _translationService.TranslateAsync(request);
 
                 if (subsTranslationResult.IsSuccess)
@@ -246,7 +247,19 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
                 }
             }
 
-            Subtitles.InsertMany(_mapper.Map<ObservableCollection<VisualSubtitle>>(subs));
+            // ------------- this is the line of separation of concerns
+            // above - business logic
+            // below - presentation logic
+            var visualSubs = _mapper.Map<ObservableCollection<VisualSubtitle>>(subs);
+
+            if (SubtitlesSettings.ShowTranslation)
+            {
+                Subtitles.InsertMany(visualSubs, x => x.SwitchToTranslation());
+            }
+            else
+            {
+                Subtitles.InsertMany(visualSubs);
+            }
 
             var lastAddedSub = subs.LastOrDefault();
 
@@ -295,20 +308,23 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         var subsTranslationResult = await _translationService.TranslateAsync(request);
 
-        if (subsTranslationResult.IsSuccess)
+        if (subsTranslationResult.IsFailure)
         {
-            var translatedSubs = _mapper.Map<ObservableCollection<VisualSubtitle>>(subsTranslationResult.Value);
+            return;
+        }
 
+        var translatedSubs = _mapper.Map<ObservableCollection<VisualSubtitle>>(subsTranslationResult.Value);
+
+        if (SubtitlesSettings.ShowTranslation)
+        {
+            Subtitles.ReplaceMany(
+                translatedSubs,
+                x => x.SwitchToTranslation(),
+                skippedSubsNumber);
+        }
+        else
+        {
             Subtitles.ReplaceMany(translatedSubs, skippedSubsNumber);
-
-            if (SubtitlesSettings.ShowTranslation)
-            {
-                Subtitles.SwitchToTranslations(skippedSubsNumber);
-            }
-            else
-            {
-                Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
-            }
         }
     }
 
