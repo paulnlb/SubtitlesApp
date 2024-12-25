@@ -30,6 +30,7 @@ internal static class ServicesCollectionExtensions
         services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
+        services.AddScoped<ITranscriptionService, TranscriptionService>();
         #endregion
 
         #region singleton
