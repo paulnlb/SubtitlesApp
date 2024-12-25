@@ -109,16 +109,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     }
 
     [RelayCommand]
-    public void SeekCompleted(TimeSpan position)
-    {
-        if (TranscribeStatus == TranscribeStatus.Transcribing
-            && ShouldStartTranscription(position))
-        {
-            TranscribeFromPositionCommand.Cancel();
-        }
-    }
-
-    [RelayCommand]
     public async Task TranscribeFromPositionAsync(TimeSpan position, CancellationToken cancellationToken)
     {
         var task = TranscribeAsync(position, cancellationToken);

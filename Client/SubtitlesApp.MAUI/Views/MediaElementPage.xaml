@@ -33,8 +33,6 @@
             <customControls:MediaPlayer x:Name="mediaPlayer"
                                         MediaPath="{Binding MediaPath}"
                                         Duration="{Binding MediaDuration}"
-                                        SeekCompletedCommand="{Binding SeekCompletedCommand}"
-                                        SeekCompletedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                                         PositionChangedCommand="{Binding PositionChangedCommand}"
                                         PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                                         PositionToSeek="{Binding PositionToSeek}">
