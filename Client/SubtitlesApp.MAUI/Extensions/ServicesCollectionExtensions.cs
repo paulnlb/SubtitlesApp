@@ -21,6 +21,7 @@ internal static class ServicesCollectionExtensions
         services.AddTransient<IVideoPicker, VideoPicker>();
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
+        services.AddTransient<ITranscriptionService, TranscriptionService>();
         #endregion
 
         #region scoped
@@ -30,7 +31,6 @@ internal static class ServicesCollectionExtensions
         services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
-        services.AddScoped<ITranscriptionService, TranscriptionService>();
         #endregion
 
         #region singleton
