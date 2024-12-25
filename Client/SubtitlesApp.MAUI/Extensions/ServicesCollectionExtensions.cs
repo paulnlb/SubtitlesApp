@@ -22,6 +22,7 @@ internal static class ServicesCollectionExtensions
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
         services.AddTransient<ITranscriptionService, TranscriptionService>();
+        services.AddTransient<IBuiltInPopupService, BuiltInPopupService>();
         #endregion
 
         #region scoped
@@ -54,6 +55,7 @@ internal static class ServicesCollectionExtensions
         #region popups
         services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
         services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
+        services.AddTransientPopup<InputPopup, InputPopupViewModel>();
         #endregion
 
         #region third-party

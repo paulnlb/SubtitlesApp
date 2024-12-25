@@ -376,15 +376,18 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
 
         // Priority 3: Background translation switch is toggled
-        if (newValue.ShowTranslation != oldValue.ShowTranslation && newValue.ShowTranslation)
+        if (newValue.ShowTranslation != oldValue.ShowTranslation)
         {
             var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
-            Subtitles.SwitchToTranslations(skippedSubsNumber);
-        }
-        else if (newValue.ShowTranslation != oldValue.ShowTranslation && !newValue.ShowTranslation)
-        {
-            var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
-            Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
+
+            if (newValue.ShowTranslation)
+            {
+                Subtitles.SwitchToTranslations(skippedSubsNumber);
+            }
+            else
+            {
+                Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
+            }
         }
     }
 
