@@ -62,12 +62,6 @@
                        Grid.Column="0"
                        Text="{Binding TextBoxContent}"
                        IsReadOnly="True" />
-                <!--<Picker Grid.Row="0"
-                        Grid.Column="1"
-                        Title="Select a language"
-                        ItemsSource="{Binding SubtitlesSettings.AvailableLanguages}"
-                        ItemDisplayBinding="{Binding Name}"
-                        SelectedItem="{Binding SubtitlesSettings.OriginalLanguage}" />-->
 
                 <HorizontalStackLayout Grid.Row="0"
                                        Grid.Column="1"
@@ -95,10 +89,10 @@
                                                        Grid.ColumnSpan="3"
                                                        ItemsSource="{Binding Subtitles}"
                                                        ItemsUpdatingScrollMode="KeepScrollOffset"
-                                                       ScrollToIndex="{Binding ScrollToSubtitleIndex}"
+                                                       ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
                                                        ScrolledCommand="{Binding SubtitlesScrolledCommand}"
-                                                       FirstVisibleItemIndex="{Binding FirstVisibleSubtitleIndex}"
-                                                       LastVisibleItemIndex="{Binding LastVisibleSubtitleIndex}">
+                                                       FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
+                                                       LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
                     <customControls:ExtendedCollectionView.ItemTemplate>
                         <DataTemplate x:DataType="clientModels:VisualSubtitle">
                             <customControls:SubtitleView SubtitleSource="{Binding .}"
@@ -117,7 +111,7 @@
                         HorizontalOptions="Center"
                         HeightRequest="40"
                         Margin="0, 0, 0, 10"
-                        IsVisible="{Binding AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}" />
+                        IsVisible="{Binding SubtitlesCollectionState.AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}" />
             </Grid>
         </customControls:CustomLayout.SideChild>
     </customControls:CustomLayout>

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
@@ -38,19 +37,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     SubtitlesSettings _subtitlesSettings;
 
     [ObservableProperty]
-    int _currentSubtitleIndex = 0;
-
-    [ObservableProperty]
-    int _scrollToSubtitleIndex = 0;
-
-    [ObservableProperty]
-    int _firstVisibleSubtitleIndex = 0;
-
-    [ObservableProperty]
-    int _lastVisibleSubtitleIndex = 0;
-
-    [ObservableProperty]
-    bool _autoScrollEnabled = true;
+    SubtitlesCollectionState _subtitlesCollectionState;
 
     [ObservableProperty]
     TimeSpan _positionToSeek = TimeSpan.Zero;
@@ -78,6 +65,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         MediaPath = null;
         Subtitles = [];
         TranscribeBufferLength = settings.TranscribeBufferLength;
+        SubtitlesCollectionState = new SubtitlesCollectionState
+        {
+            AutoScrollEnabled = true,
+        };
         SubtitlesSettings = new SubtitlesSettings
         {
             AvailableLanguages = languageService.GetAllLanguages(),
@@ -86,7 +77,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             ShowTranslation = false,
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
         };
-
+        
         #endregion
 
         #region private props
@@ -152,22 +143,23 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     [RelayCommand]
     public void SubtitlesScrolled()
     {
-        if (ScrollToSubtitleIndex < FirstVisibleSubtitleIndex || ScrollToSubtitleIndex > LastVisibleSubtitleIndex)
+        if (SubtitlesCollectionState.ScrollToSubtitleIndex < SubtitlesCollectionState.FirstVisibleSubtitleIndex || 
+            SubtitlesCollectionState.ScrollToSubtitleIndex > SubtitlesCollectionState.LastVisibleSubtitleIndex)
         {
-            AutoScrollEnabled = false;
+            SubtitlesCollectionState.AutoScrollEnabled = false;
         }
         else
         {
-            AutoScrollEnabled = true;
+            SubtitlesCollectionState.AutoScrollEnabled = true;
         }
     }
 
     [RelayCommand]
     public void ScrollToCurrentSub()
     {
-        AutoScrollEnabled = true;
+        SubtitlesCollectionState.AutoScrollEnabled = true;
 
-        ScrollToSubtitleIndex = CurrentSubtitleIndex;
+        SubtitlesCollectionState.ScrollToSubtitleIndex = SubtitlesCollectionState.CurrentSubtitleIndex;
     }
 
     [RelayCommand]
@@ -271,7 +263,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             return null;
         }
 
-        return Subtitles[CurrentSubtitleIndex];
+        return Subtitles[SubtitlesCollectionState.CurrentSubtitleIndex];
     }
 
     bool ShouldStartTranscription(TimeSpan position)
@@ -302,12 +294,12 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (newSub != null)
         {
             currentSubtitle.IsHighlighted = false;
-            CurrentSubtitleIndex = newIndex;
+            SubtitlesCollectionState.CurrentSubtitleIndex = newIndex;
             newSub.IsHighlighted = true;
 
-            if (AutoScrollEnabled)
+            if (SubtitlesCollectionState.AutoScrollEnabled)
             {
-                ScrollToSubtitleIndex = newIndex;
+                SubtitlesCollectionState.ScrollToSubtitleIndex = newIndex;
             }
         }
     }
@@ -317,8 +309,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         var skippedSubsNumber = SubtitlesSettings.WhichSubtitlesToTranslate switch
         {
             SubtitlesCaptureMode.All => 0,
-            SubtitlesCaptureMode.VisibleAndNext => FirstVisibleSubtitleIndex,
-            SubtitlesCaptureMode.OnlyNext => LastVisibleSubtitleIndex + 1,
+            SubtitlesCaptureMode.VisibleAndNext => SubtitlesCollectionState.FirstVisibleSubtitleIndex,
+            SubtitlesCaptureMode.OnlyNext => SubtitlesCollectionState.LastVisibleSubtitleIndex + 1,
             _ => throw new NotImplementedException()
         };
 
@@ -378,22 +370,28 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     async partial void OnSubtitlesSettingsChanged(SubtitlesSettings? oldValue, SubtitlesSettings newValue)
     {
+        if (oldValue == null)
+        {
+            // Short-circuit initial setup
+            return;
+        }
+
         // Priority 1: Language is changed
         // OR
         // Priority 2: Translation scope increased
-        if (newValue.TranslateToLanguage != oldValue?.TranslateToLanguage ||
-            newValue.WhichSubtitlesToTranslate < oldValue?.WhichSubtitlesToTranslate)
+        if (newValue.TranslateToLanguage != oldValue.TranslateToLanguage ||
+            newValue.WhichSubtitlesToTranslate < oldValue.WhichSubtitlesToTranslate)
         {
             await TranslateExistingAsync();
         }
 
         // Priority 3: Background translation switch is toggled
-        if (newValue.ShowTranslation != oldValue?.ShowTranslation && newValue.ShowTranslation)
+        if (newValue.ShowTranslation != oldValue.ShowTranslation && newValue.ShowTranslation)
         {
             var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
             Subtitles.SwitchToTranslations(skippedSubsNumber);
         }
-        else if (newValue.ShowTranslation != oldValue?.ShowTranslation && !newValue.ShowTranslation)
+        else if (newValue.ShowTranslation != oldValue.ShowTranslation && !newValue.ShowTranslation)
         {
             var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
             Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
