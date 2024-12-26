@@ -200,7 +200,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (layoutOrientation == StackOrientation.Horizontal && IsSideChildVisible)
         {
             IsSideChildVisible = false;
-            Controls.FullScreen();
         }
     }
 
@@ -210,7 +209,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (layoutOrientation == StackOrientation.Vertical && !IsSideChildVisible)
         {
             IsSideChildVisible = true;
-            Controls.RestoreScreen();
         }
     }
 
@@ -220,7 +218,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (layoutOrientation == StackOrientation.Vertical && IsSideChildVisible)
         {
             IsSideChildVisible = false;
-            Controls.FullScreen();
         }
     }
 

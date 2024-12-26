@@ -113,17 +113,30 @@ public class CustomLayout : ContentView
         var layout = (CustomLayout)bindable;
         layout._sideChild = (View)newValue;
 
-        // bind IsVisibleProperty
-        layout._sideChild.SetBinding(IsVisibleProperty, new Binding(nameof(IsSideChildVisible), source: layout, mode: BindingMode.OneWay));
-
         layout._grid.Children.Add(layout._sideChild);
         layout.UpdateLayout(layout.Orientation);
     }
 
-    private static void OnIsSideChildVisibleChanged(BindableObject bindable, object oldValue, object newValue)
+    private static async void OnIsSideChildVisibleChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var layout = (CustomLayout)bindable;
-        layout.UpdateLayout(layout.Orientation);
+
+        if (newValue is not bool isBeingShown)
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (isBeingShown)
+        {
+            layout._sideChild.IsVisible = true;
+        }
+
+        await layout.AnimateAsync();
+
+        if (!isBeingShown)
+        {
+            layout._sideChild.IsVisible = false;
+        }
     }
 
     private static void OnOrientationChanged(BindableObject bindable, object oldValue, object newValue)
@@ -180,6 +193,72 @@ public class CustomLayout : ContentView
                 _grid.SetColumn(_sideChild, 1);
             }
         }
+
+        // reset sideChild size and positioning to default
+        if (_sideChild != null)
+        {
+            _sideChild.HeightRequest = -1d;
+            _sideChild.VerticalOptions = LayoutOptions.Fill;
+            _sideChild.WidthRequest = -1d;
+            _sideChild.HorizontalOptions = LayoutOptions.Fill;
+        }
+    }
+
+    private Task<bool> AnimateAsync()
+    {
+        var tcs = new TaskCompletionSource<bool>();
+
+        var animation = new Animation();
+
+        if (Orientation == StackOrientation.Vertical)
+        {
+            if (_sideChild != null && IsSideChildVisible)
+            {
+                animation.Add(0, 1, new Animation(v =>
+                {
+                    _grid.RowDefinitions[0].Height = MainHeight;
+                    _grid.RowDefinitions[1].Height = new GridLength(v, GridUnitType.Star);
+                }, 0, SideHeight.Value, finished: Controls.RestoreScreen));
+            }
+            if (_sideChild != null && !IsSideChildVisible)
+            {
+                _sideChild.HeightRequest = _sideChild.Height;
+                _sideChild.VerticalOptions = LayoutOptions.Start;
+
+                animation.Add(0, 1, new Animation(v =>
+                {
+                    _grid.RowDefinitions[0].Height = MainHeight;
+                    _grid.RowDefinitions[1].Height = new GridLength(v, GridUnitType.Star);
+                }, SideHeight.Value, 0, finished: Controls.FullScreen));
+            }
+        }
+        else
+        {
+            if (_sideChild != null && IsSideChildVisible)
+            {
+                animation.Add(0, 1, new Animation(v =>
+                {
+                    _grid.ColumnDefinitions[0].Width = MainWidth;
+                    _grid.ColumnDefinitions[1].Width = new GridLength(v, GridUnitType.Star);
+                }, 0, SideWidth.Value));
+            }
+
+            if (_sideChild != null && !IsSideChildVisible)
+            {
+                _sideChild.WidthRequest = _sideChild.Width;
+                _sideChild.HorizontalOptions = LayoutOptions.Start;
+
+                animation.Add(0, 1, new Animation(v =>
+                {
+                    _grid.ColumnDefinitions[0].Width = MainWidth;
+                    _grid.ColumnDefinitions[1].Width = new GridLength(v, GridUnitType.Star);
+                }, SideWidth.Value, 0));
+            }
+        }
+
+        animation.Commit(this, "LayoutAnimation", length: 250, easing: Easing.Linear, finished: (v, b) => tcs.SetResult(b));
+
+        return tcs.Task;
     }
 
     private void ToggleFullScreen(StackOrientation orientation)

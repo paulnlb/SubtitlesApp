@@ -25,8 +25,8 @@
     <customControls:CustomLayout x:Name="customLayout"
                                  MainHeight="4*"
                                  SideHeight="9*"
-                                 MainWidth="2*"
-                                 SideWidth="1*"
+                                 MainWidth="4*"
+                                 SideWidth="2*"
                                  IsSideChildVisible="{Binding IsSideChildVisible, Mode=TwoWay}">
 
         <customControls:CustomLayout.MainChild>
