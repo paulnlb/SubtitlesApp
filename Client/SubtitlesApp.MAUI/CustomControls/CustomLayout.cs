@@ -1,3 +1,4 @@
+using MauiPageFullScreen;
 using System.ComponentModel;
 
 namespace SubtitlesApp.CustomControls;
@@ -32,7 +33,6 @@ public class CustomLayout : ContentView
     public static readonly BindableProperty OrientationProperty =
         BindableProperty.Create(nameof(Orientation), typeof(StackOrientation), typeof(CustomLayout), MapToStackOrientation(DeviceDisplay.MainDisplayInfo.Orientation), propertyChanged: OnOrientationChanged);
 
-    public event EventHandler<LayoutChangedEventArgs> OrientationChanged;
     public View MainChild
     {
         get => (View)GetValue(MainChildProperty);
@@ -113,7 +113,7 @@ public class CustomLayout : ContentView
         var layout = (CustomLayout)bindable;
         layout._sideChild = (View)newValue;
 
-        // bind is visible property
+        // bind IsVisibleProperty
         layout._sideChild.SetBinding(IsVisibleProperty, new Binding(nameof(IsSideChildVisible), source: layout, mode: BindingMode.OneWay));
 
         layout._grid.Children.Add(layout._sideChild);
@@ -136,12 +136,11 @@ public class CustomLayout : ContentView
             var layout = (CustomLayout)bindable;
 
             layout.UpdateLayout(newOrientation);
-
-            layout.OrientationChanged?.Invoke(layout, new LayoutChangedEventArgs { Orientation = newOrientation });
+            layout.ToggleFullScreen(newOrientation);
         }
     }
 
-    private void OnMainDisplayInfoChanged(object sender, DisplayInfoChangedEventArgs e)
+    private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
         Orientation = MapToStackOrientation(e.DisplayInfo.Orientation);
     }
@@ -183,6 +182,18 @@ public class CustomLayout : ContentView
         }
     }
 
+    private void ToggleFullScreen(StackOrientation orientation)
+    {
+        if (orientation == StackOrientation.Horizontal)
+        {
+            Controls.FullScreen();
+        }
+        else if (orientation == StackOrientation.Vertical && IsSideChildVisible)
+        {
+            Controls.RestoreScreen();
+        }
+    }
+
     private static StackOrientation MapToStackOrientation(DisplayOrientation orientation)
     {
         return orientation switch
@@ -192,9 +203,4 @@ public class CustomLayout : ContentView
             _ => StackOrientation.Vertical
         };
     }
-}
-
-public class LayoutChangedEventArgs : EventArgs
-{
-    public StackOrientation Orientation { get; set; }
 }

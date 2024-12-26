@@ -27,7 +27,7 @@
                                  SideHeight="9*"
                                  MainWidth="2*"
                                  SideWidth="1*"
-                                 OrientationChanged="OnOrientationChanged">
+                                 IsSideChildVisible="{Binding IsSideChildVisible, Mode=TwoWay}">
 
         <customControls:CustomLayout.MainChild>
             <customControls:MediaPlayer x:Name="mediaPlayer"
@@ -35,18 +35,23 @@
                                         Duration="{Binding MediaDuration}"
                                         PositionChangedCommand="{Binding PositionChangedCommand}"
                                         PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
-                                        PositionToSeek="{Binding PositionToSeek}">
+                                        PositionToSeek="{Binding PositionToSeek}"
+                                        PlayerControlsVisible="{Binding PlayerControlsVisible}">
 
                 <customControls:MediaPlayer.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnPlayerTapped" />
+                    <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
                     <SwipeGestureRecognizer Direction="Down"
-                                            Swiped="OnPlayerSwiped" />
+                                            Command="{Binding PlayerSwipedDownCommand}"
+                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}" />
                     <SwipeGestureRecognizer Direction="Up"
-                                            Swiped="OnPlayerSwiped" />
+                                            Command="{Binding PlayerSwipedUpCommand}"
+                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}"/>
                     <SwipeGestureRecognizer Direction="Left"
-                                            Swiped="OnPlayerSwiped" />
+                                            Command="{Binding PlayerSwipedLeftCommand}"
+                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}" />
                     <SwipeGestureRecognizer Direction="Right"
-                                            Swiped="OnPlayerSwiped" />
+                                            Command="{Binding PlayerSwipedRightCommand}"
+                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}" />
                 </customControls:MediaPlayer.GestureRecognizers>
 
             </customControls:MediaPlayer>

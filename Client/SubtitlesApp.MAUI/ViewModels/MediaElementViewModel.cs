@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MauiPageFullScreen;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.DTOs;
@@ -41,6 +42,13 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
     [ObservableProperty]
     TimeSpan _positionToSeek = TimeSpan.Zero;
+
+    [ObservableProperty]
+    bool _playerControlsVisible;
+
+    [ObservableProperty]
+    bool _isSideChildVisible;
+
     #endregion
 
     readonly ITranslationService _translationService;
@@ -61,6 +69,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         #region observable props
 
+        PlayerControlsVisible = true;
+        IsSideChildVisible = true;
         TextBoxContent = "";
         MediaPath = null;
         Subtitles = [];
@@ -166,6 +176,51 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (result is SubtitlesSettings newSettings)
         {
             SubtitlesSettings = newSettings;
+        }
+    }
+
+    [RelayCommand]
+    public void TogglePlayerControlsVisibility()
+    {
+        PlayerControlsVisible = !PlayerControlsVisible;
+    }
+
+    [RelayCommand]
+    public void PlayerSwipedLeft(StackOrientation layoutOrientation)
+    {
+        if (layoutOrientation == StackOrientation.Horizontal && !IsSideChildVisible)
+        {
+            IsSideChildVisible = true;
+        }
+    }
+
+    [RelayCommand]
+    public void PlayerSwipedRight(StackOrientation layoutOrientation)
+    {
+        if (layoutOrientation == StackOrientation.Horizontal && IsSideChildVisible)
+        {
+            IsSideChildVisible = false;
+            Controls.FullScreen();
+        }
+    }
+
+    [RelayCommand]
+    public void PlayerSwipedUp(StackOrientation layoutOrientation)
+    {
+        if (layoutOrientation == StackOrientation.Vertical && !IsSideChildVisible)
+        {
+            IsSideChildVisible = true;
+            Controls.RestoreScreen();
+        }
+    }
+
+    [RelayCommand]
+    public void PlayerSwipedDown(StackOrientation layoutOrientation)
+    {
+        if (layoutOrientation == StackOrientation.Vertical && IsSideChildVisible)
+        {
+            IsSideChildVisible = false;
+            Controls.FullScreen();
         }
     }
 
