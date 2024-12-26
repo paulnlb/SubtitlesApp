@@ -93,9 +93,6 @@ public partial class MainPageViewModel : ObservableObject
                 }
 
                 break;
-
-            default:
-                throw new NotImplementedException();
         }
     }
 
