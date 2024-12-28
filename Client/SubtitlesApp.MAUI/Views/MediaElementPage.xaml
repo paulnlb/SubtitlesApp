@@ -8,6 +8,8 @@
              xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
              xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+             xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
+             xmlns:animations="clr-namespace:SubtitlesApp.Animations"
              x:Class="SubtitlesApp.Views.MediaElementPage"
              x:DataType="viewModels:MediaElementViewModel"
              Title="Media Player"
@@ -22,100 +24,99 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <customControls:CustomLayout x:Name="customLayout"
-                                 MainHeight="4*"
-                                 SideHeight="9*"
-                                 MainWidth="4*"
-                                 SideWidth="2*"
-                                 IsSideChildVisible="{Binding IsSideChildVisible, Mode=TwoWay}">
+    <layouts:AdaptiveLayout x:Name="customLayout">
+        <customControls:MediaPlayer x:Name="mediaPlayer"
+                                    MediaPath="{Binding MediaPath}"
+                                    Duration="{Binding MediaDuration}"
+                                    PositionChangedCommand="{Binding PositionChangedCommand}"
+                                    PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
+                                    PositionToSeek="{Binding PositionToSeek}"
+                                    PlayerControlsVisible="{Binding PlayerControlsVisible}"
+                                    layouts:AdaptiveLayout.WidthFactor="0.7"
+                                    layouts:AdaptiveLayout.HeightFactor="0.3">
 
-        <customControls:CustomLayout.MainChild>
-            <customControls:MediaPlayer x:Name="mediaPlayer"
-                                        MediaPath="{Binding MediaPath}"
-                                        Duration="{Binding MediaDuration}"
-                                        PositionChangedCommand="{Binding PositionChangedCommand}"
-                                        PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
-                                        PositionToSeek="{Binding PositionToSeek}"
-                                        PlayerControlsVisible="{Binding PlayerControlsVisible}">
+            <customControls:MediaPlayer.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
+                <SwipeGestureRecognizer Direction="Down"
+                                        Command="{Binding PlayerSwipedDownCommand}" />
+                <SwipeGestureRecognizer Direction="Up"
+                                        Command="{Binding PlayerSwipedUpCommand}" />
+                <SwipeGestureRecognizer Direction="Left"
+                                        Command="{Binding PlayerSwipedLeftCommand}" />
+                <SwipeGestureRecognizer Direction="Right"
+                                        Command="{Binding PlayerSwipedRightCommand}" />
+            </customControls:MediaPlayer.GestureRecognizers>
+            
+            <customControls:MediaPlayer.Behaviors>
+                <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerAnimationCommand}">
+                    <toolkit:AnimationBehavior.AnimationType>
+                        <animations:ResizeViewAnimation NewHeightFactor="{Binding Source={x:Reference this}, Path=BindingContext.PlayerHeightFactor}"
+                                                        NewWidthFactor="{Binding Source={x:Reference this}, Path=BindingContext.PlayerWidthFactor}" />
+                    </toolkit:AnimationBehavior.AnimationType>
+                </toolkit:AnimationBehavior>
+            </customControls:MediaPlayer.Behaviors>
 
-                <customControls:MediaPlayer.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-                    <SwipeGestureRecognizer Direction="Down"
-                                            Command="{Binding PlayerSwipedDownCommand}"
-                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}" />
-                    <SwipeGestureRecognizer Direction="Up"
-                                            Command="{Binding PlayerSwipedUpCommand}"
-                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}"/>
-                    <SwipeGestureRecognizer Direction="Left"
-                                            Command="{Binding PlayerSwipedLeftCommand}"
-                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}" />
-                    <SwipeGestureRecognizer Direction="Right"
-                                            Command="{Binding PlayerSwipedRightCommand}"
-                                            CommandParameter="{Binding Source={x:Reference customLayout}, Path=Orientation}" />
-                </customControls:MediaPlayer.GestureRecognizers>
+        </customControls:MediaPlayer>
 
-            </customControls:MediaPlayer>
-        </customControls:CustomLayout.MainChild>
+        <Grid RowDefinitions="50, *"
+              ColumnDefinitions="6*, 2*, 1*"
+              Padding="5, 0"
+              layouts:AdaptiveLayout.WidthFactor="0.3"
+              layouts:AdaptiveLayout.HeightFactor="0.7">
+            <Entry Grid.Row="0"
+                   Grid.Column="0"
+                   Text="{Binding TextBoxContent}"
+                   IsReadOnly="True" />
 
-        <customControls:CustomLayout.SideChild>
-            <Grid RowDefinitions="50, *"
-                  ColumnDefinitions="6*, 2*, 1*"
-                  Padding="5, 0">
-                <Entry Grid.Row="0"
-                       Grid.Column="0"
-                       Text="{Binding TextBoxContent}"
-                       IsReadOnly="True" />
+            <HorizontalStackLayout Grid.Row="0"
+                                   Grid.Column="1"
+                                   Spacing="5"
+                                   HorizontalOptions="Center">
+                <Label Text="{Binding SubtitlesSettings.OriginalLanguage.Code}"
+                       VerticalTextAlignment="Center" />
+                <Image Source="{AppThemeBinding Dark=arrow_forward_light.png, Light=arrow_forward_dark.png}"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       HeightRequest="20"
+                       IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
+                <Label Text="{Binding SubtitlesSettings.TranslateToLanguage.Code}"
+                       VerticalTextAlignment="Center"
+                       IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
+            </HorizontalStackLayout>
 
-                <HorizontalStackLayout Grid.Row="0"
-                                       Grid.Column="1"
-                                       Spacing="5"
-                                       HorizontalOptions="Center">
-                    <Label Text="{Binding SubtitlesSettings.OriginalLanguage.Code}"
-                           VerticalTextAlignment="Center"/>
-                    <Image Source="{AppThemeBinding Dark=arrow_forward_light.png, Light=arrow_forward_dark.png}"
-                           VerticalOptions="Center"
-                           HorizontalOptions="Center"
-                           HeightRequest="20"
-                           IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
-                    <Label Text="{Binding SubtitlesSettings.TranslateToLanguage.Code}"
-                           VerticalTextAlignment="Center"
-                           IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
-                </HorizontalStackLayout>
+            <ImageButton Grid.Row="0"
+                         Grid.Column="2"
+                         Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
+                         HeightRequest="30"
+                         Command="{Binding OpenSubtitlesSettingsCommand}" />
 
-                <ImageButton Grid.Row="0"
-                             Grid.Column="2"
-                             Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
-                             HeightRequest="30"
-                             Command="{Binding OpenSubtitlesSettingsCommand}"/>
+            <customControls:ExtendedCollectionView Grid.Row="1"
+                                                   Grid.ColumnSpan="3"
+                                                   ItemsSource="{Binding Subtitles}"
+                                                   ItemsUpdatingScrollMode="KeepScrollOffset"
+                                                   ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
+                                                   ScrolledCommand="{Binding SubtitlesScrolledCommand}"
+                                                   FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
+                                                   LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
+                <customControls:ExtendedCollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="clientModels:VisualSubtitle">
+                        <customControls:SubtitleView SubtitleSource="{Binding .}"
+                                                     TappedCommand="{Binding Source={x:Reference this}, Path=BindingContext.SubtitleTappedCommand}"
+                                                     TappedCommandParameter="{Binding .}" />
+                    </DataTemplate>
+                </customControls:ExtendedCollectionView.ItemTemplate>
+            </customControls:ExtendedCollectionView>
 
-                <customControls:ExtendedCollectionView Grid.Row="1"
-                                                       Grid.ColumnSpan="3"
-                                                       ItemsSource="{Binding Subtitles}"
-                                                       ItemsUpdatingScrollMode="KeepScrollOffset"
-                                                       ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
-                                                       ScrolledCommand="{Binding SubtitlesScrolledCommand}"
-                                                       FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
-                                                       LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
-                    <customControls:ExtendedCollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="clientModels:VisualSubtitle">
-                            <customControls:SubtitleView SubtitleSource="{Binding .}"
-                                                         TappedCommand="{Binding Source={x:Reference this}, Path=BindingContext.SubtitleTappedCommand}"
-                                                         TappedCommandParameter="{Binding .}" />
-                        </DataTemplate>
-                    </customControls:ExtendedCollectionView.ItemTemplate>
-                </customControls:ExtendedCollectionView>
-
-                <Button x:Name="scrollToCurrentButton"
-                        Grid.Row="1"
-                        Grid.ColumnSpan="3"
-                        Text="Scroll to current subtitle"
-                        Command="{Binding ScrollToCurrentSubCommand}"
-                        VerticalOptions="End"
-                        HorizontalOptions="Center"
-                        HeightRequest="40"
-                        Margin="0, 0, 0, 10"
-                        IsVisible="{Binding SubtitlesCollectionState.AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}" />
-            </Grid>
-        </customControls:CustomLayout.SideChild>
-    </customControls:CustomLayout>
+            <Button x:Name="scrollToCurrentButton"
+                    Grid.Row="1"
+                    Grid.ColumnSpan="3"
+                    Text="Scroll to current subtitle"
+                    Command="{Binding ScrollToCurrentSubCommand}"
+                    VerticalOptions="End"
+                    HorizontalOptions="Center"
+                    HeightRequest="40"
+                    Margin="0, 0, 0, 10"
+                    IsVisible="{Binding SubtitlesCollectionState.AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}" />
+        </Grid>
+    </layouts:AdaptiveLayout>
 </ContentPage>

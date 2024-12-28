@@ -18,8 +18,6 @@
             x:Name="MauiMediaElement"
             Grid.Row="0"
             Aspect="AspectFit"
-            VerticalOptions="Center"
-            HorizontalOptions="Center"
             Source="{Binding MediaPath}"
             ShouldAutoPlay="False"
             ShouldShowPlaybackControls="False">

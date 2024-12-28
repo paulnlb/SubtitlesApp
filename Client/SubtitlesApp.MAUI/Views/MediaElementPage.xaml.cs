@@ -12,12 +12,6 @@ public partial class MediaElementPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override void OnDisappearing()
-    {
-        customLayout.Unsubscribe();
-
-        base.OnDisappearing();
-    }
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
         var vm = (MediaElementViewModel)BindingContext;
@@ -30,11 +24,13 @@ public partial class MediaElementPage : ContentPage
 
     protected override bool OnBackButtonPressed()
     {
-        if (!customLayout.IsSideChildVisible)
-        {
-            customLayout.IsSideChildVisible = true;
+        var vm = (MediaElementViewModel)BindingContext;
 
-            if (customLayout.Orientation == StackOrientation.Vertical) 
+        if (!vm.IsSideChildVisible)
+        {
+            vm.IsSideChildVisible = true;
+
+            if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait) 
             {
                 Controls.RestoreScreen();
             }

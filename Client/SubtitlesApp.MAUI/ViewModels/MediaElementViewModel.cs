@@ -13,6 +13,7 @@ using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 namespace SubtitlesApp.ViewModels;
 
 public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
@@ -47,7 +48,15 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     bool _playerControlsVisible;
 
     [ObservableProperty]
-    bool _isSideChildVisible;
+    bool _isSideChildVisible = true;
+
+    [ObservableProperty]
+    double _playerHeightFactor;
+
+    [ObservableProperty]
+    double _playerWidthFactor;
+
+    public ICommand TriggerAnimationCommand { get; set; }
 
     #endregion
 
@@ -70,7 +79,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         #region observable props
 
         PlayerControlsVisible = true;
-        IsSideChildVisible = true;
         TextBoxContent = "";
         MediaPath = null;
         Subtitles = [];
@@ -87,6 +95,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             ShowTranslation = false,
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
         };
+        PlayerHeightFactor = 0.3;
+        PlayerWidthFactor = 0.7;
         
         #endregion
 
@@ -100,6 +110,20 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         _coveredTimeIntervals = new TimeSet();
 
         #endregion
+
+        DeviceDisplay.MainDisplayInfoChanged += DeviceDisplay_MainDisplayInfoChanged;
+    }
+
+    private void DeviceDisplay_MainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
+    {
+        if (e.DisplayInfo.Orientation == DisplayOrientation.Landscape)
+        {
+            Controls.FullScreen();
+        }
+        else if (e.DisplayInfo.Orientation == DisplayOrientation.Portrait && IsSideChildVisible)
+        {
+            Controls.RestoreScreen();
+        }
     }
 
     public TimeSpan MediaDuration { get; set; }
@@ -185,41 +209,47 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         PlayerControlsVisible = !PlayerControlsVisible;
     }
 
+    #region player swipe commands
     [RelayCommand]
-    public void PlayerSwipedLeft(StackOrientation layoutOrientation)
+    public void PlayerSwipedLeft()
     {
-        if (layoutOrientation == StackOrientation.Horizontal && !IsSideChildVisible)
+        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait && !IsSideChildVisible)
         {
             IsSideChildVisible = true;
         }
     }
 
     [RelayCommand]
-    public void PlayerSwipedRight(StackOrientation layoutOrientation)
+    public void PlayerSwipedRight()
     {
-        if (layoutOrientation == StackOrientation.Horizontal && IsSideChildVisible)
+        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait && IsSideChildVisible)
         {
             IsSideChildVisible = false;
         }
     }
 
     [RelayCommand]
-    public void PlayerSwipedUp(StackOrientation layoutOrientation)
+    public void PlayerSwipedUp()
     {
-        if (layoutOrientation == StackOrientation.Vertical && !IsSideChildVisible)
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && !IsSideChildVisible)
         {
             IsSideChildVisible = true;
+
+            Controls.RestoreScreen();
         }
     }
 
     [RelayCommand]
-    public void PlayerSwipedDown(StackOrientation layoutOrientation)
+    public void PlayerSwipedDown()
     {
-        if (layoutOrientation == StackOrientation.Vertical && IsSideChildVisible)
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && IsSideChildVisible)
         {
             IsSideChildVisible = false;
+
+            Controls.FullScreen();
         }
     }
+    #endregion
 
     #endregion
 
@@ -441,6 +471,21 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
                 Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
             }
         }
+    }
+
+    partial void OnIsSideChildVisibleChanged(bool value)
+    {
+        if (value)
+        {
+            PlayerWidthFactor = 0.7;
+            PlayerHeightFactor = 0.3;
+        }
+        else
+        {
+            PlayerWidthFactor = PlayerHeightFactor = 1;
+        }
+
+        TriggerAnimationCommand.Execute(CancellationToken.None);
     }
 
     #endregion
