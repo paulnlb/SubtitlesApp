@@ -3,6 +3,13 @@ using Microsoft.Maui.Layouts;
 
 namespace SubtitlesApp.Layouts;
 
+/// <summary>
+///     Custom layout that arranges views in one column (in portrait mode) or row (otherwise).
+///     <para/>
+///     Layout orientation is calculated dynamically during runtime, based on device orientation.
+///     <para/>
+///     Also this layout allows to specify its items' length relative to parent length.
+/// </summary>
 public class AdaptiveLayout : Layout
 {
     public static readonly BindableProperty RelativeHorizontalLengthProperty =

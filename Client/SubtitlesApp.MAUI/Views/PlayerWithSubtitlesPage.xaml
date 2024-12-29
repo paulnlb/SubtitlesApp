@@ -10,21 +10,19 @@
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
              xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
              xmlns:animations="clr-namespace:SubtitlesApp.Animations"
-             x:Class="SubtitlesApp.Views.MediaElementPage"
-             x:DataType="viewModels:MediaElementViewModel"
-             Title="Media Player"
+             x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
+             x:DataType="viewModels:PlayerWithSubtitlesViewModel"
              x:Name="this">
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <converters:IsTranslatableConverter x:Key="IsTranslatableConverter" />
-            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
             <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
             <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <layouts:AdaptiveLayout x:Name="customLayout">
+    <layouts:AdaptiveLayout>
+        <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
                                     Duration="{Binding MediaDuration}"
@@ -50,7 +48,7 @@
                                         Command="{Binding PlayerSwipedRightCommand}"
                                         Threshold="30"/>
             </customControls:MediaPlayer.GestureRecognizers>
-            
+
             <customControls:MediaPlayer.Behaviors>
                 <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
                     <toolkit:AnimationBehavior.AnimationType>
@@ -59,19 +57,23 @@
                     </toolkit:AnimationBehavior.AnimationType>
                 </toolkit:AnimationBehavior>
             </customControls:MediaPlayer.Behaviors>
-
         </customControls:MediaPlayer>
 
+        <!--Subtitles section-->
         <Grid RowDefinitions="50, *"
-              ColumnDefinitions="7*, 4*, *"
+              ColumnDefinitions="7*, Auto, *"
               Padding="5, 0"
+              ColumnSpacing="10"
               layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
               layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
+            
+            <!--Transcription status-->
             <Entry Grid.Row="0"
                    Grid.Column="0"
                    Text="{Binding TextBoxContent}"
                    IsReadOnly="True" />
 
+            <!--Languages info-->
             <HorizontalStackLayout Grid.Row="0"
                                    Grid.Column="1"
                                    Spacing="5"
@@ -88,12 +90,14 @@
                        IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
             </HorizontalStackLayout>
 
+            <!--Subtitles settings-->
             <ImageButton Grid.Row="0"
                          Grid.Column="2"
                          Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
                          HeightRequest="30"
                          Command="{Binding OpenSubtitlesSettingsCommand}" />
 
+            <!--Subtitles list-->
             <customControls:ExtendedCollectionView Grid.Row="1"
                                                    Grid.ColumnSpan="3"
                                                    ItemsSource="{Binding Subtitles}"
@@ -111,6 +115,7 @@
                 </customControls:ExtendedCollectionView.ItemTemplate>
             </customControls:ExtendedCollectionView>
 
+            <!--"Scroll to current subtitle" button-->
             <Button x:Name="scrollToCurrentButton"
                     Grid.Row="1"
                     Grid.ColumnSpan="3"

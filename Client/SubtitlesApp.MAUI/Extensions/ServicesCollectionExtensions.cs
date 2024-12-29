@@ -7,12 +7,14 @@ using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
 using SubtitlesApp.Services.Sockets;
+using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
+using SubtitlesApp.Views;
 using UraniumUI;
 
 namespace SubtitlesApp.Extensions;
 
-internal static class ServicesCollectionExtensions
+public static class ServicesCollectionExtensions
 {
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
@@ -49,6 +51,22 @@ internal static class ServicesCollectionExtensions
 #else
         services.AddHttpClient<ISubtitlesService, SubtitlesService>();
         services.AddHttpClient<ITranslationService, TranslationService>();
+#endif
+        #endregion
+
+        #region pages
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
+        services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
+        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
+        #endregion
+
+        #region preferences
+        services.AddSingleton(Preferences.Default);
+
+#if RELEASE
+            services.AddSingleton<ISettingsService, SettingsService>();
+#else
+        services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
 #endif
         #endregion
 

@@ -3,9 +3,9 @@ using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
 
-public partial class MediaElementPage : ContentPage
+public partial class PlayerWithSubtitlesPage : ContentPage
 {
-    public MediaElementPage(MediaElementViewModel viewModel)
+    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel viewModel)
     {
         InitializeComponent();
 
@@ -14,7 +14,7 @@ public partial class MediaElementPage : ContentPage
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
-        var vm = (MediaElementViewModel)BindingContext;
+        var vm = (PlayerWithSubtitlesViewModel)BindingContext;
         vm.Clean();
         mediaPlayer.Stop();
         mediaPlayer.DisconnectHandler();
@@ -24,7 +24,7 @@ public partial class MediaElementPage : ContentPage
 
     protected override bool OnBackButtonPressed()
     {
-        var vm = (MediaElementViewModel)BindingContext;
+        var vm = (PlayerWithSubtitlesViewModel)BindingContext;
 
         // On back button press just show subtitles if they are hidden
         // Otherwise, proceed with exit

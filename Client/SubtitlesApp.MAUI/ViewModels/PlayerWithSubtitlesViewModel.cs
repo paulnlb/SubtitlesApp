@@ -16,7 +16,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 namespace SubtitlesApp.ViewModels;
 
-public partial class MediaElementViewModel : ObservableObject, IQueryAttributable
+public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttributable
 {
     #region observable properties
 
@@ -65,7 +65,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     readonly ITranscriptionService _transcriptionService;
     readonly TimeSet _coveredTimeIntervals;
 
-    public MediaElementViewModel(
+    public PlayerWithSubtitlesViewModel(
         ISettingsService settings,
         ITranslationService translationService,
         LanguageService languageService,
@@ -94,7 +94,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
         };
         PlayerRelativeVerticalLength = 0.3;
-        PlayerRelativeHorizontalLength = 0.7;
+        PlayerRelativeHorizontalLength = 0.65;
         
         #endregion
 

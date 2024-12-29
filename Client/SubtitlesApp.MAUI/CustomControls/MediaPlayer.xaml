@@ -12,15 +12,14 @@
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
     </ContentView.Resources>
     
-    <Grid BindingContext="{x:Reference this}"
-          RowDefinitions="*" ColumnDefinitions="*">
+    <Grid BindingContext="{x:Reference this}">
         <toolkit:MediaElement
             x:Name="MauiMediaElement"
-            Grid.Row="0"
             Aspect="AspectFit"
             Source="{Binding MediaPath}"
             ShouldAutoPlay="False"
-            ShouldShowPlaybackControls="False">
+            ShouldShowPlaybackControls="False"
+            ZIndex="0">
 
             <toolkit:MediaElement.Behaviors>
                 <toolkit:EventToCommandBehavior
@@ -35,13 +34,13 @@
         </toolkit:MediaElement>
 
         <Grid x:Name="PlayerControls"
-              Grid.Row="0"
               Padding="10"
               BackgroundColor="#80000000"
               IsVisible="{Binding PlayerControlsVisible}"
               RowDefinitions="2*, 10*, *, *"
               RowSpacing="5"
-              ColumnDefinitions="*, *, *">
+              ColumnDefinitions="*, *, *"
+              ZIndex="1">
 
             <Label Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
                    TextColor="White"

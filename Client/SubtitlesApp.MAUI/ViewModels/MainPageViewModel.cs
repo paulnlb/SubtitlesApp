@@ -79,7 +79,7 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (popupResult is string stringPath && !string.IsNullOrEmpty(stringPath))
                 {
-                    OpenMediaElementPage(stringPath);
+                    OpenPlayerWithSubtitlesPage(stringPath);
                 }
 
                 break;
@@ -89,16 +89,16 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    OpenMediaElementPage(path);
+                    OpenPlayerWithSubtitlesPage(path);
                 }
 
                 break;
         }
     }
 
-    void OpenMediaElementPage(string path)
+    void OpenPlayerWithSubtitlesPage(string path)
     {
         if (!string.IsNullOrEmpty(path))
-            Shell.Current.GoToAsync($"MediaElementPage?open={path}");
+            Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
     }
 }
