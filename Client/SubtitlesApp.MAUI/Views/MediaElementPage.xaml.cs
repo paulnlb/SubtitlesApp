@@ -26,31 +26,19 @@ public partial class MediaElementPage : ContentPage
     {
         var vm = (MediaElementViewModel)BindingContext;
 
+        // On back button press just show subtitles if they are hidden
+        // Otherwise, proceed with exit
         if (!vm.IsSideChildVisible)
         {
             vm.IsSideChildVisible = true;
-
-            if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait) 
-            {
-                Controls.RestoreScreen();
-            }
             return true;
         }
 
-        Dispatcher.Dispatch(async () =>
+        if (Controls.IsFullScreen)
         {
-            var userWantsToExit = await DisplayAlert(
-                "Achtung",
-                "Are you sure you want to exit player?",
-                "Yes",
-                "Cancel");
+            Controls.RestoreScreen();
+        }
 
-            if (userWantsToExit)
-            {
-                await Shell.Current.Navigation.PopAsync();
-            }
-        });
-
-        return true;
+        return false;
     }
 }

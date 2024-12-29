@@ -32,26 +32,30 @@
                                     PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                                     PositionToSeek="{Binding PositionToSeek}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
-                                    layouts:AdaptiveLayout.WidthFactor="0.7"
-                                    layouts:AdaptiveLayout.HeightFactor="0.3">
+                                    layouts:AdaptiveLayout.RelativeHorizontalLength="0.65"
+                                    layouts:AdaptiveLayout.RelativeVerticalLength="0.3">
 
             <customControls:MediaPlayer.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
                 <SwipeGestureRecognizer Direction="Down"
-                                        Command="{Binding PlayerSwipedDownCommand}" />
+                                        Command="{Binding PlayerSwipedDownCommand}"
+                                        Threshold="30"/>
                 <SwipeGestureRecognizer Direction="Up"
-                                        Command="{Binding PlayerSwipedUpCommand}" />
+                                        Command="{Binding PlayerSwipedUpCommand}"
+                                        Threshold="30"/>
                 <SwipeGestureRecognizer Direction="Left"
-                                        Command="{Binding PlayerSwipedLeftCommand}" />
+                                        Command="{Binding PlayerSwipedLeftCommand}"
+                                        Threshold="30"/>
                 <SwipeGestureRecognizer Direction="Right"
-                                        Command="{Binding PlayerSwipedRightCommand}" />
+                                        Command="{Binding PlayerSwipedRightCommand}"
+                                        Threshold="30"/>
             </customControls:MediaPlayer.GestureRecognizers>
             
             <customControls:MediaPlayer.Behaviors>
-                <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerAnimationCommand}">
+                <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
                     <toolkit:AnimationBehavior.AnimationType>
-                        <animations:ResizeViewAnimation NewHeightFactor="{Binding Source={x:Reference this}, Path=BindingContext.PlayerHeightFactor}"
-                                                        NewWidthFactor="{Binding Source={x:Reference this}, Path=BindingContext.PlayerWidthFactor}" />
+                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.PlayerRelativeVerticalLength}"
+                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.PlayerRelativeHorizontalLength}" />
                     </toolkit:AnimationBehavior.AnimationType>
                 </toolkit:AnimationBehavior>
             </customControls:MediaPlayer.Behaviors>
@@ -59,10 +63,10 @@
         </customControls:MediaPlayer>
 
         <Grid RowDefinitions="50, *"
-              ColumnDefinitions="6*, 2*, 1*"
+              ColumnDefinitions="7*, 4*, *"
               Padding="5, 0"
-              layouts:AdaptiveLayout.WidthFactor="0.3"
-              layouts:AdaptiveLayout.HeightFactor="0.7">
+              layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
+              layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
             <Entry Grid.Row="0"
                    Grid.Column="0"
                    Text="{Binding TextBoxContent}"

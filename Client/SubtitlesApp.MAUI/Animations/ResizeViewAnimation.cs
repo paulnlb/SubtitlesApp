@@ -4,49 +4,49 @@ namespace SubtitlesApp.Animations;
 
 public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimation(250)
 {
-    public static readonly BindableProperty NewWidthFactorProperty =
+    public static readonly BindableProperty NewRelativeHorizontalLengthProperty =
         BindableProperty.Create(
-            nameof(NewWidthFactor),
+            nameof(NewRelativeHorizontalLength),
             typeof(double),
             typeof(ResizeViewAnimation),
             0.0);
 
-    public static readonly BindableProperty NewHeightFactorProperty =
+    public static readonly BindableProperty NewRelativeVerticalLengthProperty =
        BindableProperty.Create(
-           nameof(NewHeightFactor),
+           nameof(NewRelativeVerticalLength),
            typeof(double),
            typeof(ResizeViewAnimation),
            0.0,
            BindingMode.TwoWay);
 
-    public double NewWidthFactor
+    public double NewRelativeHorizontalLength
     {
-        get => (double)GetValue(NewWidthFactorProperty);
-        set => SetValue(NewWidthFactorProperty, value);
+        get => (double)GetValue(NewRelativeHorizontalLengthProperty);
+        set => SetValue(NewRelativeHorizontalLengthProperty, value);
     }
 
-    public double NewHeightFactor
+    public double NewRelativeVerticalLength
     {
-        get => (double)GetValue(NewHeightFactorProperty);
-        set => SetValue(NewHeightFactorProperty, value);
+        get => (double)GetValue(NewRelativeVerticalLengthProperty);
+        set => SetValue(NewRelativeVerticalLengthProperty, value);
     }
 
     Animation AnimationCallback(VisualElement view)
     {
-        var oldWidthFactorValue = AdaptiveLayout.GetWidthFactor(view) ?? 0;
-        var oldHeightFactorValue = AdaptiveLayout.GetHeightFactor(view) ?? 0;
+        var oldRelativeHorizontalLengthValue = AdaptiveLayout.GetRelativeHorizontalLength(view) ?? 0;
+        var oldRelativeVerticalLengthValue = AdaptiveLayout.GetRelativeVerticalLength(view) ?? 0;
 
         var animation = new Animation();
 
         animation.Add(0, 1, new Animation(v =>
         {
-            AdaptiveLayout.SetWidthFactor(view, v);
-        }, oldWidthFactorValue, NewWidthFactor));
+            AdaptiveLayout.SetRelativeHorizontalLength(view, v);
+        }, oldRelativeHorizontalLengthValue, NewRelativeHorizontalLength));
 
         animation.Add(0, 1, new Animation(v =>
         {
-            AdaptiveLayout.SetHeightFactor(view, v);
-        }, oldHeightFactorValue, NewHeightFactor));
+            AdaptiveLayout.SetRelativeVerticalLength(view, v);
+        }, oldRelativeVerticalLengthValue, NewRelativeVerticalLength));
 
         return animation;
     }

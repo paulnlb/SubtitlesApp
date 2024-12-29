@@ -5,30 +5,30 @@ namespace SubtitlesApp.Layouts;
 
 public class AdaptiveLayout : Layout
 {
-    public static readonly BindableProperty WidthFactorProperty =
-        BindableProperty.CreateAttached("WidthFactor", typeof(double?), typeof(AdaptiveLayout), null, propertyChanged: Invalidate_OnWidthFactorChanged);
+    public static readonly BindableProperty RelativeHorizontalLengthProperty =
+        BindableProperty.CreateAttached("RelativeHorizontalLength", typeof(double?), typeof(AdaptiveLayout), null, propertyChanged: Invalidate_OnRelativeHorizontalLengthChanged);
 
-    public static readonly BindableProperty HeightFactorProperty =
-        BindableProperty.CreateAttached("HeightFactor", typeof(double?), typeof(AdaptiveLayout), null, propertyChanged: Invalidate_OnHeightFactorChanged);
+    public static readonly BindableProperty RelativeVerticalLengthProperty =
+        BindableProperty.CreateAttached("RelativeVerticalLength", typeof(double?), typeof(AdaptiveLayout), null, propertyChanged: Invalidate_OnRelativeVerticalLengthChanged);
 
-    public static double? GetWidthFactor(BindableObject view)
+    public static double? GetRelativeHorizontalLength(BindableObject view)
     {
-        return (double?)view.GetValue(WidthFactorProperty);
+        return (double?)view.GetValue(RelativeHorizontalLengthProperty);
     }
 
-    public static void SetWidthFactor(BindableObject view, double? value)
+    public static void SetRelativeHorizontalLength(BindableObject view, double? value)
     {
-        view.SetValue(WidthFactorProperty, value);
+        view.SetValue(RelativeHorizontalLengthProperty, value);
     }
 
-    public static double? GetHeightFactor(BindableObject view)
+    public static double? GetRelativeVerticalLength(BindableObject view)
     {
-        return (double?)view.GetValue(HeightFactorProperty);
+        return (double?)view.GetValue(RelativeVerticalLengthProperty);
     }
 
-    public static void SetHeightFactor(BindableObject view, double? value)
+    public static void SetRelativeVerticalLength(BindableObject view, double? value)
     {
-        view.SetValue(HeightFactorProperty, value);
+        view.SetValue(RelativeVerticalLengthProperty, value);
     }
 
     protected override void OnSizeAllocated(double width, double height)
@@ -51,7 +51,7 @@ public class AdaptiveLayout : Layout
         (this as IView).InvalidateMeasure();
     }
 
-    static void Invalidate_OnWidthFactorChanged(BindableObject bindable, object oldValue, object newValue)
+    static void Invalidate_OnRelativeHorizontalLengthChanged(BindableObject bindable, object oldValue, object newValue)
     {
         // Do not invalidate if orientation is vertical and any of width factors changed
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
@@ -65,7 +65,7 @@ public class AdaptiveLayout : Layout
         }
     }
 
-    static void Invalidate_OnHeightFactorChanged(BindableObject bindable, object oldValue, object newValue)
+    static void Invalidate_OnRelativeVerticalLengthChanged(BindableObject bindable, object oldValue, object newValue)
     {
         // Do not invalidate if orientation is not vertical and any of height factors changed
         if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
@@ -80,14 +80,8 @@ public class AdaptiveLayout : Layout
     }
 }
 
-public class DualViewLayoutManager : ILayoutManager
+public class DualViewLayoutManager(AdaptiveLayout layout) : ILayoutManager
 {
-    private AdaptiveLayout _layout;
-    public DualViewLayoutManager(AdaptiveLayout layout)
-    {
-        _layout = layout;
-    }
-
     public Size ArrangeChildren(Rect bounds)
     {
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
@@ -96,14 +90,14 @@ public class DualViewLayoutManager : ILayoutManager
 
             var childrenHeights = GetChildrenHeights(bounds.Height);
 
-            for (int i = 0; i < _layout.Count; i++)
+            for (int i = 0; i < layout.Count; i++)
             {
-                if (_layout.Children[i].Visibility == Visibility.Collapsed)
+                if (layout[i].Visibility == Visibility.Collapsed)
                 {
                     continue;
                 }
 
-                _layout.Children[i].Arrange(new Rect(bounds.X, y, bounds.Width, childrenHeights[i]));
+                layout[i].Arrange(new Rect(bounds.X, y, bounds.Width, childrenHeights[i]));
 
                 y += childrenHeights[i];
             }
@@ -114,20 +108,20 @@ public class DualViewLayoutManager : ILayoutManager
 
             var childrenWidths = GetChildrenWidths(bounds.Width);
 
-            for (int i = 0; i < _layout.Count; i++)
+            for (int i = 0; i < layout.Count; i++)
             {
-                if (_layout.Children[i].Visibility == Visibility.Collapsed)
+                if (layout[i].Visibility == Visibility.Collapsed)
                 {
                     continue;
                 }
 
-                _layout.Children[i].Arrange(new Rect(x, bounds.Y, childrenWidths[i], bounds.Height));
+                layout[i].Arrange(new Rect(x, bounds.Y, childrenWidths[i], bounds.Height));
 
                 x += childrenWidths[i];
             }
         }
 
-        return bounds.Size.AdjustForFill(bounds, _layout);
+        return bounds.Size.AdjustForFill(bounds, layout);
     }
 
     public Size Measure(double widthConstraint, double heightConstraint)
@@ -139,9 +133,9 @@ public class DualViewLayoutManager : ILayoutManager
         {
             var childrenHeights = GetChildrenHeights(heightConstraint);
 
-            for (int i = 0; i < _layout.Count; i++)
+            for (int i = 0; i < layout.Count; i++)
             {
-                var childSize = _layout.Children[i].Measure(widthConstraint, childrenHeights[i]);
+                var childSize = layout[i].Measure(widthConstraint, childrenHeights[i]);
                 width = Math.Max(width, childSize.Width);
                 height += childSize.Height;
             }
@@ -150,9 +144,9 @@ public class DualViewLayoutManager : ILayoutManager
         {
             var childrenWidths = GetChildrenWidths(widthConstraint);
 
-            for (int i = 0; i < _layout.Count; i++)
+            for (int i = 0; i < layout.Count; i++)
             {
-                var childSize = _layout.Children[i].Measure(childrenWidths[i], heightConstraint);
+                var childSize = layout[i].Measure(childrenWidths[i], heightConstraint);
                 width += childSize.Width;
                 height = Math.Max(height, childSize.Height);
             }
@@ -163,83 +157,52 @@ public class DualViewLayoutManager : ILayoutManager
 
     private List<double> GetChildrenHeights(double totalHeight)
     {
-        var heightFactors = _layout.Children.Select(child => AdaptiveLayout.GetHeightFactor((BindableObject)child)).ToList();
-        var availableHeight = totalHeight;
-        var nullHeightFactorsCount = 0;
-
-        foreach (var heightFactor in heightFactors)
-        {
-            if (heightFactor.HasValue)
-            {
-                availableHeight -= heightFactor.Value * totalHeight;
-            }
-            else
-            {
-                nullHeightFactorsCount++;
-            }
-        }
-
-        if (availableHeight <= 0)
-        {
-            return heightFactors.Select(heightFactor =>
-            {
-                var factor = heightFactor ?? 0;
-                return factor * totalHeight;
-            }).ToList();
-        }
-        else
-        {
-            return heightFactors.Select(heightFactor =>
-            {
-                if (heightFactor.HasValue)
-                {
-                    return heightFactor.Value * totalHeight;
-                }
-                else
-                {
-                    return 1 / nullHeightFactorsCount * availableHeight;
-                }
-            }).ToList();
-        }
+        var relativeLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child)).ToList();
+        return GetChildrenAbsoluteLengths(totalHeight, relativeLengths);
     }
 
     private List<double> GetChildrenWidths(double totalWidth)
     {
-        var widthFactors = _layout.Children.Select(child => AdaptiveLayout.GetWidthFactor((BindableObject)child)).ToList();
-        var availableWidth = totalWidth;
-        var nullWidthFactorsCount = 0;
+        var relativeLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child)).ToList();
+        return GetChildrenAbsoluteLengths(totalWidth, relativeLengths);
+    }
 
-        foreach (var widthFactor in widthFactors)
+    private static List<double> GetChildrenAbsoluteLengths(double totalAbsoluteLength, List<double?> relativeLengths)
+    {
+        var availableLength = totalAbsoluteLength;
+        var nullRelativeLengthsCount = 0;
+
+        foreach (var relativeLength in relativeLengths)
         {
-            if (widthFactor.HasValue)
+            if (relativeLength.HasValue)
             {
-                availableWidth -= widthFactor.Value * totalWidth;
+                availableLength -= relativeLength.Value * totalAbsoluteLength;
             }
             else
             {
-                nullWidthFactorsCount++;
+                nullRelativeLengthsCount++;
             }
         }
 
-        if (availableWidth <= 0)
+        if (availableLength <= 0)
         {
-            return widthFactors.Select(widthFactor =>
+            return relativeLengths.Select(relativeLength =>
             {
-                var factor = widthFactor ?? 0;
-                return factor * totalWidth;
+                var factor = relativeLength ?? 0;
+                return factor * totalAbsoluteLength;
             }).ToList();
         }
         else
         {
-            return widthFactors.Select(widthFactor =>
+            return relativeLengths.Select(relativeLength =>
             {
-                if (widthFactor.HasValue)
+                if (relativeLength.HasValue)
                 {
-                    return widthFactor.Value * totalWidth;
+                    return relativeLength.Value * totalAbsoluteLength;
                 }
                 else
                 {
-                    return 1 / nullWidthFactorsCount * availableWidth;
+                    return 1 / nullRelativeLengthsCount * availableLength;
                 }
             }).ToList();
         }

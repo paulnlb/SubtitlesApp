@@ -51,12 +51,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     bool _isSideChildVisible = true;
 
     [ObservableProperty]
-    double _playerHeightFactor;
+    double _playerRelativeVerticalLength;
 
     [ObservableProperty]
-    double _playerWidthFactor;
-
-    public ICommand TriggerAnimationCommand { get; set; }
+    double _playerRelativeHorizontalLength;
 
     #endregion
 
@@ -95,8 +93,8 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
             ShowTranslation = false,
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
         };
-        PlayerHeightFactor = 0.3;
-        PlayerWidthFactor = 0.7;
+        PlayerRelativeVerticalLength = 0.3;
+        PlayerRelativeHorizontalLength = 0.7;
         
         #endregion
 
@@ -111,20 +109,10 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
 
         #endregion
 
-        DeviceDisplay.MainDisplayInfoChanged += DeviceDisplay_MainDisplayInfoChanged;
+        DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
     }
 
-    private void DeviceDisplay_MainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
-    {
-        if (e.DisplayInfo.Orientation == DisplayOrientation.Landscape)
-        {
-            Controls.FullScreen();
-        }
-        else if (e.DisplayInfo.Orientation == DisplayOrientation.Portrait && IsSideChildVisible)
-        {
-            Controls.RestoreScreen();
-        }
-    }
+    public ICommand TriggerResizeAnimationCommand { get; set; }
 
     public TimeSpan MediaDuration { get; set; }
 
@@ -234,8 +222,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && !IsSideChildVisible)
         {
             IsSideChildVisible = true;
-
-            Controls.RestoreScreen();
         }
     }
 
@@ -245,8 +231,6 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && IsSideChildVisible)
         {
             IsSideChildVisible = false;
-
-            Controls.FullScreen();
         }
     }
     #endregion
@@ -316,6 +300,7 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         TranscribeFromPositionCommand.Cancel();
         _transcriptionService.Dispose();
+        DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
     }
     #endregion
 
@@ -436,6 +421,26 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
         }
     }
 
+    void ManageFullScreenMode(bool isSubtitlesVisible)
+    {
+        // Case 1: if subtitles are hidden, enter fullscreen
+        if (!isSubtitlesVisible)
+        {
+            Controls.FullScreen();
+        }
+
+        // Case 2: if subtitles are visible and device is in portrait mode, exit fullscreen
+        else if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        {
+            Controls.RestoreScreen();
+        }
+        // Case 3: if subtitles are visible and device is NOT in portrait mode, enter fullscreen
+        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            Controls.FullScreen();
+        }
+    }
+
     #endregion
 
     #region event handlers
@@ -477,15 +482,22 @@ public partial class MediaElementViewModel : ObservableObject, IQueryAttributabl
     {
         if (value)
         {
-            PlayerWidthFactor = 0.7;
-            PlayerHeightFactor = 0.3;
+            PlayerRelativeHorizontalLength = 0.65;
+            PlayerRelativeVerticalLength = 0.3;
         }
         else
         {
-            PlayerWidthFactor = PlayerHeightFactor = 1;
+            PlayerRelativeHorizontalLength = PlayerRelativeVerticalLength = 1;
         }
 
-        TriggerAnimationCommand.Execute(CancellationToken.None);
+        TriggerResizeAnimationCommand.Execute(CancellationToken.None);
+
+        ManageFullScreenMode(value);
+    }
+
+    private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
+    {
+        ManageFullScreenMode(IsSideChildVisible);
     }
 
     #endregion
