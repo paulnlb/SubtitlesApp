@@ -31,29 +31,41 @@ public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimat
         set => SetValue(NewRelativeVerticalLengthProperty, value);
     }
 
-    Animation AnimationCallback(VisualElement view)
+    Animation AnimationCallback(VisualElement view, double oldHorizontalValue, double oldVerticalValue)
     {
-        var oldRelativeHorizontalLengthValue = AdaptiveLayout.GetRelativeHorizontalLength(view) ?? 0;
-        var oldRelativeVerticalLengthValue = AdaptiveLayout.GetRelativeVerticalLength(view) ?? 0;
-
         var animation = new Animation();
 
         animation.Add(0, 1, new Animation(v =>
         {
             AdaptiveLayout.SetRelativeHorizontalLength(view, v);
-        }, oldRelativeHorizontalLengthValue, NewRelativeHorizontalLength));
+        }, oldHorizontalValue, NewRelativeHorizontalLength));
 
         animation.Add(0, 1, new Animation(v =>
         {
             AdaptiveLayout.SetRelativeVerticalLength(view, v);
-        }, oldRelativeVerticalLengthValue, NewRelativeVerticalLength));
+        }, oldVerticalValue, NewRelativeVerticalLength));
 
         return animation;
     }
 
     public override Task Animate(VisualElement view, CancellationToken token = default)
     {
-        view.Animate("ChangeSizeFactor", AnimationCallback(view), length: Length, easing: Easing);
+        var oldRelativeHorizontalLengthValue = AdaptiveLayout.GetRelativeHorizontalLength(view) ?? 0;
+        var oldRelativeVerticalLengthValue = AdaptiveLayout.GetRelativeVerticalLength(view) ?? 0;
+
+        if (oldRelativeHorizontalLengthValue != NewRelativeHorizontalLength ||
+            oldRelativeVerticalLengthValue != NewRelativeVerticalLength)
+        {
+            view.Animate(
+                "ChangeSizeFactor",
+                AnimationCallback(
+                    view,
+                    oldRelativeHorizontalLengthValue,
+                    oldRelativeVerticalLengthValue),
+                length: Length,
+                easing: Easing);
+        }
+        
         return Task.CompletedTask;
     }
 }
