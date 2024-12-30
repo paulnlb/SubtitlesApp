@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiPageFullScreen;
+using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.DTOs;
@@ -23,6 +24,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     [ObservableProperty]
     ObservableCollection<VisualSubtitle> _subtitles;
+
+    [ObservableProperty]
+    ObservableCollectionAdapter<VisualSubtitle> _subtitlesAdapter;
 
     [ObservableProperty]
     string _textBoxContent;
@@ -81,6 +85,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         TextBoxContent = "";
         MediaPath = null;
         Subtitles = [];
+        SubtitlesAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_subtitles);
         TranscribeBufferLength = settings.TranscribeBufferLength;
         SubtitlesCollectionState = new SubtitlesCollectionState
         {

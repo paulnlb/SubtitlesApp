@@ -76,6 +76,7 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
 		<PackageReference Include="PageFullScreen.Maui" Version="1.0.0" />
+		<PackageReference Include="Redth.Maui.VirtualListView" Version="0.4.0" />
 		<PackageReference Include="UraniumUI.Dialogs.CommunityToolkit" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.8.1" />
 	</ItemGroup>

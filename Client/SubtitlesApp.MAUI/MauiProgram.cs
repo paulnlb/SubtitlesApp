@@ -19,6 +19,7 @@ namespace SubtitlesApp
                 .UseUraniumUIMaterial()
                 .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitMediaElement()
+                .UseVirtualListView()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

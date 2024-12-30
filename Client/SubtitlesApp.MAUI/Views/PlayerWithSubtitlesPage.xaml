@@ -63,7 +63,6 @@
         <Grid RowDefinitions="50, *"
               ColumnDefinitions="7*, Auto, *"
               Padding="5, 0"
-              ColumnSpacing="10"
               layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
               layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
             
@@ -77,6 +76,7 @@
             <HorizontalStackLayout Grid.Row="0"
                                    Grid.Column="1"
                                    Spacing="5"
+                                   Margin="10, 0"
                                    HorizontalOptions="Center">
                 <Label Text="{Binding SubtitlesSettings.OriginalLanguage.Code}"
                        VerticalTextAlignment="Center" />
@@ -98,26 +98,21 @@
                          Command="{Binding OpenSubtitlesSettingsCommand}" />
 
             <!--Subtitles list-->
-            <customControls:ExtendedCollectionView Grid.Row="1"
+            <customControls:ExdendedVirtualList Grid.Row="1"
                                                    Grid.ColumnSpan="3"
-                                                   ItemsSource="{Binding Subtitles}"
-                                                   ItemsUpdatingScrollMode="KeepScrollOffset"
+                                                   Adapter="{Binding SubtitlesAdapter}"
                                                    ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
                                                    ScrolledVerticallyCommand="{Binding SubtitlesScrolledCommand}"
                                                    FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
                                                    LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
-                <customControls:ExtendedCollectionView.ItemTemplate>
+                <customControls:ExdendedVirtualList.ItemTemplate>
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
                                                      TappedCommand="{Binding Source={x:Reference this}, Path=BindingContext.SubtitleTappedCommand}"
-                                                     TappedCommandParameter="{Binding .}"/>
+                                                     TappedCommandParameter="{Binding .}" />
                     </DataTemplate>
-                </customControls:ExtendedCollectionView.ItemTemplate>
-                <customControls:ExtendedCollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical"
-                                       ItemSpacing="10" />
-                </customControls:ExtendedCollectionView.ItemsLayout>
-            </customControls:ExtendedCollectionView>
+                </customControls:ExdendedVirtualList.ItemTemplate>
+            </customControls:ExdendedVirtualList>
 
             <!--"Scroll to current subtitle" button-->
             <Button x:Name="scrollToCurrentButton"
