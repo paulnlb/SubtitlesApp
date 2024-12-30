@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Maui.Behaviors;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace SubtitlesApp.CustomControls;
 
@@ -8,14 +7,17 @@ public partial class ExtendedCollectionView : CollectionView
     public static readonly BindableProperty ScrollToIndexProperty =
         BindableProperty.Create(nameof(ScrollToIndex), typeof(int), typeof(ExtendedCollectionView), 0, propertyChanged: OnScrollToIndexChanged);
 
-    public static readonly BindableProperty ScrolledCommandProperty =
-            BindableProperty.Create(nameof(ScrolledCommand), typeof(ICommand), typeof(ExtendedCollectionView), null);
-
     public static readonly BindableProperty FirstVisibleItemIndexProperty =
             BindableProperty.Create(nameof(FirstVisibleItemIndex), typeof(int), typeof(ExtendedCollectionView), 0, BindingMode.OneWayToSource);
 
     public static readonly BindableProperty LastVisibleItemIndexProperty =
             BindableProperty.Create(nameof(LastVisibleItemIndex), typeof(int), typeof(ExtendedCollectionView), 0, BindingMode.OneWayToSource);
+
+    public static readonly BindableProperty ScrolledDownCommandProperty =
+            BindableProperty.Create(nameof(ScrolledDownCommand), typeof(ICommand), typeof(ExtendedCollectionView), null);
+
+    public static readonly BindableProperty ScrolledUpCommandProperty =
+        BindableProperty.Create(nameof(ScrolledUpCommand), typeof(ICommand), typeof(ExtendedCollectionView), null);
 
     public int ScrollToIndex
     {
@@ -23,10 +25,16 @@ public partial class ExtendedCollectionView : CollectionView
         set => SetValue(ScrollToIndexProperty, value);
     }
 
-    public ICommand ScrolledCommand
+    public ICommand ScrolledUpCommand
     {
-        get => (ICommand)GetValue(ScrolledCommandProperty);
-        set => SetValue(ScrolledCommandProperty, value);
+        get => (ICommand)GetValue(ScrolledUpCommandProperty);
+        set => SetValue(ScrolledUpCommandProperty, value);
+    }
+
+    public ICommand ScrolledDownCommand
+    {
+        get => (ICommand)GetValue(ScrolledDownCommandProperty);
+        set => SetValue(ScrolledDownCommandProperty, value);
     }
 
     public int FirstVisibleItemIndex
@@ -46,6 +54,11 @@ public partial class ExtendedCollectionView : CollectionView
         Scrolled += OnScrolled;
     }
 
+    ~ExtendedCollectionView()
+    {
+        Scrolled -= OnScrolled;
+    }
+
     static void OnScrollToIndexChanged(BindableObject bindable, object oldValue, object newValue)
     {
         if (bindable is not ExtendedCollectionView extendedCollectionView)
@@ -53,26 +66,28 @@ public partial class ExtendedCollectionView : CollectionView
             return;
         }
 
-        var oldIndex = (int)oldValue;
         var newIndex = (int)newValue;
-
-        if (oldIndex == newIndex)
-        {
-            return;
-        }
 
         if (newIndex < 0)
         {
             return;
         }
 
-        extendedCollectionView.ScrollTo(newIndex);
+        extendedCollectionView.ScrollTo(newIndex, position: ScrollToPosition.End);
     }
 
     void OnScrolled(object? sender, ItemsViewScrolledEventArgs e)
     {
         FirstVisibleItemIndex = e.FirstVisibleItemIndex;
         LastVisibleItemIndex = e.LastVisibleItemIndex;
-        ScrolledCommand.Execute(null);
+
+        if (e.VerticalDelta > 0)
+        {
+            ScrolledDownCommand.Execute(null);
+        }
+        else
+        {
+            ScrolledUpCommand.Execute(null);
+        }
     }
 }

@@ -17,6 +17,8 @@
     <SwipeView>
         <Label Text="{Binding Text}"
                FontSize="16"
+               VerticalTextAlignment="Center"
+               Padding="5"
                BackgroundColor="{Binding IsHighlighted, Converter={StaticResource BoolToColorConverter}}">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer NumberOfTapsRequired="2"

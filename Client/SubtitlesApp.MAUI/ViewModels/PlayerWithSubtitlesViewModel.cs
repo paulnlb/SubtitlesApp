@@ -152,11 +152,24 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
+    #region subtitles scrolling
     [RelayCommand]
-    public void SubtitlesScrolled()
+    public void SubtitlesScrolledUp()
     {
-        if (SubtitlesCollectionState.ScrollToSubtitleIndex < SubtitlesCollectionState.FirstVisibleSubtitleIndex || 
-            SubtitlesCollectionState.ScrollToSubtitleIndex > SubtitlesCollectionState.LastVisibleSubtitleIndex)
+        if (SubtitlesCollectionState.CurrentSubtitleIndex < SubtitlesCollectionState.FirstVisibleSubtitleIndex)
+        {
+            SubtitlesCollectionState.AutoScrollEnabled = false;
+        }
+        else
+        {
+            SubtitlesCollectionState.AutoScrollEnabled = true;
+        }
+    }
+
+    [RelayCommand]
+    public void SubtitlesScrolledDown()
+    {
+        if (SubtitlesCollectionState.CurrentSubtitleIndex > SubtitlesCollectionState.LastVisibleSubtitleIndex)
         {
             SubtitlesCollectionState.AutoScrollEnabled = false;
         }
@@ -173,6 +186,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         SubtitlesCollectionState.ScrollToSubtitleIndex = SubtitlesCollectionState.CurrentSubtitleIndex;
     }
+    #endregion
 
     [RelayCommand]
     public void SubtitleTapped(VisualSubtitle subtitle)
@@ -354,7 +368,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             SubtitlesCollectionState.CurrentSubtitleIndex = newIndex;
             newSub.IsHighlighted = true;
 
-            if (SubtitlesCollectionState.AutoScrollEnabled)
+            if (SubtitlesCollectionState.AutoScrollEnabled &&
+                (newIndex <= SubtitlesCollectionState.FirstVisibleSubtitleIndex ||
+                newIndex >= SubtitlesCollectionState.LastVisibleSubtitleIndex))
             {
                 SubtitlesCollectionState.ScrollToSubtitleIndex = newIndex;
             }

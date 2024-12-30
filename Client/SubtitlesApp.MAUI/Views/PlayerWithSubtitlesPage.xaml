@@ -103,16 +103,21 @@
                                                    ItemsSource="{Binding Subtitles}"
                                                    ItemsUpdatingScrollMode="KeepScrollOffset"
                                                    ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
-                                                   ScrolledCommand="{Binding SubtitlesScrolledCommand}"
+                                                   ScrolledUpCommand="{Binding SubtitlesScrolledUpCommand}"
+                                                   ScrolledDownCommand="{Binding SubtitlesScrolledDownCommand}"
                                                    FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
                                                    LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
                 <customControls:ExtendedCollectionView.ItemTemplate>
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
                                                      TappedCommand="{Binding Source={x:Reference this}, Path=BindingContext.SubtitleTappedCommand}"
-                                                     TappedCommandParameter="{Binding .}" />
+                                                     TappedCommandParameter="{Binding .}"/>
                     </DataTemplate>
                 </customControls:ExtendedCollectionView.ItemTemplate>
+                <customControls:ExtendedCollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical"
+                                       ItemSpacing="10" />
+                </customControls:ExtendedCollectionView.ItemsLayout>
             </customControls:ExtendedCollectionView>
 
             <!--"Scroll to current subtitle" button-->
