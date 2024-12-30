@@ -16,7 +16,7 @@ public partial class SubtitlesSettings : ObservableObject
     Language? _translateToLanguage;
 
     [ObservableProperty]
-    bool _backgroundTranslation;
+    bool _showTranslation;
 
     [ObservableProperty]
     SubtitlesCaptureMode _whichSubtitlesToTranslate;

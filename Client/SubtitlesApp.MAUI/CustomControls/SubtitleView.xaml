@@ -17,6 +17,8 @@
     <SwipeView>
         <Label Text="{Binding Text}"
                FontSize="16"
+               VerticalTextAlignment="Center"
+               Padding="5"
                BackgroundColor="{Binding IsHighlighted, Converter={StaticResource BoolToColorConverter}}">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer NumberOfTapsRequired="2"
@@ -28,7 +30,7 @@
         <SwipeView.RightItems>
             <SwipeItems Mode="Reveal">
                 <SwipeItem Text="{Binding Translation.LanguageCode}"
-                           Invoked="OnSwiped"
+                           Invoked="OnSwipedRight"
                            CommandParameter="{Binding .}">
                     <SwipeItem.IsVisible>
                         <MultiBinding Converter="{StaticResource IsTranslatableConverter}">
@@ -43,7 +45,7 @@
             <SwipeItems Mode="Reveal">
                 <SwipeItem IsVisible="{Binding IsTranslated}"
                            Text="{Binding Translation.LanguageCode}"
-                           Invoked="OnSwiped"
+                           Invoked="OnSwipedLeft"
                            CommandParameter="{Binding .}">
                 </SwipeItem>
             </SwipeItems>

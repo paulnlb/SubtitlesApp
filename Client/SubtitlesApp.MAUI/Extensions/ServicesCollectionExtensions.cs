@@ -4,14 +4,17 @@ using SubtitlesApp.Core.Services;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
+using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
 using SubtitlesApp.Services.Sockets;
+using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
+using SubtitlesApp.Views;
 using UraniumUI;
 
 namespace SubtitlesApp.Extensions;
 
-internal static class ServicesCollectionExtensions
+public static class ServicesCollectionExtensions
 {
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
@@ -20,6 +23,8 @@ internal static class ServicesCollectionExtensions
         services.AddTransient<IVideoPicker, VideoPicker>();
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
+        services.AddTransient<ITranscriptionService, TranscriptionService>();
+        services.AddTransient<IBuiltInPopupService, BuiltInPopupService>();
         #endregion
 
         #region scoped
@@ -28,6 +33,7 @@ internal static class ServicesCollectionExtensions
         services.AddScoped<HttpsClientHandlerService>();
         services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
         services.AddScoped<ITranslationService, TranslationService>();
+        services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
         #endregion
 
         #region singleton
@@ -48,13 +54,31 @@ internal static class ServicesCollectionExtensions
 #endif
         #endregion
 
+        #region pages
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
+        services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
+        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
+        #endregion
+
+        #region preferences
+        services.AddSingleton(Preferences.Default);
+
+#if RELEASE
+            services.AddSingleton<ISettingsService, SettingsService>();
+#else
+        services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
+#endif
+        #endregion
+
         #region popups
         services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
         services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
+        services.AddTransientPopup<InputPopup, InputPopupViewModel>();
         #endregion
 
         #region third-party
         services.AddCommunityToolkitDialogs();
+        services.AddAutoMapper(typeof(AutoMapperProfile));
         #endregion
     }
 }

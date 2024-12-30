@@ -27,7 +27,7 @@
                 Text="Open a file" 
                 SemanticProperties.Hint="Opens a file to view"
                 HorizontalOptions="Fill"
-                Clicked="ChangeSourceClicked"/>
+                Command="{Binding OpenMediaFileCommand}"/>
 
             <Button
                 x:Name="SettingsBtn"

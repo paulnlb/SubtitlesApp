@@ -65,16 +65,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="FullScreenStatus.Maui.Fork" Version="1.0.5" />
 		<PackageReference Include="IdentityModel.OidcClient" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="NAudio" Version="2.2.1" />
+		<PackageReference Include="PageFullScreen.Maui" Version="1.0.0" />
 		<PackageReference Include="UraniumUI.Dialogs.CommunityToolkit" Version="2.8.1" />
 		<PackageReference Include="UraniumUI.Material" Version="2.8.1" />
 	</ItemGroup>
@@ -100,8 +101,8 @@
     <Compile Update="CustomControls\SubtitleView.xaml.cs">
       <DependentUpon>SubtitleView.xaml</DependentUpon>
     </Compile>
-    <Compile Update="Views\MediaElementPage.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
+    <Compile Update="Views\PlayerWithSubtitlesPage.xaml.cs">
+      <DependentUpon>PlayerWithSubtitlesPage.xaml</DependentUpon>
     </Compile>
     <Compile Update="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
@@ -121,13 +122,10 @@
     <MauiXaml Update="CustomControls\SubtitlesSettingsPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\SubsCollection.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
     <MauiXaml Update="CustomControls\SubtitleView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="Views\MediaElementPage.xaml">
+    <MauiXaml Update="Views\PlayerWithSubtitlesPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\SettingsPage.xaml">

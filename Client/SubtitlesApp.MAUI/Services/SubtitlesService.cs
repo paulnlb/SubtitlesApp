@@ -1,6 +1,5 @@
 ﻿using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
 
@@ -19,9 +18,10 @@ public class SubtitlesService : ISubtitlesService
         _settingsService = settingsService;
     }
 
-    public Task<Result<List<SubtitleDTO>>> GetSubsAsync(
+    public async Task<Result<List<SubtitleDTO>>> GetSubsAsync(
         byte[] audioBytes,
         string languageCode,
+        TimeSpan? timeOffset = null,
         CancellationToken cancellationToken = default)
     {
         var multipartContent = new MultipartFormDataContent
@@ -34,6 +34,29 @@ public class SubtitlesService : ISubtitlesService
         request.Content = multipartContent;
         request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, languageCode);
 
-        return _httpRequestService.SendAsync(request, cancellationToken);
+        var result = await _httpRequestService.SendAsync(request, cancellationToken);
+
+        if (result.IsSuccess && timeOffset.HasValue && timeOffset.Value != TimeSpan.Zero)
+        {
+            AlignSubsByTime(result.Value, timeOffset.Value);
+        }
+
+        return result;
+    }
+
+    static void AlignSubsByTime(
+        List<SubtitleDTO> subsToAlign,
+        TimeSpan timeOffset)
+    {
+        foreach (var subtitleDto in subsToAlign)
+        {
+            var timeInterval = new TimeIntervalDTO
+            {
+                StartTime = subtitleDto.TimeInterval.StartTime + timeOffset,
+                EndTime = subtitleDto.TimeInterval.EndTime + timeOffset,
+            };
+
+            subtitleDto.TimeInterval = timeInterval;
+        }
     }
 }

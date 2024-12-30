@@ -41,7 +41,7 @@ public class Subtitle : INotifyPropertyChanged
     public bool IsTranslated
     {
         get => _isTranslated;
-        set
+        private set
         {
             if (_isTranslated != value)
             {
@@ -66,7 +66,33 @@ public class Subtitle : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public void ApplyTranslation()
+    public void SwitchToTranslation()
+    {
+        // Do nothing if already translated
+        if (!IsTranslated)
+        {
+            ToggleTranslation();
+        }
+    }
+
+    public void RestoreOriginalLanguage()
+    {
+        // Do nothing if not translated
+        if (IsTranslated)
+        {
+            ToggleTranslation();
+        }
+    }
+
+    public bool SupportsLanguage(string languageCode)
+    {
+        return LanguageCode == languageCode || Translation?.LanguageCode == languageCode;
+    }
+
+    public void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private void ToggleTranslation()
     {
         if (Translation == null)
         {
@@ -86,7 +112,4 @@ public class Subtitle : INotifyPropertyChanged
         Text = translatedText;
         IsTranslated = !IsTranslated;
     }
-
-    public void OnPropertyChanged([CallerMemberName] string propertyName = "") =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

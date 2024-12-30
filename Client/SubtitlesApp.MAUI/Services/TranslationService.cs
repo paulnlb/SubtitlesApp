@@ -18,10 +18,18 @@ public class TranslationService : ITranslationService
         _settingsService = settingsService;
     }
 
-    public Task<Result<List<SubtitleDTO>>> TranslateAsync(TranslationRequestDto requestDto, CancellationToken cancellationToken = default)
+    public Task<Result<List<SubtitleDTO>>> TranslateAsync(
+        List<SubtitleDTO> subtitlesToTranslate,
+        string targetLanguageCode, 
+        CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranslationPath);
-        request.Content = JsonContent.Create(requestDto);
+        var requestBody = new TranslationRequestDto
+        {
+            TargetLanguageCode = targetLanguageCode,
+            SourceSubtitles = subtitlesToTranslate,
+        };
+        request.Content = JsonContent.Create(requestBody);
 
         return _httpRequestService.SendAsync(request, cancellationToken);
     }
