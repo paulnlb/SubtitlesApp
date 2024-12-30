@@ -103,8 +103,7 @@
                                                    ItemsSource="{Binding Subtitles}"
                                                    ItemsUpdatingScrollMode="KeepScrollOffset"
                                                    ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
-                                                   ScrolledUpCommand="{Binding SubtitlesScrolledUpCommand}"
-                                                   ScrolledDownCommand="{Binding SubtitlesScrolledDownCommand}"
+                                                   ScrolledVerticallyCommand="{Binding SubtitlesScrolledCommand}"
                                                    FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
                                                    LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
                 <customControls:ExtendedCollectionView.ItemTemplate>

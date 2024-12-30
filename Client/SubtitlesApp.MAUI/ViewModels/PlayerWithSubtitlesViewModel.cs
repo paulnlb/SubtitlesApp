@@ -13,6 +13,7 @@ using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Input;
 namespace SubtitlesApp.ViewModels;
 
@@ -154,22 +155,10 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     #region subtitles scrolling
     [RelayCommand]
-    public void SubtitlesScrolledUp()
+    public void SubtitlesScrolled()
     {
-        if (SubtitlesCollectionState.CurrentSubtitleIndex < SubtitlesCollectionState.FirstVisibleSubtitleIndex)
-        {
-            SubtitlesCollectionState.AutoScrollEnabled = false;
-        }
-        else
-        {
-            SubtitlesCollectionState.AutoScrollEnabled = true;
-        }
-    }
-
-    [RelayCommand]
-    public void SubtitlesScrolledDown()
-    {
-        if (SubtitlesCollectionState.CurrentSubtitleIndex > SubtitlesCollectionState.LastVisibleSubtitleIndex)
+        if (SubtitlesCollectionState.CurrentSubtitleIndex > SubtitlesCollectionState.LastVisibleSubtitleIndex ||
+            SubtitlesCollectionState.CurrentSubtitleIndex < SubtitlesCollectionState.FirstVisibleSubtitleIndex)
         {
             SubtitlesCollectionState.AutoScrollEnabled = false;
         }

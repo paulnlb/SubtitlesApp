@@ -13,11 +13,8 @@ public partial class ExtendedCollectionView : CollectionView
     public static readonly BindableProperty LastVisibleItemIndexProperty =
             BindableProperty.Create(nameof(LastVisibleItemIndex), typeof(int), typeof(ExtendedCollectionView), 0, BindingMode.OneWayToSource);
 
-    public static readonly BindableProperty ScrolledDownCommandProperty =
-            BindableProperty.Create(nameof(ScrolledDownCommand), typeof(ICommand), typeof(ExtendedCollectionView), null);
-
-    public static readonly BindableProperty ScrolledUpCommandProperty =
-        BindableProperty.Create(nameof(ScrolledUpCommand), typeof(ICommand), typeof(ExtendedCollectionView), null);
+    public static readonly BindableProperty ScrolledVerticallyCommandProperty =
+            BindableProperty.Create(nameof(ScrolledVerticallyCommand), typeof(ICommand), typeof(ExtendedCollectionView), null);
 
     public int ScrollToIndex
     {
@@ -25,16 +22,10 @@ public partial class ExtendedCollectionView : CollectionView
         set => SetValue(ScrollToIndexProperty, value);
     }
 
-    public ICommand ScrolledUpCommand
+    public ICommand ScrolledVerticallyCommand
     {
-        get => (ICommand)GetValue(ScrolledUpCommandProperty);
-        set => SetValue(ScrolledUpCommandProperty, value);
-    }
-
-    public ICommand ScrolledDownCommand
-    {
-        get => (ICommand)GetValue(ScrolledDownCommandProperty);
-        set => SetValue(ScrolledDownCommandProperty, value);
+        get => (ICommand)GetValue(ScrolledVerticallyCommandProperty);
+        set => SetValue(ScrolledVerticallyCommandProperty, value);
     }
 
     public int FirstVisibleItemIndex
@@ -81,13 +72,9 @@ public partial class ExtendedCollectionView : CollectionView
         FirstVisibleItemIndex = e.FirstVisibleItemIndex;
         LastVisibleItemIndex = e.LastVisibleItemIndex;
 
-        if (e.VerticalDelta > 0)
+        if (e.VerticalDelta != 0)
         {
-            ScrolledDownCommand.Execute(null);
-        }
-        else
-        {
-            ScrolledUpCommand.Execute(null);
+            ScrolledVerticallyCommand.Execute(null);
         }
     }
 }
