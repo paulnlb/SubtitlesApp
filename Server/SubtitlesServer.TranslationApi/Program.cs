@@ -1,4 +1,5 @@
-﻿using SubtitlesServer.TranslationApi.Extensions;
+﻿using SubtitlesServer.Infrastructure.Configs;
+using SubtitlesServer.TranslationApi.Extensions;
 using SubtitlesServer.TranslationApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,10 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<OllamaConfig>(builder.Configuration.GetSection("OllamaConfig"));
+
+builder.Services.AddHttpClient(builder.Configuration);
 
 var app = builder.Build();
 

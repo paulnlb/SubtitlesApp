@@ -12,7 +12,8 @@ namespace SubtitlesServer.TranslationApi.Controllers;
 public class TranslationController(
     ITranslationService translationService,
     LanguageService languageService,
-    ILogger<TranslationController> logger) : ControllerBase
+    ILogger<TranslationController> logger
+) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Translate([FromBody] TranslationRequestDto request)
@@ -26,13 +27,22 @@ public class TranslationController(
             return BadRequest(message);
         }
 
-        if (request.SourceSubtitles == null || !request.SourceSubtitles.Any())
+        if (request.SourceSubtitles == null || request.SourceSubtitles.Count == 0)
         {
             const string message = "Source subtitles are required";
             logger.LogInformation(message);
             return BadRequest(message);
         }
 
-        return Ok(await translationService.TranslateAsync(request));
+        var result = await translationService.TranslateAsync(request);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+        else
+        {
+            return BadRequest(result.Error);
+        }
     }
 }
