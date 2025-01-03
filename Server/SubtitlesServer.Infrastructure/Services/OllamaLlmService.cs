@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using OllamaSharp;
 using OllamaSharp.Models.Chat;
 using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Result;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Infrastructure.Configs;
 
@@ -26,7 +27,7 @@ public class OllamaLlmService : ILlmService
         _mapper = mapper;
     }
 
-    public async Task<string> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt)
+    public async Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt)
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
 
@@ -37,16 +38,24 @@ public class OllamaLlmService : ILlmService
                 Temperature = _config.Temperature,
                 NumCtx = _config.NumCtx,
             },
-            Messages = _mapper.Map<List<Message>>(chatHistory)
+            Messages = _mapper.Map<List<Message>>(chatHistory),
         };
 
         var response = new StringBuilder();
 
-        await foreach (var aiMessage in chat.SendAsync(userPrompt))
+        try
         {
-            response.Append(aiMessage);
+            await foreach (var aiMessage in chat.SendAsync(userPrompt))
+            {
+                response.Append(aiMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            var error = new Error(ErrorCode.BadGateway, ex.Message);
+            return Result<string>.Failure(error);
         }
 
-        return response.ToString();
+        return Result<string>.Success(response.ToString());
     }
 }

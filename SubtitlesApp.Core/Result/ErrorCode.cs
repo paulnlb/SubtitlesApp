@@ -11,5 +11,5 @@ public enum ErrorCode
     OperationCanceled,
     AuthenticationError,
     Unauthorized,
-    DeserializationError,
+    BadGateway,
 }

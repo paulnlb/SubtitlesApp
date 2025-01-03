@@ -29,7 +29,7 @@ public class LlmTranslationService : ITranslationService
         _mapper = mapper;
     }
 
-    public async Task<Result<List<SubtitleDTO>>> TranslateAsync(TranslationRequestDto requestDto)
+    public async Task<ListResult<SubtitleDTO>> TranslateAsync(TranslationRequestDto requestDto)
     {
         var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
 
@@ -39,7 +39,7 @@ public class LlmTranslationService : ITranslationService
                 ErrorCode.BadRequest,
                 $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
             );
-            return Result<List<SubtitleDTO>>.Failure(error);
+            return ListResult<SubtitleDTO>.Failure(error);
         }
 
         if (requestDto.SourceSubtitles == null || requestDto.SourceSubtitles.Count == 0)
@@ -48,7 +48,7 @@ public class LlmTranslationService : ITranslationService
                 ErrorCode.BadRequest,
                 "Provide at least one subtitle to translate"
             );
-            return Result<List<SubtitleDTO>>.Failure(error);
+            return ListResult<SubtitleDTO>.Failure(error);
         }
 
         // Insert current language name into system prompt
@@ -58,9 +58,14 @@ public class LlmTranslationService : ITranslationService
 
         var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
 
-        var llmResponse = await _lmService.SendAsync(chatHistory, userPrompt);
+        var llmResult = await _lmService.SendAsync(chatHistory, userPrompt);
 
-        return DeserializeLlmResponseToSubtitles(requestDto, llmResponse);
+        if (llmResult.IsFailure)
+        {
+            return ListResult<SubtitleDTO>.Failure(llmResult.Error);
+        }
+
+        return DeserializeLlmResponseToSubtitles(requestDto, llmResult.Value);
     }
 
     private string SerializeSubtitlesToPrompt(List<SubtitleDTO> subtitles)
@@ -77,7 +82,7 @@ public class LlmTranslationService : ITranslationService
         return string.Format(rawPrompt, serializedSubtitles);
     }
 
-    private Result<List<SubtitleDTO>> DeserializeLlmResponseToSubtitles(
+    private ListResult<SubtitleDTO> DeserializeLlmResponseToSubtitles(
         TranslationRequestDto requestDto,
         string llmResponse
     )
@@ -94,10 +99,10 @@ public class LlmTranslationService : ITranslationService
         if (llmSubtitles?.Count != requestDto.SourceSubtitles.Count)
         {
             var error = new Error(
-                ErrorCode.DeserializationError,
+                ErrorCode.BadGateway,
                 $"Sizes of source and translated subtitles lists do not match. Expected: {requestDto.SourceSubtitles.Count}, but was: {llmSubtitles?.Count}"
             );
-            return Result<List<SubtitleDTO>>.Failure(error);
+            return ListResult<SubtitleDTO>.Failure(error);
         }
 
         for (int i = 0; i < sourceSubtitles.Count; i++)
@@ -108,10 +113,10 @@ public class LlmTranslationService : ITranslationService
             if (!ValidateLlmSubtitle(requestDto.TargetLanguageCode, sourceSubtitle, llmSubtitle))
             {
                 var error = new Error(
-                    ErrorCode.DeserializationError,
+                    ErrorCode.BadGateway,
                     $"Translated and original subtitles do not match at index {i}"
                 );
-                return Result<List<SubtitleDTO>>.Failure(error);
+                return ListResult<SubtitleDTO>.Failure(error);
             }
 
             var translatedSubtitle = _mapper.Map<SubtitleDTO>(sourceSubtitle);
@@ -120,7 +125,7 @@ public class LlmTranslationService : ITranslationService
             translatedSubtitles.Add(translatedSubtitle);
         }
 
-        return Result<List<SubtitleDTO>>.Success(translatedSubtitles);
+        return ListResult<SubtitleDTO>.Success(translatedSubtitles);
     }
 
     private static bool ValidateLlmSubtitle(

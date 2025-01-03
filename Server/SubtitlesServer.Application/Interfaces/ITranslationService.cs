@@ -5,5 +5,5 @@ namespace SubtitlesServer.Application.Interfaces;
 
 public interface ITranslationService
 {
-    Task<Result<List<SubtitleDTO>>> TranslateAsync(TranslationRequestDto requestDto);
+    Task<ListResult<SubtitleDTO>> TranslateAsync(TranslationRequestDto requestDto);
 }

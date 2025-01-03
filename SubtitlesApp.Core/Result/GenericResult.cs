@@ -1,8 +1,10 @@
-﻿namespace SubtitlesApp.Core.Result;
+﻿using Pizda = SubtitlesApp.Core.Result.Result<System.Collections.Generic.List<SubtitlesApp.Core.DTOs.SubtitleDTO>>;
+
+namespace SubtitlesApp.Core.Result;
 
 public class Result<T> : Result
 {
-    private Result(bool isSuccess, Error error, T value)
+    protected Result(bool isSuccess, Error error, T value)
         : base(isSuccess, error)
     {
         Value = value;
@@ -12,5 +14,5 @@ public class Result<T> : Result
 
     public static Result<T> Success(T value) => new(true, Error.None, value);
 
-    public new static Result<T> Failure(Error error) => new(false, error, default);
+    public static new Result<T> Failure(Error error) => new(false, error, default);
 }
