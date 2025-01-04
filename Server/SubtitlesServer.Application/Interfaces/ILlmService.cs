@@ -3,7 +3,7 @@ using SubtitlesApp.Core.Result;
 
 namespace SubtitlesServer.Application.Interfaces;
 
-public interface ITranslationService
+public interface ILlmService
 {
-    Task<ListResult<SubtitleDTO>> TranslateAsync(TranslationRequestDto requestDto);
+    Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt);
 }

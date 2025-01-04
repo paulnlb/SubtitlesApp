@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.Application.Interfaces;
+using SubtitlesServer.TranslationApi.Extensions;
 
 namespace SubtitlesServer.TranslationApi.Controllers;
 
@@ -12,27 +13,14 @@ namespace SubtitlesServer.TranslationApi.Controllers;
 public class TranslationController(
     ITranslationService translationService,
     LanguageService languageService,
-    ILogger<TranslationController> logger) : ControllerBase
+    ILogger<TranslationController> logger
+) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Translate([FromBody] TranslationRequestDto request)
     {
-        var language = languageService.GetLanguageByCode(request.TargetLanguageCode);
+        var result = await translationService.TranslateAsync(request);
 
-        if (language == null)
-        {
-            const string message = "Invalid target language";
-            logger.LogInformation(message);
-            return BadRequest(message);
-        }
-
-        if (request.SourceSubtitles == null || !request.SourceSubtitles.Any())
-        {
-            const string message = "Source subtitles are required";
-            logger.LogInformation(message);
-            return BadRequest(message);
-        }
-
-        return Ok(await translationService.TranslateAsync(request));
+        return this.ConvertToActionResult(result);
     }
 }

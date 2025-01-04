@@ -1,12 +1,13 @@
 ﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Core.Result;
 using SubtitlesServer.Application.Interfaces;
 
 namespace SubtitlesServer.Infrastructure.Services;
 
-public class TranslationService() : ITranslationService
+public class MockTranslationService : ITranslationService
 {
-    public Task<List<SubtitleDTO>> TranslateAsync(TranslationRequestDto requestDto)
+    public Task<Result<List<SubtitleDTO>>> TranslateAsync(TranslationRequestDto requestDto)
     {
         // temporary mock implementation
 
@@ -17,11 +18,11 @@ public class TranslationService() : ITranslationService
             subtitle.Translation = new Translation
             {
                 Text = $"[Translated to {requestDto.TargetLanguageCode}]" + subtitle.Text,
-                LanguageCode = requestDto.TargetLanguageCode
+                LanguageCode = requestDto.TargetLanguageCode,
             };
             subtitle.IsTranslated = false;
         }
 
-        return Task.FromResult(subtitles);
+        return Task.FromResult(Result<List<SubtitleDTO>>.Success(subtitles));
     }
 }
