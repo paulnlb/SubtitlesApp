@@ -4,5 +4,5 @@ public class TranslationRequestDto
 {
     public string TargetLanguageCode { get; set; }
 
-    public List<SubtitleDTO> SourceSubtitles { get; set; }
+    public List<SubtitleDto> SourceSubtitles { get; set; }
 }

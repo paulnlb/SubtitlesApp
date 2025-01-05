@@ -1,27 +1,29 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using System.Net.Http.Json;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
-using System.Net.Http.Json;
 
 namespace SubtitlesApp.Services;
 
 public class TranslationService : ITranslationService
 {
-    private readonly IHttpRequestService<List<SubtitleDTO>> _httpRequestService;
+    private readonly IHttpRequestService<List<SubtitleDto>> _httpRequestService;
     private readonly ISettingsService _settingsService;
 
     public TranslationService(
         ISettingsService settingsService,
-        IHttpRequestService<List<SubtitleDTO>> httpRequestService)
+        IHttpRequestService<List<SubtitleDto>> httpRequestService
+    )
     {
         _httpRequestService = httpRequestService;
         _settingsService = settingsService;
     }
 
-    public Task<Result<List<SubtitleDTO>>> TranslateAsync(
-        List<SubtitleDTO> subtitlesToTranslate,
-        string targetLanguageCode, 
-        CancellationToken cancellationToken = default)
+    public async Task<ListResult<SubtitleDto>> TranslateAsync(
+        List<SubtitleDto> subtitlesToTranslate,
+        string targetLanguageCode,
+        CancellationToken cancellationToken = default
+    )
     {
         var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranslationPath);
         var requestBody = new TranslationRequestDto
@@ -31,6 +33,8 @@ public class TranslationService : ITranslationService
         };
         request.Content = JsonContent.Create(requestBody);
 
-        return _httpRequestService.SendAsync(request, cancellationToken);
+        var result = await _httpRequestService.SendAsync(request, cancellationToken);
+
+        return ListResult<SubtitleDto>.FromGeneric(result);
     }
 }

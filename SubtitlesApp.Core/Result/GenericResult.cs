@@ -1,6 +1,4 @@
-﻿using Pizda = SubtitlesApp.Core.Result.Result<System.Collections.Generic.List<SubtitlesApp.Core.DTOs.SubtitleDTO>>;
-
-namespace SubtitlesApp.Core.Result;
+﻿namespace SubtitlesApp.Core.Result;
 
 public class Result<T> : Result
 {

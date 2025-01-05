@@ -5,8 +5,9 @@ namespace SubtitlesApp.Interfaces;
 
 public interface ITranslationService
 {
-    Task<Result<List<SubtitleDTO>>> TranslateAsync(
-        List<SubtitleDTO> subtitlesToTranslate,
+    Task<ListResult<SubtitleDto>> TranslateAsync(
+        List<SubtitleDto> subtitlesToTranslate,
         string targetLanguageCode,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }
