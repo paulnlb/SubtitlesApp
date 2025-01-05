@@ -7,22 +7,26 @@ namespace SubtitlesServer.Infrastructure.Services;
 
 public class MockTranslationService : ITranslationService
 {
-    public Task<Result<List<SubtitleDTO>>> TranslateAsync(TranslationRequestDto requestDto)
+    public Task<ListResult<SubtitleDto>> TranslateAsync(TranslationRequestDto requestDto)
     {
         // temporary mock implementation
 
         var subtitles = requestDto.SourceSubtitles;
+        var translatedSubtitlesDtos = new List<SubtitleDto>();
 
         foreach (var subtitle in subtitles)
         {
-            subtitle.Translation = new Translation
-            {
-                Text = $"[Translated to {requestDto.TargetLanguageCode}]" + subtitle.Text,
-                LanguageCode = requestDto.TargetLanguageCode,
-            };
-            subtitle.IsTranslated = false;
+            translatedSubtitlesDtos.Add(
+                new SubtitleDto
+                {
+                    Text = $"[Translated to {requestDto.TargetLanguageCode}]" + subtitle.Text,
+                    LanguageCode = requestDto.TargetLanguageCode,
+                    StartTime = subtitle.StartTime,
+                    EndTime = subtitle.EndTime,
+                }
+            );
         }
 
-        return Task.FromResult(Result<List<SubtitleDTO>>.Success(subtitles));
+        return Task.FromResult(ListResult<SubtitleDto>.Success(subtitles));
     }
 }

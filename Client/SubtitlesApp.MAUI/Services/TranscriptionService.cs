@@ -1,14 +1,18 @@
-﻿using SubtitlesApp.ClientModels;
+﻿using AutoMapper;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
+
 namespace SubtitlesApp.Services;
 
 public class TranscriptionService(
     IMediaProcessor mediaProcessor,
     ISubtitlesService subtitlesService,
-    ITranslationService translationService) : ITranscriptionService
+    ITranslationService translationService,
+    IMapper mapper
+) : ITranscriptionService
 {
     bool _disposed;
 
@@ -33,11 +37,12 @@ public class TranscriptionService(
         _disposed = true;
     }
 
-    public async Task<Result<List<SubtitleDTO>>> TranscribeAsync(
+    public async Task<ListResult<Subtitle>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeIntervalToTranscribe,
         SubtitlesSettings subtitlesSettings,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
@@ -45,46 +50,85 @@ public class TranscriptionService(
                 mediaPath,
                 timeIntervalToTranscribe.StartTime,
                 timeIntervalToTranscribe.EndTime,
-                cancellationToken);
+                cancellationToken
+            );
 
-            var subsResult = await subtitlesService.GetSubsAsync(
+            var transcriptionResult = await subtitlesService.GetSubsAsync(
                 audio,
                 subtitlesSettings.OriginalLanguage.Code,
                 timeIntervalToTranscribe.StartTime,
-                cancellationToken);
+                cancellationToken
+            );
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (subsResult.IsFailure)
+            if (transcriptionResult.IsFailure)
             {
-                return subsResult;
+                return ListResult<Subtitle>.Failure(transcriptionResult.Error);
             }
 
-            var subs = subsResult.Value;
+            var originalSubtitleDtos = transcriptionResult.Value;
 
-            if (subtitlesSettings.TranslateToLanguage?.Code != null)
+            // If translation is not required - return subtitles immidiately
+            if (subtitlesSettings.TranslateToLanguage?.Code == null)
             {
-                var subsTranslationResult = await translationService.TranslateAsync(
-                    subs,
-                    subtitlesSettings.TranslateToLanguage.Code,
-                    cancellationToken);
-
-                if (subsTranslationResult.IsSuccess)
-                {
-                    subs = subsTranslationResult.Value;
-                }
-                else
-                {
-                    return subsTranslationResult;
-                }
+                return ListResult<Subtitle>.Success(
+                    mapper.Map<List<Subtitle>>(originalSubtitleDtos)
+                );
             }
 
-            return Result<List<SubtitleDTO>>.Success(subs);
+            var subsTranslationResult = await translationService.TranslateAsync(
+                originalSubtitleDtos,
+                subtitlesSettings.TranslateToLanguage.Code,
+                cancellationToken
+            );
+
+            if (subsTranslationResult.IsFailure)
+            {
+                return ListResult<Subtitle>.Failure(transcriptionResult.Error);
+            }
+
+            return MapToFinalSubtitles(originalSubtitleDtos, subsTranslationResult.Value);
         }
         catch (OperationCanceledException)
         {
-            var error = new Error(ErrorCode.OperationCanceled, "Transcription operation has been canceled");
-            return Result<List<SubtitleDTO>>.Failure(error);
+            var error = new Error(
+                ErrorCode.OperationCanceled,
+                "Transcription operation has been canceled"
+            );
+            return ListResult<Subtitle>.Failure(error);
         }
+    }
+
+    private ListResult<Subtitle> MapToFinalSubtitles(
+        List<SubtitleDto> originalDtos,
+        List<SubtitleDto> translatedDtos
+    )
+    {
+        if (originalDtos.Count != translatedDtos.Count)
+        {
+            var error = new Error(
+                ErrorCode.Unspecified,
+                $"Sizes of source and translated subtitles lists do not match (original: {originalDtos.Count}, translated: {translatedDtos.Count})"
+            );
+            return ListResult<Subtitle>.Failure(error);
+        }
+
+        var finalSubtites = new List<Subtitle>();
+
+        for (int i = 0; i < originalDtos.Count; i++)
+        {
+            var finalSubtitle = mapper.Map<Subtitle>(originalDtos[i]);
+
+            finalSubtitle.Translation = new Translation
+            {
+                LanguageCode = translatedDtos[i].LanguageCode,
+                Text = translatedDtos[i].Text,
+            };
+
+            finalSubtites.Add(finalSubtitle);
+        }
+
+        return ListResult<Subtitle>.Success(finalSubtites);
     }
 }

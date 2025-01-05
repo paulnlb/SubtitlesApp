@@ -15,9 +15,10 @@ public interface ITranscriptionService : IDisposable
     /// <param name="subtitlesSettings">Subtiltes settings</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Result of transcription. If the result is successfull, it will contain a list of transcribed subtitles with or without translations</returns>
-    Task<Result<List<SubtitleDTO>>> TranscribeAsync(
+    Task<ListResult<Subtitle>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeIntervalToTranscribe,
         SubtitlesSettings subtitlesSettings,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }

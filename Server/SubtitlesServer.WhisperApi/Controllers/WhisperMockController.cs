@@ -9,14 +9,14 @@ namespace SubtitlesServer.WhisperApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class WhisperMockController(
-    ILogger<WhisperMockController> logger,
-    IWaveService waveService) : ControllerBase
+public class WhisperMockController(ILogger<WhisperMockController> logger, IWaveService waveService)
+    : ControllerBase
 {
     [HttpPost("transcription")]
     public IActionResult TranscribeAudio(
         IFormFile audioFile,
-        [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode)
+        [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode
+    )
     {
         logger.LogInformation("Connected");
 
@@ -37,7 +37,7 @@ public class WhisperMockController(
 
         logger.LogInformation("Max: {Max}", max);
 
-        var subs = new List<SubtitleDTO>();
+        var subs = new List<SubtitleDto>();
 
         for (int i = 0; i < max; i += 2)
         {
@@ -57,15 +57,15 @@ public class WhisperMockController(
 
             var text = $"Subtitle ({startTime.Minutes}m, {startTime.Seconds}s) \nTest";
 
-            var subtitle = new SubtitleDTO
+            var subtitle = new SubtitleDto
             {
-                TimeInterval = new TimeIntervalDTO() { StartTime = startTime, EndTime = endTime },
+                StartTime = startTime,
+                EndTime = endTime,
                 Text = text,
                 LanguageCode = subtitlesLanguageCode,
-                IsTranslated = false,
             };
 
-            logger.LogInformation("{StartTime}: {Text}", subtitle.TimeInterval.StartTime, subtitle.Text);
+            logger.LogInformation("{StartTime}: {Text}", subtitle.StartTime, subtitle.Text);
 
             subs.Add(subtitle);
         }

@@ -31,7 +31,10 @@ public static class ServicesCollectionExtensions
         services.AddScoped<ISubtitlesService, SubtitlesService>();
         services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
         services.AddScoped<HttpsClientHandlerService>();
-        services.AddScoped<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>();
+        services.AddScoped<
+            IHttpRequestService<List<SubtitleDto>>,
+            HttpRequestService<List<SubtitleDto>>
+        >();
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
         #endregion
@@ -46,16 +49,24 @@ public static class ServicesCollectionExtensions
         var service = new HttpsClientHandlerService();
         var handler = service.GetPlatformMessageHandler();
 
-        services.AddHttpClient<IHttpRequestService<List<SubtitleDTO>>, HttpRequestService<List<SubtitleDTO>>>()
+        services
+            .AddHttpClient<
+                IHttpRequestService<List<SubtitleDto>>,
+                HttpRequestService<List<SubtitleDto>>
+            >()
             .ConfigurePrimaryHttpMessageHandler(() => handler);
 #else
-        services.AddHttpClient<ISubtitlesService, SubtitlesService>();
-        services.AddHttpClient<ITranslationService, TranslationService>();
+        services.AddHttpClient<
+            IHttpRequestService<List<SubtitleDto>>,
+            HttpRequestService<List<SubtitleDto>>
+        >();
 #endif
         #endregion
 
         #region pages
-        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>(
+            "PlayerWithSubtitles"
+        );
         services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
         services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
         #endregion
@@ -64,7 +75,7 @@ public static class ServicesCollectionExtensions
         services.AddSingleton(Preferences.Default);
 
 #if RELEASE
-            services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ISettingsService, SettingsService>();
 #else
         services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
 #endif

@@ -16,13 +16,15 @@ public class WhisperController(
     ILogger<WhisperController> logger,
     ITranscriptionService transcriptionService,
     IWaveService waveService,
-    LanguageService languageService) : ControllerBase
+    LanguageService languageService
+) : ControllerBase
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
         IFormFile audioFile,
         [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         logger.LogInformation("Connected");
 
@@ -50,7 +52,8 @@ public class WhisperController(
         var subtitles = await transcriptionService.TranscribeAudioAsync(
             audioBytes,
             subtitlesLanguageCode,
-            cancellationToken);
+            cancellationToken
+        );
 
         logger.LogInformation("Transcribing done.");
 

@@ -9,13 +9,23 @@ public class AutoMapperProfile : Profile
 {
     public AutoMapperProfile()
     {
-        CreateMap<TimeInterval, TimeIntervalDTO>()
-            .ReverseMap();
+        CreateMap<VisualSubtitle, Subtitle>().ReverseMap();
 
-        CreateMap<Subtitle, SubtitleDTO>()
-            .ReverseMap();
+        CreateMap<SubtitleDto, Subtitle>()
+            .ForMember(
+                dest => dest.TimeInterval,
+                opts => opts.MapFrom(src => new TimeInterval(src.StartTime, src.EndTime))
+            );
 
-        CreateMap<VisualSubtitle, SubtitleDTO>()
-            .ReverseMap();
+        CreateMap<SubtitleDto, VisualSubtitle>().IncludeBase<SubtitleDto, Subtitle>();
+
+        CreateMap<Subtitle, SubtitleDto>()
+            .ForMember(
+                dest => dest.StartTime,
+                opts => opts.MapFrom(src => src.TimeInterval.StartTime)
+            )
+            .ForMember(dest => dest.EndTime, opts => opts.MapFrom(src => src.TimeInterval.EndTime));
+
+        CreateMap<VisualSubtitle, SubtitleDto>().IncludeBase<Subtitle, SubtitleDto>();
     }
 }
