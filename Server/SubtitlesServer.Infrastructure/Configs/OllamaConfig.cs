@@ -11,4 +11,6 @@ public class OllamaConfig
     public int NumCtx { get; set; }
 
     public string DefaultSystemPrompt { get; set; }
+
+    public string SingleSubtitleSystemPrompt { get; set; }
 }

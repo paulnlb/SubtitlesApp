@@ -4,6 +4,7 @@ using System.Text.Unicode;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.Application.Interfaces;
@@ -21,13 +22,13 @@ public class LlmTranslationService : ITranslationService
     public LlmTranslationService(
         IOptions<OllamaConfig> ollamaOptions,
         LanguageService languageService,
-        ILlmService lmService,
+        ILlmService llmService,
         ILogger<LlmTranslationService> logger
     )
     {
         _config = ollamaOptions.Value;
         _languageService = languageService;
-        _llmService = lmService;
+        _llmService = llmService;
         _logger = logger;
     }
 
@@ -67,6 +68,98 @@ public class LlmTranslationService : ITranslationService
         }
 
         return DeserializeLlmResponseToSubtitles(requestDto, llmResult.Value);
+    }
+
+    public AsyncEnumerableResult<SubtitleDto> TranslateAndStreamAsync(
+        TranslationRequestDto requestDto
+    )
+    {
+        var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
+
+        if (targetLanguage == null)
+        {
+            var error = new Error(
+                ErrorCode.BadRequest,
+                $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
+            );
+            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
+        }
+
+        if (requestDto.SourceSubtitles == null || requestDto.SourceSubtitles.Count == 0)
+        {
+            var error = new Error(
+                ErrorCode.BadRequest,
+                "Provide at least one subtitle to translate"
+            );
+            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
+        }
+
+        return AsyncEnumerableResult<SubtitleDto>.Success(
+            StreamTranslationAsync(targetLanguage, requestDto)
+        );
+    }
+
+    private async IAsyncEnumerable<SubtitleDto> StreamTranslationAsync(
+        Language targetLanguage,
+        TranslationRequestDto requestDto
+    )
+    {
+        // Insert current language name into system prompt
+        var systemPrompt = string.Format(
+            _config.SingleSubtitleSystemPrompt,
+            targetLanguage.EnglishName
+        );
+        var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
+
+        foreach (var subtitleDto in requestDto.SourceSubtitles)
+        {
+            var serializedSubtitle = JsonSerializer.Serialize(
+                subtitleDto,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.Create(
+                        UnicodeRanges.BasicLatin,
+                        UnicodeRanges.Cyrillic,
+                        UnicodeRanges.Arabic
+                    ),
+                }
+            );
+
+            serializedSubtitle = serializedSubtitle.Replace("\\u0027", "\'");
+
+            var llmResult = await _llmService.SendAsync(chatHistory, serializedSubtitle);
+
+            if (llmResult.IsFailure)
+            {
+                yield break;
+            }
+
+            // If an exception is thrown during deserialization,
+            // GlobalExceptionHandler will catch it
+            var llmSubtitle = JsonSerializer.Deserialize<SubtitleDto>(
+                llmResult.Value,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.Create(
+                        UnicodeRanges.BasicLatin,
+                        UnicodeRanges.Cyrillic,
+                        UnicodeRanges.Arabic
+                    ),
+                }
+            );
+
+            if (llmSubtitle == null)
+            {
+                continue;
+            }
+
+            yield return llmSubtitle;
+
+            chatHistory.Add(new LlmMessageDto("user", serializedSubtitle));
+            chatHistory.Add(new LlmMessageDto("assistant", llmResult.Value));
+        }
     }
 
     private static string SerializeSubtitlesToPrompt(List<SubtitleDto> subtitlesDtos)
