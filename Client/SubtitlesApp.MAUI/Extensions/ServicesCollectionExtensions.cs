@@ -31,10 +31,7 @@ public static class ServicesCollectionExtensions
         services.AddScoped<ISubtitlesService, SubtitlesService>();
         services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
         services.AddScoped<HttpsClientHandlerService>();
-        services.AddScoped<
-            IHttpRequestService<List<SubtitleDto>>,
-            HttpRequestService<List<SubtitleDto>>
-        >();
+        services.AddScoped<IHttpRequestService, HttpRequestService>();
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
         #endregion
@@ -50,16 +47,10 @@ public static class ServicesCollectionExtensions
         var handler = service.GetPlatformMessageHandler();
 
         services
-            .AddHttpClient<
-                IHttpRequestService<List<SubtitleDto>>,
-                HttpRequestService<List<SubtitleDto>>
-            >()
+            .AddHttpClient<IHttpRequestService, HttpRequestService>()
             .ConfigurePrimaryHttpMessageHandler(() => handler);
 #else
-        services.AddHttpClient<
-            IHttpRequestService<List<SubtitleDto>>,
-            HttpRequestService<List<SubtitleDto>>
-        >();
+        services.AddHttpClient<IHttpRequestService, HttpRequestService>();
 #endif
         #endregion
 

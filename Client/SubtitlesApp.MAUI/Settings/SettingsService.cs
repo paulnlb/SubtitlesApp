@@ -8,7 +8,10 @@ public class SettingsService : ISettingsService
     private const string _baseUrl = "http://localhost:8080/";
 
     private const string _unixSocketPathKey = "unix_socket_path";
-    private readonly string _unixSocketPath = Path.Combine(FileSystem.Current.AppDataDirectory, "media.sock");
+    private readonly string _unixSocketPath = Path.Combine(
+        FileSystem.Current.AppDataDirectory,
+        "media.sock"
+    );
 
     private const string _transcribeBufferLengthKey = "transcribe_buffer_length";
     private const int _transcribeBufferLength = 60;
@@ -33,6 +36,9 @@ public class SettingsService : ISettingsService
 
     private const string _translationPathKey = "translation_path";
     private const string _translationPath = "api/translation";
+
+    private const string _translationStreamPathKey = "translation_stream_path";
+    private const string _translationStreamPath = "api/translation/stream";
 
     public string TranscriptionPath
     {
@@ -92,5 +98,11 @@ public class SettingsService : ISettingsService
     {
         get => Preferences.Get(_translationPathKey, _translationPath);
         set => Preferences.Set(_translationPathKey, value);
+    }
+
+    public string TranslationStreamPath
+    {
+        get => Preferences.Get(_translationStreamPathKey, _translationStreamPath);
+        set => Preferences.Set(_translationStreamPathKey, value);
     }
 }

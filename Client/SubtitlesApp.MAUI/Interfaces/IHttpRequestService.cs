@@ -2,9 +2,16 @@
 
 namespace SubtitlesApp.Interfaces;
 
-public interface IHttpRequestService<T> where T : class, new()
+public interface IHttpRequestService
 {
-    Task<Result<T>> SendAsync(
+    Task<Result<TResult>> SendAsync<TResult>(
         HttpRequestMessage request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    )
+        where TResult : class, new();
+
+    Task<AsyncEnumerableResult<TResultItem>> StreamAsync<TResultItem>(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken = default
+    );
 }
