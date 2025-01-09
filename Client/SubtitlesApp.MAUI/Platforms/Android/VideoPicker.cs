@@ -11,6 +11,13 @@ public partial class VideoPicker
 {
     public partial async Task<string?> PickAsync()
     {
+        var status = await Permissions.RequestAsync<ReadPhotoVideoPerms>();
+
+        if (status != PermissionStatus.Granted)
+        {
+            AppInfo.Current.ShowSettingsUI();
+        }
+
         var currentActivity = Platform.CurrentActivity ?? await Platform.WaitForActivityAsync();
 
         // Essentials supports >= API 19 where this action is available

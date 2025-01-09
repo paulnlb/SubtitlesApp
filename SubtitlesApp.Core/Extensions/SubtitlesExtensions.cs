@@ -5,7 +5,7 @@ namespace SubtitlesApp.Core.Extensions;
 
 public static class SubtitlesExtensions
 {
-    public static (Subtitle? Sub, int index) BinarySearch(this ObservableCollection<Subtitle> list, TimeSpan mediaTime)
+    public static (T? Sub, int index) BinarySearch<T>(this ObservableCollection<T> list, TimeSpan mediaTime) where T : Subtitle
     {
         int low = 0;
         int high = list.Count - 1;
@@ -32,7 +32,7 @@ public static class SubtitlesExtensions
         return (null, -1);
     }
 
-    public static (Subtitle? Sub, int index) GetLaterClosest(this ObservableCollection<Subtitle> list, TimeSpan mediaTime)
+    public static (T? Sub, int index) GetLaterClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime) where T : Subtitle
     {
         int low = 0;
         int high = list.Count - 1;
@@ -65,7 +65,7 @@ public static class SubtitlesExtensions
         return (list[mid], mid);
     }
 
-    public static void Insert(this ObservableCollection<Subtitle> list, Subtitle newSubtitle)
+    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle) where T: Subtitle
     {
         bool overlapsWithLeft = false;
         bool overlapsWithRight = false;
@@ -97,5 +97,67 @@ public static class SubtitlesExtensions
         }
 
         list.Insert(index, newSubtitle);
+    }
+
+    public static void SwitchToTranslations<T>(this ObservableCollection<T> list, int skip = 0) where T : Subtitle
+    {
+        while (skip < list.Count)
+        {
+            list[skip].SwitchToTranslation();
+            skip++;
+        }
+    }
+
+    public static void RestoreOriginalLanguages<T>(this ObservableCollection<T> list, int skip = 0) where T : Subtitle
+    {
+        while (skip < list.Count)
+        {
+            list[skip].RestoreOriginalLanguage();
+            skip++;
+        }
+    }
+
+    public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems) where T : Subtitle
+    {
+        foreach (var item in newItems)
+        {
+            list.Insert(item);
+        }
+    }
+
+    public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, Action<T> foreachAction) where T : Subtitle
+    {
+        foreach (var item in newItems)
+        {
+            foreachAction(item);
+            list.Insert(item);
+        }
+    }
+
+    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, int skip = 0) where T : Subtitle
+    {
+        if (newItems.Count != list.Count - skip)
+        {
+            throw new ArgumentException("ReplaceMany failed: new items lists sizes do not match");
+        }
+
+        for (int i = 0; i < newItems.Count; i++)
+        {
+            list[skip + i] = newItems[i];
+        }
+    }
+
+    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, Action<T> foreachAction, int skip = 0) where T : Subtitle
+    {
+        if (newItems.Count != list.Count - skip)
+        {
+            throw new ArgumentException("ReplaceMany failed: new items lists sizes do not match");
+        }
+
+        for (int i = 0; i < newItems.Count; i++)
+        {
+            foreachAction(newItems[i]);
+            list[skip + i] = newItems[i];
+        }
     }
 }

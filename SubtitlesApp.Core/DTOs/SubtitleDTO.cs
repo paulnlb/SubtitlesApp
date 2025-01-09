@@ -1,8 +1,12 @@
 ﻿namespace SubtitlesApp.Core.DTOs;
 
-public class SubtitleDTO
+public class SubtitleDto
 {
     public string Text { get; set; }
 
-    public TimeIntervalDTO TimeInterval { get; set; }
+    public TimeSpan StartTime { get; set; }
+
+    public TimeSpan EndTime { get; set; }
+
+    public string LanguageCode { get; set; }
 }

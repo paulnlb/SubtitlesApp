@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesApp.MAUI", "Client
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesApp.Core", "SubtitlesApp.Core\SubtitlesApp.Core.csproj", "{F88F1555-F738-4FD7-88F6-4C4FA40A513C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesServer", "Server\SubtitlesServer\SubtitlesServer.csproj", "{ED4132BA-56F2-4F55-9DF5-F9724B68C894}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesServer.WhisperApi", "Server\SubtitlesServer.WhisperApi\SubtitlesServer.WhisperApi.csproj", "{ED4132BA-56F2-4F55-9DF5-F9724B68C894}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesServer.Application", "Server\SubtitlesServer.Application\SubtitlesServer.Application.csproj", "{28527E9D-D5CC-4165-A1FB-5549950ECB66}"
 EndProject
@@ -24,6 +24,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F72A6DB8-9085-42D9-A6AA-902E2384E388}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitlesApp.Core.Tests", "Tests\SubtitlesApp.Core.Tests\SubtitlesApp.Core.Tests.csproj", "{803C0BEC-C2C6-477D-8F89-5B8E17461796}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.BFF", "Server\SubtitlesServer.BFF\SubtitlesServer.BFF.csproj", "{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.IdentityApi", "Server\SubtitlesServer.IdentityApi\SubtitlesServer.IdentityApi.csproj", "{179622AB-BF42-4264-9BF1-4EFAA450D693}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.TranslationApi", "Server\SubtitlesServer.TranslationApi\SubtitlesServer.TranslationApi.csproj", "{41D05B68-3F75-4FB9-9254-7F580B070F75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +67,18 @@ Global
 		{803C0BEC-C2C6-477D-8F89-5B8E17461796}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{803C0BEC-C2C6-477D-8F89-5B8E17461796}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{803C0BEC-C2C6-477D-8F89-5B8E17461796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{179622AB-BF42-4264-9BF1-4EFAA450D693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{179622AB-BF42-4264-9BF1-4EFAA450D693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{179622AB-BF42-4264-9BF1-4EFAA450D693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{179622AB-BF42-4264-9BF1-4EFAA450D693}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +91,9 @@ Global
 		{35B26793-10F7-4DB2-A3C5-AE31150B3467} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
 		{0D098EE7-E01A-43D5-AC04-8F4439062020} = {6D39E6BD-C05F-4081-A87C-D1AB96CD9870}
 		{803C0BEC-C2C6-477D-8F89-5B8E17461796} = {F72A6DB8-9085-42D9-A6AA-902E2384E388}
+		{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
+		{179622AB-BF42-4264-9BF1-4EFAA450D693} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
+		{41D05B68-3F75-4FB9-9254-7F580B070F75} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2C3905E-23CD-4D77-BC65-BC8A2DF406B4}

@@ -4,7 +4,9 @@ namespace SubtitlesServer.Application.Interfaces;
 
 public interface ITranscriptionService
 {
-    Task<List<SubtitleDTO>> TranscribeAudioAsync(
+    Task<List<SubtitleDto>> TranscribeAudioAsync(
         byte[] audioBytes,
-        CancellationToken cancellationToken = default);
+        string subtitlesLanguageCode,
+        CancellationToken cancellationToken = default
+    );
 }

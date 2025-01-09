@@ -60,7 +60,7 @@ public class WaveService(ILogger<WaveService> logger) : IWaveService
         }
 
         // Read the number of bytes in the data chunk
-        // ignore the chech if dataSize if it is -1 (unknown size)
+        // Ignore the check if dataSize equals to -1 (unknown size)
         int dataSize = BitConverter.ToInt32(audio, dataChunkStart + 4);
         if (dataSize != audio.Length - dataChunkStart - 8
             && dataSize != -1)

@@ -39,10 +39,10 @@ public class SettingsViewModel : ObservableObject
 
     public string WhisperAddress
     {
-        get => _settingsService.WhisperAddress;
+        get => _settingsService.TranscriptionPath;
         set
         {
-            _settingsService.WhisperAddress = value;
+            _settingsService.TranscriptionPath = value;
             OnPropertyChanged();
         }
     }

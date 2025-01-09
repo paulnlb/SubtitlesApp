@@ -1,0 +1,63 @@
+﻿namespace SubtitlesApp.Core.Constants;
+
+public static class LanguageCodes
+{
+    public const string Afrikaans = "af";
+    public const string Arabic = "ar";
+    public const string Armenian = "hy";
+    public const string Azerbaijani = "az";
+    public const string Belarusian = "be";
+    public const string Bosnian = "bs";
+    public const string Bulgarian = "bg";
+    public const string Catalan = "ca";
+    public const string Chinese = "zh";
+    public const string Croatian = "hr";
+    public const string Czech = "cs";
+    public const string Danish = "da";
+    public const string Dutch = "nl";
+    public const string English = "en";
+    public const string Estonian = "et";
+    public const string Finnish = "fi";
+    public const string French = "fr";
+    public const string Galician = "gl";
+    public const string German = "de";
+    public const string Greek = "el";
+    public const string Hebrew = "he";
+    public const string Hindi = "hi";
+    public const string Hungarian = "hu";
+    public const string Icelandic = "is";
+    public const string Indonesian = "id";
+    public const string Italian = "it";
+    public const string Japanese = "ja";
+    public const string Kannada = "kn";
+    public const string Kazakh = "kk";
+    public const string Korean = "ko";
+    public const string Latvian = "lv";
+    public const string Lithuanian = "lt";
+    public const string Macedonian = "mk";
+    public const string Malay = "ms";
+    public const string Marathi = "mr";
+    public const string Maori = "mi";
+    public const string Nepali = "ne";
+    public const string Norwegian = "no";
+    public const string Persian = "fa";
+    public const string Polish = "pl";
+    public const string Portuguese = "pt";
+    public const string Romanian = "ro";
+    public const string Serbian = "sr";
+    public const string Slovak = "sk";
+    public const string Slovenian = "sl";
+    public const string Spanish = "es";
+    public const string Swahili = "sw";
+    public const string Swedish = "sv";
+    public const string Tagalog = "tl";
+    public const string Tamil = "ta";
+    public const string Thai = "th";
+    public const string Turkish = "tr";
+    public const string Ukrainian = "uk";
+    public const string Urdu = "ur";
+    public const string Vietnamese = "vi";
+    public const string Welsh = "cy";
+
+    public const string Auto = "auto";
+}
