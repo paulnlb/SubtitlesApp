@@ -8,7 +8,7 @@ namespace SubtitlesServer.TranslationApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+//[Authorize]
 public class TranslationController(ITranslationService translationService) : ControllerBase
 {
     [HttpPost]
@@ -17,5 +17,13 @@ public class TranslationController(ITranslationService translationService) : Con
         var result = await translationService.TranslateAsync(request);
 
         return this.ConvertToActionResult(result);
+    }
+
+    [HttpPost("stream")]
+    public IActionResult TranslateAndStream([FromBody] TranslationRequestDto request)
+    {
+        var translationResult = translationService.TranslateAndStreamAsync(request);
+
+        return this.ConvertToActionResult(translationResult);
     }
 }

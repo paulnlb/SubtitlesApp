@@ -7,12 +7,12 @@ namespace SubtitlesApp.Services;
 
 public class SubtitlesService : ISubtitlesService
 {
-    private readonly IHttpRequestService<List<SubtitleDto>> _httpRequestService;
+    private readonly IHttpRequestService _httpRequestService;
     private readonly ISettingsService _settingsService;
 
     public SubtitlesService(
         ISettingsService settingsService,
-        IHttpRequestService<List<SubtitleDto>> httpRequestService
+        IHttpRequestService httpRequestService
     )
     {
         _httpRequestService = httpRequestService;
@@ -37,7 +37,10 @@ public class SubtitlesService : ISubtitlesService
         };
         request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, languageCode);
 
-        var result = await _httpRequestService.SendAsync(request, cancellationToken);
+        var result = await _httpRequestService.SendAsync<List<SubtitleDto>>(
+            request,
+            cancellationToken
+        );
 
         if (result.IsSuccess && timeOffset.HasValue && timeOffset.Value != TimeSpan.Zero)
         {

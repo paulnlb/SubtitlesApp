@@ -29,4 +29,11 @@ public class MockTranslationService : ITranslationService
 
         return Task.FromResult(ListResult<SubtitleDto>.Success(subtitles));
     }
+
+    AsyncEnumerableResult<SubtitleDto> ITranslationService.TranslateAndStreamAsync(
+        TranslationRequestDto requestDto
+    )
+    {
+        throw new NotImplementedException();
+    }
 }

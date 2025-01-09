@@ -10,4 +10,10 @@ public interface ITranslationService
         string targetLanguageCode,
         CancellationToken cancellationToken = default
     );
+
+    Task<AsyncEnumerableResult<SubtitleDto>> TranslateAndStreamAsync(
+        List<SubtitleDto> subtitlesToTranslate,
+        string targetLanguageCode,
+        CancellationToken cancellationToken = default
+    );
 }

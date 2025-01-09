@@ -4,6 +4,7 @@ using System.Text.Unicode;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.Application.Interfaces;
@@ -21,13 +22,13 @@ public class LlmTranslationService : ITranslationService
     public LlmTranslationService(
         IOptions<OllamaConfig> ollamaOptions,
         LanguageService languageService,
-        ILlmService lmService,
+        ILlmService llmService,
         ILogger<LlmTranslationService> logger
     )
     {
         _config = ollamaOptions.Value;
         _languageService = languageService;
-        _llmService = lmService;
+        _llmService = llmService;
         _logger = logger;
     }
 
@@ -53,20 +54,127 @@ public class LlmTranslationService : ITranslationService
             return ListResult<SubtitleDto>.Failure(error);
         }
 
-        // Insert current language name into system prompt
         var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.EnglishName);
         var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
         var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
 
-        _logger.LogInformation("Starting translation with llm...");
         var llmResult = await _llmService.SendAsync(chatHistory, userPrompt);
-        _logger.LogInformation("Got response from llm.");
         if (llmResult.IsFailure)
         {
             return ListResult<SubtitleDto>.Failure(llmResult.Error);
         }
 
-        return DeserializeLlmResponseToSubtitles(requestDto, llmResult.Value);
+        return DeserializeSubtitles(requestDto, llmResult.Value);
+    }
+
+    public AsyncEnumerableResult<SubtitleDto> TranslateAndStreamAsync(
+        TranslationRequestDto requestDto
+    )
+    {
+        var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
+
+        if (targetLanguage == null)
+        {
+            var error = new Error(
+                ErrorCode.BadRequest,
+                $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
+            );
+            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
+        }
+
+        if (requestDto.SourceSubtitles == null || requestDto.SourceSubtitles.Count == 0)
+        {
+            var error = new Error(
+                ErrorCode.BadRequest,
+                "Provide at least one subtitle to translate"
+            );
+            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
+        }
+
+        return AsyncEnumerableResult<SubtitleDto>.Success(
+            StreamTranslationAsync(targetLanguage, requestDto)
+        );
+    }
+
+    private async IAsyncEnumerable<SubtitleDto> StreamTranslationAsync(
+        Language targetLanguage,
+        TranslationRequestDto requestDto
+    )
+    {
+        var systemPrompt = string.Format(
+            _config.SingleSubtitleSystemPrompt,
+            targetLanguage.EnglishName
+        );
+        var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
+        var serializerOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.Create(
+                UnicodeRanges.BasicLatin,
+                UnicodeRanges.Cyrillic,
+                UnicodeRanges.Arabic
+            ),
+        };
+
+        var currentIndex = 0;
+        const int retryLimit = 3;
+        var retryCounter = 0;
+
+        while (currentIndex < requestDto.SourceSubtitles.Count && retryCounter < retryLimit)
+        {
+            var subtitleDto = requestDto.SourceSubtitles[currentIndex];
+
+            var serializedSubtitle = JsonSerializer
+                .Serialize(subtitleDto, serializerOptions)
+                .Replace("\\u0027", "\'"); // fix System.Test.Json serializing a single quote into \u0027
+
+            var llmResult = await _llmService.SendAsync(chatHistory, serializedSubtitle);
+
+            if (llmResult.IsFailure)
+            {
+                _logger.LogError("Llm service error: {error}", llmResult.Error.Description);
+                retryCounter++;
+                continue;
+            }
+
+            var translatedSubtitleResult = DeserializeSubtitle(llmResult.Value, serializerOptions);
+
+            if (translatedSubtitleResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Deserialization of translated subtitle failed: {error}",
+                    translatedSubtitleResult.Error.Description
+                );
+                retryCounter++;
+                continue;
+            }
+
+            if (
+                !ValidateTranslatedSubtitle(
+                    requestDto.TargetLanguageCode,
+                    subtitleDto,
+                    translatedSubtitleResult.Value
+                )
+            )
+            {
+                _logger.LogError(
+                    "Translated subtitle does not match the source subtitle. "
+                        + "Source subtitle: {src}. Translated subtitle: {trs}",
+                    subtitleDto,
+                    translatedSubtitleResult.Value
+                );
+                retryCounter++;
+                continue;
+            }
+
+            chatHistory.Add(new LlmMessageDto("user", serializedSubtitle));
+            chatHistory.Add(new LlmMessageDto("assistant", llmResult.Value));
+
+            currentIndex++;
+            retryCounter = 0;
+
+            yield return translatedSubtitleResult.Value;
+        }
     }
 
     private static string SerializeSubtitlesToPrompt(List<SubtitleDto> subtitlesDtos)
@@ -90,7 +198,7 @@ public class LlmTranslationService : ITranslationService
         return string.Format(rawPrompt, serializedSubtitles);
     }
 
-    private static ListResult<SubtitleDto> DeserializeLlmResponseToSubtitles(
+    private static ListResult<SubtitleDto> DeserializeSubtitles(
         TranslationRequestDto requestDto,
         string llmResponse
     )
@@ -108,7 +216,7 @@ public class LlmTranslationService : ITranslationService
             return ListResult<SubtitleDto>.Failure(error);
         }
 
-        if (!ValidateLlmSubtitles(requestDto, llmSubtitles))
+        if (!ValidateTranslatedSubtitles(requestDto, llmSubtitles))
         {
             var error = new Error(
                 ErrorCode.BadGateway,
@@ -119,17 +227,50 @@ public class LlmTranslationService : ITranslationService
         return ListResult<SubtitleDto>.Success(llmSubtitles);
     }
 
-    private static bool ValidateLlmSubtitles(
+    private static Result<SubtitleDto> DeserializeSubtitle(
+        string llmResponse,
+        JsonSerializerOptions serializerOptions
+    )
+    {
+        try
+        {
+            var subtitleDto = JsonSerializer.Deserialize<SubtitleDto>(
+                llmResponse,
+                serializerOptions
+            );
+
+            if (subtitleDto == null)
+            {
+                var error = new Error(ErrorCode.BadGateway, "Deserialized subtitlte is empty");
+                return Result<SubtitleDto>.Failure(error);
+            }
+
+            return Result<SubtitleDto>.Success(subtitleDto);
+        }
+        catch (Exception e)
+        {
+            var error = new Error(ErrorCode.BadGateway, e.Message);
+            return Result<SubtitleDto>.Failure(error);
+        }
+    }
+
+    private static bool ValidateTranslatedSubtitles(
         TranslationRequestDto requestDto,
-        List<SubtitleDto> llmSubtitleDtos
+        List<SubtitleDto> translatedSubtitleDtos
     )
     {
         for (int i = 0; i < requestDto.SourceSubtitles.Count; i++)
         {
             var sourceSubtitle = requestDto.SourceSubtitles[i];
-            var llmSubtitle = llmSubtitleDtos[i];
+            var llmSubtitle = translatedSubtitleDtos[i];
 
-            if (!ValidateLlmSubtitle(requestDto.TargetLanguageCode, sourceSubtitle, llmSubtitle))
+            if (
+                !ValidateTranslatedSubtitle(
+                    requestDto.TargetLanguageCode,
+                    sourceSubtitle,
+                    llmSubtitle
+                )
+            )
             {
                 return false;
             }
@@ -138,14 +279,14 @@ public class LlmTranslationService : ITranslationService
         return true;
     }
 
-    private static bool ValidateLlmSubtitle(
+    private static bool ValidateTranslatedSubtitle(
         string targetLanguageCode,
         SubtitleDto subtitleDto,
-        SubtitleDto llmSubtitleDto
+        SubtitleDto translatedSubtitleDto
     )
     {
-        return subtitleDto.StartTime == llmSubtitleDto.StartTime
-            && subtitleDto.EndTime == llmSubtitleDto.EndTime
-            && targetLanguageCode == llmSubtitleDto.LanguageCode;
+        return subtitleDto.StartTime == translatedSubtitleDto.StartTime
+            && subtitleDto.EndTime == translatedSubtitleDto.EndTime
+            && targetLanguageCode == translatedSubtitleDto.LanguageCode;
     }
 }

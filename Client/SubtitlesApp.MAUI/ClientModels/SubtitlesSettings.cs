@@ -21,6 +21,9 @@ public partial class SubtitlesSettings : ObservableObject
     [ObservableProperty]
     SubtitlesCaptureMode _whichSubtitlesToTranslate;
 
+    [ObservableProperty]
+    bool _translateStreamingMode;
+
     public SubtitlesSettings ShallowCopy()
     {
         return (SubtitlesSettings)MemberwiseClone();
