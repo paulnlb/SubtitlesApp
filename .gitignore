@@ -362,8 +362,10 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-# Jars in Android binding projects
-Jars/
+# binaries for FfmpegAndroidBinding
+ffmpeg-kit-full-6.0-2.LTS.aar
+smart-exception-common-0.2.1.jar
+smart-exception-java-0.2.1.jar
 
 # Local dev MAUI app settings
 SettingsServiceDevelopment.cs
