@@ -98,9 +98,14 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             TranslateToLanguage = null,
             ShowTranslation = false,
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
+            TranslateStreamingMode = true,
         };
-        LayoutSettings.PlayerRelativeVerticalLength = 0.3;
-        LayoutSettings.PlayerRelativeHorizontalLength = 0.65;
+        LayoutSettings = new PlayerSubtitlesLayoutSettings
+        {
+            IsSideChildVisible = true,
+            PlayerRelativeVerticalLength = 0.3,
+            PlayerRelativeHorizontalLength = 0.65,
+        };
 
         #endregion
 
@@ -125,36 +130,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         UpdateCurrentSubtitleIndex(currentPosition);
 
-        // We do not wait for a transcription task, but we store it the vm to track its progress.
-        // Currently the business logic does not allow us to create a queue of transcription tasks
-        // (like we do with translations). Instead, we check the previous transcription task's status.
-        // If that task not running at the moment, we start a new one
         if (
             _transcriptionTask?.Status != TaskStatus.WaitingForActivation
             && ShouldStartTranscription(currentPosition)
         )
         {
-            _transcriptionCts = new CancellationTokenSource();
-            _transcriptionTask = TranscribeAsync(currentPosition, _transcriptionCts.Token);
-            _transcriptionTask.ContinueWith(a =>
-            {
-                ObservableCollectionResult<VisualSubtitle> transcriptionResult = a.Result;
-
-                if (transcriptionResult.IsFailure)
-                {
-                    return;
-                }
-
-                if (SubtitlesSettings.TranslateToLanguage?.Code != null)
-                {
-                    // As translation process may be slower than transcription, we maintain
-                    // a queue of translation tasks to ensure they will all be executed
-                    // one by one, in FIFO manner
-                    _translationTaskQueue.EnqueueTask(cancellationToken =>
-                        TranslateAndStreamAsync(transcriptionResult.Value, cancellationToken)
-                    );
-                }
-            });
+            StartTranscription(currentPosition);
         }
     }
 
@@ -348,7 +329,35 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         );
     }
 
-    public async Task<ObservableCollectionResult<VisualSubtitle>> TranscribeAsync(
+    void StartTranscription(TimeSpan currentPosition)
+    {
+        // We do not wait for a transcription task, but we store it the vm to track its progress.
+        // Currently the business logic does not allow us to create a queue of transcription tasks
+        // (like we do with translations)
+        _transcriptionCts = new CancellationTokenSource();
+        _transcriptionTask = TranscribeAsync(currentPosition, _transcriptionCts.Token);
+        _transcriptionTask.ContinueWith(a =>
+        {
+            ObservableCollectionResult<VisualSubtitle> transcriptionResult = a.Result;
+
+            if (transcriptionResult.IsFailure)
+            {
+                return;
+            }
+
+            if (SubtitlesSettings.TranslateToLanguage?.Code != null)
+            {
+                // As translation process may go slower than transcription, so we maintain
+                // a queue of translation tasks to ensure they will all be executed
+                // one by one, in FIFO manner
+                _translationTaskQueue.EnqueueTask(cancellationToken =>
+                    TranslateAsync(transcriptionResult.Value, cancellationToken)
+                );
+            }
+        });
+    }
+
+    async Task<ObservableCollectionResult<VisualSubtitle>> TranscribeAsync(
         TimeSpan position,
         CancellationToken cancellationToken = default
     )
@@ -393,7 +402,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         return ObservableCollectionResult<VisualSubtitle>.Success(visualSubs);
     }
 
-    public async Task TranslateAsync(
+    async Task TranslateAsync(
         IEnumerable<VisualSubtitle> subtitlesToTranslate,
         CancellationToken cancellationToken = default
     )
@@ -403,54 +412,42 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             return;
         }
 
-        var subtitlesDtos = _mapper.Map<List<SubtitleDto>>(subtitlesToTranslate);
-
         TextBoxContent = "Translating...";
-
-        var translationResult = await _translationService.TranslateAsync(
-            subtitlesDtos,
-            SubtitlesSettings.TranslateToLanguage!.Code,
-            cancellationToken
-        );
-
-        if (translationResult.IsFailure)
-        {
-            TextBoxContent = translationResult.Error.Description;
-            return;
-        }
-
-        UpdateSubtitlesTranslations(translationResult.Value, subtitlesToTranslate);
-
-        TextBoxContent = "Translation completed.";
-    }
-
-    public async Task TranslateAndStreamAsync(
-        IEnumerable<VisualSubtitle> subtitlesToTranslate,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (!subtitlesToTranslate.Any())
-        {
-            return;
-        }
 
         var subtitlesDtos = _mapper.Map<List<SubtitleDto>>(subtitlesToTranslate);
 
-        TextBoxContent = "Translating...";
-
-        var translationResult = await _translationService.TranslateAndStreamAsync(
-            subtitlesDtos,
-            SubtitlesSettings.TranslateToLanguage!.Code,
-            cancellationToken
-        );
-
-        if (translationResult.IsFailure)
+        if (SubtitlesSettings.TranslateStreamingMode)
         {
-            TextBoxContent = translationResult.Error.Description;
-            return;
-        }
+            var translationResult = await _translationService.TranslateAndStreamAsync(
+                subtitlesDtos,
+                SubtitlesSettings.TranslateToLanguage!.Code,
+                cancellationToken
+            );
 
-        await UpdateSubtitlesTranslations(translationResult.Value, subtitlesToTranslate);
+            if (translationResult.IsFailure)
+            {
+                TextBoxContent = translationResult.Error.Description;
+                return;
+            }
+
+            await UpdateSubtitlesTranslationsAsync(translationResult.Value, subtitlesToTranslate);
+        }
+        else
+        {
+            var translationResult = await _translationService.TranslateAsync(
+                subtitlesDtos,
+                SubtitlesSettings.TranslateToLanguage!.Code,
+                cancellationToken
+            );
+
+            if (translationResult.IsFailure)
+            {
+                TextBoxContent = translationResult.Error.Description;
+                return;
+            }
+
+            UpdateSubtitlesTranslations(translationResult.Value, subtitlesToTranslate);
+        }
 
         TextBoxContent = "Translation completed.";
     }
@@ -491,6 +488,20 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
+    void UpdateSubtitleTranslation(SubtitleDto translationDto, VisualSubtitle subtitleToTranslate)
+    {
+        subtitleToTranslate.RestoreOriginalLanguage();
+        subtitleToTranslate.Translation = new Translation
+        {
+            LanguageCode = translationDto.LanguageCode,
+            Text = translationDto.Text,
+        };
+        if (SubtitlesSettings.ShowTranslation)
+        {
+            subtitleToTranslate.SwitchToTranslation();
+        }
+    }
+
     void UpdateSubtitlesTranslations(
         List<SubtitleDto> subtitleTranslationDtos,
         IEnumerable<VisualSubtitle> visualSubtitles
@@ -503,45 +514,24 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             )
         )
         {
-            subtitleToTranslate.Translation = new Translation
-            {
-                LanguageCode = translationDto.LanguageCode,
-                Text = translationDto.Text,
-            };
-
-            if (SubtitlesSettings.ShowTranslation)
-            {
-                subtitleToTranslate.SwitchToTranslation();
-            }
+            UpdateSubtitleTranslation(translationDto, subtitleToTranslate);
         }
     }
 
-    async Task UpdateSubtitlesTranslations(
+    async Task UpdateSubtitlesTranslationsAsync(
         IAsyncEnumerable<SubtitleDto> subtitleTranslationDtos,
         IEnumerable<VisualSubtitle> visualSubtitles
     )
     {
-        var visualSubtitlesEnumerator = visualSubtitles.GetEnumerator();
-        await foreach (var subtitleTranslationDto in subtitleTranslationDtos)
+        var translationEnumerator = subtitleTranslationDtos.GetAsyncEnumerator();
+        foreach (var visualSubtitle in visualSubtitles)
         {
-            if (!visualSubtitlesEnumerator.MoveNext())
+            if (!await translationEnumerator.MoveNextAsync())
             {
                 break;
             }
 
-            var translationDto = subtitleTranslationDto;
-            var subtitleToTranslate = visualSubtitlesEnumerator.Current;
-
-            subtitleToTranslate.Translation = new Translation
-            {
-                LanguageCode = translationDto.LanguageCode,
-                Text = translationDto.Text,
-            };
-
-            if (SubtitlesSettings.ShowTranslation)
-            {
-                subtitleToTranslate.SwitchToTranslation();
-            }
+            UpdateSubtitleTranslation(translationEnumerator.Current, visualSubtitle);
         }
     }
 
@@ -597,7 +587,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
             Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
 
-            await TranslateAndStreamAsync(subtitlesToTranslate);
+            await TranslateAsync(subtitlesToTranslate);
         }
 
         // Priority 3: Background translation switch is toggled
@@ -625,8 +615,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
         else
         {
-            LayoutSettings.PlayerRelativeHorizontalLength =
-                LayoutSettings.PlayerRelativeVerticalLength = 1;
+            LayoutSettings.PlayerRelativeHorizontalLength = 1;
+            LayoutSettings.PlayerRelativeVerticalLength = 1;
         }
 
         TriggerResizeAnimationCommand.Execute(CancellationToken.None);

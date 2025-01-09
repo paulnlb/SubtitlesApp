@@ -52,8 +52,8 @@
             <customControls:MediaPlayer.Behaviors>
                 <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
                     <toolkit:AnimationBehavior.AnimationType>
-                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.PlayerRelativeVerticalLength}"
-                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.PlayerRelativeHorizontalLength}" />
+                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.PlayerRelativeVerticalLength}"
+                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.PlayerRelativeHorizontalLength}" />
                     </toolkit:AnimationBehavior.AnimationType>
                 </toolkit:AnimationBehavior>
             </customControls:MediaPlayer.Behaviors>

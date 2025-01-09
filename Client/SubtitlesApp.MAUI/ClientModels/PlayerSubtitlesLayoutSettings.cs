@@ -5,7 +5,7 @@ namespace SubtitlesApp.ClientModels;
 public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 {
     [ObservableProperty]
-    bool _isSideChildVisible = true;
+    bool _isSideChildVisible;
 
     [ObservableProperty]
     double _playerRelativeVerticalLength;
@@ -19,6 +19,6 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 
     partial void OnIsSideChildVisibleChanged(bool value)
     {
-        IsSideChildVisibleChanged.Invoke(value);
+        IsSideChildVisibleChanged?.Invoke(value);
     }
 }

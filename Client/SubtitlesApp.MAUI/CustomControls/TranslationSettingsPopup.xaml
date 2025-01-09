@@ -16,7 +16,7 @@
     </toolkit:Popup.Resources>
 
     <Grid WidthRequest="300"
-          RowDefinitions="*, *, *, 3*"
+          RowDefinitions="*, *, *, 3*, *"
           ColumnDefinitions="9*, *"
           Padding="10">
 
@@ -35,7 +35,7 @@
                                      IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}">
 
             <VerticalStackLayout Spacing="5">
-                <Label Text="Translaton"
+                <Label Text="Translate to"
                        FontSize="16" />
                 <Label Text="{Binding SubtitlesSettings.TranslateToLanguage.Name}" />
             </VerticalStackLayout>
@@ -76,5 +76,15 @@
                 </RadioButton.Value>
             </RadioButton>
         </VerticalStackLayout>
+
+        <Label Grid.Row="4"
+               Grid.Column="0"
+               VerticalOptions="Center"
+               Text="Streaming mode"
+               IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
+        <Switch Grid.Row="4"
+                Grid.Column="1"
+                IsToggled="{Binding SubtitlesSettings.TranslateStreamingMode}"
+                IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
     </Grid>
 </toolkit:Popup>

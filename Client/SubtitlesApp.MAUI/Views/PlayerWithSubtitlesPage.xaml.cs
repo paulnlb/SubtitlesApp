@@ -28,9 +28,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         // On back button press just show subtitles if they are hidden
         // Otherwise, proceed with exit
-        if (!vm.IsSideChildVisible)
+        if (!vm.LayoutSettings.IsSideChildVisible)
         {
-            vm.IsSideChildVisible = true;
+            vm.LayoutSettings.IsSideChildVisible = true;
             return true;
         }
 
