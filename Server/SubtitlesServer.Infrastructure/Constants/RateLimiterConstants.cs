@@ -1,4 +1,4 @@
-﻿namespace SubtitlesServer.Application.Constants;
+﻿namespace SubtitlesServer.Infrastructure.Constants;
 
 public static class RateLimiterConstants
 {

@@ -1,9 +1,9 @@
 ﻿using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Constants;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Infrastructure.Configs;
+using SubtitlesServer.Infrastructure.Constants;
 using SubtitlesServer.Infrastructure.Middleware;
 using SubtitlesServer.Infrastructure.Services;
 
@@ -20,10 +20,7 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<LanguageService>();
     }
 
-    public static void AddConcurrencyRateLimiter(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static void AddConcurrencyRateLimiter(this IServiceCollection services, IConfiguration configuration)
     {
         var rateLimiterConfig = new RateLimiterConfig();
         configuration.GetSection("RateLimiterSettings").Bind(rateLimiterConfig);
@@ -48,10 +45,7 @@ public static class ServicesCollectionExtensions
         );
     }
 
-    public static void AddJwtAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtConfig = new JwtConfig();
         configuration.GetSection("JwtSettings").Bind(jwtConfig);

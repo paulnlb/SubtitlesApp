@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Constants;
 using SubtitlesServer.Application.Interfaces;
+using SubtitlesServer.Infrastructure.Constants;
 
 namespace SubtitlesServer.WhisperApi.Controllers;
 
