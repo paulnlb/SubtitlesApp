@@ -16,5 +16,7 @@ public class AutoMapperProfile : Profile
         CreateMap<Message, LlmMessageDto>()
             .ForMember(dest => dest.Role, opts => opts.MapFrom(src => src.Role.ToString()))
             .ForMember(dest => dest.Content, opts => opts.MapFrom(src => src.Content));
+
+        CreateMap<SubtitleDto, Translation>().ReverseMap();
     }
 }

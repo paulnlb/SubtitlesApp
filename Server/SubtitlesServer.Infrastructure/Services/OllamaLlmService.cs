@@ -16,11 +16,7 @@ public class OllamaLlmService : ILlmService
     private readonly OllamaConfig _config;
     private readonly IMapper _mapper;
 
-    public OllamaLlmService(
-        HttpClient httpClient,
-        IOptions<OllamaConfig> ollamaOptions,
-        IMapper mapper
-    )
+    public OllamaLlmService(HttpClient httpClient, IOptions<OllamaConfig> ollamaOptions, IMapper mapper)
     {
         _httpClient = httpClient;
         _config = ollamaOptions.Value;
@@ -33,11 +29,7 @@ public class OllamaLlmService : ILlmService
 
         var chat = new Chat(client)
         {
-            Options = new OllamaSharp.Models.RequestOptions
-            {
-                Temperature = _config.Temperature,
-                NumCtx = _config.NumCtx,
-            },
+            Options = new OllamaSharp.Models.RequestOptions { Temperature = _config.Temperature, NumCtx = _config.NumCtx },
             Messages = _mapper.Map<List<Message>>(chatHistory),
         };
 
@@ -48,6 +40,7 @@ public class OllamaLlmService : ILlmService
             await foreach (var aiMessage in chat.SendAsync(userPrompt))
             {
                 response.Append(aiMessage);
+                Console.Write(aiMessage);
             }
         }
         catch (Exception ex)
