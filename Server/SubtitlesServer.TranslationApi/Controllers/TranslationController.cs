@@ -8,7 +8,7 @@ namespace SubtitlesServer.TranslationApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class TranslationController(ITranslationService translationService) : ControllerBase
 {
     [HttpPost]

@@ -4,6 +4,7 @@ using SubtitlesApp.Core.Services;
 using SubtitlesServer.Application.Constants;
 using SubtitlesServer.Application.Interfaces;
 using SubtitlesServer.Infrastructure.Configs;
+using SubtitlesServer.Infrastructure.Middleware;
 using SubtitlesServer.Infrastructure.Services;
 
 namespace SubtitlesServer.WhisperApi.Extensions;
@@ -14,6 +15,7 @@ public static class ServicesCollectionExtensions
     {
         services.AddScoped<ITranscriptionService, WhisperService>();
         services.AddScoped<IWaveService, WaveService>();
+        services.AddScoped<CustomBearerEvents>();
         services.AddSingleton<WhisperModelService>();
         services.AddSingleton<LanguageService>();
     }
@@ -60,6 +62,7 @@ public static class ServicesCollectionExtensions
                 options.Authority = jwtConfig.Authority;
                 options.TokenValidationParameters.ValidIssuer = jwtConfig.ValidIssuer;
                 options.TokenValidationParameters.ValidateAudience = jwtConfig.ValidateAudience;
+                options.EventsType = typeof(CustomBearerEvents);
             });
     }
 }

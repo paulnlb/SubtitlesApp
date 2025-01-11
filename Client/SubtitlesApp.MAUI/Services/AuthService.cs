@@ -2,7 +2,6 @@
 using SubtitlesApp.Constants;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
-using System.Globalization;
 using Result = SubtitlesApp.Core.Result.Result;
 
 namespace SubtitlesApp.Services;
@@ -14,45 +13,24 @@ public class AuthService : IAuthService
     public AuthService(
         ISettingsService settingsService,
         IdentityModel.OidcClient.Browser.IBrowser browser,
-        HttpsClientHandlerService httpsClientHandlerService)
+        HttpsClientHandlerService httpsClientHandlerService
+    )
     {
         _oidcClient = CreateOidcClient(settingsService, browser, httpsClientHandlerService);
     }
-    public async Task<string> GetAccessTokenAsync(bool refreshIfExpired = true)
+
+    public async Task<string> GetAccessTokenAsync()
     {
-        var token = await SecureStorage.Default.GetAsync(SecurityConstants.AccessToken).ConfigureAwait(false);
+        var token = await SecureStorage
+            .Default.GetAsync(SecurityConstants.AccessToken)
+            .ConfigureAwait(false);
 
         if (token == null)
         {
             return string.Empty;
         }
 
-        if (!refreshIfExpired)
-        {
-            return token;
-        }
-
-        if (!await IsAccessTokenExpired(5))
-        {
-            return token;
-        }
-
-        var refreshTokenResult = await RefreshAccessTokenAsync();
-
-        if (refreshTokenResult.IsFailure)
-        {
-            return string.Empty;
-        }
-
-        return await GetAccessTokenAsync();
-    }
-
-    public async Task<bool> IsAccessTokenExpired(uint minutesBeforeExpiration = 0)
-    {
-        var expiredAtStr = await SecureStorage.Default.GetAsync(SecurityConstants.AccessTokenExpiresAt).ConfigureAwait(false);
-        var expiredAt = expiredAtStr == null ? default : DateTime.Parse(expiredAtStr, CultureInfo.CurrentCulture);
-
-        return expiredAt < DateTime.Now.AddMinutes(minutesBeforeExpiration);
+        return token;
     }
 
     public async Task<Result> LogInAsync()
@@ -74,7 +52,9 @@ public class AuthService : IAuthService
     {
         var logoutRequest = new LogoutRequest
         {
-            IdTokenHint = await SecureStorage.Default.GetAsync(SecurityConstants.IdToken).ConfigureAwait(false),
+            IdTokenHint = await SecureStorage
+                .Default.GetAsync(SecurityConstants.IdToken)
+                .ConfigureAwait(false),
         };
 
         var result = await _oidcClient.LogoutAsync(logoutRequest);
@@ -92,7 +72,9 @@ public class AuthService : IAuthService
 
     public async Task<Result> RefreshAccessTokenAsync()
     {
-        var refreshToken = await SecureStorage.Default.GetAsync(SecurityConstants.RefreshToken).ConfigureAwait(false);
+        var refreshToken = await SecureStorage
+            .Default.GetAsync(SecurityConstants.RefreshToken)
+            .ConfigureAwait(false);
         var refreshTokenResult = await _oidcClient.RefreshTokenAsync(refreshToken);
         if (refreshTokenResult.IsError)
         {
@@ -100,18 +82,24 @@ public class AuthService : IAuthService
             return Result.Failure(error);
         }
 
-        await SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, refreshTokenResult.AccessToken).ConfigureAwait(false);
-        await SecureStorage.Default.SetAsync(SecurityConstants.AccessTokenExpiresAt, refreshTokenResult.AccessTokenExpiration.ToString(CultureInfo.CurrentCulture)).ConfigureAwait(false);
+        await SecureStorage
+            .Default.SetAsync(SecurityConstants.AccessToken, refreshTokenResult.AccessToken)
+            .ConfigureAwait(false);
 
         return Result.Success();
     }
 
     private static async Task SetAuthDataToStorage(LoginResult result)
     {
-        await SecureStorage.Default.SetAsync(SecurityConstants.IdToken, result.IdentityToken).ConfigureAwait(false);
-        await SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, result.AccessToken).ConfigureAwait(false);
-        await SecureStorage.Default.SetAsync(SecurityConstants.RefreshToken, result.RefreshToken).ConfigureAwait(false);
-        await SecureStorage.Default.SetAsync(SecurityConstants.AccessTokenExpiresAt, result.AccessTokenExpiration.ToString(CultureInfo.CurrentCulture)).ConfigureAwait(false);
+        await SecureStorage
+            .Default.SetAsync(SecurityConstants.IdToken, result.IdentityToken)
+            .ConfigureAwait(false);
+        await SecureStorage
+            .Default.SetAsync(SecurityConstants.AccessToken, result.AccessToken)
+            .ConfigureAwait(false);
+        await SecureStorage
+            .Default.SetAsync(SecurityConstants.RefreshToken, result.RefreshToken)
+            .ConfigureAwait(false);
     }
 
     private static void ClearAuthDataFromStorage()
@@ -119,13 +107,13 @@ public class AuthService : IAuthService
         SecureStorage.Default.Remove(SecurityConstants.IdToken);
         SecureStorage.Default.Remove(SecurityConstants.AccessToken);
         SecureStorage.Default.Remove(SecurityConstants.RefreshToken);
-        SecureStorage.Default.Remove(SecurityConstants.AccessTokenExpiresAt);
     }
 
     private static OidcClient CreateOidcClient(
         ISettingsService settingsService,
         IdentityModel.OidcClient.Browser.IBrowser browser,
-        HttpsClientHandlerService httpsClientHandlerService)
+        HttpsClientHandlerService httpsClientHandlerService
+    )
     {
         var options = new OidcClientOptions
         {
@@ -134,7 +122,7 @@ public class AuthService : IAuthService
             Scope = settingsService.OidcScope,
             RedirectUri = settingsService.OidcRedirectUri,
             PostLogoutRedirectUri = settingsService.OidcPostLogoutRedirectUri,
-            Browser = browser
+            Browser = browser,
         };
 
 #if DEBUG
