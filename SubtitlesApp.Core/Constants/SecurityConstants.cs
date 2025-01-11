@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Constants;
+﻿namespace SubtitlesApp.Core.Constants;
 
 public static class SecurityConstants
 {

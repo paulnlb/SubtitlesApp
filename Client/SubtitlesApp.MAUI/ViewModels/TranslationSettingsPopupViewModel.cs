@@ -9,7 +9,8 @@ namespace SubtitlesApp.ViewModels;
 
 public partial class TranslationSettingsPopupViewModel(
     IDialogService dialogService,
-    LanguageService languageService) : ObservableObject
+    LanguageService languageService
+) : ObservableObject
 {
     [ObservableProperty]
     SubtitlesSettings _subtitlesSettings;
@@ -20,13 +21,16 @@ public partial class TranslationSettingsPopupViewModel(
     [RelayCommand]
     public async Task ChooseTranslationLanguage()
     {
-        var languages = languageService.GetLanguages(l => l.Code != LanguageCodes.Auto && l.Code != SubtitlesSettings.OriginalLanguage.Code);
+        var languages = languageService.GetLanguages(l =>
+            l.Code != LanguageCodes.Auto && l.Code != SubtitlesSettings.OriginalLanguage.Code
+        );
 
         var result = await dialogService.DisplayRadioButtonPromptAsync(
             "Choose translation language of subtitles",
             languages,
             languages[0],
-            displayMember: "Name");
+            displayMember: "NativeName"
+        );
 
         if (result != null)
         {

@@ -1,11 +1,12 @@
-﻿using SubtitlesApp.Core.Models;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Core.Extensions;
 
 public static class SubtitlesExtensions
 {
-    public static (T? Sub, int index) BinarySearch<T>(this ObservableCollection<T> list, TimeSpan mediaTime) where T : Subtitle
+    public static (T? Sub, int index) BinarySearch<T>(this ObservableCollection<T> list, TimeSpan mediaTime)
+        where T : Subtitle
     {
         int low = 0;
         int high = list.Count - 1;
@@ -32,7 +33,8 @@ public static class SubtitlesExtensions
         return (null, -1);
     }
 
-    public static (T? Sub, int index) GetLaterClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime) where T : Subtitle
+    public static (T? Sub, int index) GetNextClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime)
+        where T : Subtitle
     {
         int low = 0;
         int high = list.Count - 1;
@@ -65,41 +67,43 @@ public static class SubtitlesExtensions
         return (list[mid], mid);
     }
 
-    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle) where T: Subtitle
+    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle)
+        where T : Subtitle
     {
-        bool overlapsWithLeft = false;
-        bool overlapsWithRight = false;
+        bool overlapsWithPrevious = false;
+        bool overlapsWithNext = false;
 
-        (_, int index) = list.GetLaterClosest(newSubtitle.TimeInterval.EndTime);
+        (_, int insertionIndex) = list.GetNextClosest(newSubtitle.TimeInterval.EndTime);
 
-        if (index == -1)
+        if (insertionIndex == -1)
         {
-            index = list.Count;
+            insertionIndex = list.Count;
         }
 
-        if (index > 0)
+        if (insertionIndex > 0)
         {
-            overlapsWithLeft = list[index - 1].TimeInterval.Overlaps(newSubtitle.TimeInterval);
+            overlapsWithPrevious = list[insertionIndex - 1].TimeInterval.Overlaps(newSubtitle.TimeInterval);
         }
-        if (index < list.Count)
+        if (insertionIndex < list.Count)
         {
-            overlapsWithRight = list[index].TimeInterval.Overlaps(newSubtitle.TimeInterval);
-        }
-
-        if (overlapsWithLeft)
-        {
-            list.RemoveAt(index - 1);
-            index--;
-        }
-        if (overlapsWithRight)
-        {
-            list.RemoveAt(index);
+            overlapsWithNext = list[insertionIndex].TimeInterval.Overlaps(newSubtitle.TimeInterval);
         }
 
-        list.Insert(index, newSubtitle);
+        if (overlapsWithPrevious)
+        {
+            list.RemoveAt(insertionIndex - 1);
+            insertionIndex--;
+        }
+        if (overlapsWithNext)
+        {
+            list.RemoveAt(insertionIndex);
+        }
+
+        list.Insert(insertionIndex, newSubtitle);
     }
 
-    public static void SwitchToTranslations<T>(this ObservableCollection<T> list, int skip = 0) where T : Subtitle
+    public static void SwitchToTranslations<T>(this ObservableCollection<T> list, int skip = 0)
+        where T : Subtitle
     {
         while (skip < list.Count)
         {
@@ -108,7 +112,8 @@ public static class SubtitlesExtensions
         }
     }
 
-    public static void RestoreOriginalLanguages<T>(this ObservableCollection<T> list, int skip = 0) where T : Subtitle
+    public static void RestoreOriginalLanguages<T>(this ObservableCollection<T> list, int skip = 0)
+        where T : Subtitle
     {
         while (skip < list.Count)
         {
@@ -117,7 +122,8 @@ public static class SubtitlesExtensions
         }
     }
 
-    public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems) where T : Subtitle
+    public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems)
+        where T : Subtitle
     {
         foreach (var item in newItems)
         {
@@ -125,7 +131,12 @@ public static class SubtitlesExtensions
         }
     }
 
-    public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, Action<T> foreachAction) where T : Subtitle
+    public static void InsertMany<T>(
+        this ObservableCollection<T> list,
+        ObservableCollection<T> newItems,
+        Action<T> foreachAction
+    )
+        where T : Subtitle
     {
         foreach (var item in newItems)
         {
@@ -134,7 +145,8 @@ public static class SubtitlesExtensions
         }
     }
 
-    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, int skip = 0) where T : Subtitle
+    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, int skip = 0)
+        where T : Subtitle
     {
         if (newItems.Count != list.Count - skip)
         {
@@ -147,7 +159,13 @@ public static class SubtitlesExtensions
         }
     }
 
-    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, Action<T> foreachAction, int skip = 0) where T : Subtitle
+    public static void ReplaceMany<T>(
+        this ObservableCollection<T> list,
+        ObservableCollection<T> newItems,
+        Action<T> foreachAction,
+        int skip = 0
+    )
+        where T : Subtitle
     {
         if (newItems.Count != list.Count - skip)
         {

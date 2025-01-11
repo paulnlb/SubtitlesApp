@@ -1,5 +1,5 @@
 ﻿using IdentityModel.OidcClient;
-using SubtitlesApp.Constants;
+using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
 using Result = SubtitlesApp.Core.Result.Result;
@@ -21,9 +21,7 @@ public class AuthService : IAuthService
 
     public async Task<string> GetAccessTokenAsync()
     {
-        var token = await SecureStorage
-            .Default.GetAsync(SecurityConstants.AccessToken)
-            .ConfigureAwait(false);
+        var token = await SecureStorage.Default.GetAsync(SecurityConstants.AccessToken).ConfigureAwait(false);
 
         if (token == null)
         {
@@ -52,9 +50,7 @@ public class AuthService : IAuthService
     {
         var logoutRequest = new LogoutRequest
         {
-            IdTokenHint = await SecureStorage
-                .Default.GetAsync(SecurityConstants.IdToken)
-                .ConfigureAwait(false),
+            IdTokenHint = await SecureStorage.Default.GetAsync(SecurityConstants.IdToken).ConfigureAwait(false),
         };
 
         var result = await _oidcClient.LogoutAsync(logoutRequest);
@@ -72,9 +68,7 @@ public class AuthService : IAuthService
 
     public async Task<Result> RefreshAccessTokenAsync()
     {
-        var refreshToken = await SecureStorage
-            .Default.GetAsync(SecurityConstants.RefreshToken)
-            .ConfigureAwait(false);
+        var refreshToken = await SecureStorage.Default.GetAsync(SecurityConstants.RefreshToken).ConfigureAwait(false);
         var refreshTokenResult = await _oidcClient.RefreshTokenAsync(refreshToken);
         if (refreshTokenResult.IsError)
         {
@@ -91,15 +85,9 @@ public class AuthService : IAuthService
 
     private static async Task SetAuthDataToStorage(LoginResult result)
     {
-        await SecureStorage
-            .Default.SetAsync(SecurityConstants.IdToken, result.IdentityToken)
-            .ConfigureAwait(false);
-        await SecureStorage
-            .Default.SetAsync(SecurityConstants.AccessToken, result.AccessToken)
-            .ConfigureAwait(false);
-        await SecureStorage
-            .Default.SetAsync(SecurityConstants.RefreshToken, result.RefreshToken)
-            .ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.IdToken, result.IdentityToken).ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.AccessToken, result.AccessToken).ConfigureAwait(false);
+        await SecureStorage.Default.SetAsync(SecurityConstants.RefreshToken, result.RefreshToken).ConfigureAwait(false);
     }
 
     private static void ClearAuthDataFromStorage()

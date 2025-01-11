@@ -10,7 +10,8 @@ namespace SubtitlesApp.ViewModels;
 public partial class SubtitlesSettingsPopupViewModel(
     IDialogService dialogService,
     LanguageService languageService,
-    IPopupService popupService) : ObservableObject
+    IPopupService popupService
+) : ObservableObject
 {
     [ObservableProperty]
     SubtitlesSettings _settings;
@@ -22,7 +23,8 @@ public partial class SubtitlesSettingsPopupViewModel(
             "Choose language of subtitles",
             languageService.GetLanguages(l => l.Code != Settings.TranslateToLanguage?.Code),
             languageService.GetDefaultLanguage(),
-            displayMember: "Name");
+            displayMember: "NativeName"
+        );
 
         if (result != null)
         {
@@ -31,10 +33,10 @@ public partial class SubtitlesSettingsPopupViewModel(
     }
 
     [RelayCommand]
-    public async Task OpenTranslationSettings() 
+    public async Task OpenTranslationSettings()
     {
-        await popupService.ShowPopupAsync<TranslationSettingsPopupViewModel>(vm => 
-        { 
+        await popupService.ShowPopupAsync<TranslationSettingsPopupViewModel>(vm =>
+        {
             vm.SubtitlesSettings = Settings;
             vm.EnableTranslation = Settings.TranslateToLanguage is not null;
         });

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using SubtitlesApp.ClientModels;
+﻿using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
@@ -9,9 +8,7 @@ namespace SubtitlesApp.Services;
 
 public class TranscriptionService(
     IMediaProcessor mediaProcessor,
-    ISubtitlesService subtitlesService,
-    ITranslationService translationService,
-    IMapper mapper
+    ISubtitlesService subtitlesService
 ) : ITranscriptionService
 {
     bool _disposed;

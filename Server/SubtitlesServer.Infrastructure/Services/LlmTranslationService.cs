@@ -54,7 +54,7 @@ public class LlmTranslationService : ITranslationService
             return ListResult<SubtitleDto>.Failure(error);
         }
 
-        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.EnglishName);
+        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.Name);
         var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
         var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
 
@@ -101,10 +101,7 @@ public class LlmTranslationService : ITranslationService
         TranslationRequestDto requestDto
     )
     {
-        var systemPrompt = string.Format(
-            _config.SingleSubtitleSystemPrompt,
-            targetLanguage.EnglishName
-        );
+        var systemPrompt = string.Format(_config.SingleSubtitleSystemPrompt, targetLanguage.Name);
         var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
         var serializerOptions = new JsonSerializerOptions
         {

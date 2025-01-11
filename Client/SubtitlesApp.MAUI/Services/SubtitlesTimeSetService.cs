@@ -6,12 +6,13 @@ namespace SubtitlesApp.Services;
 public class SubtitlesTimeSetService : ISubtitlesTimeSetService
 {
     public TimeInterval? GetTimeIntervalForTranscription(
-        TimeSet coveredTimeIntervals, 
+        TimeSet coveredTimeIntervals,
         TimeSpan currentPosition,
         TimeSpan transcribeBufferLength,
-        TimeSpan mediaDuration)
+        TimeSpan mediaDuration
+    )
     {
-        (var currentInterval, _) = coveredTimeIntervals.GetByTimeStamp(currentPosition);
+        var currentInterval = coveredTimeIntervals.GetByTimeStamp(currentPosition);
 
         var startTime = currentInterval == null ? currentPosition : currentInterval.EndTime;
 
@@ -36,12 +37,9 @@ public class SubtitlesTimeSetService : ISubtitlesTimeSetService
         return new TimeInterval(startTime, endTime);
     }
 
-    public bool ShouldStartTranscription(
-        TimeSet coveredTimeIntervals,
-        TimeSpan currentPosition,
-        TimeSpan mediaDuration)
+    public bool ShouldStartTranscription(TimeSet coveredTimeIntervals, TimeSpan currentPosition, TimeSpan mediaDuration)
     {
-        (var currentInterval, _) = coveredTimeIntervals.GetByTimeStamp(currentPosition);
+        var currentInterval = coveredTimeIntervals.GetByTimeStamp(currentPosition);
 
         // If the current interval is the last one and it covers the end of the media
         // return false
@@ -51,8 +49,7 @@ public class SubtitlesTimeSetService : ISubtitlesTimeSetService
         }
 
         var isTimeSuitableForTranscribe =
-            currentInterval == null ||
-            currentInterval.EndTime - currentPosition <= TimeSpan.FromSeconds(15);
+            currentInterval == null || currentInterval.EndTime - currentPosition <= TimeSpan.FromSeconds(15);
 
         return isTimeSuitableForTranscribe;
     }

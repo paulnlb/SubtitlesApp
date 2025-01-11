@@ -16,13 +16,9 @@ public class TimeSetTests
     [Test(Description = "Get by time stamp from empty TimeSet")]
     public void GetByTimeStampFromEmptyTimeSet_ShouldReturnNull()
     {
-        (var interval, var index) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var interval = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(interval, Is.Null);
-            Assert.That(index, Is.EqualTo(-1));
-        });
+        Assert.That(interval, Is.Null);
     }
 
     [Test(Description = "Get by time stamp from TimeSet with one interval")]
@@ -31,13 +27,9 @@ public class TimeSetTests
         var timeInterval = new TimeInterval(0, 10);
 
         _timeSet.Insert(timeInterval);
-        (var intervalFromList, var index) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(intervalFromList, Is.EqualTo(timeInterval));
-            Assert.That(index, Is.EqualTo(0));
-        });
+        Assert.That(intervalFromList, Is.EqualTo(timeInterval));
     }
 
     [Test(Description = "Get by time stamp from TimeSet with two intervals")]
@@ -49,16 +41,13 @@ public class TimeSetTests
         _timeSet.Insert(timeInterval1);
         _timeSet.Insert(timeInterval2);
 
-        (var intervalFromList1, var index1) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
-        (var intervalFromList2, var index2) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(15));
+        var intervalFromList1 = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var intervalFromList2 = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(15));
 
         Assert.Multiple(() =>
         {
             Assert.That(intervalFromList1, Is.EqualTo(timeInterval1));
-            Assert.That(index1, Is.EqualTo(0));
-
             Assert.That(intervalFromList2, Is.EqualTo(timeInterval2));
-            Assert.That(index2, Is.EqualTo(1));
         });
     }
 
@@ -71,7 +60,7 @@ public class TimeSetTests
         var timeSpanToSearch = TimeSpan.FromSeconds(secondToSearch);
 
         // insert 100 intervals
-        for (int i = 0; i < 1000; i+=10)
+        for (int i = 0; i < 1000; i += 10)
         {
             _timeSet.Insert(new TimeInterval(i, i + 9));
         }
@@ -93,7 +82,6 @@ public class TimeSetTests
         Assert.That(elapsedTime2, Is.LessThan(elapsedTime1));
     }
 
-
     #endregion
 
     #region insert
@@ -104,7 +92,7 @@ public class TimeSetTests
         var timeInterval = new TimeInterval(0, 10);
 
         _timeSet.Insert(timeInterval);
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
 
         Assert.Multiple(() =>
         {
@@ -122,8 +110,8 @@ public class TimeSetTests
         _timeSet.Insert(timeInterval1);
         _timeSet.Insert(timeInterval2);
 
-        (var intervalFromList1, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
-        (var intervalFromList2, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(15));
+        var intervalFromList1 = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var intervalFromList2 = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(15));
 
         Assert.Multiple(() =>
         {
@@ -142,7 +130,7 @@ public class TimeSetTests
         _timeSet.Insert(timeInterval1);
         _timeSet.Insert(timeInterval2);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(10));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(10));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null);
@@ -159,7 +147,7 @@ public class TimeSetTests
         _timeSet.Insert(timeInterval1);
         _timeSet.Insert(timeInterval2);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null);
@@ -176,7 +164,7 @@ public class TimeSetTests
         _timeSet.Insert(timeInterval1);
         _timeSet.Insert(timeInterval2);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(10));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(10));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null);
@@ -184,8 +172,10 @@ public class TimeSetTests
         Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(19)));
     }
 
-    [Test(Description = "Insert two NON overlapping intervals " +
-        "and a third interval in TimeSet, which overlaps left and right")]
+    [Test(
+        Description = "Insert two NON overlapping intervals "
+            + "and a third interval in TimeSet, which overlaps left and right"
+    )]
     public void InsertThreeIntervalsWithOverlappingLeftAndRight_ShouldResultOneInterval()
     {
         var leftInterval = new TimeInterval(0, 10);
@@ -197,7 +187,7 @@ public class TimeSetTests
 
         _timeSet.Insert(middleInterval);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null);
@@ -205,8 +195,7 @@ public class TimeSetTests
         Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(19)));
     }
 
-    [Test(Description = "Insert two NON overlapping intervals " +
-        "and a third interval in TimeSet, which overlaps left")]
+    [Test(Description = "Insert two NON overlapping intervals " + "and a third interval in TimeSet, which overlaps left")]
     public void InsertThreeIntervalsWithOverlappingLeft_ShouldResultTwoIntervals()
     {
         var leftInterval = new TimeInterval(0, 10);
@@ -218,8 +207,8 @@ public class TimeSetTests
 
         _timeSet.Insert(middleInterval);
 
-        (var leftIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
-        (var rightIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(16));
+        var leftIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var rightIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(16));
 
         Assert.That(_timeSet.Count, Is.EqualTo(2));
         Assert.That(leftIntervalFromList, Is.Not.Null);
@@ -232,8 +221,7 @@ public class TimeSetTests
         Assert.That(rightIntervalFromList.ContainsTime(TimeSpan.FromSeconds(19)));
     }
 
-    [Test(Description = "Insert two NON overlapping intervals " +
-        "and a third interval in TimeSet, which overlaps right")]
+    [Test(Description = "Insert two NON overlapping intervals " + "and a third interval in TimeSet, which overlaps right")]
     public void InsertThreeIntervalsWithOverlappingRight_ShouldResultTwoIntervals()
     {
         var leftInterval = new TimeInterval(0, 10);
@@ -245,8 +233,8 @@ public class TimeSetTests
 
         _timeSet.Insert(middleInterval);
 
-        (var leftIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
-        (var rightIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(16));
+        var leftIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var rightIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(16));
 
         Assert.That(_timeSet.Count, Is.EqualTo(2));
         Assert.That(leftIntervalFromList, Is.Not.Null);
@@ -259,8 +247,10 @@ public class TimeSetTests
         Assert.That(rightIntervalFromList.ContainsTime(TimeSpan.FromSeconds(19)));
     }
 
-    [Test(Description = "Insert two NON overlapping intervals " +
-        "and a third interval in TimeSet, which is adjacent to the left")]
+    [Test(
+        Description = "Insert two NON overlapping intervals "
+            + "and a third interval in TimeSet, which is adjacent to the left"
+    )]
     public void InsertThreeIntervalsWithAdjacentLeft_ShouldResultTwoIntervals()
     {
         var leftInterval = new TimeInterval(0, 10);
@@ -272,8 +262,8 @@ public class TimeSetTests
 
         _timeSet.Insert(middleInterval);
 
-        (var leftIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
-        (var rightIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(25));
+        var leftIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var rightIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(25));
 
         Assert.That(_timeSet.Count, Is.EqualTo(2));
         Assert.That(leftIntervalFromList, Is.Not.Null);
@@ -286,8 +276,10 @@ public class TimeSetTests
         Assert.That(rightIntervalFromList.ContainsTime(TimeSpan.FromSeconds(29)));
     }
 
-    [Test(Description = "Insert two NON overlapping intervals " +
-        "and a third interval in TimeSet, which is adjacent to the right")]
+    [Test(
+        Description = "Insert two NON overlapping intervals "
+            + "and a third interval in TimeSet, which is adjacent to the right"
+    )]
     public void InsertThreeIntervalsWithAdjacentRight_ShouldResultTwoIntervals()
     {
         var leftInterval = new TimeInterval(0, 10);
@@ -299,8 +291,8 @@ public class TimeSetTests
 
         _timeSet.Insert(middleInterval);
 
-        (var leftIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
-        (var rightIntervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(25));
+        var leftIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(5));
+        var rightIntervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(25));
 
         Assert.That(_timeSet.Count, Is.EqualTo(2));
         Assert.That(leftIntervalFromList, Is.Not.Null);
@@ -313,8 +305,10 @@ public class TimeSetTests
         Assert.That(rightIntervalFromList.ContainsTime(TimeSpan.FromSeconds(29)));
     }
 
-    [Test(Description = "Insert two NON overlapping intervals " +
-        "and a third interval in TimeSet, which is adjacent to the left and right")]
+    [Test(
+        Description = "Insert two NON overlapping intervals "
+            + "and a third interval in TimeSet, which is adjacent to the left and right"
+    )]
     public void InsertThreeIntervalsWithAdjacentLeftAndRight_ShouldResultOneInterval()
     {
         var leftInterval = new TimeInterval(0, 10);
@@ -326,7 +320,7 @@ public class TimeSetTests
 
         _timeSet.Insert(middleInterval);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null, "Resulted interval is null");
@@ -334,8 +328,10 @@ public class TimeSetTests
         Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(19)), "Resulted interval does not contain 19.");
     }
 
-    [Test(Description = "Insert two NON overlapping intervals" +
-        "and a third interval in TimeSet, which overlaps and contains both left and right")]
+    [Test(
+        Description = "Insert two NON overlapping intervals"
+            + "and a third interval in TimeSet, which overlaps and contains both left and right"
+    )]
     public void InsertThreeIntervalsWithOverlappingAndContainingLeftAndRight_ShouldResultOneInterval()
     {
         var leftInterval = new TimeInterval(5, 10);
@@ -347,7 +343,7 @@ public class TimeSetTests
 
         _timeSet.Insert(bigInterval);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null);
@@ -355,8 +351,10 @@ public class TimeSetTests
         Assert.That(intervalFromList.ContainsTime(TimeSpan.FromSeconds(24)));
     }
 
-    [Test(Description = "Insert four NON overlapping intervals" +
-        "and a fifth interval in TimeSet, which overlaps and contains all of them")]
+    [Test(
+        Description = "Insert four NON overlapping intervals"
+            + "and a fifth interval in TimeSet, which overlaps and contains all of them"
+    )]
     public void InsertFiveIntervalsWithOverlappingAndContainingAll_ShouldResultOneInterval()
     {
         var interval1 = new TimeInterval(0, 5);
@@ -372,7 +370,7 @@ public class TimeSetTests
 
         _timeSet.Insert(bigInterval);
 
-        (var intervalFromList, _) = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
+        var intervalFromList = _timeSet.GetByTimeStamp(TimeSpan.FromSeconds(12));
 
         Assert.That(_timeSet.Count, Is.EqualTo(1));
         Assert.That(intervalFromList, Is.Not.Null);

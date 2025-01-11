@@ -2,7 +2,6 @@
 using Com.Arthenica.Ffmpegkit;
 using Java.Interop;
 using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Services.Sockets;
@@ -13,21 +12,12 @@ public partial class FfmpegService : IMediaProcessor
 {
     readonly ISocketListener _socketListener;
 
-    readonly TrimmedAudioMetadata _audioMetadata;
-
     bool _disposed;
 
     public FfmpegService(ISocketListener socketListener)
     {
         _socketListener = socketListener;
         _socketListener.StartListening();
-
-        _audioMetadata = new()
-        {
-            SampleRate = 16000,
-            ChannelsCount = 1,
-            AudioFormat = AudioFormats.Wave,
-        };
     }
 
     public partial void Dispose()
@@ -60,8 +50,6 @@ public partial class FfmpegService : IMediaProcessor
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
-        _audioMetadata.SetTimeBoundaries(startTime, endTime);
-
         if (!IsRemoteUrl(sourcePath))
         {
             sourcePath = Uri.UnescapeDataString(sourcePath);
@@ -72,10 +60,10 @@ public partial class FfmpegService : IMediaProcessor
             + $"-to {endTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
             + $"-i '{sourcePath}' "
             + "-vn "
-            + $"-ar {_audioMetadata.SampleRate} "
-            + $"-ac {_audioMetadata.ChannelsCount} "
+            + $"-ar 16000 "
+            + $"-ac 1 "
             + "-y "
-            + $"-f {_audioMetadata.AudioFormat} ";
+            + $"-f {AudioFormats.Wave} ";
 
         ffmpegCommand += _socketListener switch
         {
@@ -103,8 +91,7 @@ public partial class FfmpegService : IMediaProcessor
     private bool IsRemoteUrl(string path)
     {
         var uriCreated = Uri.TryCreate(path, UriKind.Absolute, out var uriResult);
-        return uriCreated
-            && (uriResult!.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+        return uriCreated && (uriResult!.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
     }
 
     private async Task<byte[]> GetAudioBytesAsync(CancellationToken cancellationToken)

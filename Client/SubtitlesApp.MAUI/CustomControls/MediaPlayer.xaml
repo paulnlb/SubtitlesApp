@@ -7,7 +7,6 @@
              x:Name="this">
     <ContentView.Resources>
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
         <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
     </ContentView.Resources>

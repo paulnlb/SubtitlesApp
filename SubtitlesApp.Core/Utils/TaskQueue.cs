@@ -41,7 +41,7 @@ public class TaskQueue
                 }
                 catch (OperationCanceledException)
                 {
-                    // Do nothing, jump to the bottom if block
+                    // Do nothing, jump to the bottom
                 }
                 catch (Exception ex)
                 {

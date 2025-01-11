@@ -1,6 +1,6 @@
 ﻿namespace SubtitlesApp.Core.Constants;
 
-public static class LanguageNames
+public static class LanguageNativeNames
 {
     public const string Afrikaans = "Afrikaans";
     public const string Arabic = "العربية";

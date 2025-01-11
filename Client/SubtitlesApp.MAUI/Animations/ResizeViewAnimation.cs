@@ -4,20 +4,20 @@ namespace SubtitlesApp.Animations;
 
 public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimation(250)
 {
-    public static readonly BindableProperty NewRelativeHorizontalLengthProperty =
-        BindableProperty.Create(
-            nameof(NewRelativeHorizontalLength),
-            typeof(double),
-            typeof(ResizeViewAnimation),
-            0.0);
+    public static readonly BindableProperty NewRelativeHorizontalLengthProperty = BindableProperty.Create(
+        nameof(NewRelativeHorizontalLength),
+        typeof(double),
+        typeof(ResizeViewAnimation),
+        0.0
+    );
 
-    public static readonly BindableProperty NewRelativeVerticalLengthProperty =
-       BindableProperty.Create(
-           nameof(NewRelativeVerticalLength),
-           typeof(double),
-           typeof(ResizeViewAnimation),
-           0.0,
-           BindingMode.TwoWay);
+    public static readonly BindableProperty NewRelativeVerticalLengthProperty = BindableProperty.Create(
+        nameof(NewRelativeVerticalLength),
+        typeof(double),
+        typeof(ResizeViewAnimation),
+        0.0,
+        BindingMode.TwoWay
+    );
 
     public double NewRelativeHorizontalLength
     {
@@ -35,15 +35,31 @@ public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimat
     {
         var animation = new Animation();
 
-        animation.Add(0, 1, new Animation(v =>
-        {
-            AdaptiveLayout.SetRelativeHorizontalLength(view, v);
-        }, oldHorizontalValue, NewRelativeHorizontalLength));
+        animation.Add(
+            0,
+            1,
+            new Animation(
+                v =>
+                {
+                    AdaptiveLayout.SetRelativeHorizontalLength(view, v);
+                },
+                oldHorizontalValue,
+                NewRelativeHorizontalLength
+            )
+        );
 
-        animation.Add(0, 1, new Animation(v =>
-        {
-            AdaptiveLayout.SetRelativeVerticalLength(view, v);
-        }, oldVerticalValue, NewRelativeVerticalLength));
+        animation.Add(
+            0,
+            1,
+            new Animation(
+                v =>
+                {
+                    AdaptiveLayout.SetRelativeVerticalLength(view, v);
+                },
+                oldVerticalValue,
+                NewRelativeVerticalLength
+            )
+        );
 
         return animation;
     }
@@ -53,19 +69,19 @@ public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimat
         var oldRelativeHorizontalLengthValue = AdaptiveLayout.GetRelativeHorizontalLength(view) ?? 0;
         var oldRelativeVerticalLengthValue = AdaptiveLayout.GetRelativeVerticalLength(view) ?? 0;
 
-        if (oldRelativeHorizontalLengthValue != NewRelativeHorizontalLength ||
-            oldRelativeVerticalLengthValue != NewRelativeVerticalLength)
+        if (
+            oldRelativeHorizontalLengthValue != NewRelativeHorizontalLength
+            || oldRelativeVerticalLengthValue != NewRelativeVerticalLength
+        )
         {
             view.Animate(
                 "ChangeSizeFactor",
-                AnimationCallback(
-                    view,
-                    oldRelativeHorizontalLengthValue,
-                    oldRelativeVerticalLengthValue),
+                AnimationCallback(view, oldRelativeHorizontalLengthValue, oldRelativeVerticalLengthValue),
                 length: Length,
-                easing: Easing);
+                easing: Easing
+            );
         }
-        
+
         return Task.CompletedTask;
     }
 }

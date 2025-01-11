@@ -8,13 +8,13 @@ namespace SubtitlesApp.Interfaces;
 public interface ITranscriptionService : IDisposable
 {
     /// <summary>
-    ///     Transcribes and (optionally) translates given media
+    ///     Extracts a part within given time interval from given media and transcribes it (generates subtitles)
     /// </summary>
     /// <param name="mediaPath">Physical path for media to transcribe</param>
     /// <param name="timeIntervalToTranscribe">Time interval that should be taken from given media and transcribed</param>
     /// <param name="subtitlesSettings">Subtiltes settings</param>
     /// <param name="cancellationToken"></param>
-    /// <returns>Result of transcription. If the result is successfull, it will contain a list of transcribed subtitles with or without translations</returns>
+    /// <returns>Result of transcription. If the result is successfull, it will contain a list of transcribed subtitles</returns>
     Task<ListResult<SubtitleDto>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeIntervalToTranscribe,

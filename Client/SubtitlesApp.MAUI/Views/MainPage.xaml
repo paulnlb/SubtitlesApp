@@ -1,77 +1,71 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
              x:Class="SubtitlesApp.Views.MainPage"
              x:DataType="viewModels:MainPageViewModel">
 
+    <ContentPage.Resources>
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ContentPage.Resources>
+
     <VerticalStackLayout>
-        <VerticalStackLayout
-            x:Name="authorized"
-            Padding="30,0"
-            Spacing="25"
-            IsVisible="{Binding IsLoggedIn}">
-            <Image
-                Margin="0, 40, 0, 0"
-                Source="subtitles.png"
-                HeightRequest="175"
-                Aspect="AspectFit"/>
+        <VerticalStackLayout x:Name="authorized"
+                             Padding="30,0"
+                             Spacing="25"
+                             IsVisible="{Binding IsLoggedIn}">
+            <Image Margin="0, 40, 0, 0"
+                   Source="subtitles.png"
+                   HeightRequest="175"
+                   Aspect="AspectFit" />
 
-            <Label
-                Text="Welcome back to SubtitlesApp!"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
+            <Label Text="Welcome back to SubtitlesApp!"
+                   Style="{StaticResource Headline}"
+                   SemanticProperties.HeadingLevel="Level1" />
 
-            <Button
-                x:Name="CounterBtn"
-                Text="Open a file" 
-                SemanticProperties.Hint="Opens a file to view"
-                HorizontalOptions="Fill"
-                Command="{Binding OpenMediaFileCommand}"/>
+            <Button x:Name="CounterBtn"
+                    Text="Open a file"
+                    SemanticProperties.Hint="Opens a file to view"
+                    HorizontalOptions="Fill"
+                    Command="{Binding OpenMediaFileCommand}" />
 
-            <Button
-                x:Name="SettingsBtn"
-                Text="App settings" 
-                SemanticProperties.Hint="Opens app settings"
-                HorizontalOptions="Fill"
-                Command="{Binding OpenSettingsCommand}"/>
+            <Button x:Name="SettingsBtn"
+                    Text="App settings"
+                    SemanticProperties.Hint="Opens app settings"
+                    HorizontalOptions="Fill"
+                    Command="{Binding OpenSettingsCommand}" />
 
-            <Button
-                x:Name="LogoutBtn"
-                Text="Logout" 
-                SemanticProperties.Hint="Log out"
-                HorizontalOptions="Fill"
-                Command="{Binding LogOutCommand}"/>
+            <Button x:Name="LogoutBtn"
+                    Text="Logout"
+                    SemanticProperties.Hint="Log out"
+                    HorizontalOptions="Fill"
+                    Command="{Binding LogOutCommand}" />
         </VerticalStackLayout>
 
-        <VerticalStackLayout
-            x:Name="unAuthorized"
-            Padding="30,0"
-            Spacing="25"
-            IsVisible="{Binding IsLoggedOut}">
-            <Image
-                Margin="0, 40, 0, 0"
-                Source="subtitles.png"
-                HeightRequest="175"
-                Aspect="AspectFit"/>
+        <VerticalStackLayout x:Name="unAuthorized"
+                             Padding="30,0"
+                             Spacing="25"
+                             IsVisible="{Binding IsLoggedIn, Converter={x:StaticResource InvertedBoolConverter}}">
+            <Image Margin="0, 40, 0, 0"
+                   Source="subtitles.png"
+                   HeightRequest="175"
+                   Aspect="AspectFit" />
 
-            <Label
-                Text="Welcome to SubtitlesApp!"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
+            <Label Text="Welcome to SubtitlesApp!"
+                   Style="{StaticResource Headline}"
+                   SemanticProperties.HeadingLevel="Level1" />
 
-            <Label
-                Text="Transcribe any video using OpenAI Whisper"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Transcribe any video using OpenAI Whisper" />
+            <Label Text="Transcribe any video using OpenAI Whisper"
+                   Style="{StaticResource SubHeadline}"
+                   SemanticProperties.HeadingLevel="Level2"
+                   SemanticProperties.Description="Transcribe any video using OpenAI Whisper" />
 
-            <Button
-                x:Name="LoginBtn"
-                Text="Log in" 
-                SemanticProperties.Hint="Log out"
-                HorizontalOptions="Fill"
-                Command="{Binding LogInCommand}"/>
+            <Button x:Name="LoginBtn"
+                    Text="Log in"
+                    SemanticProperties.Hint="Log out"
+                    HorizontalOptions="Fill"
+                    Command="{Binding LogInCommand}" />
         </VerticalStackLayout>
     </VerticalStackLayout>
 

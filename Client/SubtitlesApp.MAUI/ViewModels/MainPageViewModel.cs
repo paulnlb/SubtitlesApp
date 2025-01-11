@@ -18,22 +18,19 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     bool _isLoggedIn;
 
-    [ObservableProperty]
-    bool _isLoggedOut;
-
     public MainPageViewModel(
         IAuthService authService,
         IBuiltInPopupService builtInPopupService,
         IVideoPicker videoPicker,
-        IPopupService popupService)
+        IPopupService popupService
+    )
     {
         _authService = authService;
         _builtInPopupService = builtInPopupService;
         _videoPicker = videoPicker;
         _popupService = popupService;
 
-        _isLoggedOut = string.IsNullOrEmpty(_authService.GetAccessTokenAsync(false).Result);
-        _isLoggedIn = !_isLoggedOut;
+        _isLoggedIn = !string.IsNullOrEmpty(_authService.GetAccessTokenAsync().Result);
     }
 
     [RelayCommand]
@@ -43,7 +40,6 @@ public partial class MainPageViewModel : ObservableObject
         if (result.IsSuccess)
         {
             IsLoggedIn = true;
-            IsLoggedOut = false;
         }
     }
 
@@ -54,7 +50,6 @@ public partial class MainPageViewModel : ObservableObject
         if (result.IsSuccess)
         {
             IsLoggedIn = false;
-            IsLoggedOut = true;
         }
     }
 
@@ -69,8 +64,8 @@ public partial class MainPageViewModel : ObservableObject
             "Cancel",
             null,
             LoadOnlineVideo,
-            LoadLocalResource);
-
+            LoadLocalResource
+        );
 
         switch (result)
         {
