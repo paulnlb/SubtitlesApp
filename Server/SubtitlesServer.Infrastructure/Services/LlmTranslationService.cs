@@ -1,4 +1,6 @@
-﻿using System.Text.Encodings.Web;
+﻿using System.IO.Pipelines;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using AutoMapper;
@@ -88,77 +90,16 @@ public class LlmTranslationService : ITranslationService
             return AsyncEnumerableResult<SubtitleDto>.Failure(error);
         }
 
-        return AsyncEnumerableResult<SubtitleDto>.Success(StreamTranslationAsync(targetLanguage, requestDto));
-    }
-
-    private async IAsyncEnumerable<SubtitleDto> StreamTranslationAsync(
-        Language targetLanguage,
-        TranslationRequestDto requestDto
-    )
-    {
-        var systemPrompt = string.Format(_config.SingleSubtitleSystemPrompt, targetLanguage.Name);
+        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.Name);
         var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
-        var serializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Arabic),
-        };
+        var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
 
-        var currentIndex = 0;
-        const int RetryLimit = 3;
-        var retryCounter = 0;
+        var pipe = new Pipe();
+        var llmResponsePortions = _llmService.StreamAsync(chatHistory, userPrompt);
+        _ = WriteLlmPortionsToPipe(llmResponsePortions, pipe.Writer);
+        var subtitlesEnumerable = DeserializeSubtitlesFromSteamAsync(requestDto, pipe.Reader);
 
-        while (currentIndex < requestDto.SourceSubtitles.Count && retryCounter < RetryLimit)
-        {
-            var subtitleDto = requestDto.SourceSubtitles[currentIndex];
-            var serializedPrompt = JsonSerializer
-                .Serialize(_mapper.Map<Translation>(subtitleDto), serializerOptions)
-                .Replace("\\u0027", "\'"); // fix System.Test.Json serializing a single quote into \u0027
-
-            var llmResult = await _llmService.SendAsync(chatHistory, serializedPrompt);
-
-            if (llmResult.IsFailure)
-            {
-                _logger.LogError("Llm service error: {error}", llmResult.Error.Description);
-                retryCounter++;
-                continue;
-            }
-
-            var translationResult = DeserializeTranslation(llmResult.Value, serializerOptions);
-
-            if (translationResult.IsFailure)
-            {
-                _logger.LogError(
-                    "Deserialization of translated subtitle failed: {error}",
-                    translationResult.Error.Description
-                );
-                retryCounter++;
-                continue;
-            }
-
-            if (!ValidateTranslatedSubtitle(requestDto.TargetLanguageCode, subtitleDto, translationResult.Value))
-            {
-                _logger.LogError(
-                    "Translated subtitle does not match the source subtitle. "
-                        + "Source subtitle: {src}. Translated subtitle: {trs}",
-                    subtitleDto,
-                    translationResult.Value
-                );
-                retryCounter++;
-                continue;
-            }
-
-            chatHistory.Add(new LlmMessageDto("user", serializedPrompt));
-            chatHistory.Add(new LlmMessageDto("assistant", llmResult.Value));
-
-            currentIndex++;
-            retryCounter = 0;
-
-            var translatedSubtitle = _mapper.Map<SubtitleDto>(subtitleDto);
-            _mapper.Map(translationResult.Value, translatedSubtitle);
-
-            yield return translatedSubtitle;
-        }
+        return AsyncEnumerableResult<SubtitleDto>.Success(subtitlesEnumerable);
     }
 
     private string SerializeSubtitlesToPrompt(List<SubtitleDto> subtitlesDtos)
@@ -182,7 +123,11 @@ public class LlmTranslationService : ITranslationService
     {
         var llmTranslations = JsonSerializer.Deserialize<List<Translation>>(
             llmResponse,
-            new JsonSerializerOptions { WriteIndented = true }
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Arabic),
+            }
         );
 
         if (llmTranslations?.Count != requestDto.SourceSubtitles.Count)
@@ -196,7 +141,7 @@ public class LlmTranslationService : ITranslationService
 
         if (!ValidateTranslations(requestDto, llmTranslations))
         {
-            var error = new Error(ErrorCode.BadGateway, $"Translated and original subtitles do not match.");
+            var error = new Error(ErrorCode.BadGateway, $"Original subtitles and translations do not match.");
             return ListResult<SubtitleDto>.Failure(error);
         }
 
@@ -206,35 +151,50 @@ public class LlmTranslationService : ITranslationService
         return ListResult<SubtitleDto>.Success(translatedSubtitlesDtos);
     }
 
-    private static Result<Translation> DeserializeTranslation(string llmResponse, JsonSerializerOptions serializerOptions)
+    private async IAsyncEnumerable<SubtitleDto> DeserializeSubtitlesFromSteamAsync(
+        TranslationRequestDto requestDto,
+        PipeReader reader
+    )
     {
-        try
-        {
-            var translation = JsonSerializer.Deserialize<Translation>(llmResponse, serializerOptions);
+        var serializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            if (translation == null)
+        var currentSubtitleIndex = 0;
+
+        var translationsEnumerable = JsonSerializer.DeserializeAsyncEnumerable<Translation>(
+            reader.AsStream(),
+            serializerOptions
+        );
+
+        await foreach (var translation in translationsEnumerable)
+        {
+            var subtitleDto = requestDto.SourceSubtitles[currentSubtitleIndex];
+
+            if (requestDto.TargetLanguageCode != translation?.LanguageCode)
             {
-                var error = new Error(ErrorCode.BadGateway, "Deserialized subtitlte is empty");
-                return Result<Translation>.Failure(error);
+                _logger.LogError(
+                    "Translation does not match the source subtitle. Source subtitle: {src}. Translation: {trs}",
+                    subtitleDto,
+                    translation
+                );
+                yield break;
             }
 
-            return Result<Translation>.Success(translation);
-        }
-        catch (Exception e)
-        {
-            var error = new Error(ErrorCode.BadGateway, e.Message);
-            return Result<Translation>.Failure(error);
+            currentSubtitleIndex++;
+
+            var translatedSubtitle = _mapper.Map<SubtitleDto>(subtitleDto);
+            _mapper.Map(translation, translatedSubtitle);
+
+            yield return translatedSubtitle;
         }
     }
 
     private static bool ValidateTranslations(TranslationRequestDto requestDto, List<Translation> translations)
     {
-        for (int i = 0; i < requestDto.SourceSubtitles.Count; i++)
+        for (int i = 0; i < translations.Count; i++)
         {
-            var sourceSubtitle = requestDto.SourceSubtitles[i];
-            var llmSubtitle = translations[i];
+            var translation = translations[i];
 
-            if (!ValidateTranslatedSubtitle(requestDto.TargetLanguageCode, sourceSubtitle, llmSubtitle))
+            if (requestDto.TargetLanguageCode != translation?.LanguageCode)
             {
                 return false;
             }
@@ -243,12 +203,47 @@ public class LlmTranslationService : ITranslationService
         return true;
     }
 
-    private static bool ValidateTranslatedSubtitle(
-        string targetLanguageCode,
-        SubtitleDto subtitleDto,
-        Translation translation
-    )
+    // Besides of just writing, this method does additional buffering to increase the size of written chunks,
+    // because otherwise JsonSerializer.DeserializeAsyncEnumerable method would idle,
+    // waiting for the full response instead of deserializing it on the fly.
+    // That's because the portions of data streamed by LLMs are too small (typically couple of characters)
+    // ref: https://github.com/dotnet/runtime/issues/63864#issuecomment-1016568621
+    private async Task WriteLlmPortionsToPipe(IAsyncEnumerable<string> portions, PipeWriter writer)
     {
-        return targetLanguageCode == translation.LanguageCode;
+        var stringBuffer = new StringBuilder();
+
+        try
+        {
+            await foreach (var portion in portions)
+            {
+                stringBuffer.Append(portion);
+
+                if (portion.Contains('}'))
+                {
+                    await WriteBufferToPipe();
+                }
+            }
+
+            if (stringBuffer.Length > 0)
+            {
+                await WriteBufferToPipe();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("An error occured during streaming LLM response: {err}", ex.Message);
+        }
+        finally
+        {
+            await writer.CompleteAsync();
+        }
+
+        async Task WriteBufferToPipe()
+        {
+            var bytes = Encoding.UTF8.GetBytes(stringBuffer.ToString());
+            await writer.WriteAsync(bytes);
+            Console.Write(stringBuffer.ToString());
+            stringBuffer.Clear();
+        }
     }
 }

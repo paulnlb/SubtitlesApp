@@ -40,15 +40,27 @@ public class OllamaLlmService : ILlmService
             await foreach (var aiMessage in chat.SendAsync(userPrompt))
             {
                 response.Append(aiMessage);
-                Console.Write(aiMessage);
             }
+
+            return Result<string>.Success(response.ToString());
         }
         catch (Exception ex)
         {
             var error = new Error(ErrorCode.BadGateway, ex.Message);
             return Result<string>.Failure(error);
         }
+    }
 
-        return Result<string>.Success(response.ToString());
+    public IAsyncEnumerable<string> StreamAsync(List<LlmMessageDto> chatHistory, string userPrompt)
+    {
+        var client = new OllamaApiClient(_httpClient, _config.ModelName);
+
+        var chat = new Chat(client)
+        {
+            Options = new OllamaSharp.Models.RequestOptions { Temperature = _config.Temperature, NumCtx = _config.NumCtx },
+            Messages = _mapper.Map<List<Message>>(chatHistory),
+        };
+
+        return chat.SendAsync(userPrompt);
     }
 }
