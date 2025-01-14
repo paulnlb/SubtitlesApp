@@ -1,7 +1,7 @@
 ﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 
-namespace SubtitlesServer.Application.Interfaces;
+namespace SubtitlesServer.TranslationApi.Services.Interfaces;
 
 public interface ITranslationService
 {

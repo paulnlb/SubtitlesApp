@@ -1,4 +1,4 @@
-﻿namespace SubtitlesServer.Infrastructure.Configs;
+﻿namespace SubtitlesServer.TranslationApi.Configs;
 
 public class OllamaConfig
 {

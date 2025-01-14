@@ -3,7 +3,7 @@ using OllamaSharp.Models.Chat;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 
-namespace SubtitlesServer.Infrastructure.Mapper;
+namespace SubtitlesServer.TranslationApi.Mapper;
 
 public class AutoMapperProfile : Profile
 {

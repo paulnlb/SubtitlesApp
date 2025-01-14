@@ -1,9 +1,10 @@
 ﻿using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Configs;
-using SubtitlesServer.Infrastructure.Mapper;
-using SubtitlesServer.Infrastructure.Middleware;
-using SubtitlesServer.Infrastructure.Services;
+using SubtitlesServer.Shared.Configs;
+using SubtitlesServer.Shared.Middleware;
+using SubtitlesServer.TranslationApi.Configs;
+using SubtitlesServer.TranslationApi.Mapper;
+using SubtitlesServer.TranslationApi.Services;
+using SubtitlesServer.TranslationApi.Services.Interfaces;
 
 namespace SubtitlesServer.TranslationApi.Extensions;
 
@@ -18,10 +19,7 @@ public static class ServicesCollectionExtensions
         services.AddAutoMapper(typeof(AutoMapperProfile));
     }
 
-    public static void AddJwtAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtConfig = new JwtConfig();
         configuration.GetSection("JwtSettings").Bind(jwtConfig);

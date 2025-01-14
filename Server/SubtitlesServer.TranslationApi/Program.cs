@@ -1,4 +1,4 @@
-﻿using SubtitlesServer.Infrastructure.Configs;
+﻿using SubtitlesServer.TranslationApi.Configs;
 using SubtitlesServer.TranslationApi.Extensions;
 using SubtitlesServer.TranslationApi.Middlewares;
 

@@ -5,10 +5,10 @@ using OllamaSharp;
 using OllamaSharp.Models.Chat;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Configs;
+using SubtitlesServer.TranslationApi.Configs;
+using SubtitlesServer.TranslationApi.Services.Interfaces;
 
-namespace SubtitlesServer.Infrastructure.Services;
+namespace SubtitlesServer.TranslationApi.Services;
 
 public class OllamaLlmService : ILlmService
 {

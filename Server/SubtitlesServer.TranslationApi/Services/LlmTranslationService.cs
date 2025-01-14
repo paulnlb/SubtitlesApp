@@ -4,16 +4,15 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using AutoMapper;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Configs;
+using SubtitlesServer.TranslationApi.Configs;
+using SubtitlesServer.TranslationApi.Services.Interfaces;
 
-namespace SubtitlesServer.Infrastructure.Services;
+namespace SubtitlesServer.TranslationApi.Services;
 
 public class LlmTranslationService : ITranslationService
 {
