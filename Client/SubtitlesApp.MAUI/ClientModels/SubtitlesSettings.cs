@@ -22,7 +22,10 @@ public partial class SubtitlesSettings : ObservableObject
     SubtitlesCaptureMode _whichSubtitlesToTranslate;
 
     [ObservableProperty]
-    bool _translateStreamingMode;
+    bool _translationStreamingEnabled;
+
+    [ObservableProperty]
+    bool _autoTranslationEnabled;
 
     public SubtitlesSettings ShallowCopy()
     {

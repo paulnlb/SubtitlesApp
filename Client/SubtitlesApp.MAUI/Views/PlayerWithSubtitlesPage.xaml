@@ -37,16 +37,16 @@
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
                 <SwipeGestureRecognizer Direction="Down"
                                         Command="{Binding PlayerSwipedDownCommand}"
-                                        Threshold="30"/>
+                                        Threshold="30" />
                 <SwipeGestureRecognizer Direction="Up"
                                         Command="{Binding PlayerSwipedUpCommand}"
-                                        Threshold="30"/>
+                                        Threshold="30" />
                 <SwipeGestureRecognizer Direction="Left"
                                         Command="{Binding PlayerSwipedLeftCommand}"
-                                        Threshold="30"/>
+                                        Threshold="30" />
                 <SwipeGestureRecognizer Direction="Right"
                                         Command="{Binding PlayerSwipedRightCommand}"
-                                        Threshold="30"/>
+                                        Threshold="30" />
             </customControls:MediaPlayer.GestureRecognizers>
 
             <customControls:MediaPlayer.Behaviors>
@@ -61,11 +61,12 @@
 
         <!--Subtitles section-->
         <Grid RowDefinitions="50, *"
-              ColumnDefinitions="7*, Auto, *"
+              ColumnDefinitions="11*, Auto, Auto, 2*"
               Padding="5, 0"
+              ColumnSpacing="5"
               layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
               layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
-            
+
             <!--Transcription status-->
             <Entry Grid.Row="0"
                    Grid.Column="0"
@@ -76,7 +77,7 @@
             <HorizontalStackLayout Grid.Row="0"
                                    Grid.Column="1"
                                    Spacing="5"
-                                   Margin="10, 0"
+                                   Margin="5, 0"
                                    HorizontalOptions="Center">
                 <Label Text="{Binding SubtitlesSettings.OriginalLanguage.Code}"
                        VerticalTextAlignment="Center" />
@@ -90,21 +91,54 @@
                        IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
             </HorizontalStackLayout>
 
-            <!--Subtitles settings-->
+            <!--Translate button-->
             <ImageButton Grid.Row="0"
                          Grid.Column="2"
-                         Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
+                         Source="{AppThemeBinding Dark=translate_light.png, Light=translate_dark.png}"
+                         Padding="2"
                          HeightRequest="30"
+                         WidthRequest="30"
+                         Margin="0,0,5,0"
+                         Command="{Binding TranslateCommand}"
+                         IsEnabled="{Binding SubtitlesCollectionState.IsTranslationRunning, Converter={x:StaticResource InvertedBoolConverter}}"
+                         IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={x:StaticResource IsNotNullConverter}}" />
+            <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
+            <BoxView HeightRequest="30"
+                     WidthRequest="30"
+                     Margin="0,0,5,0"
+                     Grid.Row="0"
+                     Grid.Column="2"
+                     CornerRadius="5"
+                     BackgroundColor="#33FFFFFF"
+                     IsEnabled="{Binding SubtitlesCollectionState.IsTranslationRunning, Converter={x:StaticResource InvertedBoolConverter}}"
+                     IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={x:StaticResource IsNotNullConverter}}">
+            </BoxView>
+            
+            <!--Subtitles settings-->
+            <ImageButton Grid.Row="0"
+                         Grid.Column="3"
+                         Padding="1"
+                         Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
+                         HeightRequest="35"
+                         WidthRequest="40"
                          Command="{Binding OpenSubtitlesSettingsCommand}" />
+            <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
+            <BoxView HeightRequest="35"
+                     WidthRequest="40"
+                     Grid.Row="0"
+                     Grid.Column="3"
+                     CornerRadius="5"
+                     BackgroundColor="#33FFFFFF">
+            </BoxView>
 
             <!--Subtitles list-->
             <customControls:ExdendedVirtualList Grid.Row="1"
-                                                   Grid.ColumnSpan="3"
-                                                   Adapter="{Binding SubtitlesAdapter}"
-                                                   ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
-                                                   ScrolledVerticallyCommand="{Binding SubtitlesScrolledCommand}"
-                                                   FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
-                                                   LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
+                                                Grid.ColumnSpan="4"
+                                                Adapter="{Binding SubtitlesAdapter}"
+                                                ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
+                                                ScrolledVerticallyCommand="{Binding SubtitlesScrolledCommand}"
+                                                FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
+                                                LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
                 <customControls:ExdendedVirtualList.ItemTemplate>
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
@@ -117,7 +151,7 @@
             <!--"Scroll to current subtitle" button-->
             <Button x:Name="scrollToCurrentButton"
                     Grid.Row="1"
-                    Grid.ColumnSpan="3"
+                    Grid.ColumnSpan="4"
                     Text="Scroll to current subtitle"
                     Command="{Binding ScrollToCurrentSubCommand}"
                     VerticalOptions="End"

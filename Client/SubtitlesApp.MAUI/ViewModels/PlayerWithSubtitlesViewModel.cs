@@ -98,7 +98,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             TranslateToLanguage = null,
             ShowTranslation = false,
             WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
-            TranslateStreamingMode = true,
+            TranslationStreamingEnabled = true,
+            AutoTranslationEnabled = true,
         };
         LayoutSettings = new PlayerSubtitlesLayoutSettings
         {
@@ -134,6 +135,16 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         {
             StartTranscription(currentPosition);
         }
+    }
+
+    [RelayCommand]
+    public void Translate()
+    {
+        (var skippedSubsNumber, var subtitlesToTranslate) = FilterSubtitlesByCurrentScope();
+
+        Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
+
+        _translationTaskQueue.EnqueueTask(cancellationToken => TranslateAsync(subtitlesToTranslate, cancellationToken));
     }
 
     #region subtitles scrolling
@@ -313,7 +324,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
                 return;
             }
 
-            if (SubtitlesSettings.TranslateToLanguage?.Code != null)
+            if (SubtitlesSettings.AutoTranslationEnabled && SubtitlesSettings.TranslateToLanguage?.Code != null)
             {
                 // As translation process may go slower than transcription, so we maintain
                 // a queue of translation tasks to ensure they will all be executed
@@ -379,10 +390,11 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
 
         TextBoxContent = "Translating...";
+        SubtitlesCollectionState.IsTranslationRunning = true;
 
         var subtitlesDtos = _mapper.Map<List<SubtitleDto>>(subtitlesToTranslate);
 
-        if (SubtitlesSettings.TranslateStreamingMode)
+        if (SubtitlesSettings.TranslationStreamingEnabled)
         {
             var translationResult = await _translationService.TranslateAndStreamAsync(
                 subtitlesDtos,
@@ -416,6 +428,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
 
         TextBoxContent = "Translation completed.";
+        SubtitlesCollectionState.IsTranslationRunning = false;
     }
 
     void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)
@@ -517,7 +530,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     #region event handlers
 
-    async partial void OnSubtitlesSettingsChanged(SubtitlesSettings? oldValue, SubtitlesSettings newValue)
+    partial void OnSubtitlesSettingsChanged(SubtitlesSettings? oldValue, SubtitlesSettings newValue)
     {
         // Skip SubtitlesSettings object initialization
         if (oldValue == null)
@@ -531,22 +544,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             return;
         }
 
-        // Priority 1: Language is changed
-        // OR
-        // Priority 2: Translation scope increased
-        if (
-            newValue.TranslateToLanguage != oldValue.TranslateToLanguage
-            || newValue.WhichSubtitlesToTranslate < oldValue.WhichSubtitlesToTranslate
-        )
-        {
-            (var skippedSubsNumber, var subtitlesToTranslate) = FilterSubtitlesByCurrentScope();
-
-            Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
-
-            await TranslateAsync(subtitlesToTranslate);
-        }
-
-        // Priority 3: Background translation switch is toggled
+        // Background translation switch is toggled
         if (newValue.ShowTranslation != oldValue.ShowTranslation)
         {
             var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();

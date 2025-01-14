@@ -18,4 +18,7 @@ public partial class SubtitlesCollectionState : ObservableObject
 
     [ObservableProperty]
     bool _autoScrollEnabled;
+
+    [ObservableProperty]
+    bool _isTranslationRunning;
 }

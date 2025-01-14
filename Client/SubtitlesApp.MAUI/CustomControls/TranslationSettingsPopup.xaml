@@ -16,9 +16,10 @@
     </toolkit:Popup.Resources>
 
     <Grid WidthRequest="300"
-          RowDefinitions="*, *, *, 3*, *"
+          RowDefinitions="*, *, *, *, *, 3*"
           ColumnDefinitions="9*, *"
-          Padding="10">
+          Padding="10"
+          ColumnSpacing="20">
 
         <Label Grid.Row="0"
                Grid.Column="0"
@@ -51,40 +52,52 @@
                 IsToggled="{Binding SubtitlesSettings.ShowTranslation}"
                 IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
 
-        <VerticalStackLayout Grid.Row="3"
+        <Label Grid.Row="3"
+               Grid.Column="0"
+               VerticalOptions="Center"
+               Text="Streaming mode for translation"
+               IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
+        <Switch Grid.Row="3"
+                Grid.Column="1"
+                IsToggled="{Binding SubtitlesSettings.TranslationStreamingEnabled}"
+                IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
+
+        <Label Grid.Row="4"
+               Grid.Column="0"
+               VerticalOptions="Center"
+               Margin="0,20,0,0"
+               Text="Automatically translate after transcription"
+               IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
+        <Switch Grid.Row="4"
+                Grid.Column="1"
+                IsToggled="{Binding SubtitlesSettings.AutoTranslationEnabled}"
+                IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
+        
+        <VerticalStackLayout Grid.Row="5"
                              Grid.ColumnSpan="2"
+                             Margin="0,20,0,0"
                              RadioButtonGroup.GroupName="subtitlesScope"
                              RadioButtonGroup.SelectedValue="{Binding SubtitlesSettings.WhichSubtitlesToTranslate, Converter={x:StaticResource EnumToIntConverter}}"
                              IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}">
-            <Label Text="What subtitles to translate?" />
-            <RadioButton Content="All"
+            <Label Text="Manual translation scope" />
+            <RadioButton Content="All subtitles"
                          GroupName="subtitlesScope">
                 <RadioButton.Value>
                     <x:Int32>0</x:Int32>
                 </RadioButton.Value>
             </RadioButton>
-            <RadioButton Content="Visible and next"
+            <RadioButton Content="Visible and next subtitles"
                          GroupName="subtitlesScope">
                 <RadioButton.Value>
                     <x:Int32>1</x:Int32>
                 </RadioButton.Value>
             </RadioButton>
-            <RadioButton Content="Only next"
+            <RadioButton Content="Only next subtitles"
                          GroupName="subtitlesScope">
                 <RadioButton.Value>
                     <x:Int32>2</x:Int32>
                 </RadioButton.Value>
             </RadioButton>
         </VerticalStackLayout>
-
-        <Label Grid.Row="4"
-               Grid.Column="0"
-               VerticalOptions="Center"
-               Text="Streaming mode"
-               IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
-        <Switch Grid.Row="4"
-                Grid.Column="1"
-                IsToggled="{Binding SubtitlesSettings.TranslateStreamingMode}"
-                IsEnabled="{Binding Source={x:Reference enableTranslationSwitch}, Path=IsToggled}" />
     </Grid>
 </toolkit:Popup>
