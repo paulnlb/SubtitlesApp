@@ -13,35 +13,30 @@ public class HttpRequestService : IHttpRequestService
     private readonly HttpClient _httpClient;
     private readonly IAuthService _authService;
 
-    public HttpRequestService(
-        IAuthService authService,
-        HttpClient client,
-        ISettingsService settingsService
-    )
+    public HttpRequestService(IAuthService authService, HttpClient client, ISettingsService settingsService)
     {
         client.BaseAddress = new Uri(settingsService.BackendBaseUrl);
         _httpClient = client;
         _authService = authService;
     }
 
-    public async Task<Result<T>> SendAsync<T>(
-        HttpRequestMessage request,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Result<T>> SendAsync<T>(HttpRequestMessage request, CancellationToken cancellationToken = default)
         where T : class, new()
     {
         try
         {
             var token = await _authService.GetAccessTokenAsync();
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
 
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+            var response = await PingAndSendAsync(request, cancellationToken: cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
-                var responseContent =
-                    await response.Content.ReadFromJsonAsync<T>(cancellationToken) ?? new();
+                var responseContent = await response.Content.ReadFromJsonAsync<T>(cancellationToken) ?? new();
 
                 return Result<T>.Success(responseContent);
             }
@@ -83,18 +78,11 @@ public class HttpRequestService : IHttpRequestService
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken
-            );
+            var response = await PingAndSendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
-                var deserializeOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                };
+                var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
                 var results = JsonSerializer.DeserializeAsyncEnumerable<T>(
                     await response.Content.ReadAsStreamAsync(cancellationToken),
@@ -144,39 +132,56 @@ public class HttpRequestService : IHttpRequestService
         }
     }
 
-    private async Task<Error> ConvertToErrorAsync(
+    private async Task<HttpResponseMessage> PingAndSendAsync(
+        HttpRequestMessage request,
+        HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var clonedRequestForPing = await request.CloneAsync(false);
+        clonedRequestForPing.Method = HttpMethod.Head;
+
+        var pingResponse = await _httpClient.SendAsync(clonedRequestForPing, cancellationToken);
+
+        if (!pingResponse.IsSuccessStatusCode)
+        {
+            return pingResponse;
+        }
+
+        return await _httpClient.SendAsync(request, completionOption, cancellationToken);
+    }
+
+    private static async Task<Error> ConvertToErrorAsync(
         HttpResponseMessage response,
         CancellationToken cancellationToken = default
     )
     {
-        Error error;
+        Error? error = null;
+
+        try
+        {
+            error = await response.Content.ReadFromJsonAsync<Error>(cancellationToken);
+        }
+        catch
+        {
+            // Do nothing
+        }
+
         if (response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException("Cannot convert successful response to error");
         }
         else if (response.StatusCode == HttpStatusCode.BadRequest)
         {
-            error =
-                await response.Content.ReadFromJsonAsync<Error>(cancellationToken)
-                ?? new Error(
-                    ErrorCode.BadRequest,
-                    "Something is wrong with your request to the server"
-                );
+            error ??= new Error(ErrorCode.BadRequest, "Something is wrong with your request to the server");
         }
         else if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            error =
-                await response.Content.ReadFromJsonAsync<Error>(cancellationToken)
-                ?? new Error(
-                    ErrorCode.Unauthorized,
-                    "Authentication error. Check your credentials and try again"
-                );
+            error ??= new Error(ErrorCode.Unauthorized, "Authentication error. Check your credentials and try again");
         }
         else if (response.StatusCode == HttpStatusCode.Forbidden)
         {
-            error =
-                await response.Content.ReadFromJsonAsync<Error>(cancellationToken)
-                ?? new Error(ErrorCode.Forbidden, "You cannot access this resource");
+            error ??= new Error(ErrorCode.Forbidden, "You cannot access this resource");
         }
         else
         {
@@ -189,7 +194,7 @@ public class HttpRequestService : IHttpRequestService
         return error;
     }
 
-    private Error ConvertExceptionToError(Exception ex)
+    private static Error ConvertExceptionToError(Exception ex)
     {
         if (ex is OperationCanceledException)
         {
@@ -204,17 +209,11 @@ public class HttpRequestService : IHttpRequestService
         }
         else if (ex is WebException)
         {
-            return new Error(
-                ErrorCode.ConnectionError,
-                $"Error while connecting to the server: {ex.Message}"
-            );
+            return new Error(ErrorCode.ConnectionError, $"Error while connecting to the server: {ex.Message}");
         }
         else
         {
-            return new Error(
-                ErrorCode.InternalClientError,
-                $"An unknown error has occurred. {ex.Message}"
-            );
+            return new Error(ErrorCode.InternalClientError, $"An unknown error has occurred. {ex.Message}");
         }
     }
 }

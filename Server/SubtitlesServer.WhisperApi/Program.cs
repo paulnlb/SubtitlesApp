@@ -1,3 +1,4 @@
+using SubtitlesServer.Shared.Extensions;
 using SubtitlesServer.WhisperApi.Configs;
 using SubtitlesServer.WhisperApi.Extensions;
 using SubtitlesServer.WhisperApi.Middlewares;
@@ -23,6 +24,8 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
@@ -33,7 +36,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 
-app.MapControllers();
+var controllerActionBuilder = app.MapControllers();
+controllerActionBuilder.AddAuthorizationToPipeline(logger);
 
 app.UseRateLimiter();
 

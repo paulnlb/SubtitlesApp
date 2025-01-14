@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.TranslationApi.Extensions;
 using SubtitlesServer.TranslationApi.Services.Interfaces;
@@ -8,9 +7,20 @@ namespace SubtitlesServer.TranslationApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
 public class TranslationController(ITranslationService translationService) : ControllerBase
 {
+    [HttpHead()]
+    public IActionResult PingTranslate()
+    {
+        return Ok();
+    }
+
+    [HttpHead("stream")]
+    public IActionResult PingTranslateAndStream()
+    {
+        return Ok();
+    }
+
     [HttpPost]
     public async Task<IActionResult> Translate([FromBody] TranslationRequestDto request)
     {

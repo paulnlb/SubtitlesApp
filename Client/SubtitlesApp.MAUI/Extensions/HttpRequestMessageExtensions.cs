@@ -2,13 +2,15 @@
 
 public static class HttpRequestMessageExtensions
 {
-    public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage request)
+    public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage request, bool cloneContent = true)
     {
-        var clone = new HttpRequestMessage(request.Method, request.RequestUri)
+        var clone = new HttpRequestMessage(request.Method, request.RequestUri) { Version = request.Version };
+
+        if (cloneContent)
         {
-            Content = await request.Content.CloneAsync().ConfigureAwait(false),
-            Version = request.Version,
-        };
+            clone.Content = await request.Content.CloneAsync().ConfigureAwait(false);
+        }
+
         foreach (KeyValuePair<string, object?> opt in request.Options)
         {
             clone.Options.TryAdd(opt.Key, opt.Value);

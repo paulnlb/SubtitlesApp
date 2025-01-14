@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
@@ -13,7 +11,6 @@ namespace SubtitlesServer.WhisperApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiterConstants.WhisperPolicy)]
-[Authorize]
 public class WhisperController(
     ILogger<WhisperController> logger,
     ITranscriptionService transcriptionService,
@@ -21,6 +18,12 @@ public class WhisperController(
     LanguageService languageService
 ) : ControllerBase
 {
+    [HttpHead("transcription")]
+    public IActionResult PingTranscribeAudio()
+    {
+        return Ok();
+    }
+
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
         [FromForm] WhisperRequestModel requestModel,
@@ -49,8 +52,6 @@ public class WhisperController(
         var subtitles = await transcriptionService.TranscribeAudioAsync(requestModel, cancellationToken);
 
         logger.LogInformation("Transcribing done.");
-
-        logger.LogInformation(JsonSerializer.Serialize(subtitles));
 
         return Ok(subtitles);
     }

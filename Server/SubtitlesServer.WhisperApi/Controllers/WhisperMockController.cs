@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using SubtitlesApp.Core.Constants;
+﻿using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.WhisperApi.Models;
 using SubtitlesServer.WhisperApi.Services.Interfaces;
@@ -11,6 +9,12 @@ namespace SubtitlesServer.WhisperApi.Controllers;
 [ApiController]
 public class WhisperMockController(ILogger<WhisperMockController> logger, IWaveService waveService) : ControllerBase
 {
+    [HttpHead("transcription")]
+    public IActionResult PingTranscribeAudio()
+    {
+        return Ok();
+    }
+
     [HttpPost("transcription")]
     public IActionResult TranscribeAudio(WhisperRequestModel requestModel)
     {

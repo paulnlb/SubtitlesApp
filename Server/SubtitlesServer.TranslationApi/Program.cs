@@ -1,4 +1,5 @@
-﻿using SubtitlesServer.TranslationApi.Configs;
+﻿using SubtitlesServer.Shared.Extensions;
+using SubtitlesServer.TranslationApi.Configs;
 using SubtitlesServer.TranslationApi.Extensions;
 using SubtitlesServer.TranslationApi.Middlewares;
 
@@ -23,6 +24,8 @@ builder.Services.AddHttpClient(builder.Configuration);
 
 var app = builder.Build();
 
+ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
@@ -33,6 +36,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 
-app.MapControllers();
+var controllerActionBuilder = app.MapControllers();
+controllerActionBuilder.AddAuthorizationToPipeline(logger);
 
 app.Run();

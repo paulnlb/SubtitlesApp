@@ -13,6 +13,13 @@ public class CustomBearerEvents : JwtBearerEvents
         context.HandleResponse();
         Error error;
 
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        if (context.Request.Method == "HEAD" || context.Request.Method == "OPTIONS")
+        {
+            return Task.FromResult(0);
+        }
+
         if (context.AuthenticateFailure is SecurityTokenExpiredException)
         {
             error = new Error(ErrorCode.TokenExpired, context.AuthenticateFailure.Message);
@@ -27,11 +34,10 @@ public class CustomBearerEvents : JwtBearerEvents
         }
         else
         {
-            error = new Error(ErrorCode.Unauthorized, string.Empty);
+            error = new Error(ErrorCode.Unauthorized, "Authentication error");
         }
 
         var jsonError = JsonSerializer.Serialize(error);
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
         context.Response.ContentType = "application/json";
         return context.Response.WriteAsync(jsonError);
     }

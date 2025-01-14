@@ -1,7 +1,6 @@
 ﻿using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Shared.Configs;
 using SubtitlesServer.Shared.Middleware;
 using SubtitlesServer.WhisperApi.Configs;
 using SubtitlesServer.WhisperApi.Services;
@@ -44,20 +43,5 @@ public static class ServicesCollectionExtensions
                 return new ValueTask();
             }
         );
-    }
-
-    public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
-    {
-        var jwtConfig = new JwtConfig();
-        configuration.GetSection("JwtSettings").Bind(jwtConfig);
-        services
-            .AddAuthentication()
-            .AddJwtBearer(options =>
-            {
-                options.Authority = jwtConfig.Authority;
-                options.TokenValidationParameters.ValidIssuer = jwtConfig.ValidIssuer;
-                options.TokenValidationParameters.ValidateAudience = jwtConfig.ValidateAudience;
-                options.EventsType = typeof(CustomBearerEvents);
-            });
     }
 }
