@@ -296,8 +296,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             _coveredTimeIntervals.Insert(
                 new TimeInterval(timeIntervalToTranscribe.StartTime, lastAddedSub.TimeInterval.StartTime)
             );
-
-            subtitles.RemoveAt(subtitles.Count - 1);
         }
 
         Subtitles.InsertMany(subtitles);
