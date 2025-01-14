@@ -10,10 +10,7 @@ public class SubtitlesService : ISubtitlesService
     private readonly IHttpRequestService _httpRequestService;
     private readonly ISettingsService _settingsService;
 
-    public SubtitlesService(
-        ISettingsService settingsService,
-        IHttpRequestService httpRequestService
-    )
+    public SubtitlesService(ISettingsService settingsService, IHttpRequestService httpRequestService)
     {
         _httpRequestService = httpRequestService;
         _settingsService = settingsService;
@@ -29,18 +26,16 @@ public class SubtitlesService : ISubtitlesService
         var multipartContent = new MultipartFormDataContent
         {
             { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" },
+            { new StringContent(languageCode), "languageCode" },
+            { new StringContent("true"), "oneSentencePerSubtitle" },
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranscriptionPath)
         {
             Content = multipartContent,
         };
-        request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, languageCode);
 
-        var result = await _httpRequestService.SendAsync<List<SubtitleDto>>(
-            request,
-            cancellationToken
-        );
+        var result = await _httpRequestService.SendAsync<List<SubtitleDto>>(request, cancellationToken);
 
         if (result.IsSuccess && timeOffset.HasValue && timeOffset.Value != TimeSpan.Zero)
         {

@@ -1,11 +1,11 @@
 ﻿using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Configs;
-using SubtitlesServer.Infrastructure.Constants;
-using SubtitlesServer.Infrastructure.Middleware;
-using SubtitlesServer.Infrastructure.Services;
+using SubtitlesServer.Shared.Configs;
+using SubtitlesServer.Shared.Middleware;
+using SubtitlesServer.WhisperApi.Configs;
+using SubtitlesServer.WhisperApi.Services;
+using SubtitlesServer.WhisperApi.Services.Interfaces;
 
 namespace SubtitlesServer.WhisperApi.Extensions;
 
@@ -18,6 +18,7 @@ public static class ServicesCollectionExtensions
         services.AddScoped<CustomBearerEvents>();
         services.AddSingleton<WhisperModelService>();
         services.AddSingleton<LanguageService>();
+        services.AddSingleton<CatalystModelService>();
     }
 
     public static void AddConcurrencyRateLimiter(this IServiceCollection services, IConfiguration configuration)

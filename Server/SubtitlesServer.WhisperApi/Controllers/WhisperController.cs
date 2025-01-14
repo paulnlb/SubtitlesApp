@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using SubtitlesApp.Core.Constants;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Constants;
+using SubtitlesServer.WhisperApi.Configs;
+using SubtitlesServer.WhisperApi.Models;
+using SubtitlesServer.WhisperApi.Services.Interfaces;
 
 namespace SubtitlesServer.WhisperApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiterConstants.WhisperPolicy)]
-[Authorize]
+//[Authorize]
 public class WhisperController(
     ILogger<WhisperController> logger,
     ITranscriptionService transcriptionService,
@@ -21,26 +22,21 @@ public class WhisperController(
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
-        IFormFile audioFile,
-        [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode,
+        [FromForm] WhisperRequestModel requestModel,
         CancellationToken cancellationToken
     )
     {
         logger.LogInformation("Connected");
 
-        var subtitlesLaguage = languageService.GetLanguageByCode(subtitlesLanguageCode);
+        var subtitlesLaguage = languageService.GetLanguageByCode(requestModel.LanguageCode);
 
         if (subtitlesLaguage == null)
         {
-            logger.LogError("Invalid language code: {languageCode}", subtitlesLanguageCode);
-            return BadRequest("Invalid language code.");
+            logger.LogError("Invalid language code: {languageCode}", requestModel.LanguageCode);
+            return BadRequest(new Error(ErrorCode.BadRequest, "Invalid language code"));
         }
 
-        using var audioStream = audioFile.OpenReadStream();
-        using var binaryReader = new BinaryReader(audioStream);
-        var audioBytes = binaryReader.ReadBytes((int)audioStream.Length);
-
-        var validationResult = waveService.ValidateAudio(audioBytes);
+        var validationResult = waveService.ValidateAudio(requestModel.AudioFile);
 
         if (validationResult.IsFailure)
         {
@@ -49,11 +45,7 @@ public class WhisperController(
             return BadRequest(validationResult.Error);
         }
 
-        var subtitles = await transcriptionService.TranscribeAudioAsync(
-            audioBytes,
-            subtitlesLanguageCode,
-            cancellationToken
-        );
+        var subtitles = await transcriptionService.TranscribeAudioAsync(requestModel, cancellationToken);
 
         logger.LogInformation("Transcribing done.");
 

@@ -2,29 +2,21 @@
 using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesServer.Application.Interfaces;
+using SubtitlesServer.WhisperApi.Models;
+using SubtitlesServer.WhisperApi.Services.Interfaces;
 
 namespace SubtitlesServer.WhisperApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
-public class WhisperMockController(ILogger<WhisperMockController> logger, IWaveService waveService)
-    : ControllerBase
+public class WhisperMockController(ILogger<WhisperMockController> logger, IWaveService waveService) : ControllerBase
 {
     [HttpPost("transcription")]
-    public IActionResult TranscribeAudio(
-        IFormFile audioFile,
-        [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode
-    )
+    public IActionResult TranscribeAudio(WhisperRequestModel requestModel)
     {
         logger.LogInformation("Connected");
 
-        using var audioStream = audioFile.OpenReadStream();
-        using var binaryReader = new BinaryReader(audioStream);
-        var audioBytes = binaryReader.ReadBytes((int)audioStream.Length);
-
-        var validationResult = waveService.ValidateAudio(audioBytes);
+        var validationResult = waveService.ValidateAudio(requestModel.AudioFile);
 
         if (validationResult.IsFailure)
         {
@@ -62,7 +54,7 @@ public class WhisperMockController(ILogger<WhisperMockController> logger, IWaveS
                 StartTime = startTime,
                 EndTime = endTime,
                 Text = text,
-                LanguageCode = subtitlesLanguageCode,
+                LanguageCode = requestModel.LanguageCode,
             };
 
             logger.LogInformation("{StartTime}: {Text}", subtitle.StartTime, subtitle.Text);

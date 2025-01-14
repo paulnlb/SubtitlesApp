@@ -114,7 +114,7 @@ public class LlmTranslationService : ITranslationService
         );
 
         var rawPrompt =
-            @"Translate the following subtitles, following the instructions above:
+            @"Translate the following subtitles:
 {0}";
         return string.Format(rawPrompt, serializedSubtitles);
     }

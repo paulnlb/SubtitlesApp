@@ -1,5 +1,5 @@
+using SubtitlesServer.WhisperApi.Configs;
 using SubtitlesServer.WhisperApi.Extensions;
-using SubtitlesServer.Infrastructure.Configs;
 using SubtitlesServer.WhisperApi.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -370,6 +370,6 @@ FodyWeavers.xsd
 SettingsServiceDevelopment.cs
 
 # Whisper models
-*.bin
+WhisperModels/
 
 keys/

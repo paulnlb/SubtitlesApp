@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.IdentityApi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.TranslationApi", "Server\SubtitlesServer.TranslationApi\SubtitlesServer.TranslationApi.csproj", "{41D05B68-3F75-4FB9-9254-7F580B070F75}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesServer.Shared", "Server\SubtitlesServer.Shared\SubtitlesServer.Shared.csproj", "{D1C67582-A55C-4B42-8B14-7D43D68E1BE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41D05B68-3F75-4FB9-9254-7F580B070F75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1C67582-A55C-4B42-8B14-7D43D68E1BE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1C67582-A55C-4B42-8B14-7D43D68E1BE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1C67582-A55C-4B42-8B14-7D43D68E1BE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1C67582-A55C-4B42-8B14-7D43D68E1BE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,6 +100,7 @@ Global
 		{60946EC9-CFC5-4B17-B1C6-3D90B5262FF3} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
 		{179622AB-BF42-4264-9BF1-4EFAA450D693} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
 		{41D05B68-3F75-4FB9-9254-7F580B070F75} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
+		{D1C67582-A55C-4B42-8B14-7D43D68E1BE7} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2C3905E-23CD-4D77-BC65-BC8A2DF406B4}
