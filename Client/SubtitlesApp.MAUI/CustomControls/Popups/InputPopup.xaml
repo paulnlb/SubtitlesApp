@@ -6,6 +6,14 @@
                x:DataType="viewModels:InputPopupViewModel"
                x:Class="SubtitlesApp.CustomControls.Popups.InputPopup"
                Color="{AppThemeBinding Dark=#424242, Light=#FFFFFF}">
+    <toolkit:Popup.Resources>
+        <Style x:Key="InvalidEntryStyle"
+               TargetType="Entry">
+            <Setter Property="TextColor"
+                    Value="Grey" />
+        </Style>
+    </toolkit:Popup.Resources>
+
     <Grid HeightRequest="150"
           WidthRequest="300"
           RowDefinitions="*, *, 2*"
@@ -20,7 +28,15 @@
                Grid.ColumnSpan="2"
                x:Name="urlEntry"
                Placeholder="https://..."
-               Text="{Binding Url}" />
+               Text="{Binding Url}">
+            <Entry.Behaviors>
+                <toolkit:TextValidationBehavior x:Name="validationBehavior"
+                                                InvalidStyle="{StaticResource InvalidEntryStyle}"
+                                                Flags="ValidateOnValueChanged"
+                                                RegexPattern="^(http|https):\/\/\d*\D"
+                                                IsValid="False" />
+            </Entry.Behaviors>
+        </Entry>
         <Button Grid.Row="2"
                 Grid.Column="0"
                 VerticalOptions="Center"
@@ -34,6 +50,7 @@
                 HorizontalOptions="Start"
                 WidthRequest="80"
                 Text="Ok"
-                Command="{Binding OkCommand}" />
+                Command="{Binding OkCommand}"
+                IsEnabled="{Binding Source={x:Reference validationBehavior}, Path=IsValid}" />
     </Grid>
 </toolkit:Popup>
