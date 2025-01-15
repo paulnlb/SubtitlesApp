@@ -1,47 +1,83 @@
-using CommunityToolkit.Maui.Core.Primitives;
-using CommunityToolkit.Maui.Views;
 using System.ComponentModel;
 using System.Windows.Input;
+using CommunityToolkit.Maui.Core.Primitives;
 
 namespace SubtitlesApp.CustomControls;
 
 public partial class MediaPlayer : ContentView
 {
-	public MediaPlayer()
-	{
+    public MediaPlayer()
+    {
         InitializeComponent();
 
         MauiMediaElement.PropertyChanged += MediaElementPropertyChanged;
     }
 
-    public static readonly BindableProperty MediaPathProperty =
-            BindableProperty.Create(nameof(MediaPath), typeof(string), typeof(MediaPlayer), string.Empty);
+    public static readonly BindableProperty MediaPathProperty = BindableProperty.Create(
+        nameof(MediaPath),
+        typeof(string),
+        typeof(MediaPlayer),
+        string.Empty
+    );
 
-    public static readonly BindableProperty PlayerControlsVisibleProperty =
-            BindableProperty.Create(nameof(PlayerControlsVisible), typeof(bool), typeof(MediaPlayer), true);
+    public static readonly BindableProperty PlayerControlsVisibleProperty = BindableProperty.Create(
+        nameof(PlayerControlsVisible),
+        typeof(bool),
+        typeof(MediaPlayer),
+        true
+    );
 
-    public static readonly BindableProperty PositionChangedCommandProperty =
-            BindableProperty.Create(nameof(PositionChangedCommand), typeof(ICommand), typeof(MediaPlayer), null);
+    public static readonly BindableProperty PositionChangedCommandProperty = BindableProperty.Create(
+        nameof(PositionChangedCommand),
+        typeof(ICommand),
+        typeof(MediaPlayer),
+        null
+    );
 
-    public static readonly BindableProperty PositionChangedCommandParameterProperty =
-            BindableProperty.Create(nameof(PositionChangedCommandParameter), typeof(object), typeof(MediaPlayer), null);
+    public static readonly BindableProperty PositionChangedCommandParameterProperty = BindableProperty.Create(
+        nameof(PositionChangedCommandParameter),
+        typeof(object),
+        typeof(MediaPlayer),
+        null
+    );
 
-    public static readonly BindableProperty SeekCompletedCommandProperty =
-            BindableProperty.Create(nameof(SeekCompletedCommand), typeof(ICommand), typeof(MediaPlayer), null);
+    public static readonly BindableProperty SeekCompletedCommandProperty = BindableProperty.Create(
+        nameof(SeekCompletedCommand),
+        typeof(ICommand),
+        typeof(MediaPlayer),
+        null
+    );
 
-    public static readonly BindableProperty SeekCompletedCommandParameterProperty =
-            BindableProperty.Create(nameof(SeekCompletedCommandParameter), typeof(object), typeof(MediaPlayer), null);
+    public static readonly BindableProperty SeekCompletedCommandParameterProperty = BindableProperty.Create(
+        nameof(SeekCompletedCommandParameter),
+        typeof(object),
+        typeof(MediaPlayer),
+        null
+    );
 
-    public static readonly BindableProperty DurationProperty =
-            BindableProperty.Create(nameof(Duration), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, BindingMode.OneWayToSource);
+    public static readonly BindableProperty DurationProperty = BindableProperty.Create(
+        nameof(Duration),
+        typeof(TimeSpan),
+        typeof(MediaPlayer),
+        TimeSpan.Zero,
+        BindingMode.OneWayToSource
+    );
 
-    public static readonly BindableProperty PositionProperty =
-            BindableProperty.Create(nameof(Position), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, BindingMode.OneWayToSource);
+    public static readonly BindableProperty PositionProperty = BindableProperty.Create(
+        nameof(Position),
+        typeof(TimeSpan),
+        typeof(MediaPlayer),
+        TimeSpan.Zero,
+        BindingMode.OneWayToSource
+    );
 
-    public static readonly BindableProperty PositionToSeekProperty =
-            BindableProperty.Create(nameof(PositionToSeek), typeof(TimeSpan), typeof(MediaPlayer), TimeSpan.Zero, propertyChanged: OnPositionToSeekChanged);
-
-
+    public static readonly BindableProperty PositionToSeekProperty = BindableProperty.Create(
+        nameof(PositionToSeek),
+        typeof(TimeSpan),
+        typeof(MediaPlayer),
+        TimeSpan.Zero,
+        propertyChanged: OnPositionToSeekChanged
+    );
 
     public string MediaPath
     {
@@ -49,25 +85,25 @@ public partial class MediaPlayer : ContentView
         set => SetValue(MediaPathProperty, value);
     }
 
-    public ICommand PositionChangedCommand 
+    public ICommand PositionChangedCommand
     {
         get => (ICommand)GetValue(PositionChangedCommandProperty);
         set => SetValue(PositionChangedCommandProperty, value);
     }
 
-    public object PositionChangedCommandParameter 
+    public object PositionChangedCommandParameter
     {
         get => GetValue(PositionChangedCommandParameterProperty);
         set => SetValue(PositionChangedCommandParameterProperty, value);
     }
 
-    public ICommand SeekCompletedCommand 
+    public ICommand SeekCompletedCommand
     {
         get => (ICommand)GetValue(SeekCompletedCommandProperty);
         set => SetValue(SeekCompletedCommandProperty, value);
     }
 
-    public object SeekCompletedCommandParameter 
+    public object SeekCompletedCommandParameter
     {
         get => GetValue(SeekCompletedCommandParameterProperty);
         set => SetValue(SeekCompletedCommandParameterProperty, value);
@@ -128,24 +164,22 @@ public partial class MediaPlayer : ContentView
 
     #region private event handlers
 
-    static async void OnPositionToSeekChanged(BindableObject bindable, object oldValue, object newValue)
+    private static async void OnPositionToSeekChanged(BindableObject bindable, object oldValue, object newValue)
     {
         if (bindable is not MediaPlayer mediaPlayer)
         {
             return;
         }
 
-        if (oldValue == newValue || 
-            oldValue is not TimeSpan || 
-            newValue is not TimeSpan newPosition)
-        { 
+        if (oldValue == newValue || oldValue is not TimeSpan || newValue is not TimeSpan newPosition)
+        {
             return;
         }
 
         await mediaPlayer.SeekTo(newPosition);
     }
 
-    async void OnRewindTapped(object sender, EventArgs e)
+    private async void OnRewindTapped(object sender, EventArgs e)
     {
         var newPosition = MauiMediaElement.Position.Subtract(TimeSpan.FromSeconds(5));
 
@@ -157,7 +191,7 @@ public partial class MediaPlayer : ContentView
         await SeekTo(newPosition);
     }
 
-    void OnPlayPauseTapped(object sender, EventArgs e)
+    private void OnPlayPauseTapped(object sender, EventArgs e)
     {
         if (MauiMediaElement.CurrentState == MediaElementState.Playing)
         {
@@ -169,7 +203,7 @@ public partial class MediaPlayer : ContentView
         }
     }
 
-    async void OnFastForwardTapped(object sender, EventArgs e)
+    private async void OnFastForwardTapped(object sender, EventArgs e)
     {
         var newPosition = MauiMediaElement.Position.Add(TimeSpan.FromSeconds(5));
 
@@ -181,12 +215,12 @@ public partial class MediaPlayer : ContentView
         await SeekTo(newPosition);
     }
 
-    void OnDragStarted(object sender, EventArgs e)
+    private void OnDragStarted(object sender, EventArgs e)
     {
         MauiMediaElement.Pause();
     }
 
-    async void OnDragCompleted(object sender, EventArgs e)
+    private async void OnDragCompleted(object sender, EventArgs e)
     {
         var seekToTime = TimeSpan.FromSeconds(PositionSlider.Value);
 
@@ -194,7 +228,7 @@ public partial class MediaPlayer : ContentView
         MauiMediaElement.Play();
     }
 
-    void MediaElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void MediaElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MauiMediaElement.Position))
         {

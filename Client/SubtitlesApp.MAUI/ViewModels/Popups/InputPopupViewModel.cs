@@ -7,7 +7,7 @@ namespace SubtitlesApp.ViewModels.Popups;
 public partial class InputPopupViewModel(IPopupService popupService) : ObservableObject
 {
     [ObservableProperty]
-    string _url;
+    private string _url;
 
     [RelayCommand]
     public Task Ok()

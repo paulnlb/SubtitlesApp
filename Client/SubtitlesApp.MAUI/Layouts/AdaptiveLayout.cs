@@ -12,11 +12,21 @@ namespace SubtitlesApp.Layouts;
 /// </summary>
 public class AdaptiveLayout : Layout
 {
-    public static readonly BindableProperty RelativeHorizontalLengthProperty =
-        BindableProperty.CreateAttached("RelativeHorizontalLength", typeof(double?), typeof(AdaptiveLayout), null, propertyChanged: Invalidate_OnRelativeHorizontalLengthChanged);
+    public static readonly BindableProperty RelativeHorizontalLengthProperty = BindableProperty.CreateAttached(
+        "RelativeHorizontalLength",
+        typeof(double?),
+        typeof(AdaptiveLayout),
+        null,
+        propertyChanged: Invalidate_OnRelativeHorizontalLengthChanged
+    );
 
-    public static readonly BindableProperty RelativeVerticalLengthProperty =
-        BindableProperty.CreateAttached("RelativeVerticalLength", typeof(double?), typeof(AdaptiveLayout), null, propertyChanged: Invalidate_OnRelativeVerticalLengthChanged);
+    public static readonly BindableProperty RelativeVerticalLengthProperty = BindableProperty.CreateAttached(
+        "RelativeVerticalLength",
+        typeof(double?),
+        typeof(AdaptiveLayout),
+        null,
+        propertyChanged: Invalidate_OnRelativeVerticalLengthChanged
+    );
 
     public static double? GetRelativeHorizontalLength(BindableObject view)
     {
@@ -58,7 +68,11 @@ public class AdaptiveLayout : Layout
         (this as IView).InvalidateMeasure();
     }
 
-    static void Invalidate_OnRelativeHorizontalLengthChanged(BindableObject bindable, object oldValue, object newValue)
+    private static void Invalidate_OnRelativeHorizontalLengthChanged(
+        BindableObject bindable,
+        object oldValue,
+        object newValue
+    )
     {
         // Do not invalidate if orientation is vertical and any of width factors changed
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
@@ -72,7 +86,7 @@ public class AdaptiveLayout : Layout
         }
     }
 
-    static void Invalidate_OnRelativeVerticalLengthChanged(BindableObject bindable, object oldValue, object newValue)
+    private static void Invalidate_OnRelativeVerticalLengthChanged(BindableObject bindable, object oldValue, object newValue)
     {
         // Do not invalidate if orientation is not vertical and any of height factors changed
         if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
@@ -164,13 +178,17 @@ public class DualViewLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
     private List<double> GetChildrenHeights(double totalHeight)
     {
-        var relativeLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child)).ToList();
+        var relativeLengths = layout
+            .Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child))
+            .ToList();
         return GetChildrenAbsoluteLengths(totalHeight, relativeLengths);
     }
 
     private List<double> GetChildrenWidths(double totalWidth)
     {
-        var relativeLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child)).ToList();
+        var relativeLengths = layout
+            .Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child))
+            .ToList();
         return GetChildrenAbsoluteLengths(totalWidth, relativeLengths);
     }
 
@@ -193,25 +211,29 @@ public class DualViewLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
         if (availableLength <= 0)
         {
-            return relativeLengths.Select(relativeLength =>
-            {
-                var factor = relativeLength ?? 0;
-                return factor * totalAbsoluteLength;
-            }).ToList();
+            return relativeLengths
+                .Select(relativeLength =>
+                {
+                    var factor = relativeLength ?? 0;
+                    return factor * totalAbsoluteLength;
+                })
+                .ToList();
         }
         else
         {
-            return relativeLengths.Select(relativeLength =>
-            {
-                if (relativeLength.HasValue)
+            return relativeLengths
+                .Select(relativeLength =>
                 {
-                    return relativeLength.Value * totalAbsoluteLength;
-                }
-                else
-                {
-                    return 1 / nullRelativeLengthsCount * availableLength;
-                }
-            }).ToList();
+                    if (relativeLength.HasValue)
+                    {
+                        return relativeLength.Value * totalAbsoluteLength;
+                    }
+                    else
+                    {
+                        return 1 / nullRelativeLengthsCount * availableLength;
+                    }
+                })
+                .ToList();
         }
     }
 }

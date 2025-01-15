@@ -5,22 +5,22 @@ namespace SubtitlesApp.ClientModels;
 public partial class SubtitlesCollectionState : ObservableObject
 {
     [ObservableProperty]
-    int _currentSubtitleIndex;
+    private int _currentSubtitleIndex;
 
     [ObservableProperty]
-    int _scrollToSubtitleIndex;
+    private int _scrollToSubtitleIndex;
 
     [ObservableProperty]
-    int _firstVisibleSubtitleIndex;
+    private int _firstVisibleSubtitleIndex;
 
     [ObservableProperty]
-    int _lastVisibleSubtitleIndex;
+    private int _lastVisibleSubtitleIndex;
 
     [ObservableProperty]
-    bool _autoScrollEnabled;
+    private bool _autoScrollEnabled;
 
     [ObservableProperty]
-    bool _isTranslationRunning;
+    private bool _isTranslationRunning;
 
     public delegate void AutoScrollEnabledChangedEventHandler(bool newValue);
 

@@ -10,9 +10,9 @@ namespace SubtitlesApp.Services;
 
 public partial class FfmpegService : IMediaProcessor
 {
-    readonly ISocketListener _socketListener;
+    private readonly ISocketListener _socketListener;
 
-    bool _disposed;
+    private bool _disposed;
 
     public FfmpegService(ISocketListener socketListener)
     {

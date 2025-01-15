@@ -5,13 +5,13 @@ namespace SubtitlesApp.ClientModels;
 public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 {
     [ObservableProperty]
-    bool _isSideChildVisible;
+    private bool _isSideChildVisible;
 
     [ObservableProperty]
-    double _playerRelativeVerticalLength;
+    private double _playerRelativeVerticalLength;
 
     [ObservableProperty]
-    double _playerRelativeHorizontalLength;
+    private double _playerRelativeHorizontalLength;
 
     public delegate void IsSideChildVisibleChangedEventHandler(bool newValue);
 

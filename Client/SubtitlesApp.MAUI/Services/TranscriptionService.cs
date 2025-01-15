@@ -6,12 +6,9 @@ using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.Services;
 
-public class TranscriptionService(
-    IMediaProcessor mediaProcessor,
-    ISubtitlesService subtitlesService
-) : ITranscriptionService
+public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesService subtitlesService) : ITranscriptionService
 {
-    bool _disposed;
+    private bool _disposed;
 
     public void Dispose()
     {
@@ -68,10 +65,7 @@ public class TranscriptionService(
         }
         catch (OperationCanceledException)
         {
-            var error = new Error(
-                ErrorCode.OperationCanceled,
-                "Transcription operation has been canceled"
-            );
+            var error = new Error(ErrorCode.OperationCanceled, "Transcription operation has been canceled");
             return ListResult<SubtitleDto>.Failure(error);
         }
     }

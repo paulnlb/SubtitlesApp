@@ -11,10 +11,10 @@ public partial class TranslationSettingsPopupViewModel(IDialogService dialogServ
     : ObservableObject
 {
     [ObservableProperty]
-    SubtitlesSettings _subtitlesSettings;
+    private SubtitlesSettings _subtitlesSettings;
 
     [ObservableProperty]
-    bool _enableTranslation;
+    private bool _enableTranslation;
 
     [RelayCommand]
     public async Task ChooseTranslationLanguage()

@@ -24,49 +24,49 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #region observable properties
 
     [ObservableProperty]
-    ObservableCollection<VisualSubtitle> _subtitles;
+    private ObservableCollection<VisualSubtitle> _subtitles;
 
     [ObservableProperty]
-    ObservableCollectionAdapter<VisualSubtitle> _subtitlesAdapter;
+    private ObservableCollectionAdapter<VisualSubtitle> _subtitlesAdapter;
 
     [ObservableProperty]
-    string _textBoxContent;
+    private string _textBoxContent;
 
     [ObservableProperty]
-    string? _mediaPath;
+    private string? _mediaPath;
 
     [ObservableProperty]
-    int _transcribeBufferLength;
+    private int _transcribeBufferLength;
 
     [ObservableProperty]
-    SubtitlesSettings _subtitlesSettings;
+    private SubtitlesSettings _subtitlesSettings;
 
     [ObservableProperty]
-    SubtitlesCollectionState _subtitlesCollectionState;
+    private SubtitlesCollectionState _subtitlesCollectionState;
 
     [ObservableProperty]
-    TimeSpan _positionToSeek = TimeSpan.Zero;
+    private TimeSpan _positionToSeek = TimeSpan.Zero;
 
     [ObservableProperty]
-    bool _playerControlsVisible;
+    private bool _playerControlsVisible;
 
     [ObservableProperty]
-    PlayerSubtitlesLayoutSettings _layoutSettings;
+    private PlayerSubtitlesLayoutSettings _layoutSettings;
 
     #endregion
 
     #region private fields
-    readonly ITranslationService _translationService;
-    readonly IPopupService _popupService;
-    readonly ISubtitlesTimeSetService _subtitlesTimeSetService;
-    readonly IMapper _mapper;
-    readonly ITranscriptionService _transcriptionService;
+    private readonly ITranslationService _translationService;
+    private readonly IPopupService _popupService;
+    private readonly ISubtitlesTimeSetService _subtitlesTimeSetService;
+    private readonly IMapper _mapper;
+    private readonly ITranscriptionService _transcriptionService;
 
-    readonly TimeSet _coveredTimeIntervals;
-    readonly TaskQueue _translationTaskQueue;
-    Task<ObservableCollectionResult<VisualSubtitle>>? _transcriptionTask;
-    CancellationTokenSource _transcriptionCts;
-    TranscriptionStatus _transcriptionStatus;
+    private readonly TimeSet _coveredTimeIntervals;
+    private readonly TaskQueue _translationTaskQueue;
+    private Task<ObservableCollectionResult<VisualSubtitle>>? _transcriptionTask;
+    private CancellationTokenSource _transcriptionCts;
+    private TranscriptionStatus _transcriptionStatus;
     #endregion
 
     #region public properties
@@ -264,7 +264,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    (int SkippedSubsNumber, IEnumerable<VisualSubtitle> FilteredSubs) FilterSubtitlesByCurrentScope()
+    private (int SkippedSubsNumber, IEnumerable<VisualSubtitle> FilteredSubs) FilterSubtitlesByCurrentScope()
     {
         var skippedSubsNumber = SubtitlesSettings.WhichSubtitlesToTranslate switch
         {
@@ -278,7 +278,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         return (skippedSubsNumber, subtitlesToTranslate);
     }
 
-    VisualSubtitle? GetCurrentSubtitle()
+    private VisualSubtitle? GetCurrentSubtitle()
     {
         if (Subtitles == null || Subtitles.Count == 0)
         {
@@ -288,7 +288,10 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         return Subtitles[SubtitlesCollectionState.CurrentSubtitleIndex];
     }
 
-    void InsertSubtitlesAndCoveredTime(ObservableCollection<VisualSubtitle> subtitles, TimeInterval timeIntervalToTranscribe)
+    private void InsertSubtitlesAndCoveredTime(
+        ObservableCollection<VisualSubtitle> subtitles,
+        TimeInterval timeIntervalToTranscribe
+    )
     {
         var lastAddedSub = subtitles.LastOrDefault();
 
@@ -306,12 +309,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         Subtitles.InsertMany(subtitles);
     }
 
-    bool ShouldStartTranscription(TimeSpan position)
+    private bool ShouldStartTranscription(TimeSpan position)
     {
         return _subtitlesTimeSetService.ShouldStartTranscription(_coveredTimeIntervals, position, MediaDuration);
     }
 
-    void StartTranscription(TimeSpan currentPosition)
+    private void StartTranscription(TimeSpan currentPosition)
     {
         // We do not wait for a transcription task, but we store it the vm to track its progress.
         // Currently the business logic does not allow us to create a queue of transcription tasks
@@ -343,7 +346,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         });
     }
 
-    async Task<ObservableCollectionResult<VisualSubtitle>> TranscribeAsync(
+    private async Task<ObservableCollectionResult<VisualSubtitle>> TranscribeAsync(
         TimeSpan position,
         CancellationToken cancellationToken = default
     )
@@ -386,7 +389,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         return ObservableCollectionResult<VisualSubtitle>.Success(visualSubs);
     }
 
-    async Task TranslateAsync(
+    private async Task TranslateAsync(
         IEnumerable<VisualSubtitle> subtitlesToTranslate,
         CancellationToken cancellationToken = default
     )
@@ -438,7 +441,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         SubtitlesCollectionState.IsTranslationRunning = false;
     }
 
-    void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)
+    private void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)
     {
         var currentSubtitle = GetCurrentSubtitle();
 
@@ -474,7 +477,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    void UpdateSubtitleTranslation(SubtitleDto translationDto, VisualSubtitle subtitleToTranslate)
+    private void UpdateSubtitleTranslation(SubtitleDto translationDto, VisualSubtitle subtitleToTranslate)
     {
         subtitleToTranslate.RestoreOriginalLanguage();
         subtitleToTranslate.Translation = new Translation
@@ -489,7 +492,10 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    void UpdateSubtitlesTranslations(List<SubtitleDto> subtitleTranslationDtos, IEnumerable<VisualSubtitle> visualSubtitles)
+    private void UpdateSubtitlesTranslations(
+        List<SubtitleDto> subtitleTranslationDtos,
+        IEnumerable<VisualSubtitle> visualSubtitles
+    )
     {
         foreach (var (translationDto, subtitleToTranslate) in subtitleTranslationDtos.Zip(visualSubtitles, Tuple.Create))
         {
@@ -497,7 +503,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    async Task UpdateSubtitlesTranslationsAsync(
+    private async Task UpdateSubtitlesTranslationsAsync(
         IAsyncEnumerable<SubtitleDto> subtitleTranslationDtos,
         IEnumerable<VisualSubtitle> visualSubtitles
     )
@@ -514,7 +520,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    static void ManageFullScreenMode(bool isSubtitlesVisible)
+    private static void ManageFullScreenMode(bool isSubtitlesVisible)
     {
         // Case 1: if subtitlesDtos are hidden, enter fullscreen
         if (!isSubtitlesVisible)

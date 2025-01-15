@@ -1,5 +1,4 @@
-﻿using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
 
@@ -45,7 +44,7 @@ public class SubtitlesService : ISubtitlesService
         return ListResult<SubtitleDto>.FromGeneric(result);
     }
 
-    static void AlignSubsByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
+    private static void AlignSubsByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
     {
         foreach (var subtitleDto in subsToAlign)
         {

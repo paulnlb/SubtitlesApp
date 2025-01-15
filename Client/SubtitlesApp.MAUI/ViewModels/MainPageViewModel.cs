@@ -8,16 +8,16 @@ namespace SubtitlesApp.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    const string LoadOnlineVideo = "Load Online Video";
-    const string LoadLocalResource = "Choose Local Video From Device";
+    private const string LoadOnlineVideo = "Load Online Video";
+    private const string LoadLocalResource = "Choose Local Video From Device";
 
-    readonly IAuthService _authService;
-    readonly IBuiltInPopupService _builtInPopupService;
-    readonly IVideoPicker _videoPicker;
-    readonly IPopupService _popupService;
+    private readonly IAuthService _authService;
+    private readonly IBuiltInPopupService _builtInPopupService;
+    private readonly IVideoPicker _videoPicker;
+    private readonly IPopupService _popupService;
 
     [ObservableProperty]
-    bool _isLoggedIn;
+    private bool _isLoggedIn;
 
     public MainPageViewModel(
         IAuthService authService,
@@ -105,7 +105,7 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    void OpenPlayerWithSubtitlesPage(string path)
+    private static void OpenPlayerWithSubtitlesPage(string path)
     {
         if (!string.IsNullOrEmpty(path))
             Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");

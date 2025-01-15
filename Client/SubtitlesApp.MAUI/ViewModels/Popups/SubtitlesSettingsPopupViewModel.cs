@@ -14,7 +14,7 @@ public partial class SubtitlesSettingsPopupViewModel(
 ) : ObservableObject
 {
     [ObservableProperty]
-    SubtitlesSettings _settings;
+    private SubtitlesSettings _settings;
 
     [RelayCommand]
     public async Task ChooseOriginalLanguage()
