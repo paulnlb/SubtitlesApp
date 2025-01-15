@@ -2,11 +2,11 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
                xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
                xmlns:converters="clr-namespace:SubtitlesApp.Converters"
                xmlns:enums="clr-namespace:SubtitlesApp.ClientModels.Enums"
-               x:Class="SubtitlesApp.CustomControls.TranslationSettingsPopup"
+               x:Class="SubtitlesApp.CustomControls.Popups.TranslationSettingsPopup"
                x:DataType="viewModels:TranslationSettingsPopupViewModel"
                Color="{AppThemeBinding Dark=#424242, Light=#FFFFFF}">
 

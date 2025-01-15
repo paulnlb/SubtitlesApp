@@ -1,7 +1,7 @@
 using CommunityToolkit.Maui.Views;
-using SubtitlesApp.ViewModels;
+using SubtitlesApp.ViewModels.Popups;
 
-namespace SubtitlesApp.CustomControls;
+namespace SubtitlesApp.CustomControls.Popups;
 
 public partial class LoadingPopup : Popup
 {

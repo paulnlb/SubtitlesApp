@@ -2,9 +2,9 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
                xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-               x:Class="SubtitlesApp.CustomControls.SubtitlesSettingsPopup"
+               x:Class="SubtitlesApp.CustomControls.Popups.SubtitlesSettingsPopup"
                x:DataType="viewModels:SubtitlesSettingsPopupViewModel"
                Color="{AppThemeBinding Dark=#424242, Light=#FFFFFF}">
     <VerticalStackLayout WidthRequest="300">

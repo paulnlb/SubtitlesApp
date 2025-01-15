@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -89,12 +90,16 @@ public partial class MainPageViewModel : ObservableObject
                 break;
 
             case LoadLocalResource:
+                _popupService.ShowPopup<LoadingPopupViewModel>();
+
                 var path = await _videoPicker.PickAsync();
 
                 if (!string.IsNullOrEmpty(path))
                 {
                     OpenPlayerWithSubtitlesPage(path);
                 }
+
+                _popupService.ClosePopup();
 
                 break;
         }

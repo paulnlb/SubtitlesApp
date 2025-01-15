@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace SubtitlesApp.ViewModels;
+namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class InputPopupViewModel(IPopupService popupService) : ObservableObject
 {

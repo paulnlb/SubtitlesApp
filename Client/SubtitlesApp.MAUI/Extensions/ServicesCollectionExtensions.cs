@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Maui;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.CustomControls;
+using SubtitlesApp.CustomControls.Popups;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
@@ -9,6 +8,7 @@ using SubtitlesApp.Services;
 using SubtitlesApp.Services.Sockets;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
+using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
 using UraniumUI;
 

@@ -5,7 +5,7 @@ using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Services;
 using UraniumUI.Dialogs;
 
-namespace SubtitlesApp.ViewModels;
+namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class SubtitlesSettingsPopupViewModel(
     IDialogService dialogService,

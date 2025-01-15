@@ -2,9 +2,9 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
                x:DataType="viewModels:InputPopupViewModel"
-               x:Class="SubtitlesApp.CustomControls.InputPopup"
+               x:Class="SubtitlesApp.CustomControls.Popups.InputPopup"
                Color="{AppThemeBinding Dark=#424242, Light=#FFFFFF}">
     <Grid HeightRequest="150"
           WidthRequest="300"

@@ -93,10 +93,10 @@
     <Compile Update="CustomControls\MediaPlayer.xaml.cs">
       <DependentUpon>MediaPlayer.xaml</DependentUpon>
     </Compile>
-    <Compile Update="CustomControls\TranslationSettingsPopup.xaml.cs">
+    <Compile Update="CustomControls\Popups\TranslationSettingsPopup.xaml.cs">
       <DependentUpon>TranslationSettingsPopup.xaml</DependentUpon>
     </Compile>
-    <Compile Update="CustomControls\SubtitlesSettingsPopup.xaml.cs">
+    <Compile Update="CustomControls\Popups\SubtitlesSettingsPopup.xaml.cs">
       <DependentUpon>SubtitlesSettingsPopup.xaml</DependentUpon>
     </Compile>
     <Compile Update="CustomControls\SubtitleView.xaml.cs">
@@ -111,19 +111,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <MauiXaml Update="CustomControls\InputPopup.xaml">
+    <MauiXaml Update="CustomControls\Popups\InputPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\LoadingPopup.xaml">
+    <MauiXaml Update="CustomControls\Popups\LoadingPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\MediaPlayer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\TranslationSettingsPopup.xaml">
+    <MauiXaml Update="CustomControls\Popups\TranslationSettingsPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\SubtitlesSettingsPopup.xaml">
+    <MauiXaml Update="CustomControls\Popups\SubtitlesSettingsPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\SubtitleView.xaml">

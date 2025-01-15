@@ -5,12 +5,10 @@ using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Services;
 using UraniumUI.Dialogs;
 
-namespace SubtitlesApp.ViewModels;
+namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class TranslationSettingsPopupViewModel(
-    IDialogService dialogService,
-    LanguageService languageService
-) : ObservableObject
+public partial class TranslationSettingsPopupViewModel(IDialogService dialogService, LanguageService languageService)
+    : ObservableObject
 {
     [ObservableProperty]
     SubtitlesSettings _subtitlesSettings;
