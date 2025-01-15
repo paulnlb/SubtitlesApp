@@ -15,12 +15,34 @@ public class OllamaLlmService : ILlmService
     private readonly HttpClient _httpClient;
     private readonly OllamaConfig _config;
     private readonly IMapper _mapper;
+    private readonly ILogger<OllamaLlmService> _logger;
 
-    public OllamaLlmService(HttpClient httpClient, IOptions<OllamaConfig> ollamaOptions, IMapper mapper)
+    public OllamaLlmService(
+        HttpClient httpClient,
+        IOptions<OllamaConfig> ollamaOptions,
+        IMapper mapper,
+        ILogger<OllamaLlmService> logger
+    )
     {
         _httpClient = httpClient;
         _config = ollamaOptions.Value;
         _mapper = mapper;
+        _logger = logger;
+    }
+
+    public async Task<bool> IsRunningAsync()
+    {
+        var client = new OllamaApiClient(_httpClient, _config.ModelName);
+
+        try
+        {
+            return await client.IsRunningAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Ollama API is not reachable. Error: {error}", ex.Message);
+            return false;
+        }
     }
 
     public async Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt)
@@ -46,6 +68,7 @@ public class OllamaLlmService : ILlmService
         }
         catch (Exception ex)
         {
+            _logger.LogError("Ollama returned an error: {error}", ex.Message);
             var error = new Error(ErrorCode.BadGateway, ex.Message);
             return Result<string>.Failure(error);
         }

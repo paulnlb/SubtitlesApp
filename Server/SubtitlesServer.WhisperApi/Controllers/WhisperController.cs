@@ -18,12 +18,6 @@ public class WhisperController(
     LanguageService languageService
 ) : ControllerBase
 {
-    [HttpHead("transcription")]
-    public IActionResult PingTranscribeAudio()
-    {
-        return Ok();
-    }
-
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
         [FromForm] WhisperRequestModel requestModel,

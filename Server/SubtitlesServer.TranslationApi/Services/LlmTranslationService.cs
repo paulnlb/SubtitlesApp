@@ -56,6 +56,12 @@ public class LlmTranslationService : ITranslationService
             return ListResult<SubtitleDto>.Failure(error);
         }
 
+        if (!await _llmService.IsRunningAsync())
+        {
+            var error = new Error(ErrorCode.BadGateway, "Ai API is not reachable");
+            return ListResult<SubtitleDto>.Failure(error);
+        }
+
         var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.Name);
         var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
         var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
@@ -86,6 +92,12 @@ public class LlmTranslationService : ITranslationService
         if (requestDto.SourceSubtitles == null || requestDto.SourceSubtitles.Count == 0)
         {
             var error = new Error(ErrorCode.BadRequest, "Provide at least one subtitle to translate");
+            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
+        }
+
+        if (!_llmService.IsRunningAsync().Result)
+        {
+            var error = new Error(ErrorCode.BadGateway, "Ai API is not reachable");
             return AsyncEnumerableResult<SubtitleDto>.Failure(error);
         }
 

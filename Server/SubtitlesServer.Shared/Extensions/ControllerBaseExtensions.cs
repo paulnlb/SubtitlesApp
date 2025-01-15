@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.Result;
 
-namespace SubtitlesServer.TranslationApi.Extensions;
+namespace SubtitlesServer.Shared.Extensions;
 
 public static class ControllerBaseExtensions
 {
@@ -19,7 +20,7 @@ public static class ControllerBaseExtensions
         }
         else
         {
-            return ConvertFailedResultToActionResult(controllerBase, result);
+            return controllerBase.ConvertFailedResultToActionResult(result);
         }
     }
 
@@ -38,7 +39,7 @@ public static class ControllerBaseExtensions
         }
         else
         {
-            return ConvertFailedResultToActionResult(controllerBase, result);
+            return controllerBase.ConvertFailedResultToActionResult(result);
         }
     }
 

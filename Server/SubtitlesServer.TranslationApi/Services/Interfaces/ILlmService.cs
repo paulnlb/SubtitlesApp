@@ -5,6 +5,8 @@ namespace SubtitlesServer.TranslationApi.Services.Interfaces;
 
 public interface ILlmService
 {
+    Task<bool> IsRunningAsync();
+
     Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt);
 
     IAsyncEnumerable<string> StreamAsync(List<LlmMessageDto> chatHistory, string userPrompt);

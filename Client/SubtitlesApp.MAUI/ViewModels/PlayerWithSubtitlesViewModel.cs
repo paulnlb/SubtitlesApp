@@ -404,6 +404,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             if (translationResult.IsFailure)
             {
                 TextBoxContent = translationResult.Error.Description;
+                SubtitlesCollectionState.IsTranslationRunning = false;
                 return;
             }
 
@@ -420,6 +421,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             if (translationResult.IsFailure)
             {
                 TextBoxContent = translationResult.Error.Description;
+                SubtitlesCollectionState.IsTranslationRunning = false;
                 return;
             }
 
