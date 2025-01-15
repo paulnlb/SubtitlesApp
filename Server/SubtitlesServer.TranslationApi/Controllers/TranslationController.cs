@@ -9,18 +9,6 @@ namespace SubtitlesServer.TranslationApi.Controllers;
 [ApiController]
 public class TranslationController(ITranslationService translationService) : ControllerBase
 {
-    [HttpHead()]
-    public IActionResult PingTranslate()
-    {
-        return Ok();
-    }
-
-    [HttpHead("stream")]
-    public IActionResult PingTranslateAndStream()
-    {
-        return Ok();
-    }
-
     [HttpPost]
     public async Task<IActionResult> Translate([FromBody] TranslationRequestDto request)
     {

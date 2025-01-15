@@ -20,6 +20,50 @@ public class HttpRequestService : IHttpRequestService
         _authService = authService;
     }
 
+    public async Task<Result> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var token = await _authService.GetAccessTokenAsync();
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var response = await _httpClient.SendAsync(request, cancellationToken: cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Result.Success();
+            }
+
+            var error = await ConvertToErrorAsync(response, cancellationToken);
+
+            // If token expired, try to refresh it and then call SendAsync again
+            if (error.Code == ErrorCode.TokenExpired)
+            {
+                var refreshResult = await _authService.RefreshAccessTokenAsync();
+
+                if (refreshResult.IsSuccess)
+                {
+                    return await SendAsync(await request.CloneAsync(), cancellationToken);
+                }
+                else
+                {
+                    error = refreshResult.Error;
+                }
+            }
+
+            return Result.Failure(error);
+        }
+        catch (Exception ex)
+        {
+            var error = ConvertExceptionToError(ex);
+            return Result.Failure(error);
+        }
+    }
+
     public async Task<Result<T>> SendAsync<T>(HttpRequestMessage request, CancellationToken cancellationToken = default)
         where T : class, new()
     {
@@ -32,7 +76,7 @@ public class HttpRequestService : IHttpRequestService
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await PingAndSendAsync(request, cancellationToken: cancellationToken);
+            var response = await _httpClient.SendAsync(request, cancellationToken: cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -78,7 +122,7 @@ public class HttpRequestService : IHttpRequestService
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await PingAndSendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -130,25 +174,6 @@ public class HttpRequestService : IHttpRequestService
                 yield return item;
             }
         }
-    }
-
-    private async Task<HttpResponseMessage> PingAndSendAsync(
-        HttpRequestMessage request,
-        HttpCompletionOption completionOption = HttpCompletionOption.ResponseContentRead,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var clonedRequestForPing = await request.CloneAsync(false);
-        clonedRequestForPing.Method = HttpMethod.Head;
-
-        var pingResponse = await _httpClient.SendAsync(clonedRequestForPing, cancellationToken);
-
-        if (!pingResponse.IsSuccessStatusCode)
-        {
-            return pingResponse;
-        }
-
-        return await _httpClient.SendAsync(request, completionOption, cancellationToken);
     }
 
     private static async Task<Error> ConvertToErrorAsync(

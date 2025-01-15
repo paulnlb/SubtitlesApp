@@ -22,6 +22,13 @@ public class SubtitlesService : ISubtitlesService
         CancellationToken cancellationToken = default
     )
     {
+        var pingResult = await PingAsync(cancellationToken);
+
+        if (pingResult.IsFailure)
+        {
+            return ListResult<SubtitleDto>.Failure(pingResult.Error);
+        }
+
         var multipartContent = new MultipartFormDataContent
         {
             { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" },
@@ -51,5 +58,11 @@ public class SubtitlesService : ISubtitlesService
             subtitleDto.StartTime += timeOffset;
             subtitleDto.EndTime += timeOffset;
         }
+    }
+
+    private Task<Result> PingAsync(CancellationToken cancellationToken = default)
+    {
+        var pingRequest = new HttpRequestMessage(HttpMethod.Head, _settingsService.TranscriptionPath);
+        return _httpRequestService.SendAsync(pingRequest, cancellationToken);
     }
 }

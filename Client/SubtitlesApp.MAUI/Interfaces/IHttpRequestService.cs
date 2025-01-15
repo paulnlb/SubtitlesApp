@@ -4,6 +4,8 @@ namespace SubtitlesApp.Interfaces;
 
 public interface IHttpRequestService
 {
+    Task<Result> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default);
+
     Task<Result<TResultItem>> SendAsync<TResultItem>(
         HttpRequestMessage request,
         CancellationToken cancellationToken = default
