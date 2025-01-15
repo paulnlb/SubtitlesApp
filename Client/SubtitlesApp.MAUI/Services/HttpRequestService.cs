@@ -115,12 +115,12 @@ public class HttpRequestService : IHttpRequestService
                 }
             }
 
-            return Result.Failure(error) as TResult ?? throw new InvalidOperationException();
+            return FailedResultFromError<TResult>(error);
         }
         catch (Exception ex)
         {
             var error = ConvertExceptionToError(ex);
-            return Result.Failure(error) as TResult ?? throw new InvalidOperationException();
+            return FailedResultFromError<TResult>(error);
         }
     }
 
@@ -163,5 +163,13 @@ public class HttpRequestService : IHttpRequestService
             WebException => new(ErrorCode.ConnectionError, $"Error while connecting to the server: {ex.Message}"),
             _ => new(ErrorCode.InternalClientError, $"An unknown error has occurred. {ex.Message}"),
         };
+    }
+
+    private static TResult FailedResultFromError<TResult>(Error error)
+        where TResult : Result
+    {
+        var resultObject = typeof(TResult).GetMethod(nameof(Result.Failure))?.Invoke(null, [error]);
+
+        return resultObject as TResult ?? throw new InvalidOperationException();
     }
 }
