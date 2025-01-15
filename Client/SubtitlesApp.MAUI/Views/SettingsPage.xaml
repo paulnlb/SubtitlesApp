@@ -8,7 +8,8 @@
     <ContentPage.Resources>
         <ResourceDictionary>
             <Style TargetType="Entry">
-                <Setter Property="Margin" Value="0, 0, 0, 20" />
+                <Setter Property="Margin"
+                        Value="0, 0, 0, 20" />
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
@@ -18,9 +19,7 @@
         <Entry Text="{Binding BackendBaseUrl}" />
 
         <Label Text="Transcribe buffer length (in seconds)" />
-        <Entry Text="{Binding TranscribeBufferLength}" Keyboard="Numeric"/>
-
-        <Label Text="Transcription endpoint address" IsVisible="{Binding IsDevelopment}" />
-        <Entry Text="{Binding WhisperAddress}" IsVisible="{Binding IsDevelopment}" />
+        <Entry Text="{Binding TranscribeBufferLength}"
+               Keyboard="Numeric" />
     </VerticalStackLayout>
 </ContentPage>
