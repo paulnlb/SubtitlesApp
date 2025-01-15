@@ -30,23 +30,17 @@
                                     PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
                                     PositionToSeek="{Binding PositionToSeek}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
-                                    layouts:AdaptiveLayout.RelativeHorizontalLength="0.65"
-                                    layouts:AdaptiveLayout.RelativeVerticalLength="0.3">
+                                    layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength, Mode=OneTime}"
+                                    layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength, Mode=OneTime}">
 
             <customControls:MediaPlayer.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-                <SwipeGestureRecognizer Direction="Down"
-                                        Command="{Binding PlayerSwipedDownCommand}"
-                                        Threshold="30" />
-                <SwipeGestureRecognizer Direction="Up"
-                                        Command="{Binding PlayerSwipedUpCommand}"
-                                        Threshold="30" />
-                <SwipeGestureRecognizer Direction="Left"
-                                        Command="{Binding PlayerSwipedLeftCommand}"
-                                        Threshold="30" />
-                <SwipeGestureRecognizer Direction="Right"
-                                        Command="{Binding PlayerSwipedRightCommand}"
-                                        Threshold="30" />
+                <SwipeGestureRecognizer Direction="{Binding LayoutSettings.HideSubtitlesSwipeDirection}"
+                                        Command="{Binding HideSubtitlesCommand}"
+                                        Threshold="50" />
+                <SwipeGestureRecognizer Direction="{Binding LayoutSettings.ShowSubtitlesSwipeDirection}"
+                                        Command="{Binding ShowSubtitlesCommand}"
+                                        Threshold="50" />
             </customControls:MediaPlayer.GestureRecognizers>
 
             <customControls:MediaPlayer.Behaviors>
@@ -61,9 +55,8 @@
 
         <!--Subtitles section-->
         <Grid RowDefinitions="50, *"
-              ColumnDefinitions="11*, Auto, Auto, 2*"
+              ColumnDefinitions="11*, Auto, Auto, Auto"
               Padding="5, 0"
-              ColumnSpacing="5"
               layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
               layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
 
@@ -98,14 +91,14 @@
                          Padding="2"
                          HeightRequest="30"
                          WidthRequest="30"
-                         Margin="0,0,5,0"
+                         Margin="5,0,0,0"
                          Command="{Binding TranslateCommand}"
                          IsEnabled="{Binding SubtitlesCollectionState.IsTranslationRunning, Converter={x:StaticResource InvertedBoolConverter}}"
                          IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={x:StaticResource IsNotNullConverter}}" />
             <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
             <BoxView HeightRequest="30"
                      WidthRequest="30"
-                     Margin="0,0,5,0"
+                     Margin="5,0,0,0"
                      Grid.Row="0"
                      Grid.Column="2"
                      CornerRadius="5"
@@ -113,7 +106,7 @@
                      IsEnabled="{Binding SubtitlesCollectionState.IsTranslationRunning, Converter={x:StaticResource InvertedBoolConverter}}"
                      IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={x:StaticResource IsNotNullConverter}}">
             </BoxView>
-            
+
             <!--Subtitles settings-->
             <ImageButton Grid.Row="0"
                          Grid.Column="3"
@@ -121,6 +114,7 @@
                          Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
                          HeightRequest="35"
                          WidthRequest="40"
+                         Margin="5,0,0,0"
                          Command="{Binding OpenSubtitlesSettingsCommand}" />
             <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
             <BoxView HeightRequest="35"
@@ -128,6 +122,7 @@
                      Grid.Row="0"
                      Grid.Column="3"
                      CornerRadius="5"
+                     Margin="5,0,0,0"
                      BackgroundColor="#33FFFFFF">
             </BoxView>
 

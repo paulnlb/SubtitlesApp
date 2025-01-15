@@ -123,6 +123,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _transcriptionStatus = TranscriptionStatus.Ready;
         #endregion
 
+        SetSubtitlesSwipeDirection();
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
         LayoutSettings.IsSideChildVisibleChanged += OnIsSideChildVisibleChanged;
         SubtitlesCollectionState.AutoScrollEnabledChanged += OnAutoScrollEnabledChanged;
@@ -202,43 +203,17 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = !PlayerControlsVisible;
     }
 
-    #region player swipe commands
     [RelayCommand]
-    public void PlayerSwipedLeft()
+    public void ShowSubtitles()
     {
-        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait && !LayoutSettings.IsSideChildVisible)
-        {
-            LayoutSettings.IsSideChildVisible = true;
-        }
+        LayoutSettings.IsSideChildVisible = true;
     }
 
     [RelayCommand]
-    public void PlayerSwipedRight()
+    public void HideSubtitles()
     {
-        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait && LayoutSettings.IsSideChildVisible)
-        {
-            LayoutSettings.IsSideChildVisible = false;
-        }
+        LayoutSettings.IsSideChildVisible = false;
     }
-
-    [RelayCommand]
-    public void PlayerSwipedUp()
-    {
-        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && !LayoutSettings.IsSideChildVisible)
-        {
-            LayoutSettings.IsSideChildVisible = true;
-        }
-    }
-
-    [RelayCommand]
-    public void PlayerSwipedDown()
-    {
-        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && LayoutSettings.IsSideChildVisible)
-        {
-            LayoutSettings.IsSideChildVisible = false;
-        }
-    }
-    #endregion
 
     #endregion
 
@@ -307,6 +282,20 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
 
         Subtitles.InsertMany(subtitles);
+    }
+
+    private void SetSubtitlesSwipeDirection()
+    {
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        {
+            LayoutSettings.ShowSubtitlesSwipeDirection = SwipeDirection.Up;
+            LayoutSettings.HideSubtitlesSwipeDirection = SwipeDirection.Down;
+        }
+        else
+        {
+            LayoutSettings.ShowSubtitlesSwipeDirection = SwipeDirection.Left;
+            LayoutSettings.HideSubtitlesSwipeDirection = SwipeDirection.Right;
+        }
     }
 
     private bool ShouldStartTranscription(TimeSpan position)
@@ -594,6 +583,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
         ManageFullScreenMode(LayoutSettings.IsSideChildVisible);
+        SetSubtitlesSwipeDirection();
     }
 
     private void OnAutoScrollEnabledChanged(bool newValue)

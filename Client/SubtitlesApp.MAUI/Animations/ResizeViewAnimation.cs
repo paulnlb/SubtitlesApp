@@ -15,8 +15,7 @@ public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimat
         nameof(NewRelativeVerticalLength),
         typeof(double),
         typeof(ResizeViewAnimation),
-        0.0,
-        BindingMode.TwoWay
+        0.0
     );
 
     public double NewRelativeHorizontalLength

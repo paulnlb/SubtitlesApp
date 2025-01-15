@@ -13,6 +13,12 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
     [ObservableProperty]
     private double _playerRelativeHorizontalLength;
 
+    [ObservableProperty]
+    private SwipeDirection _showSubtitlesSwipeDirection;
+
+    [ObservableProperty]
+    private SwipeDirection _hideSubtitlesSwipeDirection;
+
     public delegate void IsSideChildVisibleChangedEventHandler(bool newValue);
 
     public event IsSideChildVisibleChangedEventHandler IsSideChildVisibleChanged;
