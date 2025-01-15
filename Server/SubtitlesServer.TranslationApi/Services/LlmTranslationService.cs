@@ -241,7 +241,6 @@ public class LlmTranslationService : ITranslationService
         {
             var bytes = Encoding.UTF8.GetBytes(stringBuffer.ToString());
             await writer.WriteAsync(bytes);
-            Console.Write(stringBuffer.ToString());
             stringBuffer.Clear();
         }
     }

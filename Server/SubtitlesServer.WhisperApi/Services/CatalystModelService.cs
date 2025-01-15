@@ -15,6 +15,23 @@ public class CatalystModelService
         FillPipelineDictionary();
     }
 
+    public Task<Pipeline> GetPipelineAsync(string language, string? fallbackLanguage = null)
+    {
+        var gotSuccessfully = _pipelineTasks.TryGetValue(language, out var pipelineTask);
+
+        if (!gotSuccessfully && fallbackLanguage != null)
+        {
+            gotSuccessfully = _pipelineTasks.TryGetValue(fallbackLanguage, out pipelineTask);
+        }
+
+        if (!gotSuccessfully)
+        {
+            throw new InvalidOperationException($"Pipeline for {language} not found");
+        }
+
+        return pipelineTask!.Value;
+    }
+
     private void FillPipelineDictionary()
     {
         _pipelineTasks.Add(
@@ -201,22 +218,5 @@ public class CatalystModelService
             LanguageCodes.Vietnamese,
             new Lazy<Task<Pipeline>>(() => Pipeline.FromStoreAsync(Language.Vietnamese, 0, "sentence-detection"))
         );
-    }
-
-    public Task<Pipeline> GetPipelineAsync(string language, string? fallbackLanguage = null)
-    {
-        var gotSuccessfully = _pipelineTasks.TryGetValue(language, out var pipelineTask);
-
-        if (!gotSuccessfully && fallbackLanguage != null)
-        {
-            gotSuccessfully = _pipelineTasks.TryGetValue(fallbackLanguage, out pipelineTask);
-        }
-
-        if (!gotSuccessfully)
-        {
-            throw new InvalidOperationException($"Pipeline for {language} not found");
-        }
-
-        return pipelineTask!.Value;
     }
 }
