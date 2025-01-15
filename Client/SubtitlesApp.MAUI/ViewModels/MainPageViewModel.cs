@@ -36,21 +36,30 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     public async Task LogInAsync()
     {
+        _popupService.ShowPopup<LoadingPopupViewModel>();
+
         var result = await _authService.LogInAsync();
+
         if (result.IsSuccess)
         {
             IsLoggedIn = true;
         }
+        _popupService.ClosePopup();
     }
 
     [RelayCommand]
     public async Task LogOutAsync()
     {
+        _popupService.ShowPopup<LoadingPopupViewModel>();
+
         var result = await _authService.LogOutAsync();
+
         if (result.IsSuccess)
         {
             IsLoggedIn = false;
         }
+
+        _popupService.ClosePopup();
     }
 
     [RelayCommand]

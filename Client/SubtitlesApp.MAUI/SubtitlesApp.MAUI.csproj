@@ -114,6 +114,9 @@
     <MauiXaml Update="CustomControls\InputPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomControls\LoadingPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="CustomControls\MediaPlayer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

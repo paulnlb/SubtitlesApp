@@ -46,18 +46,14 @@ public static class ServicesCollectionExtensions
         var service = new HttpsClientHandlerService();
         var handler = service.GetPlatformMessageHandler();
 
-        services
-            .AddHttpClient<IHttpRequestService, HttpRequestService>()
-            .ConfigurePrimaryHttpMessageHandler(() => handler);
+        services.AddHttpClient<IHttpRequestService, HttpRequestService>().ConfigurePrimaryHttpMessageHandler(() => handler);
 #else
         services.AddHttpClient<IHttpRequestService, HttpRequestService>();
 #endif
         #endregion
 
         #region pages
-        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>(
-            "PlayerWithSubtitles"
-        );
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
         services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
         services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
         #endregion
@@ -76,6 +72,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
         services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
         services.AddTransientPopup<InputPopup, InputPopupViewModel>();
+        services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
         #endregion
 
         #region third-party
