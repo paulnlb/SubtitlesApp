@@ -8,5 +8,5 @@ public class WhisperConfig
 
     public QuantizationType QuantizationType { get; set; }
 
-    public string BinaryModelFolder { get; set; }
+    public string BinariesPath { get; set; }
 }

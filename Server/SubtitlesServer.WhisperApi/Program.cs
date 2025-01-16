@@ -5,6 +5,7 @@ using SubtitlesServer.WhisperApi.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<WhisperConfig>(builder.Configuration.GetSection("WhisperModelSettings"));
+builder.Services.Configure<CatalystConfig>(builder.Configuration.GetSection("CatalystSettings"));
 
 builder.Services.AddSharedServices(builder.Configuration);
 builder.Services.AddAppServices();

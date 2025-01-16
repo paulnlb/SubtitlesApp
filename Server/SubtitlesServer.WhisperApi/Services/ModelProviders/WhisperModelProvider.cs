@@ -23,12 +23,7 @@ public sealed class WhisperModelProvider : IDisposable
         _logger = logger;
 
         _whisperFactoryTask = new Lazy<Task<WhisperFactory>>(
-            () =>
-                GetFactoryAsync(
-                    _whisperConfigs.ModelSize,
-                    _whisperConfigs.QuantizationType,
-                    _whisperConfigs.BinaryModelFolder
-                )
+            () => GetFactoryAsync(_whisperConfigs.ModelSize, _whisperConfigs.QuantizationType, _whisperConfigs.BinariesPath)
         );
 
         applicationLifetime.ApplicationStopping.Register(Dispose);

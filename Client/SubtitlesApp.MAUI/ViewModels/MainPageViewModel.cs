@@ -45,6 +45,7 @@ public partial class MainPageViewModel : ObservableObject
         {
             IsLoggedIn = true;
         }
+
         _popupService.ClosePopup();
     }
 

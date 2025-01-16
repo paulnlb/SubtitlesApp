@@ -33,7 +33,7 @@ public class WhisperService(
         try
         {
             var segments = processor.ProcessAsync(whisperDto.AudioStream, cancellationToken);
-            logger.LogDebug("Starting transcribing... Audio language: {textLanguage}", whisperDto.LanguageCode);
+            logger.LogDebug("Transcription started. Audio language: {textLanguage}", whisperDto.LanguageCode);
 
             await foreach (var segment in segments)
             {
@@ -47,13 +47,13 @@ public class WhisperService(
         }
     }
 
-    private static WhisperProcessor BuildWhisperProcessor(WhisperFactory factory, WhisperDto whisperRequestModel)
+    private static WhisperProcessor BuildWhisperProcessor(WhisperFactory factory, WhisperDto whisperDto)
     {
-        var whisperBuilder = factory.CreateBuilder().WithLanguage(whisperRequestModel.LanguageCode);
+        var whisperBuilder = factory.CreateBuilder().WithLanguage(whisperDto.LanguageCode);
 
-        if (whisperRequestModel.MaxSegmentLength > 0)
+        if (whisperDto.MaxSegmentLength > 0)
         {
-            whisperBuilder.WithTokenTimestamps().SplitOnWord().WithMaxSegmentLength(whisperRequestModel.MaxSegmentLength);
+            whisperBuilder.WithTokenTimestamps().SplitOnWord().WithMaxSegmentLength(whisperDto.MaxSegmentLength);
         }
 
         return whisperBuilder.Build();
