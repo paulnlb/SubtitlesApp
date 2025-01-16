@@ -1,10 +1,9 @@
 ﻿using SubtitlesApp.Core.Services;
-using SubtitlesServer.Shared.Configs;
 using SubtitlesServer.Shared.Middleware;
 using SubtitlesServer.TranslationApi.Configs;
+using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Mapper;
 using SubtitlesServer.TranslationApi.Services;
-using SubtitlesServer.TranslationApi.Services.Interfaces;
 
 namespace SubtitlesServer.TranslationApi.Extensions;
 

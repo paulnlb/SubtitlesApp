@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.Shared.Extensions;
-using SubtitlesServer.TranslationApi.Services.Interfaces;
+using SubtitlesServer.TranslationApi.Interfaces;
 
 namespace SubtitlesServer.TranslationApi.Controllers;
 

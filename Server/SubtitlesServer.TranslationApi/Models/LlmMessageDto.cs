@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Core.DTOs;
+﻿namespace SubtitlesServer.TranslationApi.Models;
 
 public class LlmMessageDto
 {

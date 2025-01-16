@@ -3,10 +3,10 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using OllamaSharp;
 using OllamaSharp.Models.Chat;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 using SubtitlesServer.TranslationApi.Configs;
-using SubtitlesServer.TranslationApi.Services.Interfaces;
+using SubtitlesServer.TranslationApi.Interfaces;
+using SubtitlesServer.TranslationApi.Models;
 
 namespace SubtitlesServer.TranslationApi.Services;
 
@@ -30,24 +30,16 @@ public class OllamaLlmService : ILlmService
         _logger = logger;
     }
 
-    public async Task<bool> IsRunningAsync()
-    {
-        var client = new OllamaApiClient(_httpClient, _config.ModelName);
-
-        try
-        {
-            return await client.IsRunningAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("Ollama API is not reachable. Error: {error}", ex.Message);
-            return false;
-        }
-    }
-
     public async Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt)
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
+
+        var pingResult = await PingAsync(client);
+
+        if (pingResult.IsFailure)
+        {
+            return Result<string>.Failure(pingResult.Error);
+        }
 
         var chat = new Chat(client)
         {
@@ -74,9 +66,16 @@ public class OllamaLlmService : ILlmService
         }
     }
 
-    public IAsyncEnumerable<string> StreamAsync(List<LlmMessageDto> chatHistory, string userPrompt)
+    public AsyncEnumerableResult<string> StreamAsync(List<LlmMessageDto> chatHistory, string userPrompt)
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
+
+        var pingResult = PingAsync(client).Result;
+
+        if (pingResult.IsFailure)
+        {
+            return AsyncEnumerableResult<string>.Failure(pingResult.Error);
+        }
 
         var chat = new Chat(client)
         {
@@ -84,6 +83,28 @@ public class OllamaLlmService : ILlmService
             Messages = _mapper.Map<List<Message>>(chatHistory),
         };
 
-        return chat.SendAsync(userPrompt);
+        var responsePortions = chat.SendAsync(userPrompt);
+
+        return AsyncEnumerableResult<string>.Success(responsePortions);
+    }
+
+    private async Task<Result> PingAsync(OllamaApiClient client)
+    {
+        try
+        {
+            if (await client.IsRunningAsync())
+            {
+                return Result.Success();
+            }
+
+            var error = new Error(ErrorCode.BadGateway, "Ai API is not reachable");
+            return Result.Failure(error);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Ollama API is not reachable. Error: {error}", ex.Message);
+            var error = new Error(ErrorCode.BadGateway, "Ai API is not reachable");
+            return Result.Failure(error);
+        }
     }
 }

@@ -10,7 +10,8 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.TranslationApi.Configs;
-using SubtitlesServer.TranslationApi.Services.Interfaces;
+using SubtitlesServer.TranslationApi.Interfaces;
+using SubtitlesServer.TranslationApi.Models;
 
 namespace SubtitlesServer.TranslationApi.Services;
 
@@ -39,32 +40,14 @@ public class LlmTranslationService : ITranslationService
 
     public async Task<ListResult<SubtitleDto>> TranslateAsync(TranslationRequestDto requestDto)
     {
-        var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
+        var validationResult = ValidateRequest(requestDto);
 
-        if (targetLanguage == null)
+        if (validationResult.IsFailure)
         {
-            var error = new Error(
-                ErrorCode.BadRequest,
-                $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
-            );
-            return ListResult<SubtitleDto>.Failure(error);
+            return ListResult<SubtitleDto>.Failure(validationResult.Error);
         }
 
-        if (requestDto.SourceSubtitles == null || requestDto.SourceSubtitles.Count == 0)
-        {
-            var error = new Error(ErrorCode.BadRequest, "Provide at least one subtitle to translate");
-            return ListResult<SubtitleDto>.Failure(error);
-        }
-
-        if (!await _llmService.IsRunningAsync())
-        {
-            var error = new Error(ErrorCode.BadGateway, "Ai API is not reachable");
-            return ListResult<SubtitleDto>.Failure(error);
-        }
-
-        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.Name);
-        var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
-        var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
+        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto);
 
         var llmResult = await _llmService.SendAsync(chatHistory, userPrompt);
 
@@ -78,56 +61,38 @@ public class LlmTranslationService : ITranslationService
 
     public AsyncEnumerableResult<SubtitleDto> TranslateAndStreamAsync(TranslationRequestDto requestDto)
     {
-        var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
+        var validationResult = ValidateRequest(requestDto);
 
-        if (targetLanguage == null)
+        if (validationResult.IsFailure)
         {
-            var error = new Error(
-                ErrorCode.BadRequest,
-                $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
-            );
-            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
+            return AsyncEnumerableResult<SubtitleDto>.Failure(validationResult.Error);
         }
 
-        if (requestDto.SourceSubtitles == null || requestDto.SourceSubtitles.Count == 0)
-        {
-            var error = new Error(ErrorCode.BadRequest, "Provide at least one subtitle to translate");
-            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
-        }
-
-        if (!_llmService.IsRunningAsync().Result)
-        {
-            var error = new Error(ErrorCode.BadGateway, "Ai API is not reachable");
-            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
-        }
-
-        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage.Name);
-        var chatHistory = new List<LlmMessageDto>() { new("system", systemPrompt) };
-        var userPrompt = SerializeSubtitlesToPrompt(requestDto.SourceSubtitles);
+        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto);
 
         var pipe = new Pipe();
-        var llmResponsePortions = _llmService.StreamAsync(chatHistory, userPrompt);
-        _ = WriteLlmPortionsToPipe(llmResponsePortions, pipe.Writer);
-        var subtitlesEnumerable = DeserializeSubtitlesFromSteamAsync(requestDto, pipe.Reader);
+        var llmResult = _llmService.StreamAsync(chatHistory, userPrompt);
+
+        if (llmResult.IsFailure)
+        {
+            AsyncEnumerableResult<SubtitleDto>.Failure(llmResult.Error);
+        }
+
+        _ = WriteLlmPortionsToPipe(llmResult.Value, pipe.Writer);
+        var subtitlesEnumerable = DeserializeSubtitlesFromStreamAsync(requestDto, pipe.Reader);
 
         return AsyncEnumerableResult<SubtitleDto>.Success(subtitlesEnumerable);
     }
 
-    private string SerializeSubtitlesToPrompt(List<SubtitleDto> subtitlesDtos)
+    private (List<LlmMessageDto> ChatHistory, string UserPrompt) CreateHistoryAndPrompt(
+        TranslationRequestDto translationRequestDto
+    )
     {
-        var serializedSubtitles = JsonSerializer.Serialize(
-            _mapper.Map<List<Translation>>(subtitlesDtos),
-            new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Arabic),
-            }
-        );
+        var targetLanguage = _languageService.GetLanguageByCode(translationRequestDto.TargetLanguageCode);
+        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage!.Name);
+        var userPrompt = SerializeSubtitlesToPrompt(translationRequestDto.SourceSubtitles);
 
-        var rawPrompt =
-            @"Translate the following subtitles:
-{0}";
-        return string.Format(rawPrompt, serializedSubtitles);
+        return ([new("system", systemPrompt)], userPrompt);
     }
 
     private ListResult<SubtitleDto> DeserializeSubtitles(TranslationRequestDto requestDto, string llmResponse)
@@ -162,7 +127,7 @@ public class LlmTranslationService : ITranslationService
         return ListResult<SubtitleDto>.Success(translatedSubtitlesDtos);
     }
 
-    private async IAsyncEnumerable<SubtitleDto> DeserializeSubtitlesFromSteamAsync(
+    private async IAsyncEnumerable<SubtitleDto> DeserializeSubtitlesFromStreamAsync(
         TranslationRequestDto requestDto,
         PipeReader reader
     )
@@ -199,6 +164,23 @@ public class LlmTranslationService : ITranslationService
         }
     }
 
+    private string SerializeSubtitlesToPrompt(List<SubtitleDto> subtitlesDtos)
+    {
+        var serializedSubtitles = JsonSerializer.Serialize(
+            _mapper.Map<List<Translation>>(subtitlesDtos),
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Arabic),
+            }
+        );
+
+        var rawPrompt =
+            @"Translate the following subtitles:
+{0}";
+        return string.Format(rawPrompt, serializedSubtitles);
+    }
+
     private static bool ValidateTranslations(TranslationRequestDto requestDto, List<Translation> translations)
     {
         for (int i = 0; i < translations.Count; i++)
@@ -212,6 +194,28 @@ public class LlmTranslationService : ITranslationService
         }
 
         return true;
+    }
+
+    private Result ValidateRequest(TranslationRequestDto translationRequestDto)
+    {
+        var targetLanguage = _languageService.GetLanguageByCode(translationRequestDto.TargetLanguageCode);
+
+        if (targetLanguage == null)
+        {
+            var error = new Error(
+                ErrorCode.BadRequest,
+                $"Target language code {translationRequestDto.TargetLanguageCode} is invalid or not supported"
+            );
+            return Result.Failure(error);
+        }
+
+        if (translationRequestDto.SourceSubtitles == null || translationRequestDto.SourceSubtitles.Count == 0)
+        {
+            var error = new Error(ErrorCode.BadRequest, "Provide at least one subtitle to translate");
+            return Result.Failure(error);
+        }
+
+        return Result.Success();
     }
 
     // Besides of just writing, this method does additional buffering to increase the size of written chunks,
