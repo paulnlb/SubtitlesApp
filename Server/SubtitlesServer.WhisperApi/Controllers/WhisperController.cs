@@ -24,9 +24,9 @@ public class WhisperController(
         CancellationToken cancellationToken
     )
     {
-        var subtitlesLaguage = languageService.GetLanguageByCode(requestModel.LanguageCode);
+        var subtitlesLanguage = languageService.GetLanguageByCode(requestModel.LanguageCode);
 
-        if (subtitlesLaguage == null)
+        if (subtitlesLanguage == null)
         {
             logger.LogError("Invalid language code: {languageCode}", requestModel.LanguageCode);
             return BadRequest(new Error(ErrorCode.BadRequest, "Invalid language code"));

@@ -1,5 +1,4 @@
-﻿using SubtitlesApp.Core.Services;
-using SubtitlesServer.Shared.Middleware;
+﻿using FluentValidation;
 using SubtitlesServer.TranslationApi.Configs;
 using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Mapper;
@@ -13,9 +12,8 @@ public static class ServicesCollectionExtensions
     {
         services.AddScoped<ITranslationService, LlmTranslationService>();
         services.AddScoped<ILlmService, OllamaLlmService>();
-        services.AddScoped<CustomBearerEvents>();
-        services.AddSingleton<LanguageService>();
         services.AddAutoMapper(typeof(AutoMapperProfile));
+        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
     }
 
     public static void AddHttpClient(this IServiceCollection services, IConfiguration configuration)

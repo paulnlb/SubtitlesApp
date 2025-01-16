@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Catalyst" Version="1.0.54164" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.0" />
     <PackageReference Include="Whisper.net" Version="1.7.0" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.7.0" />
     <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.7.0" />

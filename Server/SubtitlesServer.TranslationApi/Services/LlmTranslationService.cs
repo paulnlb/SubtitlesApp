@@ -40,14 +40,18 @@ public class LlmTranslationService : ITranslationService
 
     public async Task<ListResult<SubtitleDto>> TranslateAsync(TranslationRequestDto requestDto)
     {
-        var validationResult = ValidateRequest(requestDto);
+        var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
 
-        if (validationResult.IsFailure)
+        if (targetLanguage == null)
         {
-            return ListResult<SubtitleDto>.Failure(validationResult.Error);
+            var error = new Error(
+                ErrorCode.BadRequest,
+                $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
+            );
+            return ListResult<SubtitleDto>.Failure(error);
         }
 
-        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto);
+        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
 
         var llmResult = await _llmService.SendAsync(chatHistory, userPrompt);
 
@@ -61,14 +65,18 @@ public class LlmTranslationService : ITranslationService
 
     public AsyncEnumerableResult<SubtitleDto> TranslateAndStreamAsync(TranslationRequestDto requestDto)
     {
-        var validationResult = ValidateRequest(requestDto);
+        var targetLanguage = _languageService.GetLanguageByCode(requestDto.TargetLanguageCode);
 
-        if (validationResult.IsFailure)
+        if (targetLanguage == null)
         {
-            return AsyncEnumerableResult<SubtitleDto>.Failure(validationResult.Error);
+            var error = new Error(
+                ErrorCode.BadRequest,
+                $"Target language code {requestDto.TargetLanguageCode} is invalid or not supported"
+            );
+            return AsyncEnumerableResult<SubtitleDto>.Failure(error);
         }
 
-        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto);
+        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
 
         var pipe = new Pipe();
         var llmResult = _llmService.StreamAsync(chatHistory, userPrompt);
@@ -85,11 +93,11 @@ public class LlmTranslationService : ITranslationService
     }
 
     private (List<LlmMessageDto> ChatHistory, string UserPrompt) CreateHistoryAndPrompt(
-        TranslationRequestDto translationRequestDto
+        TranslationRequestDto translationRequestDto,
+        string languageName
     )
     {
-        var targetLanguage = _languageService.GetLanguageByCode(translationRequestDto.TargetLanguageCode);
-        var systemPrompt = string.Format(_config.DefaultSystemPrompt, targetLanguage!.Name);
+        var systemPrompt = string.Format(_config.DefaultSystemPrompt, languageName);
         var userPrompt = SerializeSubtitlesToPrompt(translationRequestDto.SourceSubtitles);
 
         return ([new("system", systemPrompt)], userPrompt);
@@ -194,28 +202,6 @@ public class LlmTranslationService : ITranslationService
         }
 
         return true;
-    }
-
-    private Result ValidateRequest(TranslationRequestDto translationRequestDto)
-    {
-        var targetLanguage = _languageService.GetLanguageByCode(translationRequestDto.TargetLanguageCode);
-
-        if (targetLanguage == null)
-        {
-            var error = new Error(
-                ErrorCode.BadRequest,
-                $"Target language code {translationRequestDto.TargetLanguageCode} is invalid or not supported"
-            );
-            return Result.Failure(error);
-        }
-
-        if (translationRequestDto.SourceSubtitles == null || translationRequestDto.SourceSubtitles.Count == 0)
-        {
-            var error = new Error(ErrorCode.BadRequest, "Provide at least one subtitle to translate");
-            return Result.Failure(error);
-        }
-
-        return Result.Success();
     }
 
     // Besides of just writing, this method does additional buffering to increase the size of written chunks,

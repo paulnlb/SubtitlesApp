@@ -1,12 +1,18 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using SubtitlesApp.Core.Result;
-using System.Text.Json;
 
-namespace SubtitlesServer.WhisperApi.Middlewares;
+namespace SubtitlesServer.Shared.Middleware;
 
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
-    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken
+    )
     {
         var response = new Error(ErrorCode.InternalServerError, $"An unexpected error occurred: {exception.Message}.");
         var json = JsonSerializer.Serialize(response);

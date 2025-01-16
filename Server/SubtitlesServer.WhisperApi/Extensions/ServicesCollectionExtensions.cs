@@ -1,7 +1,6 @@
 ﻿using System.Threading.RateLimiting;
+using FluentValidation;
 using Microsoft.AspNetCore.RateLimiting;
-using SubtitlesApp.Core.Services;
-using SubtitlesServer.Shared.Middleware;
 using SubtitlesServer.WhisperApi.Configs;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Mapper;
@@ -18,11 +17,10 @@ public static class ServicesCollectionExtensions
         services.AddScoped<IAudioService, WaveAudioService>();
         services.AddScoped<ITranscriptionService, TranscriptionService>();
         services.AddScoped<INlpService, CatalystNlpService>();
-        services.AddScoped<CustomBearerEvents>();
         services.AddSingleton<WhisperModelProvider>();
-        services.AddSingleton<LanguageService>();
         services.AddSingleton<CatalystModelProvider>();
         services.AddAutoMapper(typeof(AutoMapperProfile));
+        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
     }
 
     public static void AddConcurrencyRateLimiter(this IServiceCollection services, IConfiguration configuration)

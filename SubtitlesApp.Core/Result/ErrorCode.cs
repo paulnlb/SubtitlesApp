@@ -14,4 +14,5 @@ public enum ErrorCode
     BadGateway,
     TokenExpired,
     Forbidden,
+    ValidationFailed,
 }
