@@ -19,12 +19,12 @@ public class TranscriptionService(ISpeechToTextService speechToTextService, INlp
             whisperRequestModel.MaxSegmentLength = 1;
         }
 
-        var whisperDto = await MapToRequestToDto(whisperRequestModel, cancellationToken);
+        var whisperDto = await MapRequestToDto(whisperRequestModel, cancellationToken);
         var subtitlesList = new List<SubtitleDto>();
 
         var subtitlesEnumerable = speechToTextService.TranscribeAudioAsync(whisperDto, cancellationToken);
 
-        await foreach (var subtitle in RemoveDuplicates(subtitlesEnumerable))
+        await foreach (var subtitle in RemoveDuplicatesFrom(subtitlesEnumerable))
         {
             subtitlesList.Add(subtitle);
         }
@@ -90,7 +90,7 @@ public class TranscriptionService(ISpeechToTextService speechToTextService, INlp
         return resultSubtitles;
     }
 
-    private async Task<WhisperDto> MapToRequestToDto(
+    private async Task<WhisperDto> MapRequestToDto(
         WhisperRequestModel whisperRequestModel,
         CancellationToken cancellationToken
     )
@@ -119,14 +119,14 @@ public class TranscriptionService(ISpeechToTextService speechToTextService, INlp
             text.Append(currentSub.Text);
         }
 
-        var textLanguage = languagesCounts.OrderBy(e => e.Value).Select(e => e.Key).FirstOrDefault();
+        var textLanguage = languagesCounts.OrderByDescending(e => e.Value).Select(e => e.Key).FirstOrDefault();
 
         textLanguage ??= string.Empty;
 
         return (text.ToString(), textLanguage);
     }
 
-    private static async IAsyncEnumerable<SubtitleDto> RemoveDuplicates(IAsyncEnumerable<SubtitleDto> subtitltes)
+    private static async IAsyncEnumerable<SubtitleDto> RemoveDuplicatesFrom(IAsyncEnumerable<SubtitleDto> subtitltes)
     {
         SubtitleDto? lastSubtitle = null;
 

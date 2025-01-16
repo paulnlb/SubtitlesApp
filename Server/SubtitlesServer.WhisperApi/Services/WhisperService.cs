@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using AutoMapper;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.WhisperApi.Interfaces;
@@ -11,7 +12,8 @@ namespace SubtitlesServer.WhisperApi.Services;
 public class WhisperService(
     ILogger<WhisperService> logger,
     WhisperModelProvider whisperModelService,
-    LanguageService languageService
+    LanguageService languageService,
+    IMapper mapper
 ) : ISpeechToTextService
 {
     public async IAsyncEnumerable<SubtitleDto> TranscribeAudioAsync(
@@ -35,20 +37,12 @@ public class WhisperService(
 
             await foreach (var segment in segments)
             {
-                var subtitle = new SubtitleDto()
-                {
-                    Text = segment.Text,
-                    StartTime = segment.Start,
-                    EndTime = segment.End,
-                    LanguageCode = segment.Language,
-                };
-
-                yield return subtitle;
+                yield return mapper.Map<SubtitleDto>(segment);
             }
         }
         finally
         {
-            logger.LogDebug("Transcription complete. Disposing the processor...");
+            logger.LogDebug("Transcription completed");
             await processor.DisposeAsync();
         }
     }
