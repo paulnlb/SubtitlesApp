@@ -3,9 +3,9 @@ using SubtitlesServer.WhisperApi.Configs;
 using Whisper.net;
 using Whisper.net.Ggml;
 
-namespace SubtitlesServer.WhisperApi.Services;
+namespace SubtitlesServer.WhisperApi.Services.ModelProviders;
 
-public sealed class WhisperModelService : IDisposable
+public sealed class WhisperModelProvider : IDisposable
 {
     private readonly WhisperConfig _whisperConfigs;
     private readonly Lazy<Task<WhisperFactory>> _whisperFactoryTask;
@@ -13,10 +13,10 @@ public sealed class WhisperModelService : IDisposable
 
     private bool _disposed = false;
 
-    public WhisperModelService(
+    public WhisperModelProvider(
         IOptions<WhisperConfig> whisperConfigs,
         IHostApplicationLifetime applicationLifetime,
-        ILogger<WhisperModelService> logger
+        ILogger<WhisperModelProvider> logger
     )
     {
         _whisperConfigs = whisperConfigs.Value;
@@ -51,7 +51,7 @@ public sealed class WhisperModelService : IDisposable
 
         if (!File.Exists(fullPath))
         {
-            _logger.LogInformation("{modelName} not found locally. Downloading...", modelName);
+            _logger.LogDebug("{modelName} not found locally. Downloading...", modelName);
 
             using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(
                 ggmlType,
@@ -63,7 +63,7 @@ public sealed class WhisperModelService : IDisposable
             await modelStream.CopyToAsync(fileWriter, cancellationToken);
         }
 
-        _logger.LogInformation("Loading Whisper into memory...");
+        _logger.LogDebug("Loading Whisper into memory...");
 
         return WhisperFactory.FromPath(fullPath);
     }

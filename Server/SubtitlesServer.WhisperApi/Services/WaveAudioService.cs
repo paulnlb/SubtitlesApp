@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using SubtitlesApp.Core.Result;
-using SubtitlesServer.WhisperApi.Services.Interfaces;
+using SubtitlesServer.WhisperApi.Interfaces;
 
 namespace SubtitlesServer.WhisperApi.Services;
 
-public class WaveService(ILogger<WaveService> logger) : IWaveService
+public class WaveAudioService(ILogger<WaveAudioService> logger) : IAudioService
 {
     public Result ValidateAudio(IFormFile audio)
     {

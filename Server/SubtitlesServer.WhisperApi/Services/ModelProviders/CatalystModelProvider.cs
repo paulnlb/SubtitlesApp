@@ -2,13 +2,13 @@
 using Mosaik.Core;
 using SubtitlesApp.Core.Constants;
 
-namespace SubtitlesServer.WhisperApi.Services;
+namespace SubtitlesServer.WhisperApi.Services.ModelProviders;
 
-public class CatalystModelService
+public class CatalystModelProvider
 {
     private readonly Dictionary<string, Lazy<Task<Pipeline>>> _pipelineTasks;
 
-    public CatalystModelService()
+    public CatalystModelProvider()
     {
         Storage.Current = new DiskStorage("./Resources/catalyst-models");
         _pipelineTasks = new Dictionary<string, Lazy<Task<Pipeline>>>();

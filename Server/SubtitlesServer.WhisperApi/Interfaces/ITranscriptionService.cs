@@ -1,7 +1,7 @@
 ﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesServer.WhisperApi.Models;
 
-namespace SubtitlesServer.WhisperApi.Services.Interfaces;
+namespace SubtitlesServer.WhisperApi.Interfaces;
 
 public interface ITranscriptionService
 {

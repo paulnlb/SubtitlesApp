@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.WhisperApi.Configs;
+using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;
-using SubtitlesServer.WhisperApi.Services.Interfaces;
 
 namespace SubtitlesServer.WhisperApi.Controllers;
 
@@ -14,7 +14,7 @@ namespace SubtitlesServer.WhisperApi.Controllers;
 public class WhisperController(
     ILogger<WhisperController> logger,
     ITranscriptionService transcriptionService,
-    IWaveService waveService,
+    IAudioService waveService,
     LanguageService languageService
 ) : ControllerBase
 {
@@ -24,8 +24,6 @@ public class WhisperController(
         CancellationToken cancellationToken
     )
     {
-        logger.LogInformation("Connected");
-
         var subtitlesLaguage = languageService.GetLanguageByCode(requestModel.LanguageCode);
 
         if (subtitlesLaguage == null)
@@ -39,13 +37,10 @@ public class WhisperController(
         if (validationResult.IsFailure)
         {
             logger.LogError("Invalid audio file: {error}", validationResult.Error);
-
             return BadRequest(validationResult.Error);
         }
 
         var subtitles = await transcriptionService.TranscribeAudioAsync(requestModel, cancellationToken);
-
-        logger.LogInformation("Transcribing done.");
 
         return Ok(subtitles);
     }
