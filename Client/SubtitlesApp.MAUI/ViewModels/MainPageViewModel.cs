@@ -85,30 +85,26 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (popupResult is string stringPath && !string.IsNullOrEmpty(stringPath))
                 {
-                    OpenPlayerWithSubtitlesPage(stringPath);
+                    await OpenPlayerWithSubtitlesPage(stringPath);
                 }
 
                 break;
 
             case LoadLocalResource:
-                _popupService.ShowPopup<LoadingPopupViewModel>();
 
                 var path = await _videoPicker.PickAsync();
 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    OpenPlayerWithSubtitlesPage(path);
+                    await OpenPlayerWithSubtitlesPage(path);
                 }
-
-                _popupService.ClosePopup();
 
                 break;
         }
     }
 
-    private static void OpenPlayerWithSubtitlesPage(string path)
+    private static Task OpenPlayerWithSubtitlesPage(string path)
     {
-        if (!string.IsNullOrEmpty(path))
-            Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
+        return Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
     }
 }

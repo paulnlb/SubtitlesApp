@@ -9,7 +9,7 @@ namespace SubtitlesApp.Services;
 /// </summary>
 public partial class VideoPicker
 {
-    public partial async Task<string?> PickAsync()
+    public async partial Task<string?> PickAsync()
     {
         var status = await Permissions.RequestAsync<ReadPhotoVideoPerms>();
 

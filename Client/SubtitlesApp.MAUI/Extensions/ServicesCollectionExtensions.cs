@@ -25,6 +25,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ISocketSender, UnixSocketSender>();
         services.AddTransient<ITranscriptionService, TranscriptionService>();
         services.AddTransient<IBuiltInPopupService, BuiltInPopupService>();
+        services.AddTransient<SubtitlesMapper>();
         #endregion
 
         #region scoped
@@ -77,7 +78,6 @@ public static class ServicesCollectionExtensions
 
         #region third-party
         services.AddCommunityToolkitDialogs();
-        services.AddAutoMapper(typeof(AutoMapperProfile));
         #endregion
     }
 }

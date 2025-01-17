@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using AutoMapper;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,6 +14,7 @@ using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Core.Utils;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.Mapper;
 using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
@@ -59,7 +59,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private readonly ITranslationService _translationService;
     private readonly IPopupService _popupService;
     private readonly ISubtitlesTimeSetService _subtitlesTimeSetService;
-    private readonly IMapper _mapper;
+    private readonly SubtitlesMapper _subtitlesMapper;
     private readonly ITranscriptionService _transcriptionService;
 
     private readonly TimeSet _coveredTimeIntervals;
@@ -80,7 +80,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         LanguageService languageService,
         IPopupService popupService,
         ISubtitlesTimeSetService subtitlesTimeSetService,
-        IMapper mapper,
+        SubtitlesMapper subtitlesMapper,
         ITranscriptionService transcriptionService
     )
     {
@@ -116,7 +116,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _translationService = translationService;
         _popupService = popupService;
         _subtitlesTimeSetService = subtitlesTimeSetService;
-        _mapper = mapper;
+        _subtitlesMapper = subtitlesMapper;
         _transcriptionService = transcriptionService;
         _coveredTimeIntervals = new TimeSet();
         _translationTaskQueue = new TaskQueue();
@@ -369,7 +369,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             return ObservableCollectionResult<VisualSubtitle>.Failure(transcriptionResult.Error);
         }
 
-        var visualSubs = _mapper.Map<ObservableCollection<VisualSubtitle>>(transcriptionResult.Value);
+        var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
 
         InsertSubtitlesAndCoveredTime(visualSubs, timeIntervalToTranscribe);
 
@@ -391,7 +391,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         TextBoxContent = "Translating...";
         SubtitlesCollectionState.IsTranslationRunning = true;
 
-        var subtitlesDtos = _mapper.Map<List<SubtitleDto>>(subtitlesToTranslate);
+        var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
 
         if (SubtitlesSettings.TranslationStreamingEnabled)
         {
