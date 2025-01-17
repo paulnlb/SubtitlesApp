@@ -24,7 +24,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
         services.AddTransient<ITranscriptionService, TranscriptionService>();
-        services.AddTransient<IBuiltInPopupService, BuiltInPopupService>();
+        services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
         #endregion
 
