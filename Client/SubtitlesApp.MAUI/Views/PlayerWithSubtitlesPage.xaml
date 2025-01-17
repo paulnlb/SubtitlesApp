@@ -130,10 +130,11 @@
             <customControls:ExdendedVirtualList Grid.Row="1"
                                                 Grid.ColumnSpan="4"
                                                 Adapter="{Binding SubtitlesAdapter}"
-                                                ScrollToIndex="{Binding SubtitlesCollectionState.ScrollToSubtitleIndex}"
+                                                FocusedItemIndex="{Binding SubtitlesCollectionState.CurrentSubtitleIndex}"
                                                 ScrolledVerticallyCommand="{Binding SubtitlesScrolledCommand}"
                                                 FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
-                                                LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
+                                                LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}"
+                                                AutoScrollEnabled="{Binding SubtitlesCollectionState.AutoScrollEnabled}">
                 <customControls:ExdendedVirtualList.ItemTemplate>
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
@@ -148,7 +149,7 @@
                     Grid.Row="1"
                     Grid.ColumnSpan="4"
                     Text="Scroll to current subtitle"
-                    Command="{Binding ScrollToCurrentSubCommand}"
+                    Command="{Binding EnableAutoScrollCommand}"
                     VerticalOptions="End"
                     HorizontalOptions="Center"
                     HeightRequest="40"

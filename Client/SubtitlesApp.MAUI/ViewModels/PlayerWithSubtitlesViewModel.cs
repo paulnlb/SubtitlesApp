@@ -126,7 +126,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         SetSubtitlesSwipeDirection();
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
         LayoutSettings.IsSideChildVisibleChanged += OnIsSideChildVisibleChanged;
-        SubtitlesCollectionState.AutoScrollEnabledChanged += OnAutoScrollEnabledChanged;
     }
 
     #region commands
@@ -170,11 +169,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     }
 
     [RelayCommand]
-    public void ScrollToCurrentSub()
+    public void EnableAutoScroll()
     {
         SubtitlesCollectionState.AutoScrollEnabled = true;
-
-        SubtitlesCollectionState.ScrollToSubtitleIndex = SubtitlesCollectionState.CurrentSubtitleIndex;
     }
     #endregion
 
@@ -226,7 +223,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _transcriptionService.Dispose();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
         LayoutSettings.IsSideChildVisibleChanged -= OnIsSideChildVisibleChanged;
-        SubtitlesCollectionState.AutoScrollEnabledChanged -= OnAutoScrollEnabledChanged;
     }
     #endregion
 
@@ -454,17 +450,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             currentSubtitle.IsHighlighted = false;
             SubtitlesCollectionState.CurrentSubtitleIndex = newIndex;
             newSub.IsHighlighted = true;
-
-            if (
-                SubtitlesCollectionState.AutoScrollEnabled
-                && (
-                    newIndex <= SubtitlesCollectionState.FirstVisibleSubtitleIndex
-                    || newIndex >= SubtitlesCollectionState.LastVisibleSubtitleIndex
-                )
-            )
-            {
-                SubtitlesCollectionState.ScrollToSubtitleIndex = newIndex;
-            }
         }
     }
 
@@ -586,14 +571,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         ManageFullScreenMode(LayoutSettings.IsSideChildVisible);
         SetSubtitlesSwipeDirection();
-    }
-
-    private void OnAutoScrollEnabledChanged(bool newValue)
-    {
-        if (!newValue)
-        {
-            SubtitlesCollectionState.ScrollToSubtitleIndex = -1;
-        }
     }
 
     #endregion

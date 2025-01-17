@@ -8,9 +8,6 @@ public partial class SubtitlesCollectionState : ObservableObject
     private int _currentSubtitleIndex;
 
     [ObservableProperty]
-    private int _scrollToSubtitleIndex;
-
-    [ObservableProperty]
     private int _firstVisibleSubtitleIndex;
 
     [ObservableProperty]
