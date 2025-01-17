@@ -30,12 +30,7 @@ public class BuiltInDialogService : IBuiltInDialogService
 
         if (!string.IsNullOrEmpty(error.Description))
         {
-            errorText.Append(
-                $@"
-
-Details:
-{error.Description}"
-            );
+            errorText.Append($"\n\nDetails\n{error.Description}");
         }
 
         return page.DisplayAlert("Error", errorText.ToString(), "OK");

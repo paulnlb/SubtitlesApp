@@ -141,13 +141,10 @@ public class HttpRequestService : IHttpRequestService
     {
         return statusCode switch
         {
-            HttpStatusCode.BadRequest => new(ErrorCode.BadRequest, "Something is wrong with your request to the server"),
-            HttpStatusCode.Unauthorized => new(
-                ErrorCode.Unauthorized,
-                "Authentication error. Check your credentials and try again"
-            ),
-            HttpStatusCode.Forbidden => new(ErrorCode.Forbidden, "You cannot access this resource"),
-            _ => new(ErrorCode.InternalServerError, "Something has broken on the server side. Please try again later"),
+            HttpStatusCode.BadRequest => new(ErrorCode.BadRequest, ErrorCode.BadRequest.GetBriefDescription()),
+            HttpStatusCode.Unauthorized => new(ErrorCode.Unauthorized, ErrorCode.Unauthorized.GetBriefDescription()),
+            HttpStatusCode.Forbidden => new(ErrorCode.Forbidden, ErrorCode.Forbidden.GetBriefDescription()),
+            _ => new(ErrorCode.InternalServerError, ErrorCode.InternalServerError.GetBriefDescription()),
         };
     }
 
@@ -155,13 +152,13 @@ public class HttpRequestService : IHttpRequestService
     {
         return ex switch
         {
-            OperationCanceledException => new(ErrorCode.OperationCanceled, "Operation cancelled"),
-            HttpRequestException => new(
-                ErrorCode.ConnectionError,
-                "Error while connecting to the server. Check your connection and try again"
+            OperationCanceledException => new(
+                ErrorCode.OperationCanceled,
+                ErrorCode.OperationCanceled.GetBriefDescription()
             ),
-            WebException => new(ErrorCode.ConnectionError, $"Error while connecting to the server: {ex.Message}"),
-            _ => new(ErrorCode.InternalClientError, $"An unknown error has occurred. {ex.Message}"),
+            HttpRequestException => new(ErrorCode.ConnectionError, ErrorCode.ConnectionError.GetBriefDescription()),
+            WebException => new(ErrorCode.ConnectionError, ex.Message),
+            _ => new(ErrorCode.InternalClientError, ex.Message),
         };
     }
 

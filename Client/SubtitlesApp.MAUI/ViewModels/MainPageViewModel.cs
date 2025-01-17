@@ -12,7 +12,7 @@ public partial class MainPageViewModel : ObservableObject
     private const string LoadLocalResource = "Choose Local Video From Device";
 
     private readonly IAuthService _authService;
-    private readonly IBuiltInPopupService _builtInPopupService;
+    private readonly IBuiltInDialogService _dialogService;
     private readonly IVideoPicker _videoPicker;
     private readonly IPopupService _popupService;
 
@@ -21,13 +21,13 @@ public partial class MainPageViewModel : ObservableObject
 
     public MainPageViewModel(
         IAuthService authService,
-        IBuiltInPopupService builtInPopupService,
+        IBuiltInDialogService dialogService,
         IVideoPicker videoPicker,
         IPopupService popupService
     )
     {
         _authService = authService;
-        _builtInPopupService = builtInPopupService;
+        _dialogService = dialogService;
         _videoPicker = videoPicker;
         _popupService = popupService;
 
@@ -45,6 +45,10 @@ public partial class MainPageViewModel : ObservableObject
         {
             IsLoggedIn = true;
         }
+        else
+        {
+            await _dialogService.DisplayError(result.Error);
+        }
 
         _popupService.ClosePopup();
     }
@@ -60,6 +64,10 @@ public partial class MainPageViewModel : ObservableObject
         {
             IsLoggedIn = false;
         }
+        else
+        {
+            await _dialogService.DisplayError(result.Error);
+        }
 
         _popupService.ClosePopup();
     }
@@ -70,7 +78,7 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     public async Task OpenMediaFile()
     {
-        var result = await _builtInPopupService.DisplayActionSheet(
+        var result = await _dialogService.DisplayActionSheet(
             "Choose a source",
             "Cancel",
             null,

@@ -33,17 +33,24 @@ public class AuthService : IAuthService
 
     public async Task<Result> LogInAsync()
     {
-        var result = await _oidcClient.LoginAsync();
-
-        if (result.IsError)
+        try
         {
-            var error = new Error(ErrorCode.AuthenticationError, result.Error);
-            return Result.Failure(error);
+            var result = await _oidcClient.LoginAsync();
+
+            if (result.IsError)
+            {
+                var error = new Error(ErrorCode.AuthenticationError, result.Error);
+                return Result.Failure(error);
+            }
+
+            await SetAuthDataToStorage(result);
+
+            return Result.Success();
         }
-
-        await SetAuthDataToStorage(result);
-
-        return Result.Success();
+        catch (Exception ex)
+        {
+            return ExceptionToFailedResult(ex);
+        }
     }
 
     public async Task<Result> LogOutAsync()
@@ -53,17 +60,24 @@ public class AuthService : IAuthService
             IdTokenHint = await SecureStorage.Default.GetAsync(SecurityConstants.IdToken).ConfigureAwait(false),
         };
 
-        var result = await _oidcClient.LogoutAsync(logoutRequest);
-
-        if (result.IsError)
+        try
         {
-            var error = new Error(ErrorCode.AuthenticationError, result.Error);
-            return Result.Failure(error);
+            var result = await _oidcClient.LogoutAsync(logoutRequest);
+
+            if (result.IsError)
+            {
+                var error = new Error(ErrorCode.AuthenticationError, result.Error);
+                return Result.Failure(error);
+            }
+
+            ClearAuthDataFromStorage();
+
+            return Result.Success();
         }
-
-        ClearAuthDataFromStorage();
-
-        return Result.Success();
+        catch (Exception ex)
+        {
+            return ExceptionToFailedResult(ex);
+        }
     }
 
     public async Task<Result> RefreshAccessTokenAsync()
@@ -123,5 +137,19 @@ public class AuthService : IAuthService
 #endif
 
         return new OidcClient(options);
+    }
+
+    private static Result ExceptionToFailedResult(Exception ex)
+    {
+        var errorDescription = ex.Message;
+
+        if (ex.InnerException != null)
+        {
+            errorDescription += $"\n{ex.InnerException.Message}";
+        }
+
+        var error = new Error(ErrorCode.AuthenticationError, errorDescription);
+
+        return Result.Failure(error);
     }
 }
