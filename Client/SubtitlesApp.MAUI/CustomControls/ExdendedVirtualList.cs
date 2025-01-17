@@ -126,8 +126,15 @@ public class ExdendedVirtualList : VirtualListView
             return;
         }
 
-        FirstVisibleItemIndex = visiblePositions[0].ItemIndex;
-        LastVisibleItemIndex = visiblePositions[^1].ItemIndex;
+        if (visiblePositions[0].ItemIndex != -1)
+        {
+            FirstVisibleItemIndex = visiblePositions[0].ItemIndex;
+        }
+
+        if (visiblePositions[^1].ItemIndex != -1)
+        {
+            LastVisibleItemIndex = visiblePositions[^1].ItemIndex;
+        }
 
         ScrolledVerticallyCommand.Execute(null);
     }

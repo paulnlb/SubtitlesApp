@@ -10,6 +10,7 @@
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
              xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
              xmlns:animations="clr-namespace:SubtitlesApp.Animations"
+             Shell.NavBarIsVisible="false"
              x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
              x:DataType="viewModels:PlayerWithSubtitlesViewModel"
              x:Name="this">
@@ -59,11 +60,13 @@
               layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
               layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
 
-            <!--Transcription status-->
-            <Entry Grid.Row="0"
+            <Label Grid.Row="0"
                    Grid.Column="0"
-                   Text="{Binding TextBoxContent}"
-                   IsReadOnly="True" />
+                   Text="Subtitles"
+                   VerticalOptions="Center"
+                   FontAttributes="Bold"
+                   FontSize="20"
+                   Margin="5"/>
 
             <!--Languages info-->
             <HorizontalStackLayout Grid.Row="0"
@@ -141,6 +144,26 @@
                                                      TappedCommandParameter="{Binding .}" />
                     </DataTemplate>
                 </customControls:ExdendedVirtualList.ItemTemplate>
+                <customControls:ExdendedVirtualList.GlobalFooter>
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}" />
+                </customControls:ExdendedVirtualList.GlobalFooter>
+                <customControls:ExdendedVirtualList.EmptyView>
+                    <VerticalStackLayout>
+                        <Label Text="You will see subtitles here, just play the video."
+                               Style="{StaticResource Headline}"
+                               HorizontalOptions="Center"
+                               FontSize="20"
+                               Margin="10, 10"
+                               IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}" />
+                        <Label Text="Generating subtitles, wait a little bit..."
+                               Style="{StaticResource Headline}"
+                               HorizontalOptions="Center"
+                               FontSize="20"
+                               Margin="10, 10"
+                               IsVisible="{Binding IsBusy}" />
+                    </VerticalStackLayout>
+                </customControls:ExdendedVirtualList.EmptyView>
             </customControls:ExdendedVirtualList>
 
             <!--"Scroll to current subtitle" button-->

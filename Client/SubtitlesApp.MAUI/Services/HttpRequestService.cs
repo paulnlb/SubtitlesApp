@@ -153,10 +153,10 @@ public class HttpRequestService : IHttpRequestService
     {
         return statusCode switch
         {
-            HttpStatusCode.BadRequest => new(ErrorCode.BadRequest, ErrorCode.BadRequest.GetBriefDescription()),
-            HttpStatusCode.Unauthorized => new(ErrorCode.Unauthorized, ErrorCode.Unauthorized.GetBriefDescription()),
-            HttpStatusCode.Forbidden => new(ErrorCode.Forbidden, ErrorCode.Forbidden.GetBriefDescription()),
-            _ => new(ErrorCode.InternalServerError, ErrorCode.InternalServerError.GetBriefDescription()),
+            HttpStatusCode.BadRequest => new(ErrorCode.BadRequest),
+            HttpStatusCode.Unauthorized => new(ErrorCode.Unauthorized),
+            HttpStatusCode.Forbidden => new(ErrorCode.Forbidden),
+            _ => new(ErrorCode.InternalServerError),
         };
     }
 
@@ -168,7 +168,7 @@ public class HttpRequestService : IHttpRequestService
                 ErrorCode.OperationCanceled,
                 ErrorCode.OperationCanceled.GetBriefDescription()
             ),
-            HttpRequestException => new(ErrorCode.ConnectionError, ErrorCode.ConnectionError.GetBriefDescription()),
+            HttpRequestException => new(ErrorCode.ConnectionError),
             WebException => new(ErrorCode.ConnectionError, ex.Message),
             _ => new(ErrorCode.InternalClientError, ex.Message),
         };

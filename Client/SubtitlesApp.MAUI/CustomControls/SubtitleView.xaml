@@ -10,7 +10,6 @@
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:IsTranslatableConverter x:Key="IsTranslatableConverter" />
-            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
@@ -18,13 +17,26 @@
         <Label Text="{Binding Text}"
                FontSize="16"
                VerticalTextAlignment="Center"
-               Padding="5"
-               BackgroundColor="{Binding IsHighlighted, Converter={StaticResource BoolToColorConverter}}">
+               Padding="5">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer NumberOfTapsRequired="2"
                                       Command="{Binding Source={x:Reference this}, Path=TappedCommand}"
                                       CommandParameter="{Binding Source={x:Reference this}, Path=TappedCommandParameter}" />
             </Label.GestureRecognizers>
+            <Label.Triggers>
+                <DataTrigger TargetType="Label"
+                             Binding="{Binding IsHighlighted}"
+                             Value="True">
+                    <Setter Property="BackgroundColor"
+                            Value="{AppThemeBinding Dark=Gray, Light=LightGray}" />
+                </DataTrigger>
+                <DataTrigger TargetType="Label"
+                             Binding="{Binding IsHighlighted}"
+                             Value="False">
+                    <Setter Property="BackgroundColor"
+                            Value="Transparent" />
+                </DataTrigger>
+            </Label.Triggers>
         </Label>
 
         <SwipeView.RightItems>
