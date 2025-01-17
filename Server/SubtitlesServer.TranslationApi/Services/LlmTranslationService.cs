@@ -83,7 +83,7 @@ public class LlmTranslationService : ITranslationService
 
         if (llmResult.IsFailure)
         {
-            AsyncEnumerableResult<SubtitleDto>.Failure(llmResult.Error);
+            return AsyncEnumerableResult<SubtitleDto>.Failure(llmResult.Error);
         }
 
         _ = WriteLlmPortionsToPipe(llmResult.Value, pipe.Writer);
