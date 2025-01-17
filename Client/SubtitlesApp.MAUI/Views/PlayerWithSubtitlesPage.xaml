@@ -25,10 +25,9 @@
         <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
-                                    Duration="{Binding MediaDuration}"
+                                    Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
-                                    PositionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=Position}"
-                                    PositionToSeek="{Binding PositionToSeek}"
+                                    Position="{Binding PlayerPosition, Mode=TwoWay}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
                                     layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength, Mode=OneTime}"
                                     layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength, Mode=OneTime}">

@@ -45,7 +45,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private SubtitlesCollectionState _subtitlesCollectionState;
 
     [ObservableProperty]
-    private TimeSpan _positionToSeek = TimeSpan.Zero;
+    private TimeSpan _playerPosition = TimeSpan.Zero;
 
     [ObservableProperty]
     private bool _playerControlsVisible;
@@ -131,8 +131,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #region commands
 
     [RelayCommand]
-    public void PositionChanged(TimeSpan currentPosition)
+    public void PositionChanged()
     {
+        var currentPosition = PlayerPosition;
         UpdateCurrentSubtitleIndex(currentPosition);
 
         if (_transcriptionStatus == TranscriptionStatus.Ready && ShouldStartTranscription(currentPosition))
@@ -178,7 +179,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public void SubtitleTapped(VisualSubtitle subtitle)
     {
-        PositionToSeek = subtitle.TimeInterval.StartTime;
+        PlayerPosition = subtitle.TimeInterval.StartTime;
     }
 
     [RelayCommand]

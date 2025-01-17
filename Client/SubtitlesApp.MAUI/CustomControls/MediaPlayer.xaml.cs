@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Views;
 
 namespace SubtitlesApp.CustomControls;
 
@@ -9,6 +10,10 @@ public partial class MediaPlayer : ContentView
     public MediaPlayer()
     {
         InitializeComponent();
+
+        MauiMediaElement.BindingContext = this;
+        MauiMediaElement.SetBinding(MediaElement.PositionProperty, "Position", BindingMode.OneWayToSource);
+        MauiMediaElement.SetBinding(MediaElement.DurationProperty, "Duration", BindingMode.OneWayToSource);
 
         MauiMediaElement.PropertyChanged += MediaElementPropertyChanged;
     }
@@ -68,15 +73,15 @@ public partial class MediaPlayer : ContentView
         typeof(TimeSpan),
         typeof(MediaPlayer),
         TimeSpan.Zero,
-        BindingMode.OneWayToSource
+        BindingMode.OneWayToSource,
+        propertyChanged: OnPositionChanged
     );
 
-    public static readonly BindableProperty PositionToSeekProperty = BindableProperty.Create(
-        nameof(PositionToSeek),
+    public static readonly BindableProperty SeekThresholdProperty = BindableProperty.Create(
+        nameof(SeekThreshold),
         typeof(TimeSpan),
         typeof(MediaPlayer),
-        TimeSpan.Zero,
-        propertyChanged: OnPositionToSeekChanged
+        TimeSpan.FromMilliseconds(20)
     );
 
     public string MediaPath
@@ -127,10 +132,10 @@ public partial class MediaPlayer : ContentView
         set => SetValue(PositionProperty, value);
     }
 
-    public TimeSpan PositionToSeek
+    public TimeSpan SeekThreshold
     {
-        get => (TimeSpan)GetValue(PositionToSeekProperty);
-        set => SetValue(PositionToSeekProperty, value);
+        get => (TimeSpan)GetValue(SeekThresholdProperty);
+        set => SetValue(SeekThresholdProperty, value);
     }
 
     #region public methods
@@ -164,19 +169,24 @@ public partial class MediaPlayer : ContentView
 
     #region private event handlers
 
-    private static async void OnPositionToSeekChanged(BindableObject bindable, object oldValue, object newValue)
+    private static async void OnPositionChanged(BindableObject bindable, object oldValue, object newValue)
     {
         if (bindable is not MediaPlayer mediaPlayer)
         {
             return;
         }
 
-        if (oldValue == newValue || oldValue is not TimeSpan || newValue is not TimeSpan newPosition)
+        if (newValue is not TimeSpan newPosition)
         {
             return;
         }
 
-        await mediaPlayer.SeekTo(newPosition);
+        var positionDifferenceMs = Math.Abs((mediaPlayer.MauiMediaElement.Position - newPosition).TotalMilliseconds);
+
+        if (positionDifferenceMs >= mediaPlayer.SeekThreshold.TotalMilliseconds)
+        {
+            await mediaPlayer.SeekTo(newPosition);
+        }
     }
 
     private async void OnRewindTapped(object sender, EventArgs e)
@@ -228,17 +238,16 @@ public partial class MediaPlayer : ContentView
         MauiMediaElement.Play();
     }
 
+    // This event handler exists because of https://github.com/dotnet/maui/issues/12285
     private void MediaElementPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MauiMediaElement.Position))
         {
             PositionSlider.Value = MauiMediaElement.Position.TotalSeconds;
-            SetValue(PositionProperty, MauiMediaElement.Position);
         }
         else if (e.PropertyName == nameof(MauiMediaElement.Duration))
         {
             PositionSlider.Maximum = MauiMediaElement.Duration.TotalSeconds;
-            SetValue(DurationProperty, MauiMediaElement.Duration);
         }
     }
 
