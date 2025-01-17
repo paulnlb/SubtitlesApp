@@ -22,7 +22,11 @@ public class HttpRequestService : IHttpRequestService
 
     public Task<Result> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
     {
-        return SendAsyncInternal(request, successResponse => Task.FromResult(Result.Success()), cancellationToken);
+        return SendAsyncInternal(
+            request,
+            successResponse => Task.FromResult(Result.Success()),
+            cancellationToken: cancellationToken
+        );
     }
 
     public Task<Result<T>> SendAsync<T>(HttpRequestMessage request, CancellationToken cancellationToken = default)
@@ -35,7 +39,7 @@ public class HttpRequestService : IHttpRequestService
                 var responseContent = await successResponse.Content.ReadFromJsonAsync<T>(cancellationToken) ?? new();
                 return Result<T>.Success(responseContent);
             },
-            cancellationToken
+            cancellationToken: cancellationToken
         );
     }
 
@@ -46,18 +50,20 @@ public class HttpRequestService : IHttpRequestService
     {
         return SendAsyncInternal(
             request,
-            successResponse =>
+            async successResponse =>
             {
                 var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-                var deserializedObjects = successResponse.Content.ReadFromJsonAsAsyncEnumerable<T>(
+                var deserializedObjects = JsonSerializer.DeserializeAsyncEnumerable<T>(
+                    await successResponse.Content.ReadAsStreamAsync(cancellationToken),
                     deserializeOptions,
                     cancellationToken: cancellationToken
                 );
                 var result = AsyncEnumerableResult<T>.Success(RemoveNullsFrom(deserializedObjects));
 
-                return Task.FromResult(result);
+                return result;
             },
+            HttpCompletionOption.ResponseHeadersRead,
             cancellationToken
         );
 
@@ -78,6 +84,7 @@ public class HttpRequestService : IHttpRequestService
     private async Task<TResult> SendAsyncInternal<TResult>(
         HttpRequestMessage request,
         Func<HttpResponseMessage, Task<TResult>> successResponseHandler,
+        HttpCompletionOption httpCompletionOption = HttpCompletionOption.ResponseContentRead,
         CancellationToken cancellationToken = default
     )
         where TResult : Result
@@ -91,7 +98,7 @@ public class HttpRequestService : IHttpRequestService
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var response = await _httpClient.SendAsync(request, cancellationToken: cancellationToken);
+            var response = await _httpClient.SendAsync(request, httpCompletionOption, cancellationToken: cancellationToken);
 
             if (response.IsSuccessStatusCode)
             {
@@ -107,7 +114,12 @@ public class HttpRequestService : IHttpRequestService
 
                 if (refreshResult.IsSuccess)
                 {
-                    return await SendAsyncInternal(await request.CloneAsync(), successResponseHandler, cancellationToken);
+                    return await SendAsyncInternal(
+                        await request.CloneAsync(),
+                        successResponseHandler,
+                        httpCompletionOption,
+                        cancellationToken
+                    );
                 }
                 else
                 {
