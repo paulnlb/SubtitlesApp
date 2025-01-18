@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiPageFullScreen;
@@ -109,6 +111,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             IsSideChildVisible = true,
             PlayerRelativeVerticalLength = 0.3,
             PlayerRelativeHorizontalLength = 0.65,
+            SubtitlesRelativeVerticalLength = 0.7,
+            SubtitlesRelativeHorizontalLength = 0.35,
         };
 
         #endregion
@@ -574,13 +578,13 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         if (value)
         {
-            LayoutSettings.PlayerRelativeHorizontalLength = 0.65;
-            LayoutSettings.PlayerRelativeVerticalLength = 0.3;
+            LayoutSettings.NewPlayerRelativeHorizontalLength = LayoutSettings.PlayerRelativeHorizontalLength;
+            LayoutSettings.NewPlayerRelativeVerticalLength = LayoutSettings.PlayerRelativeVerticalLength;
         }
         else
         {
-            LayoutSettings.PlayerRelativeHorizontalLength = 1;
-            LayoutSettings.PlayerRelativeVerticalLength = 1;
+            LayoutSettings.NewPlayerRelativeHorizontalLength = 1;
+            LayoutSettings.NewPlayerRelativeVerticalLength = 1;
         }
 
         TriggerResizeAnimationCommand.Execute(CancellationToken.None);

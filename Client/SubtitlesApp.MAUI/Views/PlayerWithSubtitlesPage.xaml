@@ -30,8 +30,10 @@
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
                                     Position="{Binding PlayerPosition, Mode=TwoWay}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
-                                    layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength, Mode=OneTime}"
-                                    layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength, Mode=OneTime}">
+                                    MediaHeight="{Binding LayoutSettings.VideoHeightPx, Mode=OneWayToSource}"
+                                    MediaWidth="{Binding LayoutSettings.VideoWidthPx, Mode=OneWayToSource}"
+                                    layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength}"
+                                    layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength}">
 
             <customControls:MediaPlayer.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
@@ -46,8 +48,8 @@
             <customControls:MediaPlayer.Behaviors>
                 <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
                     <toolkit:AnimationBehavior.AnimationType>
-                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.PlayerRelativeVerticalLength}"
-                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.PlayerRelativeHorizontalLength}" />
+                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.NewPlayerRelativeVerticalLength}"
+                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.NewPlayerRelativeHorizontalLength}" />
                     </toolkit:AnimationBehavior.AnimationType>
                 </toolkit:AnimationBehavior>
             </customControls:MediaPlayer.Behaviors>
@@ -57,8 +59,8 @@
         <Grid RowDefinitions="50, *"
               ColumnDefinitions="11*, Auto, Auto, Auto"
               Padding="5, 0"
-              layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
-              layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
+              layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.SubtitlesRelativeHorizontalLength}"
+              layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.SubtitlesRelativeVerticalLength}">
 
             <Label Grid.Row="0"
                    Grid.Column="0"

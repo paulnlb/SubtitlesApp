@@ -34,31 +34,37 @@ public class ResizeViewAnimation() : CommunityToolkit.Maui.Animations.BaseAnimat
     {
         var animation = new Animation();
 
-        animation.Add(
-            0,
-            1,
-            new Animation(
-                v =>
-                {
-                    AdaptiveLayout.SetRelativeHorizontalLength(view, v);
-                },
-                oldHorizontalValue,
-                NewRelativeHorizontalLength
-            )
-        );
+        if (NewRelativeHorizontalLength >= 0)
+        {
+            animation.Add(
+                0,
+                1,
+                new Animation(
+                    v =>
+                    {
+                        AdaptiveLayout.SetRelativeHorizontalLength(view, v);
+                    },
+                    oldHorizontalValue,
+                    NewRelativeHorizontalLength
+                )
+            );
+        }
 
-        animation.Add(
-            0,
-            1,
-            new Animation(
-                v =>
-                {
-                    AdaptiveLayout.SetRelativeVerticalLength(view, v);
-                },
-                oldVerticalValue,
-                NewRelativeVerticalLength
-            )
-        );
+        if (NewRelativeVerticalLength >= 0)
+        {
+            animation.Add(
+                0,
+                1,
+                new Animation(
+                    v =>
+                    {
+                        AdaptiveLayout.SetRelativeVerticalLength(view, v);
+                    },
+                    oldVerticalValue,
+                    NewRelativeVerticalLength
+                )
+            );
+        }
 
         return animation;
     }
