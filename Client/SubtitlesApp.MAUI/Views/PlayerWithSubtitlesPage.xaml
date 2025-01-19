@@ -26,6 +26,7 @@
         <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
+                                    VerticalOptions="Start"
                                     Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
                                     Position="{Binding PlayerPosition, Mode=TwoWay}"
@@ -37,30 +38,30 @@
 
             <customControls:MediaPlayer.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-                <SwipeGestureRecognizer Direction="{Binding LayoutSettings.HideSubtitlesSwipeDirection}"
-                                        Command="{Binding HideSubtitlesCommand}"
-                                        Threshold="50" />
-                <SwipeGestureRecognizer Direction="{Binding LayoutSettings.ShowSubtitlesSwipeDirection}"
-                                        Command="{Binding ShowSubtitlesCommand}"
-                                        Threshold="50" />
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
             </customControls:MediaPlayer.GestureRecognizers>
 
-            <customControls:MediaPlayer.Behaviors>
+            <!--<customControls:MediaPlayer.Behaviors>
                 <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
                     <toolkit:AnimationBehavior.AnimationType>
                         <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.NewPlayerRelativeVerticalLength}"
                                                         NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.NewPlayerRelativeHorizontalLength}" />
                     </toolkit:AnimationBehavior.AnimationType>
                 </toolkit:AnimationBehavior>
-            </customControls:MediaPlayer.Behaviors>
+            </customControls:MediaPlayer.Behaviors>-->
         </customControls:MediaPlayer>
 
         <!--Subtitles section-->
-        <Grid RowDefinitions="50, *"
+        <Grid x:Name="subtitlesCollection"
+              RowDefinitions="50, *"
               ColumnDefinitions="11*, Auto, Auto, Auto"
               Padding="5, 0"
               layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.SubtitlesRelativeHorizontalLength}"
               layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.SubtitlesRelativeVerticalLength}">
+
+            <Grid.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
+            </Grid.GestureRecognizers>
 
             <Label Grid.Row="0"
                    Grid.Column="0"
@@ -68,7 +69,7 @@
                    VerticalOptions="Center"
                    FontAttributes="Bold"
                    FontSize="20"
-                   Margin="5"/>
+                   Margin="5" />
 
             <!--Languages info-->
             <HorizontalStackLayout Grid.Row="0"
