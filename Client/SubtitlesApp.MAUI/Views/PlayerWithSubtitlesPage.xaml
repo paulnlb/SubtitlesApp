@@ -134,7 +134,7 @@
                 <customControls:ExdendedVirtualList.ItemTemplate>
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
-                                                     TappedCommand="{Binding Source={x:Reference this}, Path=BindingContext.SubtitleTappedCommand}"
+                                                     TappedCommand="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext.SubtitleTappedCommand}"
                                                      TappedCommandParameter="{Binding .}" />
                     </DataTemplate>
                 </customControls:ExdendedVirtualList.ItemTemplate>

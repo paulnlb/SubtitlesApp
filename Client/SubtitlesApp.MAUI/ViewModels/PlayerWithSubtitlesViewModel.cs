@@ -298,7 +298,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             ObservableCollectionResult<VisualSubtitle> transcriptionResult = a.Result;
             IsBusy = false;
 
-            if (transcriptionResult.IsFailure)
+            if (transcriptionResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
             {
                 _transcriptionStatus = TranscriptionStatus.Error;
                 await MainThread.InvokeOnMainThreadAsync(
@@ -320,7 +320,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
                     var translationResult = await TranslateAsync(transcriptionResult.Value, cancellationToken);
 
-                    if (translationResult.IsFailure)
+                    if (translationResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
                     {
                         await MainThread.InvokeOnMainThreadAsync(
                             () => _builtInDialogService.DisplayError(translationResult.Error)

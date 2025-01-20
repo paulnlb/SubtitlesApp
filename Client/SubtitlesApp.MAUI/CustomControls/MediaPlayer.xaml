@@ -33,8 +33,7 @@
               Padding="10"
               BackgroundColor="#80000000"
               IsVisible="{Binding PlayerControlsVisible}"
-              RowDefinitions="2*, 10*, *, *"
-              RowSpacing="5"
+              RowDefinitions="3*, 10*, 2*, *"
               ColumnDefinitions="*, *, *"
               ZIndex="1">
 
