@@ -5,9 +5,6 @@ namespace SubtitlesApp.ClientModels;
 public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 {
     [ObservableProperty]
-    private bool _isSideChildVisible;
-
-    [ObservableProperty]
     private double _playerRelativeVerticalLength;
 
     [ObservableProperty]
@@ -20,43 +17,16 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
     private double _subtitlesRelativeHorizontalLength;
 
     [ObservableProperty]
-    private SwipeDirection _showSubtitlesSwipeDirection;
-
-    [ObservableProperty]
-    private SwipeDirection _hideSubtitlesSwipeDirection;
-
-    [ObservableProperty]
     private int _videoWidthPx;
 
     [ObservableProperty]
     private int _videoHeightPx;
 
-    [ObservableProperty]
-    private double _newPlayerRelativeVerticalLength = -1;
+    public delegate void LayoutRecalculatedEventHandler();
 
-    [ObservableProperty]
-    private double _newPlayerRelativeHorizontalLength = -1;
+    public event LayoutRecalculatedEventHandler LayoutRecalculated;
 
-    public delegate void IsSideChildVisibleChangedEventHandler(bool newValue);
-
-    public event IsSideChildVisibleChangedEventHandler IsSideChildVisibleChanged;
-
-    partial void OnIsSideChildVisibleChanged(bool value)
-    {
-        IsSideChildVisibleChanged?.Invoke(value);
-    }
-
-    partial void OnVideoHeightPxChanged(int value)
-    {
-        RecalculateRelativePlayerHeight();
-    }
-
-    partial void OnVideoWidthPxChanged(int value)
-    {
-        RecalculateRelativePlayerHeight();
-    }
-
-    private void RecalculateRelativePlayerHeight()
+    public void RecalculateLayout()
     {
         var newRelativeHeight =
             (VideoHeightPx * Shell.Current.CurrentPage.Width) / (Shell.Current.CurrentPage.Height * VideoWidthPx);
@@ -70,5 +40,35 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 
         PlayerRelativeVerticalLength = newRelativeHeight;
         SubtitlesRelativeVerticalLength = 1 - newRelativeHeight;
+    }
+
+    partial void OnVideoHeightPxChanged(int value)
+    {
+        RecalculateLayout();
+    }
+
+    partial void OnVideoWidthPxChanged(int value)
+    {
+        RecalculateLayout();
+    }
+
+    partial void OnPlayerRelativeVerticalLengthChanged(double value)
+    {
+        LayoutRecalculated?.Invoke();
+    }
+
+    partial void OnPlayerRelativeHorizontalLengthChanged(double value)
+    {
+        LayoutRecalculated?.Invoke();
+    }
+
+    partial void OnSubtitlesRelativeHorizontalLengthChanged(double value)
+    {
+        LayoutRecalculated?.Invoke();
+    }
+
+    partial void OnSubtitlesRelativeVerticalLengthChanged(double value)
+    {
+        LayoutRecalculated?.Invoke();
     }
 }

@@ -13,7 +13,7 @@
              Shell.NavBarIsVisible="false"
              x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
              x:DataType="viewModels:PlayerWithSubtitlesViewModel"
-             x:Name="this">
+             x:Name="playerSubtitlesPage">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -27,6 +27,7 @@
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
                                     VerticalOptions="Start"
+                                    HorizontalOptions="Start"
                                     Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
                                     Position="{Binding PlayerPosition, Mode=TwoWay}"
@@ -40,15 +41,6 @@
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
                 <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
             </customControls:MediaPlayer.GestureRecognizers>
-
-            <!--<customControls:MediaPlayer.Behaviors>
-                <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
-                    <toolkit:AnimationBehavior.AnimationType>
-                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.NewPlayerRelativeVerticalLength}"
-                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.NewPlayerRelativeHorizontalLength}" />
-                    </toolkit:AnimationBehavior.AnimationType>
-                </toolkit:AnimationBehavior>
-            </customControls:MediaPlayer.Behaviors>-->
         </customControls:MediaPlayer>
 
         <!--Subtitles section-->

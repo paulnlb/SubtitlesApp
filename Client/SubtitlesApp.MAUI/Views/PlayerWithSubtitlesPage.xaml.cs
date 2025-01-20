@@ -10,6 +10,12 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private double playerLastHeight = 0;
     private double subtitlesLastTranslateY = 0;
     private double totalY = 0;
+
+    private double playerOriginalWidth = 0;
+    private double playerLastWidth = 0;
+    private double subtitlesLastTranslateX = 0;
+    private double totalX = 0;
+
     private const double threshold = 100;
 
     public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel viewModel)
@@ -17,6 +23,22 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         InitializeComponent();
 
         BindingContext = viewModel;
+
+        DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
+        playerSubtitlesPage.PropertyChanged += PlayerSubtitlesPage_PropertyChanged;
+    }
+
+    private void PlayerSubtitlesPage_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (
+            e.PropertyName == nameof(Height)
+            && subtitlesCollection.TranslationY != 0
+            && playerSubtitlesPage.Height > subtitlesCollection.TranslationY
+        )
+        {
+            subtitlesCollection.TranslationY = playerSubtitlesPage.Height - playerOriginalHeight;
+            mediaPlayer.HeightRequest = playerSubtitlesPage.Height;
+        }
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -25,22 +47,15 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         vm.Clean();
         mediaPlayer.Stop();
         mediaPlayer.DisconnectHandler();
+        DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
+
+        playerSubtitlesPage.PropertyChanged -= PlayerSubtitlesPage_PropertyChanged;
 
         base.OnNavigatedFrom(args);
     }
 
     protected override bool OnBackButtonPressed()
     {
-        var vm = (PlayerWithSubtitlesViewModel)BindingContext;
-
-        // On back button press just show subtitles if they are hidden
-        // Otherwise, proceed with exit
-        if (!vm.LayoutSettings.IsSideChildVisible)
-        {
-            vm.LayoutSettings.IsSideChildVisible = true;
-            return true;
-        }
-
         if (Controls.IsFullScreen)
         {
             Controls.RestoreScreen();
@@ -49,16 +64,51 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         return false;
     }
 
+    private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
+    {
+        subtitlesCollection.TranslationX = 0;
+        subtitlesCollection.TranslationY = 0;
+        mediaPlayer.HeightRequest = -1;
+        mediaPlayer.WidthRequest = -1;
+
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        {
+            Controls.RestoreScreen();
+        }
+        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            Controls.FullScreen();
+        }
+    }
+
     private void PanGestureRecognizer_PanUpdated(object sender, PanUpdatedEventArgs e)
+    {
+        var vm = (PlayerWithSubtitlesViewModel)BindingContext;
+        vm.PlayerControlsVisible = false;
+
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        {
+            HandlePanGestureVertical(sender, e);
+        }
+        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            HandlePanGestureHorizontal(sender, e);
+        }
+    }
+
+    private void HandlePanGestureVertical(object sender, PanUpdatedEventArgs e)
     {
         switch (e.StatusType)
         {
             case GestureStatus.Started:
-                playerOriginalHeight =
-                    AdaptiveLayout.GetRelativeVerticalLength(mediaPlayer)!.Value * Shell.Current.CurrentPage.Height;
                 playerLastHeight = mediaPlayer.Height;
                 subtitlesLastTranslateY = subtitlesCollection.TranslationY;
                 totalY = 0;
+                if (playerOriginalHeight == 0)
+                {
+                    playerOriginalHeight =
+                        AdaptiveLayout.GetRelativeVerticalLength(mediaPlayer)!.Value * Shell.Current.CurrentPage.Height;
+                }
                 break;
             case GestureStatus.Running:
 
@@ -88,30 +138,140 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 if (Math.Abs(totalY) >= threshold)
                 {
-                    ChangeFullScreenStatus();
+                    ChangeFullScreenStatusVertical();
                 }
                 else
                 {
-                    AnimateBounceBack();
+                    AnimateBounceBackVertical();
                 }
 
                 break;
         }
     }
 
-    private void ChangeFullScreenStatus()
+    private void HandlePanGestureHorizontal(object sender, PanUpdatedEventArgs e)
     {
-        if (subtitlesLastTranslateY == 0)
+        switch (e.StatusType)
         {
-            AnimateFullScreen();
-        }
-        else
-        {
-            AnimateExitFullScreen();
+            case GestureStatus.Started:
+                playerLastWidth = mediaPlayer.Width;
+                subtitlesLastTranslateX = subtitlesCollection.TranslationX;
+                totalX = 0;
+                if (playerOriginalWidth == 0)
+                {
+                    playerOriginalWidth =
+                        AdaptiveLayout.GetRelativeHorizontalLength(mediaPlayer)!.Value * Shell.Current.CurrentPage.Width;
+                }
+                break;
+            case GestureStatus.Running:
+
+                // Handle a special case for Android: e.TotalX is reset to 0 when the position of a sender changed.
+                // In that case, e.TotalX becomes deltaX, so we need to maintain an additional "totalX" variable
+                if (DeviceInfo.Platform == DevicePlatform.Android && sender == subtitlesCollection)
+                {
+                    totalX += e.TotalX;
+                }
+                else
+                {
+                    totalX = e.TotalX;
+                }
+
+                subtitlesCollection.TranslationX = Math.Clamp(
+                    subtitlesLastTranslateX + totalX,
+                    0,
+                    subtitlesCollection.Width
+                );
+                mediaPlayer.WidthRequest = Math.Clamp(
+                    playerLastWidth + totalX,
+                    playerOriginalWidth,
+                    Shell.Current.CurrentPage.Width
+                );
+                break;
+            case GestureStatus.Completed:
+
+                if (Math.Abs(totalX) >= threshold)
+                {
+                    ChangeFullScreenStatusHorizontal();
+                }
+                else
+                {
+                    AnimateBounceBackHorizontal();
+                }
+
+                break;
         }
     }
 
-    private void AnimateBounceBack()
+    private void AnimateBounceBackHorizontal()
+    {
+        var animation = new Animation(
+            v =>
+            {
+                subtitlesCollection.TranslationX = v;
+                mediaPlayer.WidthRequest = playerOriginalWidth + v;
+            },
+            subtitlesCollection.TranslationX,
+            subtitlesLastTranslateX
+        );
+
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
+    }
+
+    private void ChangeFullScreenStatusHorizontal()
+    {
+        if (subtitlesLastTranslateX == 0 && totalX > 0)
+        {
+            AnimateFullScreenHorizontal();
+        }
+        else if (subtitlesLastTranslateX != 0 && totalX < 0)
+        {
+            AnimateExitFullScreenHorizontal();
+        }
+    }
+
+    private void AnimateExitFullScreenHorizontal()
+    {
+        var animation = new Animation(
+            v =>
+            {
+                subtitlesCollection.TranslationX = v;
+                mediaPlayer.WidthRequest = playerOriginalWidth + v;
+            },
+            subtitlesCollection.TranslationX,
+            0
+        );
+
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
+    }
+
+    private void AnimateFullScreenHorizontal()
+    {
+        var animation = new Animation(
+            v =>
+            {
+                subtitlesCollection.TranslationX = v;
+                mediaPlayer.WidthRequest = playerOriginalWidth + v;
+            },
+            subtitlesCollection.TranslationX,
+            subtitlesCollection.Width
+        );
+
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
+    }
+
+    private void ChangeFullScreenStatusVertical()
+    {
+        if (subtitlesLastTranslateY == 0 && totalY > 0)
+        {
+            AnimateFullScreenVertical();
+        }
+        else if (subtitlesLastTranslateY != 0 && totalY < 0)
+        {
+            AnimateExitFullScreenVertical();
+        }
+    }
+
+    private void AnimateBounceBackVertical()
     {
         var animation = new Animation(
             v =>
@@ -126,7 +286,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
     }
 
-    private void AnimateExitFullScreen()
+    private void AnimateExitFullScreenVertical()
     {
         var animation = new Animation(
             v =>
@@ -138,10 +298,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             0
         );
 
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.RestoreScreen());
     }
 
-    private void AnimateFullScreen()
+    private void AnimateFullScreenVertical()
     {
         var animation = new Animation(
             v =>
@@ -153,6 +313,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             subtitlesCollection.Height
         );
 
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
     }
 }
