@@ -3,7 +3,6 @@ using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiPageFullScreen;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
@@ -106,9 +105,10 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         };
         LayoutSettings = new PlayerSubtitlesLayoutSettings
         {
-            IsSideChildVisible = true,
             PlayerRelativeVerticalLength = 0.3,
             PlayerRelativeHorizontalLength = 0.65,
+            SubtitlesRelativeVerticalLength = 0.7,
+            SubtitlesRelativeHorizontalLength = 0.35,
         };
 
         #endregion
@@ -124,10 +124,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _transcriptionStatus = TranscriptionStatus.Ready;
         _builtInDialogService = builtInDialogService;
         #endregion
-
-        SetSubtitlesSwipeDirection();
-        DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
-        LayoutSettings.IsSideChildVisibleChanged += OnIsSideChildVisibleChanged;
     }
 
     #region commands
@@ -215,18 +211,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = !PlayerControlsVisible;
     }
 
-    [RelayCommand]
-    public void ShowSubtitles()
-    {
-        LayoutSettings.IsSideChildVisible = true;
-    }
-
-    [RelayCommand]
-    public void HideSubtitles()
-    {
-        LayoutSettings.IsSideChildVisible = false;
-    }
-
     #endregion
 
     #region public methods
@@ -236,8 +220,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _transcriptionCts?.Cancel();
         _translationTaskQueue.CancelAllTasks();
         _transcriptionService.Dispose();
-        DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
-        LayoutSettings.IsSideChildVisibleChanged -= OnIsSideChildVisibleChanged;
     }
     #endregion
 
@@ -295,20 +277,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         Subtitles.InsertMany(subtitles);
     }
 
-    private void SetSubtitlesSwipeDirection()
-    {
-        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
-        {
-            LayoutSettings.ShowSubtitlesSwipeDirection = SwipeDirection.Up;
-            LayoutSettings.HideSubtitlesSwipeDirection = SwipeDirection.Down;
-        }
-        else
-        {
-            LayoutSettings.ShowSubtitlesSwipeDirection = SwipeDirection.Left;
-            LayoutSettings.HideSubtitlesSwipeDirection = SwipeDirection.Right;
-        }
-    }
-
     private bool ShouldStartTranscription(TimeSpan position)
     {
         return _subtitlesTimeSetService.ShouldStartTranscription(_coveredTimeIntervals, position, MediaDuration);
@@ -330,7 +298,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             ObservableCollectionResult<VisualSubtitle> transcriptionResult = a.Result;
             IsBusy = false;
 
-            if (transcriptionResult.IsFailure)
+            if (transcriptionResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
             {
                 _transcriptionStatus = TranscriptionStatus.Error;
                 await MainThread.InvokeOnMainThreadAsync(
@@ -352,7 +320,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
                     var translationResult = await TranslateAsync(transcriptionResult.Value, cancellationToken);
 
-                    if (translationResult.IsFailure)
+                    if (translationResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
                     {
                         await MainThread.InvokeOnMainThreadAsync(
                             () => _builtInDialogService.DisplayError(translationResult.Error)
@@ -517,25 +485,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    private static void ManageFullScreenMode(bool isSubtitlesVisible)
-    {
-        // Case 1: if subtitlesDtos are hidden, enter fullscreen
-        if (!isSubtitlesVisible)
-        {
-            Controls.FullScreen();
-        }
-        // Case 2: if subtitlesDtos are visible and device is in portrait mode, exit fullscreen
-        else if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
-        {
-            Controls.RestoreScreen();
-        }
-        // Case 3: if subtitlesDtos are visible and device is NOT in portrait mode, enter fullscreen
-        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
-        {
-            Controls.FullScreen();
-        }
-    }
-
     #endregion
 
     #region event handlers
@@ -568,30 +517,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
                 Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
             }
         }
-    }
-
-    private void OnIsSideChildVisibleChanged(bool value)
-    {
-        if (value)
-        {
-            LayoutSettings.PlayerRelativeHorizontalLength = 0.65;
-            LayoutSettings.PlayerRelativeVerticalLength = 0.3;
-        }
-        else
-        {
-            LayoutSettings.PlayerRelativeHorizontalLength = 1;
-            LayoutSettings.PlayerRelativeVerticalLength = 1;
-        }
-
-        TriggerResizeAnimationCommand.Execute(CancellationToken.None);
-
-        ManageFullScreenMode(value);
-    }
-
-    private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
-    {
-        ManageFullScreenMode(LayoutSettings.IsSideChildVisible);
-        SetSubtitlesSwipeDirection();
     }
 
     #endregion

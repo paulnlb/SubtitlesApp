@@ -4,8 +4,7 @@ namespace SubtitlesApp.ClientModels;
 
 public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 {
-    [ObservableProperty]
-    private bool _isSideChildVisible;
+    private const double MaxPlayerRelativeVerticalLength = 0.5;
 
     [ObservableProperty]
     private double _playerRelativeVerticalLength;
@@ -14,17 +13,45 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
     private double _playerRelativeHorizontalLength;
 
     [ObservableProperty]
-    private SwipeDirection _showSubtitlesSwipeDirection;
+    private double _subtitlesRelativeVerticalLength;
 
     [ObservableProperty]
-    private SwipeDirection _hideSubtitlesSwipeDirection;
+    private double _subtitlesRelativeHorizontalLength;
 
-    public delegate void IsSideChildVisibleChangedEventHandler(bool newValue);
+    [ObservableProperty]
+    private int _videoWidthPx;
 
-    public event IsSideChildVisibleChangedEventHandler IsSideChildVisibleChanged;
+    [ObservableProperty]
+    private int _videoHeightPx;
 
-    partial void OnIsSideChildVisibleChanged(bool value)
+    public void RecalculateVerticalLayout()
     {
-        IsSideChildVisibleChanged?.Invoke(value);
+        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            return;
+        }
+
+        var newRelativeHeight =
+            (VideoHeightPx * Shell.Current.CurrentPage.Width) / (Shell.Current.CurrentPage.Height * VideoWidthPx);
+
+        if (newRelativeHeight == 0 || double.IsNaN(newRelativeHeight))
+        {
+            return;
+        }
+
+        newRelativeHeight = Math.Min(MaxPlayerRelativeVerticalLength, newRelativeHeight);
+
+        PlayerRelativeVerticalLength = newRelativeHeight;
+        SubtitlesRelativeVerticalLength = 1 - newRelativeHeight;
+    }
+
+    partial void OnVideoHeightPxChanged(int value)
+    {
+        RecalculateVerticalLayout();
+    }
+
+    partial void OnVideoWidthPxChanged(int value)
+    {
+        RecalculateVerticalLayout();
     }
 }

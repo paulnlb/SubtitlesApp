@@ -9,11 +9,10 @@
              xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
              xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
-             xmlns:animations="clr-namespace:SubtitlesApp.Animations"
              Shell.NavBarIsVisible="false"
              x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
              x:DataType="viewModels:PlayerWithSubtitlesViewModel"
-             x:Name="this">
+             x:Name="playerSubtitlesPage">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -26,39 +25,34 @@
         <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
+                                    VerticalOptions="Start"
+                                    HorizontalOptions="Start"
                                     Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
                                     Position="{Binding PlayerPosition, Mode=TwoWay}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
-                                    layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength, Mode=OneTime}"
-                                    layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength, Mode=OneTime}">
+                                    MediaHeight="{Binding LayoutSettings.VideoHeightPx, Mode=OneWayToSource}"
+                                    MediaWidth="{Binding LayoutSettings.VideoWidthPx, Mode=OneWayToSource}"
+                                    layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength}"
+                                    layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength}">
 
             <customControls:MediaPlayer.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-                <SwipeGestureRecognizer Direction="{Binding LayoutSettings.HideSubtitlesSwipeDirection}"
-                                        Command="{Binding HideSubtitlesCommand}"
-                                        Threshold="50" />
-                <SwipeGestureRecognizer Direction="{Binding LayoutSettings.ShowSubtitlesSwipeDirection}"
-                                        Command="{Binding ShowSubtitlesCommand}"
-                                        Threshold="50" />
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
             </customControls:MediaPlayer.GestureRecognizers>
-
-            <customControls:MediaPlayer.Behaviors>
-                <toolkit:AnimationBehavior AnimateCommand="{Binding TriggerResizeAnimationCommand}">
-                    <toolkit:AnimationBehavior.AnimationType>
-                        <animations:ResizeViewAnimation NewRelativeVerticalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.PlayerRelativeVerticalLength}"
-                                                        NewRelativeHorizontalLength="{Binding Source={x:Reference this}, Path=BindingContext.LayoutSettings.PlayerRelativeHorizontalLength}" />
-                    </toolkit:AnimationBehavior.AnimationType>
-                </toolkit:AnimationBehavior>
-            </customControls:MediaPlayer.Behaviors>
         </customControls:MediaPlayer>
 
         <!--Subtitles section-->
-        <Grid RowDefinitions="50, *"
+        <Grid x:Name="subtitlesCollection"
+              RowDefinitions="50, *"
               ColumnDefinitions="11*, Auto, Auto, Auto"
               Padding="5, 0"
-              layouts:AdaptiveLayout.RelativeHorizontalLength="0.35"
-              layouts:AdaptiveLayout.RelativeVerticalLength="0.7">
+              layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.SubtitlesRelativeHorizontalLength}"
+              layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.SubtitlesRelativeVerticalLength}">
+
+            <Grid.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
+            </Grid.GestureRecognizers>
 
             <Label Grid.Row="0"
                    Grid.Column="0"
@@ -66,7 +60,7 @@
                    VerticalOptions="Center"
                    FontAttributes="Bold"
                    FontSize="20"
-                   Margin="5"/>
+                   Margin="5" />
 
             <!--Languages info-->
             <HorizontalStackLayout Grid.Row="0"
@@ -140,7 +134,7 @@
                 <customControls:ExdendedVirtualList.ItemTemplate>
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
-                                                     TappedCommand="{Binding Source={x:Reference this}, Path=BindingContext.SubtitleTappedCommand}"
+                                                     TappedCommand="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext.SubtitleTappedCommand}"
                                                      TappedCommandParameter="{Binding .}" />
                     </DataTemplate>
                 </customControls:ExdendedVirtualList.ItemTemplate>

@@ -14,6 +14,8 @@ public partial class MediaPlayer : ContentView
         MauiMediaElement.BindingContext = this;
         MauiMediaElement.SetBinding(MediaElement.PositionProperty, "Position", BindingMode.OneWayToSource);
         MauiMediaElement.SetBinding(MediaElement.DurationProperty, "Duration", BindingMode.OneWayToSource);
+        MauiMediaElement.SetBinding(MediaElement.MediaWidthProperty, "MediaWidth", BindingMode.OneWayToSource);
+        MauiMediaElement.SetBinding(MediaElement.MediaHeightProperty, "MediaHeight", BindingMode.OneWayToSource);
 
         MauiMediaElement.PropertyChanged += MediaElementPropertyChanged;
     }
@@ -84,10 +86,36 @@ public partial class MediaPlayer : ContentView
         TimeSpan.FromMilliseconds(20)
     );
 
+    public static readonly BindableProperty MediaWidthProperty = BindableProperty.Create(
+        nameof(MediaWidth),
+        typeof(int),
+        typeof(MediaPlayer),
+        0
+    );
+
+    public static readonly BindableProperty MediaHeightProperty = BindableProperty.Create(
+        nameof(MediaHeight),
+        typeof(int),
+        typeof(MediaPlayer),
+        0
+    );
+
     public string MediaPath
     {
         get => (string)GetValue(MediaPathProperty);
         set => SetValue(MediaPathProperty, value);
+    }
+
+    public int MediaWidth
+    {
+        get => (int)GetValue(MediaWidthProperty);
+        set => SetValue(MediaWidthProperty, value);
+    }
+
+    public int MediaHeight
+    {
+        get => (int)GetValue(MediaHeightProperty);
+        set => SetValue(MediaHeightProperty, value);
     }
 
     public ICommand PositionChangedCommand
@@ -250,6 +278,5 @@ public partial class MediaPlayer : ContentView
             PositionSlider.Maximum = MauiMediaElement.Duration.TotalSeconds;
         }
     }
-
     #endregion
 }
