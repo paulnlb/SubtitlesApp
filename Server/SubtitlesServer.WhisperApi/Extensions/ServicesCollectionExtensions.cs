@@ -1,10 +1,11 @@
 ﻿using System.Threading.RateLimiting;
+using FluentValidation;
 using Microsoft.AspNetCore.RateLimiting;
-using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Constants;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.Infrastructure.Configs;
-using SubtitlesServer.Infrastructure.Services;
+using SubtitlesServer.WhisperApi.Configs;
+using SubtitlesServer.WhisperApi.Interfaces;
+using SubtitlesServer.WhisperApi.Mapper;
+using SubtitlesServer.WhisperApi.Services;
+using SubtitlesServer.WhisperApi.Services.ModelProviders;
 
 namespace SubtitlesServer.WhisperApi.Extensions;
 
@@ -12,16 +13,17 @@ public static class ServicesCollectionExtensions
 {
     public static void AddAppServices(this IServiceCollection services)
     {
-        services.AddScoped<ITranscriptionService, WhisperService>();
-        services.AddScoped<IWaveService, WaveService>();
-        services.AddSingleton<WhisperModelService>();
-        services.AddSingleton<LanguageService>();
+        services.AddScoped<ISpeechToTextService, WhisperService>();
+        services.AddScoped<IAudioService, WaveAudioService>();
+        services.AddScoped<ITranscriptionService, TranscriptionService>();
+        services.AddScoped<INlpService, CatalystNlpService>();
+        services.AddSingleton<WhisperModelProvider>();
+        services.AddSingleton<CatalystModelProvider>();
+        services.AddAutoMapper(typeof(AutoMapperProfile));
+        services.AddValidatorsFromAssembly(typeof(Program).Assembly);
     }
 
-    public static void AddConcurrencyRateLimiter(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static void AddConcurrencyRateLimiter(this IServiceCollection services, IConfiguration configuration)
     {
         var rateLimiterConfig = new RateLimiterConfig();
         configuration.GetSection("RateLimiterSettings").Bind(rateLimiterConfig);
@@ -44,22 +46,5 @@ public static class ServicesCollectionExtensions
                 return new ValueTask();
             }
         );
-    }
-
-    public static void AddJwtAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
-    {
-        var jwtConfig = new JwtConfig();
-        configuration.GetSection("JwtSettings").Bind(jwtConfig);
-        services
-            .AddAuthentication()
-            .AddJwtBearer(options =>
-            {
-                options.Authority = jwtConfig.Authority;
-                options.TokenValidationParameters.ValidIssuer = jwtConfig.ValidIssuer;
-                options.TokenValidationParameters.ValidateAudience = jwtConfig.ValidateAudience;
-            });
     }
 }

@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesServer.Application.Interfaces;
-using SubtitlesServer.TranslationApi.Extensions;
+using SubtitlesServer.Shared.Extensions;
+using SubtitlesServer.TranslationApi.Interfaces;
 
 namespace SubtitlesServer.TranslationApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-//[Authorize]
 public class TranslationController(ITranslationService translationService) : ControllerBase
 {
     [HttpPost]

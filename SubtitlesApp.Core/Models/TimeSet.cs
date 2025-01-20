@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SubtitlesApp.Core.Models;
+﻿namespace SubtitlesApp.Core.Models;
 
 /// <summary>
 ///     Represents a set of time intervals. The intervals are stored in LinkedList and are sorted by their start time.
@@ -10,76 +8,68 @@ public class TimeSet
     private readonly LinkedList<TimeInterval> _timeIntervals = [];
 
     private TimeInterval? _cachedTimeInterval;
-    private int _cachedIndex = -1;
 
-    public int Count { get => _timeIntervals.Count; }
+    public int Count
+    {
+        get => _timeIntervals.Count;
+    }
 
-    public (TimeInterval? Interval, int index) GetByTimeStamp(TimeSpan timeStamp)
+    public TimeInterval? GetByTimeStamp(TimeSpan timeStamp)
     {
         if (_cachedTimeInterval?.ContainsTime(timeStamp) == true)
         {
-            return (_cachedTimeInterval, _cachedIndex);
+            return _cachedTimeInterval;
         }
 
         var currentNode = _timeIntervals.First;
-        var index = 0;
 
         while (currentNode != null)
         {
             if (currentNode.Value.ContainsTime(timeStamp))
             {
                 _cachedTimeInterval = currentNode.Value;
-                _cachedIndex = index;
 
-                return (currentNode.Value, index);
+                return currentNode.Value;
             }
 
             currentNode = currentNode.Next;
-            index++;
         }
 
-        return (null, -1);
+        return null;
     }
 
+    /// <summary>
+    ///     This method iterates through the list of time intervals and does the following:<br/>
+    ///     - removes all intervals that overlap newInterval;<br/>
+    ///     - unites newInterval with all intervals that overlap it;<br/>
+    ///     - finds the nearest interval that is earlier than newInterval and inserts newInterval right after it.
+    /// </summary>
+    /// <param name="newInterval"></param>
+    /// <returns></returns>
     public void Insert(TimeInterval newInterval)
     {
-        (var insertAfterNode, var updatedInterval) = UpdateAndFindInsertionPoint(newInterval);
-
-        if (insertAfterNode?.List == null)
-        {
-            _timeIntervals.AddFirst(updatedInterval);
-        }
-        else
-        {
-            _timeIntervals.AddAfter(insertAfterNode, updatedInterval);
-        }
-
-        _cachedTimeInterval = null;
-        _cachedIndex = -1;
-    }
-
-    (LinkedListNode<TimeInterval>? InsertAfterNode, TimeInterval UpdatedInterval) UpdateAndFindInsertionPoint(TimeInterval intervalToInsert)
-    {
         var currentNode = _timeIntervals.First;
-        LinkedListNode<TimeInterval>? insertAfterNode = null;
+        LinkedListNode<TimeInterval>? nodeToInsertAfter = null;
 
         while (currentNode != null)
         {
             var currentInterval = currentNode.Value;
 
-            if (currentInterval.OverlapsOrAdjacentTo(intervalToInsert))
+            if (currentInterval.OverlapsOrAdjacentTo(newInterval))
             {
-                intervalToInsert = intervalToInsert.Union(currentInterval);
+                newInterval = newInterval.Union(currentInterval);
 
-                currentNode = RemoveCurrentNode(currentNode);
+                var nextNode = currentNode.Next;
+                _timeIntervals.Remove(currentNode);
+                currentNode = nextNode;
 
                 continue;
             }
-            else if (currentInterval.IsEarlierThan(intervalToInsert.StartTime))
+            else if (currentInterval.IsEarlierThan(newInterval.StartTime))
             {
-                insertAfterNode = currentNode;
+                nodeToInsertAfter = currentNode;
             }
-            else if (currentInterval.IsLaterThan(intervalToInsert.EndTime))
+            else if (currentInterval.IsLaterThan(newInterval.EndTime))
             {
                 break;
             }
@@ -87,18 +77,15 @@ public class TimeSet
             currentNode = currentNode.Next;
         }
 
-        return (insertAfterNode, intervalToInsert);
-    }
+        if (nodeToInsertAfter?.List == null)
+        {
+            _timeIntervals.AddFirst(newInterval);
+        }
+        else
+        {
+            _timeIntervals.AddAfter(nodeToInsertAfter, newInterval);
+        }
 
-    /// <summary>
-    /// Removes the current node from the linked list and returns the next node.
-    /// </summary>
-    /// <param name="currentNode">The current node to be removed.</param>
-    /// <returns>The next node in the linked list.</returns>
-    private LinkedListNode<TimeInterval>? RemoveCurrentNode(LinkedListNode<TimeInterval> currentNode)
-    {
-        var nextNode = currentNode.Next;
-        _timeIntervals.Remove(currentNode);
-        return nextNode;
+        _cachedTimeInterval = null;
     }
 }

@@ -2,11 +2,22 @@
 
 public class ReadPhotoVideoPerms : Permissions.BasePlatformPermission
 {
-    public override (string androidPermission, bool isRuntime)[] RequiredPermissions =>
-        new List<(string androidPermission, bool isRuntime)>
+    public override (string androidPermission, bool isRuntime)[] RequiredPermissions
+    {
+        get
         {
-            (global::Android.Manifest.Permission.ReadMediaImages, true),
-            (global::Android.Manifest.Permission.ReadMediaVideo, true)
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+                return
+                [
+                    (global::Android.Manifest.Permission.ReadMediaImages, true),
+                    (global::Android.Manifest.Permission.ReadMediaVideo, true),
+                ];
+            }
+            else
+            {
+                return [(global::Android.Manifest.Permission.ReadExternalStorage, true)];
+            }
         }
-        .ToArray();
+    }
 }

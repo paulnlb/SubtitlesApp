@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+               xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+               x:Class="SubtitlesApp.CustomControls.Popups.SubtitlesSettingsPopup"
+               x:DataType="viewModels:SubtitlesSettingsPopupViewModel"
+               Color="{AppThemeBinding Dark=#424242, Light=#FFFFFF}">
+    <VerticalStackLayout WidthRequest="300">
+
+        <uranium:StatefulContentView TappedCommand="{Binding ChooseOriginalLanguageCommand}">
+            <Border Padding="20">
+                <VerticalStackLayout>
+                    <Label Text="Language"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding Settings.OriginalLanguage.Name}"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </uranium:StatefulContentView>
+
+        <uranium:StatefulContentView TappedCommand="{Binding OpenTranslationSettingsCommand}">
+            <Border Padding="20">
+                <VerticalStackLayout>
+                    <Label Text="Translaton"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+                    <Label Text="{Binding Settings.TranslateToLanguage.Name}"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </uranium:StatefulContentView>
+
+        <HorizontalStackLayout HorizontalOptions="End"
+                               VerticalOptions="End">
+            <Button Text="Cancel"
+                    Command="{Binding CancelCommand}"
+                    Background="Transparent"
+                    TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+            <Button Text="Save"
+                    Command="{Binding SaveCommand}"
+                    Background="Transparent"
+                    TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</toolkit:Popup>

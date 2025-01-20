@@ -7,29 +7,25 @@
              x:Name="this">
     <ContentView.Resources>
         <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <converters:SecondsToTimeSpanConverter x:Key="SecondsToTimeSpanConverter" />
         <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
     </ContentView.Resources>
-    
+
     <Grid BindingContext="{x:Reference this}">
-        <toolkit:MediaElement
-            x:Name="MauiMediaElement"
-            Aspect="AspectFit"
-            Source="{Binding MediaPath}"
-            ShouldAutoPlay="False"
-            ShouldShowPlaybackControls="False"
-            ZIndex="0">
+        <toolkit:MediaElement x:Name="MauiMediaElement"
+                              Aspect="AspectFit"
+                              Source="{Binding MediaPath}"
+                              ShouldAutoPlay="False"
+                              ShouldShowPlaybackControls="False"
+                              ZIndex="0">
 
             <toolkit:MediaElement.Behaviors>
-                <toolkit:EventToCommandBehavior
-                    EventName="PositionChanged"
-                    Command="{Binding PositionChangedCommand}"
-                    CommandParameter="{Binding PositionChangedCommandParameter}"/>
-                <toolkit:EventToCommandBehavior
-                    EventName="SeekCompleted"
-                    Command="{Binding SeekCompletedCommand}"
-                    CommandParameter="{Binding SeekCompletedCommandParameter}"/>
+                <toolkit:EventToCommandBehavior EventName="PositionChanged"
+                                                Command="{Binding PositionChangedCommand}"
+                                                CommandParameter="{Binding PositionChangedCommandParameter}" />
+                <toolkit:EventToCommandBehavior EventName="SeekCompleted"
+                                                Command="{Binding SeekCompletedCommand}"
+                                                CommandParameter="{Binding SeekCompletedCommandParameter}" />
             </toolkit:MediaElement.Behaviors>
         </toolkit:MediaElement>
 
@@ -37,8 +33,7 @@
               Padding="10"
               BackgroundColor="#80000000"
               IsVisible="{Binding PlayerControlsVisible}"
-              RowDefinitions="2*, 10*, *, *"
-              RowSpacing="5"
+              RowDefinitions="3*, 10*, 2*, *"
               ColumnDefinitions="*, *, *"
               ZIndex="1">
 
@@ -51,8 +46,8 @@
                    HorizontalOptions="Start"
                    FontSize="16" />
 
-             <!--Second Row 
-             Button for Rewind, Play/Pause, and Forward--> 
+            <!--Second Row 
+             Button for Rewind, Play/Pause, and Forward-->
             <Button ImageSource="fast_rewind_icon.png"
                     HeightRequest="50"
                     Grid.Row="1"
@@ -60,7 +55,7 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Center"
                     BackgroundColor="#33FFFFFF"
-                    Clicked="OnRewindTapped"/>
+                    Clicked="OnRewindTapped" />
 
             <Button ImageSource="play_icon.png"
                     HeightRequest="50"
@@ -71,30 +66,37 @@
                     BackgroundColor="#33FFFFFF"
                     Clicked="OnPlayPauseTapped">
                 <Button.Triggers>
-                    <DataTrigger TargetType="Button" Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" Value="Paused">
-                        <Setter Property="ImageSource" Value="play_icon.png" />
-                    </DataTrigger>
-                    <DataTrigger TargetType="Button" Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" Value="Playing">
-                        <Setter Property="ImageSource" Value="pause_icon.png" />
+                    <DataTrigger TargetType="Button"
+                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+                                 Value="Paused">
+                        <Setter Property="ImageSource"
+                                Value="play_icon.png" />
                     </DataTrigger>
                     <DataTrigger TargetType="Button"
-                         Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" 
-                         Value="Buffering">
-                        <Setter Property="IsVisible" Value="False" />
+                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+                                 Value="Playing">
+                        <Setter Property="ImageSource"
+                                Value="pause_icon.png" />
+                    </DataTrigger>
+                    <DataTrigger TargetType="Button"
+                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+                                 Value="Buffering">
+                        <Setter Property="IsVisible"
+                                Value="False" />
                     </DataTrigger>
                 </Button.Triggers>
             </Button>
 
-            <ActivityIndicator
-                HeightRequest="50"
-                Grid.Row="1"
-                Grid.Column="1"
-                IsRunning="False" >
+            <ActivityIndicator HeightRequest="50"
+                               Grid.Row="1"
+                               Grid.Column="1"
+                               IsRunning="False">
                 <ActivityIndicator.Triggers>
-                    <DataTrigger TargetType="ActivityIndicator" 
-                         Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}" 
-                         Value="Buffering">
-                        <Setter Property="IsRunning" Value="True" />
+                    <DataTrigger TargetType="ActivityIndicator"
+                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+                                 Value="Buffering">
+                        <Setter Property="IsRunning"
+                                Value="True" />
                     </DataTrigger>
                 </ActivityIndicator.Triggers>
             </ActivityIndicator>
@@ -106,35 +108,37 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Center"
                     BackgroundColor="#33FFFFFF"
-                    Clicked="OnFastForwardTapped"/>
+                    Clicked="OnFastForwardTapped" />
 
-             <!--Third Row 
-             Time display--> 
-            <Label
-                TextColor="White"
-                Grid.Row="2"
-                Grid.Column="0"
-                VerticalOptions="Center"
-                HorizontalOptions="Start"
-                Grid.ColumnSpan="3" >
+            <!--Third Row 
+             Time display-->
+            <Label TextColor="White"
+                   Grid.Row="2"
+                   Grid.Column="0"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"
+                   Grid.ColumnSpan="3">
                 <Label.Text>
                     <MultiBinding StringFormat="{}{0}/{1}">
-                        <Binding Path="Position" Source="{x:Reference MauiMediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
-                        <Binding Path="Duration" Source="{x:Reference MauiMediaElement}" Converter="{StaticResource SecondsToStringConverter}" />
+                        <Binding Path="Value"
+                                 Source="{x:Reference PositionSlider}"
+                                 Converter="{StaticResource SecondsToStringConverter}" />
+                        <Binding Path="Maximum"
+                                 Source="{x:Reference PositionSlider}"
+                                 Converter="{StaticResource SecondsToStringConverter}" />
                     </MultiBinding>
                 </Label.Text>
             </Label>
 
             <!--Fourth Row
              Seek bar-->
-            <Slider
-                x:Name="PositionSlider"
-                Grid.Row="3"
-                Grid.ColumnSpan="3"
-                VerticalOptions="Center"
-                MaximumTrackColor="White"
-                DragStarted="OnDragStarted"
-                DragCompleted="OnDragCompleted" />
+            <Slider x:Name="PositionSlider"
+                    Grid.Row="3"
+                    Grid.ColumnSpan="3"
+                    VerticalOptions="Center"
+                    MaximumTrackColor="White"
+                    DragStarted="OnDragStarted"
+                    DragCompleted="OnDragCompleted" />
         </Grid>
     </Grid>
 </ContentView>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+               x:DataType="viewModels:LoadingPopupViewModel"
+               x:Class="SubtitlesApp.CustomControls.Popups.LoadingPopup"
+               CanBeDismissedByTappingOutsideOfPopup="False"
+               Color="Transparent">
+    <VerticalStackLayout>
+        <ActivityIndicator IsRunning="True"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"
+                           Color="#FFFFFF" />
+    </VerticalStackLayout>
+</toolkit:Popup>

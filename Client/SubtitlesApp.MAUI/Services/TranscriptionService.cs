@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using SubtitlesApp.ClientModels;
+﻿using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
@@ -7,14 +6,9 @@ using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.Services;
 
-public class TranscriptionService(
-    IMediaProcessor mediaProcessor,
-    ISubtitlesService subtitlesService,
-    ITranslationService translationService,
-    IMapper mapper
-) : ITranscriptionService
+public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesService subtitlesService) : ITranscriptionService
 {
-    bool _disposed;
+    private bool _disposed;
 
     public void Dispose()
     {
@@ -71,10 +65,7 @@ public class TranscriptionService(
         }
         catch (OperationCanceledException)
         {
-            var error = new Error(
-                ErrorCode.OperationCanceled,
-                "Transcription operation has been canceled"
-            );
+            var error = new Error(ErrorCode.OperationCanceled, "Transcription operation has been canceled");
             return ListResult<SubtitleDto>.Failure(error);
         }
     }

@@ -2,60 +2,74 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    const string LoadOnlineVideo = "Load Online Video";
-    const string LoadLocalResource = "Choose Local Video From Device";
+    private const string LoadOnlineVideo = "Load Online Video";
+    private const string LoadLocalResource = "Choose Local Video From Device";
 
-    readonly IAuthService _authService;
-    readonly IBuiltInPopupService _builtInPopupService;
-    readonly IVideoPicker _videoPicker;
-    readonly IPopupService _popupService;
-
-    [ObservableProperty]
-    bool _isLoggedIn;
+    private readonly IAuthService _authService;
+    private readonly IBuiltInDialogService _dialogService;
+    private readonly IVideoPicker _videoPicker;
+    private readonly IPopupService _popupService;
 
     [ObservableProperty]
-    bool _isLoggedOut;
+    private bool _isLoggedIn;
 
     public MainPageViewModel(
         IAuthService authService,
-        IBuiltInPopupService builtInPopupService,
+        IBuiltInDialogService dialogService,
         IVideoPicker videoPicker,
-        IPopupService popupService)
+        IPopupService popupService
+    )
     {
         _authService = authService;
-        _builtInPopupService = builtInPopupService;
+        _dialogService = dialogService;
         _videoPicker = videoPicker;
         _popupService = popupService;
 
-        _isLoggedOut = string.IsNullOrEmpty(_authService.GetAccessTokenAsync(false).Result);
-        _isLoggedIn = !_isLoggedOut;
+        _isLoggedIn = !string.IsNullOrEmpty(_authService.GetAccessTokenAsync().Result);
     }
 
     [RelayCommand]
     public async Task LogInAsync()
     {
+        _popupService.ShowPopup<LoadingPopupViewModel>();
+
         var result = await _authService.LogInAsync();
+
         if (result.IsSuccess)
         {
             IsLoggedIn = true;
-            IsLoggedOut = false;
         }
+        else
+        {
+            await _dialogService.DisplayError(result.Error);
+        }
+
+        _popupService.ClosePopup();
     }
 
     [RelayCommand]
     public async Task LogOutAsync()
     {
+        _popupService.ShowPopup<LoadingPopupViewModel>();
+
         var result = await _authService.LogOutAsync();
+
         if (result.IsSuccess)
         {
             IsLoggedIn = false;
-            IsLoggedOut = true;
         }
+        else
+        {
+            await _dialogService.DisplayError(result.Error);
+        }
+
+        _popupService.ClosePopup();
     }
 
     [RelayCommand]
@@ -64,13 +78,13 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     public async Task OpenMediaFile()
     {
-        var result = await _builtInPopupService.DisplayActionSheet(
+        var result = await _dialogService.DisplayActionSheet(
             "Choose a source",
             "Cancel",
             null,
             LoadOnlineVideo,
-            LoadLocalResource);
-
+            LoadLocalResource
+        );
 
         switch (result)
         {
@@ -79,26 +93,26 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (popupResult is string stringPath && !string.IsNullOrEmpty(stringPath))
                 {
-                    OpenPlayerWithSubtitlesPage(stringPath);
+                    await OpenPlayerWithSubtitlesPage(stringPath);
                 }
 
                 break;
 
             case LoadLocalResource:
+
                 var path = await _videoPicker.PickAsync();
 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    OpenPlayerWithSubtitlesPage(path);
+                    await OpenPlayerWithSubtitlesPage(path);
                 }
 
                 break;
         }
     }
 
-    void OpenPlayerWithSubtitlesPage(string path)
+    private static Task OpenPlayerWithSubtitlesPage(string path)
     {
-        if (!string.IsNullOrEmpty(path))
-            Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
+        return Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
     }
 }

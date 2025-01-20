@@ -4,10 +4,10 @@ namespace SubtitlesApp.Views;
 
 public partial class SettingsPage : ContentPage
 {
-	public SettingsPage(SettingsViewModel vm)
-	{
-		BindingContext = vm;
+    public SettingsPage(SettingsViewModel vm)
+    {
+        InitializeComponent();
 
-		InitializeComponent();
-	}
+        BindingContext = vm;
+    }
 }

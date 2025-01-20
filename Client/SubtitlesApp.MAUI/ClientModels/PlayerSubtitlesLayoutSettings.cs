@@ -4,21 +4,54 @@ namespace SubtitlesApp.ClientModels;
 
 public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 {
-    [ObservableProperty]
-    bool _isSideChildVisible;
+    private const double MaxPlayerRelativeVerticalLength = 0.5;
 
     [ObservableProperty]
-    double _playerRelativeVerticalLength;
+    private double _playerRelativeVerticalLength;
 
     [ObservableProperty]
-    double _playerRelativeHorizontalLength;
+    private double _playerRelativeHorizontalLength;
 
-    public delegate void IsSideChildVisibleChangedEventHandler(bool newValue);
+    [ObservableProperty]
+    private double _subtitlesRelativeVerticalLength;
 
-    public event IsSideChildVisibleChangedEventHandler IsSideChildVisibleChanged;
+    [ObservableProperty]
+    private double _subtitlesRelativeHorizontalLength;
 
-    partial void OnIsSideChildVisibleChanged(bool value)
+    [ObservableProperty]
+    private int _videoWidthPx;
+
+    [ObservableProperty]
+    private int _videoHeightPx;
+
+    public void RecalculateVerticalLayout()
     {
-        IsSideChildVisibleChanged?.Invoke(value);
+        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            return;
+        }
+
+        var newRelativeHeight =
+            (VideoHeightPx * Shell.Current.CurrentPage.Width) / (Shell.Current.CurrentPage.Height * VideoWidthPx);
+
+        if (newRelativeHeight == 0 || double.IsNaN(newRelativeHeight))
+        {
+            return;
+        }
+
+        newRelativeHeight = Math.Min(MaxPlayerRelativeVerticalLength, newRelativeHeight);
+
+        PlayerRelativeVerticalLength = newRelativeHeight;
+        SubtitlesRelativeVerticalLength = 1 - newRelativeHeight;
+    }
+
+    partial void OnVideoHeightPxChanged(int value)
+    {
+        RecalculateVerticalLayout();
+    }
+
+    partial void OnVideoWidthPxChanged(int value)
+    {
+        RecalculateVerticalLayout();
     }
 }

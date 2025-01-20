@@ -1,0 +1,63 @@
+﻿namespace SubtitlesApp.Core.Constants;
+
+public static class LanguageNativeNames
+{
+    public const string Afrikaans = "Afrikaans";
+    public const string Arabic = "العربية";
+    public const string Armenian = "Հայերեն";
+    public const string Azerbaijani = "Azərbaycan dili";
+    public const string Belarusian = "Беларуская";
+    public const string Bosnian = "Bosanski";
+    public const string Bulgarian = "Български";
+    public const string Catalan = "Català";
+    public const string Chinese = "中文";
+    public const string Croatian = "Hrvatski";
+    public const string Czech = "Čeština";
+    public const string Danish = "Dansk";
+    public const string Dutch = "Nederlands";
+    public const string English = "English";
+    public const string Estonian = "Eesti keel";
+    public const string Finnish = "Suomi";
+    public const string French = "Français";
+    public const string Galician = "Galego";
+    public const string German = "Deutsch";
+    public const string Greek = "Ελληνικά";
+    public const string Hebrew = "עברית";
+    public const string Hindi = "हिन्दी";
+    public const string Hungarian = "Magyar";
+    public const string Icelandic = "Íslenska";
+    public const string Indonesian = "Bahasa Indonesia";
+    public const string Italian = "Italiano";
+    public const string Japanese = "日本語";
+    public const string Kannada = "ಕನ್ನಡ";
+    public const string Kazakh = "Қазақ тілі";
+    public const string Korean = "한국어";
+    public const string Latvian = "Latviešu valoda";
+    public const string Lithuanian = "Lietuvių kalba";
+    public const string Macedonian = "Македонски";
+    public const string Malay = "Bahasa Melayu";
+    public const string Marathi = "मराठी";
+    public const string Maori = "Te Reo Māori";
+    public const string Nepali = "नेपाली";
+    public const string Norwegian = "Norsk";
+    public const string Persian = "فارسی";
+    public const string Polish = "Polski";
+    public const string Portuguese = "Português";
+    public const string Romanian = "Română";
+    public const string Serbian = "Српски";
+    public const string Slovak = "Slovenčina";
+    public const string Slovenian = "Slovenščina";
+    public const string Spanish = "Español";
+    public const string Swahili = "Kiswahili";
+    public const string Swedish = "Svenska";
+    public const string Tagalog = "Tagalog";
+    public const string Tamil = "தமிழ்";
+    public const string Thai = "ภาษาไทย";
+    public const string Turkish = "Türkçe";
+    public const string Ukrainian = "Українська";
+    public const string Urdu = "اردو";
+    public const string Vietnamese = "Tiếng Việt";
+    public const string Welsh = "Cymraeg";
+
+    public const string Auto = "Auto";
+}

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,14 +7,63 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Catalyst" Version="1.0.54164" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.0" />
+    <PackageReference Include="Whisper.net" Version="1.7.0" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.7.0" />
+    <PackageReference Include="Whisper.net.Runtime.Cuda" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
-    <ProjectReference Include="..\SubtitlesServer.Application\SubtitlesServer.Application.csproj" />
-    <ProjectReference Include="..\SubtitlesServer.Infrastructure\SubtitlesServer.Infrastructure.csproj" />
+    <ProjectReference Include="..\SubtitlesServer.Shared\SubtitlesServer.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\catalyst-models\Models\af\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ar\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\be\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\bg\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ca\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\cs\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\da\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\de\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\el\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\en\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\es\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\et\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\fa\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\fi\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\fr\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\gl\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\hi\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\hr\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\hu\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\hy\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\id\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\is\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\it\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ja\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\kk\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ko\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\lt\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\lv\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\mr\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\nl\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\no\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\pl\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\pt\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ro\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\sk\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\sl\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\sr\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\sv\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ta\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\tr\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\uk\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\ur\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\vi\PipelineModelData-Version\v-000001\" />
+    <Folder Include="Resources\catalyst-models\Models\zh\PipelineModelData-Version\v-000001\" />
   </ItemGroup>
 
 </Project>

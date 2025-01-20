@@ -1,61 +1,46 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using SubtitlesApp.Core.Constants;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
-using SubtitlesServer.Application.Constants;
-using SubtitlesServer.Application.Interfaces;
+using SubtitlesServer.WhisperApi.Configs;
+using SubtitlesServer.WhisperApi.Interfaces;
+using SubtitlesServer.WhisperApi.Models;
 
 namespace SubtitlesServer.WhisperApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiterConstants.WhisperPolicy)]
-[Authorize]
 public class WhisperController(
     ILogger<WhisperController> logger,
     ITranscriptionService transcriptionService,
-    IWaveService waveService,
+    IAudioService waveService,
     LanguageService languageService
 ) : ControllerBase
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
-        IFormFile audioFile,
-        [FromHeader(Name = RequestConstants.SubtitlesLanguageHeader)] string subtitlesLanguageCode,
+        [FromForm] WhisperRequestModel requestModel,
         CancellationToken cancellationToken
     )
     {
-        logger.LogInformation("Connected");
+        var subtitlesLanguage = languageService.GetLanguageByCode(requestModel.LanguageCode);
 
-        var subtitlesLaguage = languageService.GetLanguageByCode(subtitlesLanguageCode);
-
-        if (subtitlesLaguage == null)
+        if (subtitlesLanguage == null)
         {
-            logger.LogError("Invalid language code: {languageCode}", subtitlesLanguageCode);
-            return BadRequest("Invalid language code.");
+            logger.LogError("Invalid language code: {languageCode}", requestModel.LanguageCode);
+            return BadRequest(new Error(ErrorCode.BadRequest, "Invalid language code"));
         }
 
-        using var audioStream = audioFile.OpenReadStream();
-        using var binaryReader = new BinaryReader(audioStream);
-        var audioBytes = binaryReader.ReadBytes((int)audioStream.Length);
-
-        var validationResult = waveService.ValidateAudio(audioBytes);
+        var validationResult = waveService.ValidateAudio(requestModel.AudioFile);
 
         if (validationResult.IsFailure)
         {
             logger.LogError("Invalid audio file: {error}", validationResult.Error);
-
             return BadRequest(validationResult.Error);
         }
 
-        var subtitles = await transcriptionService.TranscribeAudioAsync(
-            audioBytes,
-            subtitlesLanguageCode,
-            cancellationToken
-        );
-
-        logger.LogInformation("Transcribing done.");
+        var subtitles = await transcriptionService.TranscribeAudioAsync(requestModel, cancellationToken);
 
         return Ok(subtitles);
     }

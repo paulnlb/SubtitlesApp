@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Maui;
+using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.Extensions;
-using MauiPageFullScreen;
 using UraniumUI;
-
 
 namespace SubtitlesApp
 {
@@ -27,7 +26,7 @@ namespace SubtitlesApp
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             builder.Services.AddSubtitlesAppServices();

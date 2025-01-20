@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Maui;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.CustomControls;
+using SubtitlesApp.CustomControls.Popups;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
@@ -9,6 +8,7 @@ using SubtitlesApp.Services;
 using SubtitlesApp.Services.Sockets;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
+using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
 using UraniumUI;
 
@@ -24,7 +24,8 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
         services.AddTransient<ITranscriptionService, TranscriptionService>();
-        services.AddTransient<IBuiltInPopupService, BuiltInPopupService>();
+        services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
+        services.AddTransient<SubtitlesMapper>();
         #endregion
 
         #region scoped
@@ -46,18 +47,14 @@ public static class ServicesCollectionExtensions
         var service = new HttpsClientHandlerService();
         var handler = service.GetPlatformMessageHandler();
 
-        services
-            .AddHttpClient<IHttpRequestService, HttpRequestService>()
-            .ConfigurePrimaryHttpMessageHandler(() => handler);
+        services.AddHttpClient<IHttpRequestService, HttpRequestService>().ConfigurePrimaryHttpMessageHandler(() => handler);
 #else
         services.AddHttpClient<IHttpRequestService, HttpRequestService>();
 #endif
         #endregion
 
         #region pages
-        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>(
-            "PlayerWithSubtitles"
-        );
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
         services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
         services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
         #endregion
@@ -76,11 +73,11 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
         services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
         services.AddTransientPopup<InputPopup, InputPopupViewModel>();
+        services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
         #endregion
 
         #region third-party
         services.AddCommunityToolkitDialogs();
-        services.AddAutoMapper(typeof(AutoMapperProfile));
         #endregion
     }
 }

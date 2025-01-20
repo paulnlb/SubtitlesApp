@@ -1,5 +1,4 @@
-﻿using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
 
@@ -10,10 +9,7 @@ public class SubtitlesService : ISubtitlesService
     private readonly IHttpRequestService _httpRequestService;
     private readonly ISettingsService _settingsService;
 
-    public SubtitlesService(
-        ISettingsService settingsService,
-        IHttpRequestService httpRequestService
-    )
+    public SubtitlesService(ISettingsService settingsService, IHttpRequestService httpRequestService)
     {
         _httpRequestService = httpRequestService;
         _settingsService = settingsService;
@@ -29,18 +25,17 @@ public class SubtitlesService : ISubtitlesService
         var multipartContent = new MultipartFormDataContent
         {
             { new ByteArrayContent(audioBytes), "audioFile", "audio.wav" },
+            { new StringContent(languageCode), "languageCode" },
+            { new StringContent("true"), "oneSentencePerSubtitle" },
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, _settingsService.TranscriptionPath)
         {
             Content = multipartContent,
         };
-        request.Headers.Add(RequestConstants.SubtitlesLanguageHeader, languageCode);
+        request.Headers.ExpectContinue = true;
 
-        var result = await _httpRequestService.SendAsync<List<SubtitleDto>>(
-            request,
-            cancellationToken
-        );
+        var result = await _httpRequestService.SendAsync<List<SubtitleDto>>(request, cancellationToken);
 
         if (result.IsSuccess && timeOffset.HasValue && timeOffset.Value != TimeSpan.Zero)
         {
@@ -50,7 +45,7 @@ public class SubtitlesService : ISubtitlesService
         return ListResult<SubtitleDto>.FromGeneric(result);
     }
 
-    static void AlignSubsByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
+    private static void AlignSubsByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
     {
         foreach (var subtitleDto in subsToAlign)
         {

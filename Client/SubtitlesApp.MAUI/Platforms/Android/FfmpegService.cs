@@ -1,33 +1,23 @@
-﻿using Com.Arthenica.Ffmpegkit;
+﻿using System.Globalization;
+using Com.Arthenica.Ffmpegkit;
 using Java.Interop;
+using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
-using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.Models;
 using SubtitlesApp.Services.Sockets;
-using System.Globalization;
 
 namespace SubtitlesApp.Services;
 
 public partial class FfmpegService : IMediaProcessor
 {
-    readonly ISocketListener _socketListener;
+    private readonly ISocketListener _socketListener;
 
-    readonly TrimmedAudioMetadata _audioMetadata;
-
-    bool _disposed;
+    private bool _disposed;
 
     public FfmpegService(ISocketListener socketListener)
     {
         _socketListener = socketListener;
         _socketListener.StartListening();
-
-        _audioMetadata = new()
-        {
-            SampleRate = 16000,
-            ChannelsCount = 1,
-            AudioFormat = AudioFormats.Wave
-        };
     }
 
     public partial void Dispose()
@@ -51,21 +41,29 @@ public partial class FfmpegService : IMediaProcessor
         _disposed = true;
     }
 
-    public partial Task<byte[]> ExtractAudioAsync(string sourcePath, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+    public partial Task<byte[]> ExtractAudioAsync(
+        string sourcePath,
+        TimeSpan startTime,
+        TimeSpan endTime,
+        CancellationToken cancellationToken
+    )
     {
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
-        _audioMetadata.SetTimeBoundaries(startTime, endTime);
+        if (!IsRemoteUrl(sourcePath))
+        {
+            sourcePath = Uri.UnescapeDataString(sourcePath);
+        }
 
         var ffmpegCommand =
-            $"-ss {startTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} " +
-            $"-to {endTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} " +
-            $"-i \"{sourcePath}\" " +
-            $"-vn " +
-            $"-ar {_audioMetadata.SampleRate} " +
-            $"-ac {_audioMetadata.ChannelsCount} " +
-            $"-y " +
-            $"-f {_audioMetadata.AudioFormat} ";
+            $"-ss {startTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
+            + $"-to {endTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
+            + $"-i '{sourcePath}' "
+            + "-vn "
+            + $"-ar 16000 "
+            + $"-ac 1 "
+            + "-y "
+            + $"-f {AudioFormats.Wave} ";
 
         ffmpegCommand += _socketListener switch
         {
@@ -90,8 +88,13 @@ public partial class FfmpegService : IMediaProcessor
         return GetAudioBytesAsync(cancellationToken);
     }
 
-    private async Task<byte[]> GetAudioBytesAsync(
-        CancellationToken cancellationToken)
+    private bool IsRemoteUrl(string path)
+    {
+        var uriCreated = Uri.TryCreate(path, UriKind.Absolute, out var uriResult);
+        return uriCreated && (uriResult!.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+    }
+
+    private async Task<byte[]> GetAudioBytesAsync(CancellationToken cancellationToken)
     {
         var audioChunks = new List<byte>();
 
@@ -106,36 +109,19 @@ public partial class FfmpegService : IMediaProcessor
 
 public class FfmpegCallback : Java.Lang.Object, IFFmpegSessionCompleteCallback
 {
+    public FfmpegCallback() { }
 
-    public FfmpegCallback()
-    {
-    }
+    public void Apply(FFmpegSession? p0) { }
 
-    public void Apply(FFmpegSession? p0)
-    {
-    }
+    public void Disposed() { }
 
-    public void Disposed()
-    {
-    }
+    public void DisposeUnlessReferenced() { }
 
-    public void DisposeUnlessReferenced()
-    {
-    }
+    public void Finalized() { }
 
-    public void Finalized()
-    {
-    }
+    public void SetJniIdentityHashCode(int value) { }
 
-    public void SetJniIdentityHashCode(int value)
-    {
-    }
+    public void SetJniManagedPeerState(JniManagedPeerStates value) { }
 
-    public void SetJniManagedPeerState(JniManagedPeerStates value)
-    {
-    }
-
-    public void SetPeerReference(JniObjectReference reference)
-    {
-    }
+    public void SetPeerReference(JniObjectReference reference) { }
 }

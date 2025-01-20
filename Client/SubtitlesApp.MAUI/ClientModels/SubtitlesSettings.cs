@@ -7,22 +7,25 @@ namespace SubtitlesApp.ClientModels;
 public partial class SubtitlesSettings : ObservableObject
 {
     [ObservableProperty]
-    List<Language> _availableLanguages;
+    private List<Language> _availableLanguages;
 
     [ObservableProperty]
-    Language _OriginalLanguage;
+    private Language _OriginalLanguage;
 
     [ObservableProperty]
-    Language? _translateToLanguage;
+    private Language? _translateToLanguage;
 
     [ObservableProperty]
-    bool _showTranslation;
+    private bool _showTranslation;
 
     [ObservableProperty]
-    SubtitlesCaptureMode _whichSubtitlesToTranslate;
+    private SubtitlesCaptureMode _whichSubtitlesToTranslate;
 
     [ObservableProperty]
-    bool _translateStreamingMode;
+    private bool _translationStreamingEnabled;
+
+    [ObservableProperty]
+    private bool _autoTranslationEnabled;
 
     public SubtitlesSettings ShallowCopy()
     {

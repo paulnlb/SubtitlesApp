@@ -12,4 +12,7 @@ public enum ErrorCode
     AuthenticationError,
     Unauthorized,
     BadGateway,
+    TokenExpired,
+    Forbidden,
+    ValidationFailed,
 }

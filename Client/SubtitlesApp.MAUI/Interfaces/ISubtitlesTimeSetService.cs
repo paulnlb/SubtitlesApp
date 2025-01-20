@@ -8,12 +8,8 @@ public interface ISubtitlesTimeSetService
         TimeSet coveredTimeIntervals,
         TimeSpan currentPosition,
         TimeSpan transcribeBufferLength,
-        TimeSpan mediaDuration);
+        TimeSpan mediaDuration
+    );
 
-    bool ShouldStartTranscription(
-        TimeSet coveredTimeIntervals,
-        TimeSpan currentPosition,
-        TimeSpan mediaDuration);
-
-
+    bool ShouldStartTranscription(TimeSet coveredTimeIntervals, TimeSpan currentPosition, TimeSpan mediaDuration);
 }

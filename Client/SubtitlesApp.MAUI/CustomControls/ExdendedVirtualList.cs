@@ -4,22 +4,49 @@ namespace SubtitlesApp.CustomControls;
 
 public class ExdendedVirtualList : VirtualListView
 {
-    public static readonly BindableProperty ScrollToIndexProperty =
-        BindableProperty.Create(nameof(ScrollToIndex), typeof(int), typeof(ExdendedVirtualList), 0, propertyChanged: OnScrollToIndexChanged);
+    public static readonly BindableProperty FocusedItemIndexProperty = BindableProperty.Create(
+        nameof(FocusedItemIndex),
+        typeof(int),
+        typeof(ExdendedVirtualList),
+        0,
+        propertyChanged: OnFocusedItemIndexChanged
+    );
 
-    public static readonly BindableProperty FirstVisibleItemIndexProperty =
-            BindableProperty.Create(nameof(FirstVisibleItemIndex), typeof(int), typeof(ExdendedVirtualList), 0, BindingMode.OneWayToSource);
+    public static readonly BindableProperty FirstVisibleItemIndexProperty = BindableProperty.Create(
+        nameof(FirstVisibleItemIndex),
+        typeof(int),
+        typeof(ExdendedVirtualList),
+        0,
+        BindingMode.OneWayToSource
+    );
 
-    public static readonly BindableProperty LastVisibleItemIndexProperty =
-            BindableProperty.Create(nameof(LastVisibleItemIndex), typeof(int), typeof(ExdendedVirtualList), 0, BindingMode.OneWayToSource);
+    public static readonly BindableProperty LastVisibleItemIndexProperty = BindableProperty.Create(
+        nameof(LastVisibleItemIndex),
+        typeof(int),
+        typeof(ExdendedVirtualList),
+        0,
+        BindingMode.OneWayToSource
+    );
 
-    public static readonly BindableProperty ScrolledVerticallyCommandProperty =
-            BindableProperty.Create(nameof(ScrolledVerticallyCommand), typeof(ICommand), typeof(ExdendedVirtualList), null);
+    public static readonly BindableProperty ScrolledVerticallyCommandProperty = BindableProperty.Create(
+        nameof(ScrolledVerticallyCommand),
+        typeof(ICommand),
+        typeof(ExdendedVirtualList),
+        null
+    );
 
-    public int ScrollToIndex
+    public static readonly BindableProperty AutoScrollEnabledProperty = BindableProperty.Create(
+        nameof(AutoScrollEnabled),
+        typeof(bool),
+        typeof(ExdendedVirtualList),
+        true,
+        propertyChanged: OnAutoScrollEnabledChanged
+    );
+
+    public int FocusedItemIndex
     {
-        get => (int)GetValue(ScrollToIndexProperty);
-        set => SetValue(ScrollToIndexProperty, value);
+        get => (int)GetValue(FocusedItemIndexProperty);
+        set => SetValue(FocusedItemIndexProperty, value);
     }
 
     public ICommand ScrolledVerticallyCommand
@@ -40,7 +67,14 @@ public class ExdendedVirtualList : VirtualListView
         set => SetValue(LastVisibleItemIndexProperty, value);
     }
 
-    public ExdendedVirtualList() : base()
+    public bool AutoScrollEnabled
+    {
+        get => (bool)GetValue(AutoScrollEnabledProperty);
+        set => SetValue(AutoScrollEnabledProperty, value);
+    }
+
+    public ExdendedVirtualList()
+        : base()
     {
         OnScrolled += ElementScrolled;
     }
@@ -50,7 +84,25 @@ public class ExdendedVirtualList : VirtualListView
         OnScrolled -= ElementScrolled;
     }
 
-    static void OnScrollToIndexChanged(BindableObject bindable, object oldValue, object newValue)
+    private static void OnAutoScrollEnabledChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        if (bindable is not ExdendedVirtualList extendedCollectionView)
+        {
+            return;
+        }
+
+        if (newValue is not bool autoScrollEnabled)
+        {
+            return;
+        }
+
+        if (autoScrollEnabled)
+        {
+            extendedCollectionView.ScrollToIndexIfNotVisible(extendedCollectionView.FocusedItemIndex);
+        }
+    }
+
+    private static void OnFocusedItemIndexChanged(BindableObject bindable, object oldValue, object newValue)
     {
         if (bindable is not ExdendedVirtualList extendedCollectionView)
         {
@@ -59,15 +111,13 @@ public class ExdendedVirtualList : VirtualListView
 
         var newIndex = (int)newValue;
 
-        if (newIndex < 0)
+        if (newIndex > 0 && extendedCollectionView.AutoScrollEnabled)
         {
-            return;
+            extendedCollectionView.ScrollToIndexIfNotVisible(newIndex);
         }
-
-        extendedCollectionView.ScrollToItem(new ItemPosition(0, newIndex), true);
     }
 
-    void ElementScrolled(object? sender, ScrolledEventArgs e)
+    private void ElementScrolled(object? sender, ScrolledEventArgs e)
     {
         var visiblePositions = FindVisiblePositions();
 
@@ -76,9 +126,26 @@ public class ExdendedVirtualList : VirtualListView
             return;
         }
 
-        FirstVisibleItemIndex = visiblePositions[0].ItemIndex;
-        LastVisibleItemIndex = visiblePositions[^1].ItemIndex;
+        if (visiblePositions[0].ItemIndex != -1)
+        {
+            FirstVisibleItemIndex = visiblePositions[0].ItemIndex;
+        }
+
+        if (visiblePositions[^1].ItemIndex != -1)
+        {
+            LastVisibleItemIndex = visiblePositions[^1].ItemIndex;
+        }
 
         ScrolledVerticallyCommand.Execute(null);
+    }
+
+    private void ScrollToIndexIfNotVisible(int index)
+    {
+        if (index >= FirstVisibleItemIndex && index <= LastVisibleItemIndex)
+        {
+            return;
+        }
+
+        ScrollToItem(new ItemPosition(0, index), true);
     }
 }
