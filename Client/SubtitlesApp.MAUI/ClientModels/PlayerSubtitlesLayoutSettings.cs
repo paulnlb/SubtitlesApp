@@ -4,6 +4,8 @@ namespace SubtitlesApp.ClientModels;
 
 public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 {
+    private const double MaxPlayerRelativeVerticalLength = 0.5;
+
     [ObservableProperty]
     private double _playerRelativeVerticalLength;
 
@@ -22,12 +24,13 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
     [ObservableProperty]
     private int _videoHeightPx;
 
-    public delegate void LayoutRecalculatedEventHandler();
-
-    public event LayoutRecalculatedEventHandler LayoutRecalculated;
-
-    public void RecalculateLayout()
+    public void RecalculateVerticalLayout()
     {
+        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            return;
+        }
+
         var newRelativeHeight =
             (VideoHeightPx * Shell.Current.CurrentPage.Width) / (Shell.Current.CurrentPage.Height * VideoWidthPx);
 
@@ -36,7 +39,7 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
             return;
         }
 
-        newRelativeHeight = Math.Min(0.5, newRelativeHeight);
+        newRelativeHeight = Math.Min(MaxPlayerRelativeVerticalLength, newRelativeHeight);
 
         PlayerRelativeVerticalLength = newRelativeHeight;
         SubtitlesRelativeVerticalLength = 1 - newRelativeHeight;
@@ -44,31 +47,11 @@ public partial class PlayerSubtitlesLayoutSettings : ObservableObject
 
     partial void OnVideoHeightPxChanged(int value)
     {
-        RecalculateLayout();
+        RecalculateVerticalLayout();
     }
 
     partial void OnVideoWidthPxChanged(int value)
     {
-        RecalculateLayout();
-    }
-
-    partial void OnPlayerRelativeVerticalLengthChanged(double value)
-    {
-        LayoutRecalculated?.Invoke();
-    }
-
-    partial void OnPlayerRelativeHorizontalLengthChanged(double value)
-    {
-        LayoutRecalculated?.Invoke();
-    }
-
-    partial void OnSubtitlesRelativeHorizontalLengthChanged(double value)
-    {
-        LayoutRecalculated?.Invoke();
-    }
-
-    partial void OnSubtitlesRelativeVerticalLengthChanged(double value)
-    {
-        LayoutRecalculated?.Invoke();
+        RecalculateVerticalLayout();
     }
 }

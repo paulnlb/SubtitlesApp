@@ -1,11 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MauiPageFullScreen;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;

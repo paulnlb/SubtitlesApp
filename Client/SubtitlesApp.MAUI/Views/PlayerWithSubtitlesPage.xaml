@@ -9,7 +9,6 @@
              xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
              xmlns:converters="clr-namespace:SubtitlesApp.Converters"
              xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
-             xmlns:animations="clr-namespace:SubtitlesApp.Animations"
              Shell.NavBarIsVisible="false"
              x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
              x:DataType="viewModels:PlayerWithSubtitlesViewModel"

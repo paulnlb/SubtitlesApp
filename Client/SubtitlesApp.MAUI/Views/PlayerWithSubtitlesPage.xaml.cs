@@ -16,7 +16,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private double subtitlesLastTranslateX = 0;
     private double totalX = 0;
 
-    private const double threshold = 100;
+    private const double panThreshold = 100;
 
     public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel viewModel)
     {
@@ -28,19 +28,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         playerSubtitlesPage.PropertyChanged += PlayerSubtitlesPage_PropertyChanged;
     }
 
-    private void PlayerSubtitlesPage_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (
-            e.PropertyName == nameof(Height)
-            && subtitlesCollection.TranslationY != 0
-            && playerSubtitlesPage.Height > subtitlesCollection.TranslationY
-        )
-        {
-            subtitlesCollection.TranslationY = playerSubtitlesPage.Height - playerOriginalHeight;
-            mediaPlayer.HeightRequest = playerSubtitlesPage.Height;
-        }
-    }
-
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
         var vm = (PlayerWithSubtitlesViewModel)BindingContext;
@@ -48,7 +35,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mediaPlayer.Stop();
         mediaPlayer.DisconnectHandler();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
-
         playerSubtitlesPage.PropertyChanged -= PlayerSubtitlesPage_PropertyChanged;
 
         base.OnNavigatedFrom(args);
@@ -96,6 +82,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
+    #region handle vertical pan gesture
+
     private void HandlePanGestureVertical(object sender, PanUpdatedEventArgs e)
     {
         switch (e.StatusType)
@@ -112,7 +100,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
             case GestureStatus.Running:
 
-                // Handle a special case for Android: e.TotalY is reset to 0 when the position of a sender changed.
+                // Handle the special case for Android: e.TotalY is reset to 0 when the position of a sender changed.
                 // In that case, e.TotalY becomes deltaY, so we need to maintain an additional "totalY" variable
                 if (DeviceInfo.Platform == DevicePlatform.Android && sender == subtitlesCollection)
                 {
@@ -136,7 +124,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
             case GestureStatus.Completed:
 
-                if (Math.Abs(totalY) >= threshold)
+                if (Math.Abs(totalY) >= panThreshold)
                 {
                     ChangeFullScreenStatusVertical();
                 }
@@ -148,6 +136,67 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
         }
     }
+
+    private void ChangeFullScreenStatusVertical()
+    {
+        if (subtitlesLastTranslateY == 0 && totalY > 0)
+        {
+            AnimateFullScreenVertical();
+        }
+        else if (subtitlesLastTranslateY != 0 && totalY < 0)
+        {
+            AnimateExitFullScreenVertical();
+        }
+    }
+
+    private void AnimateBounceBackVertical()
+    {
+        var animation = new Animation(
+            v =>
+            {
+                subtitlesCollection.TranslationY = v;
+                mediaPlayer.HeightRequest = playerOriginalHeight + v;
+            },
+            subtitlesCollection.TranslationY,
+            subtitlesLastTranslateY
+        );
+
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
+    }
+
+    private void AnimateExitFullScreenVertical()
+    {
+        var animation = new Animation(
+            v =>
+            {
+                subtitlesCollection.TranslationY = v;
+                mediaPlayer.HeightRequest = playerOriginalHeight + v;
+            },
+            subtitlesCollection.TranslationY,
+            0
+        );
+
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.RestoreScreen());
+    }
+
+    private void AnimateFullScreenVertical()
+    {
+        var animation = new Animation(
+            v =>
+            {
+                subtitlesCollection.TranslationY = v;
+                mediaPlayer.HeightRequest = playerOriginalHeight + v;
+            },
+            subtitlesCollection.TranslationY,
+            subtitlesCollection.Height
+        );
+
+        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
+    }
+
+    #endregion
+
+    #region handle horizontal pan gesture
 
     private void HandlePanGestureHorizontal(object sender, PanUpdatedEventArgs e)
     {
@@ -165,7 +214,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
             case GestureStatus.Running:
 
-                // Handle a special case for Android: e.TotalX is reset to 0 when the position of a sender changed.
+                // Handle the special case for Android: e.TotalX is reset to 0 when the position of a sender changed.
                 // In that case, e.TotalX becomes deltaX, so we need to maintain an additional "totalX" variable
                 if (DeviceInfo.Platform == DevicePlatform.Android && sender == subtitlesCollection)
                 {
@@ -189,7 +238,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
             case GestureStatus.Completed:
 
-                if (Math.Abs(totalX) >= threshold)
+                if (Math.Abs(totalX) >= panThreshold)
                 {
                     ChangeFullScreenStatusHorizontal();
                 }
@@ -259,60 +308,21 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
     }
 
-    private void ChangeFullScreenStatusVertical()
+    #endregion
+
+    #region workaround for vertical fullscreen mode
+    private void PlayerSubtitlesPage_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (subtitlesLastTranslateY == 0 && totalY > 0)
+        if (
+            e.PropertyName == nameof(Height)
+            && subtitlesCollection.TranslationY != 0
+            && playerSubtitlesPage.Height > subtitlesCollection.TranslationY
+        )
         {
-            AnimateFullScreenVertical();
-        }
-        else if (subtitlesLastTranslateY != 0 && totalY < 0)
-        {
-            AnimateExitFullScreenVertical();
+            subtitlesCollection.TranslationY = playerSubtitlesPage.Height - playerOriginalHeight;
+            mediaPlayer.HeightRequest = playerSubtitlesPage.Height;
         }
     }
 
-    private void AnimateBounceBackVertical()
-    {
-        var animation = new Animation(
-            v =>
-            {
-                subtitlesCollection.TranslationY = v;
-                mediaPlayer.HeightRequest = playerOriginalHeight + v;
-            },
-            subtitlesCollection.TranslationY,
-            subtitlesLastTranslateY
-        );
-
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
-    }
-
-    private void AnimateExitFullScreenVertical()
-    {
-        var animation = new Animation(
-            v =>
-            {
-                subtitlesCollection.TranslationY = v;
-                mediaPlayer.HeightRequest = playerOriginalHeight + v;
-            },
-            subtitlesCollection.TranslationY,
-            0
-        );
-
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.RestoreScreen());
-    }
-
-    private void AnimateFullScreenVertical()
-    {
-        var animation = new Animation(
-            v =>
-            {
-                subtitlesCollection.TranslationY = v;
-                mediaPlayer.HeightRequest = playerOriginalHeight + v;
-            },
-            subtitlesCollection.TranslationY,
-            subtitlesCollection.Height
-        );
-
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
-    }
+    #endregion
 }
