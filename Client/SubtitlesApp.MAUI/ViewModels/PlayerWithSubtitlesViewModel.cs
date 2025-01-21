@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
@@ -14,6 +14,7 @@ using SubtitlesApp.Core.Services;
 using SubtitlesApp.Core.Utils;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
+using SubtitlesApp.Messages;
 using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
@@ -39,9 +40,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     [ObservableProperty]
     private SubtitlesCollectionState _subtitlesCollectionState;
-
-    [ObservableProperty]
-    private TimeSpan _playerPosition = TimeSpan.Zero;
 
     [ObservableProperty]
     private bool _playerControlsVisible;
@@ -70,7 +68,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #endregion
 
     #region public properties
-    public ICommand TriggerResizeAnimationCommand { get; set; }
     public TimeSpan MediaDuration { get; set; }
     #endregion
 
@@ -129,9 +126,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #region commands
 
     [RelayCommand]
-    public void PositionChanged()
+    public void PositionChanged(TimeSpan currentPosition)
     {
-        var currentPosition = PlayerPosition;
         UpdateCurrentSubtitleIndex(currentPosition);
 
         if (_transcriptionStatus == TranscriptionStatus.Ready && ShouldStartTranscription(currentPosition))
@@ -189,7 +185,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public void SubtitleTapped(VisualSubtitle subtitle)
     {
-        PlayerPosition = subtitle.TimeInterval.StartTime;
+        StrongReferenceMessenger.Default.Send(new SeekToPositionMessage(subtitle.TimeInterval.StartTime));
     }
 
     [RelayCommand]
