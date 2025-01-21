@@ -29,7 +29,7 @@
                                     HorizontalOptions="Start"
                                     Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
-                                    Position="{Binding PlayerPosition, Mode=TwoWay}"
+                                    PositionChangedCommandParameter="{Binding Source={x:RelativeSource Self}, Path=Position}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
                                     MediaHeight="{Binding LayoutSettings.VideoHeightPx, Mode=OneWayToSource}"
                                     MediaWidth="{Binding LayoutSettings.VideoWidthPx, Mode=OneWayToSource}"
