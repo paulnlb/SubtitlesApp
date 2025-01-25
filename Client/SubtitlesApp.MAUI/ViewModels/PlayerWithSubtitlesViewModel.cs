@@ -67,9 +67,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private TranscriptionStatus _transcriptionStatus;
     #endregion
 
-    #region public properties
     public TimeSpan MediaDuration { get; set; }
-    #endregion
 
     public PlayerWithSubtitlesViewModel(
         ISettingsService settings,
@@ -96,7 +94,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             OriginalLanguage = languageService.GetDefaultLanguage(),
             TranslateToLanguage = null,
             ShowTranslation = false,
-            WhichSubtitlesToTranslate = SubtitlesCaptureMode.VisibleAndNext,
+            WhichSubtitlesToTranslate = SubtitlesScope.OnlyVisible,
             TranslationStreamingEnabled = true,
             AutoTranslationEnabled = true,
         };
@@ -139,9 +137,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public void Translate()
     {
-        (var skippedSubsNumber, var subtitlesToTranslate) = FilterSubtitlesByCurrentScope();
+        var subtitlesToTranslate = FilterSubtitlesByCurrentScope();
 
-        Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
+        subtitlesToTranslate.RestoreOriginalLanguages();
 
         _translationTaskQueue.EnqueueTask(async cancellationToken =>
         {
@@ -228,18 +226,38 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    private (int SkippedSubsNumber, IEnumerable<VisualSubtitle> FilteredSubs) FilterSubtitlesByCurrentScope()
+    private IEnumerable<VisualSubtitle> FilterSubtitlesByCurrentScope()
     {
-        var skippedSubsNumber = SubtitlesSettings.WhichSubtitlesToTranslate switch
+        var skip = SubtitlesSettings.WhichSubtitlesToTranslate switch
         {
-            SubtitlesCaptureMode.All => 0,
-            SubtitlesCaptureMode.VisibleAndNext => SubtitlesCollectionState.FirstVisibleSubtitleIndex,
-            SubtitlesCaptureMode.OnlyNext => SubtitlesCollectionState.LastVisibleSubtitleIndex + 1,
+            SubtitlesScope.All => 0,
+            SubtitlesScope.OnlyVisible => SubtitlesCollectionState.FirstVisibleSubtitleIndex,
+            SubtitlesScope.SingleCurrent => SubtitlesCollectionState.CurrentSubtitleIndex,
+            _ => throw new NotImplementedException(),
+        };
+        var take = SubtitlesSettings.WhichSubtitlesToTranslate switch
+        {
+            SubtitlesScope.All => -1,
+            SubtitlesScope.OnlyVisible => SubtitlesCollectionState.LastVisibleSubtitleIndex
+                - SubtitlesCollectionState.FirstVisibleSubtitleIndex
+                + 1,
+            SubtitlesScope.SingleCurrent => 1,
             _ => throw new NotImplementedException(),
         };
 
-        var subtitlesToTranslate = Subtitles.Skip(skippedSubsNumber);
-        return (skippedSubsNumber, subtitlesToTranslate);
+        IEnumerable<VisualSubtitle> subtitlesToTranslate = Subtitles;
+
+        if (skip > 0)
+        {
+            subtitlesToTranslate = subtitlesToTranslate.Skip(skip);
+        }
+
+        if (take > -1)
+        {
+            subtitlesToTranslate = subtitlesToTranslate.Take(take);
+        }
+
+        return subtitlesToTranslate;
     }
 
     private VisualSubtitle? GetCurrentSubtitle()
@@ -502,15 +520,15 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         // Background translation switch is toggled
         if (newValue.ShowTranslation != oldValue.ShowTranslation)
         {
-            var (skippedSubsNumber, _) = FilterSubtitlesByCurrentScope();
+            var filteredSubs = FilterSubtitlesByCurrentScope();
 
             if (newValue.ShowTranslation)
             {
-                Subtitles.SwitchToTranslations(skippedSubsNumber);
+                filteredSubs.SwitchToTranslations();
             }
             else
             {
-                Subtitles.RestoreOriginalLanguages(skippedSubsNumber);
+                filteredSubs.RestoreOriginalLanguages();
             }
         }
     }

@@ -21,10 +21,10 @@ public static class FilesHelper
     #endregion
 
     /// <summary>
-    /// Main feature. Return actual path for file from uri. 
+    /// Main feature. Return actual path for file from uri.
     /// </summary>
     /// <param name="uri">File's uri</param>
-    /// <param name="context">Current context</param>
+    /// <param name="context">SingleCurrent context</param>
     /// <returns>Actual path</returns>
     public static string GetActualPathForFile(global::Android.Net.Uri uri, Context context)
     {
@@ -59,18 +59,21 @@ public static class FilesHelper
                         if (id.StartsWith("raw:"))
                             return id.Replace("raw:", "");
 
-                        string[] contentUriPrefixesToTry = new string[]{
+                        string[] contentUriPrefixesToTry = new string[]
+                        {
                             "content://downloads/public_downloads",
                             "content://downloads/my_downloads",
-                            "content://downloads/all_downloads"
-                    };
+                            "content://downloads/all_downloads",
+                        };
 
                         string path = null;
 
                         foreach (string contentUriPrefix in contentUriPrefixesToTry)
                         {
                             global::Android.Net.Uri contentUri = ContentUris.WithAppendedId(
-                                    global::Android.Net.Uri.Parse(contentUriPrefix), long.Parse(id));
+                                global::Android.Net.Uri.Parse(contentUriPrefix),
+                                long.Parse(id)
+                            );
 
                             path = GetDataColumn(context, contentUri, null, null);
 
@@ -91,14 +94,18 @@ public static class FilesHelper
 
                         // last try
                         if (string.IsNullOrEmpty(path))
-                            return global::Android.OS.Environment.ExternalStorageDirectory.ToString() + "/Download/" + GetFileName(context, uri);
+                            return global::Android.OS.Environment.ExternalStorageDirectory.ToString()
+                                + "/Download/"
+                                + GetFileName(context, uri);
 
                         return path;
                     }
                 }
                 catch
                 {
-                    return global::Android.OS.Environment.ExternalStorageDirectory.ToString() + "/Download/" + GetFileName(context, uri);
+                    return global::Android.OS.Environment.ExternalStorageDirectory.ToString()
+                        + "/Download/"
+                        + GetFileName(context, uri);
                 }
             }
             // MediaProvider
@@ -124,7 +131,6 @@ public static class FilesHelper
 
                 return GetDataColumn(context, contentUri, selection, selectionArgs);
             }
-
         }
         // MediaStore (and general)
         else if ("content".Equals(uri.Scheme, StringComparison.OrdinalIgnoreCase))
@@ -149,11 +155,12 @@ public static class FilesHelper
     /// Create file in current directory with unique name
     /// </summary>
     /// <param name="name">File name</param>
-    /// <param name="directory">Current directory</param>
+    /// <param name="directory">SingleCurrent directory</param>
     /// <returns>Created file</returns>
     public static Java.IO.File GenerateFileName(string name, Java.IO.File directory)
     {
-        if (name == null) return null;
+        if (name == null)
+            return null;
 
         Java.IO.File file = new Java.IO.File(directory, name);
 
@@ -194,7 +201,7 @@ public static class FilesHelper
     /// <summary>
     /// Return file path for specified uri using CacheDir
     /// </summary>
-    /// <param name="context">Current context</param>
+    /// <param name="context">SingleCurrent context</param>
     /// <param name="uri">Specified uri</param>
     /// <returns>Drive File absolute path</returns>
     private static string GetDriveFileAbsolutePath(Context context, global::Android.Net.Uri uri)
@@ -211,7 +218,8 @@ public static class FilesHelper
                 int column_index = cursor.GetColumnIndexOrThrow(OpenableColumns.DisplayName);
                 var fileName = cursor.GetString(column_index);
 
-                if (uri == null) return null;
+                if (uri == null)
+                    return null;
                 ContentResolver resolver = context.ContentResolver;
 
                 string outputFilePath = new Java.IO.File(context.CacheDir, fileName).AbsolutePath;
@@ -248,7 +256,7 @@ public static class FilesHelper
     /// <summary>
     /// Return filename for specified uri
     /// </summary>
-    /// <param name="context">Current context</param>
+    /// <param name="context">SingleCurrent context</param>
     /// <param name="uri">Specified uri</param>
     /// <returns>Filename</returns>
     private static string GetFileName(Context context, global::Android.Net.Uri uri)
@@ -284,7 +292,7 @@ public static class FilesHelper
     /// <summary>
     /// Return app cache directory
     /// </summary>
-    /// <param name="context">Current context</param>
+    /// <param name="context">SingleCurrent context</param>
     /// <returns>Cache directory</returns>
     private static Java.IO.File GetDocumentCacheDir(Context context)
     {
@@ -299,7 +307,7 @@ public static class FilesHelper
     /// <summary>
     /// Save file from URI to destination path
     /// </summary>
-    /// <param name="context">Current context</param>
+    /// <param name="context">SingleCurrent context</param>
     /// <param name="uri">File URI</param>
     /// <param name="destinationPath">Destination path</param>
     /// <returns>Task for await</returns>
@@ -322,7 +330,6 @@ public static class FilesHelper
                     break;
                 await bos.WriteAsync(buffer, 0, len);
             }
-
         }
         catch (Exception ex)
         {
@@ -332,25 +339,29 @@ public static class FilesHelper
         {
             try
             {
-                if (stream != null) stream.Close();
-                if (bos != null) bos.Close();
+                if (stream != null)
+                    stream.Close();
+                if (bos != null)
+                    bos.Close();
             }
-            catch (Exception ex)
-            {
-
-            }
+            catch (Exception ex) { }
         }
     }
 
     /// <summary>
     /// Return data for specified uri
     /// </summary>
-    /// <param name="context">Current context</param>
-    /// <param name="uri">Current uri</param>
+    /// <param name="context">SingleCurrent context</param>
+    /// <param name="uri">SingleCurrent uri</param>
     /// <param name="selection">Args names</param>
     /// <param name="selectionArgs">Args values</param>
     /// <returns>Data</returns>
-    private static string GetDataColumn(Context context, global::Android.Net.Uri uri, string selection, string[] selectionArgs)
+    private static string GetDataColumn(
+        Context context,
+        global::Android.Net.Uri uri,
+        string selection,
+        string[] selectionArgs
+    )
     {
         ICursor cursor = null;
         string column = "_data";
@@ -375,7 +386,8 @@ public static class FilesHelper
     }
 
     //Whether the Uri authority is ExternalStorageProvider.
-    private static bool IsExternalStorageDocument(global::Android.Net.Uri uri) => _externalStorageAuthority.Equals(uri.Authority);
+    private static bool IsExternalStorageDocument(global::Android.Net.Uri uri) =>
+        _externalStorageAuthority.Equals(uri.Authority);
 
     //Whether the Uri authority is DownloadsProvider.
     private static bool IsDownloadsDocument(global::Android.Net.Uri uri) => _downloadsAuthority.Equals(uri.Authority);

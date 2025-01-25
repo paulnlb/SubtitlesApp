@@ -102,23 +102,21 @@ public static class SubtitlesExtensions
         list.Insert(insertionIndex, newSubtitle);
     }
 
-    public static void SwitchToTranslations<T>(this ObservableCollection<T> list, int skip = 0)
+    public static void SwitchToTranslations<T>(this IEnumerable<T> list)
         where T : Subtitle
     {
-        while (skip < list.Count)
+        foreach (var subtitle in list)
         {
-            list[skip].SwitchToTranslation();
-            skip++;
+            subtitle.SwitchToTranslation();
         }
     }
 
-    public static void RestoreOriginalLanguages<T>(this ObservableCollection<T> list, int skip = 0)
+    public static void RestoreOriginalLanguages<T>(this IEnumerable<T> list)
         where T : Subtitle
     {
-        while (skip < list.Count)
+        foreach (var subtitle in list)
         {
-            list[skip].RestoreOriginalLanguage();
-            skip++;
+            subtitle.RestoreOriginalLanguage();
         }
     }
 

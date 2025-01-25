@@ -33,7 +33,6 @@ public class SubtitlesService : ISubtitlesService
         {
             Content = multipartContent,
         };
-        request.Headers.ExpectContinue = true;
 
         var result = await _httpRequestService.SendAsync<List<SubtitleDto>>(request, cancellationToken);
 
