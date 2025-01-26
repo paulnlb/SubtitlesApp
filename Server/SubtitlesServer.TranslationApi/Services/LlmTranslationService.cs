@@ -53,9 +53,9 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
-        var format = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
+        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
 
-        var llmResult = await _llmService.SendChatAsync(chatHistory, userPrompt, format);
+        var llmResult = await _llmService.SendChatAsync(chatHistory, userPrompt, responseFormat);
 
         if (llmResult.IsFailure)
         {
@@ -79,10 +79,10 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
-        var format = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
+        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
 
         var pipe = new Pipe();
-        var llmResult = _llmService.StreamChatAsync(chatHistory, userPrompt, format);
+        var llmResult = _llmService.StreamChatAsync(chatHistory, userPrompt, responseFormat);
 
         if (llmResult.IsFailure)
         {
