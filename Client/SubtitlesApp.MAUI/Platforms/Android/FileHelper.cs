@@ -24,7 +24,7 @@ public static class FilesHelper
     /// Main feature. Return actual path for file from uri.
     /// </summary>
     /// <param name="uri">File's uri</param>
-    /// <param name="context">SingleCurrent context</param>
+    /// <param name="context">Current context</param>
     /// <returns>Actual path</returns>
     public static string GetActualPathForFile(global::Android.Net.Uri uri, Context context)
     {
@@ -155,7 +155,7 @@ public static class FilesHelper
     /// Create file in current directory with unique name
     /// </summary>
     /// <param name="name">File name</param>
-    /// <param name="directory">SingleCurrent directory</param>
+    /// <param name="directory">Current directory</param>
     /// <returns>Created file</returns>
     public static Java.IO.File GenerateFileName(string name, Java.IO.File directory)
     {
@@ -201,7 +201,7 @@ public static class FilesHelper
     /// <summary>
     /// Return file path for specified uri using CacheDir
     /// </summary>
-    /// <param name="context">SingleCurrent context</param>
+    /// <param name="context">Current context</param>
     /// <param name="uri">Specified uri</param>
     /// <returns>Drive File absolute path</returns>
     private static string GetDriveFileAbsolutePath(Context context, global::Android.Net.Uri uri)
@@ -256,7 +256,7 @@ public static class FilesHelper
     /// <summary>
     /// Return filename for specified uri
     /// </summary>
-    /// <param name="context">SingleCurrent context</param>
+    /// <param name="context">Current context</param>
     /// <param name="uri">Specified uri</param>
     /// <returns>Filename</returns>
     private static string GetFileName(Context context, global::Android.Net.Uri uri)
@@ -292,7 +292,7 @@ public static class FilesHelper
     /// <summary>
     /// Return app cache directory
     /// </summary>
-    /// <param name="context">SingleCurrent context</param>
+    /// <param name="context">Current context</param>
     /// <returns>Cache directory</returns>
     private static Java.IO.File GetDocumentCacheDir(Context context)
     {
@@ -307,7 +307,7 @@ public static class FilesHelper
     /// <summary>
     /// Save file from URI to destination path
     /// </summary>
-    /// <param name="context">SingleCurrent context</param>
+    /// <param name="context">Current context</param>
     /// <param name="uri">File URI</param>
     /// <param name="destinationPath">Destination path</param>
     /// <returns>Task for await</returns>
@@ -351,8 +351,8 @@ public static class FilesHelper
     /// <summary>
     /// Return data for specified uri
     /// </summary>
-    /// <param name="context">SingleCurrent context</param>
-    /// <param name="uri">SingleCurrent uri</param>
+    /// <param name="context">Current context</param>
+    /// <param name="uri">Current uri</param>
     /// <param name="selection">Args names</param>
     /// <param name="selectionArgs">Args values</param>
     /// <returns>Data</returns>
