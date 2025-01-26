@@ -28,7 +28,6 @@ public class WhisperController(
 
         if (subtitlesLanguage == null)
         {
-            logger.LogError("Invalid language code: {languageCode}", requestModel.LanguageCode);
             return BadRequest(new Error(ErrorCode.BadRequest, "Invalid language code"));
         }
 
@@ -36,7 +35,6 @@ public class WhisperController(
 
         if (validationResult.IsFailure)
         {
-            logger.LogError("Invalid audio file: {error}", validationResult.Error);
             return BadRequest(validationResult.Error);
         }
 
