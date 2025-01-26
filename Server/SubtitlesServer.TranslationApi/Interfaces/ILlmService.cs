@@ -1,12 +1,15 @@
-﻿using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Result;
+﻿using SubtitlesApp.Core.Result;
 using SubtitlesServer.TranslationApi.Models;
 
 namespace SubtitlesServer.TranslationApi.Interfaces;
 
 public interface ILlmService
 {
-    Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt);
+    Task<Result<string>> SendChatAsync(List<LlmMessageDto> chatHistory, string userPrompt, object? responseFormat = null);
 
-    AsyncEnumerableResult<string> StreamAsync(List<LlmMessageDto> chatHistory, string userPrompt);
+    AsyncEnumerableResult<string> StreamChatAsync(
+        List<LlmMessageDto> chatHistory,
+        string userPrompt,
+        object? responseFormat = null
+    );
 }

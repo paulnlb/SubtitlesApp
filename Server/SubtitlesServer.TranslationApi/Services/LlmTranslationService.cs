@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Schema;
 using System.Text.Unicode;
 using AutoMapper;
 using Microsoft.Extensions.Options;
@@ -52,8 +53,9 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
+        var format = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
 
-        var llmResult = await _llmService.SendAsync(chatHistory, userPrompt);
+        var llmResult = await _llmService.SendChatAsync(chatHistory, userPrompt, format);
 
         if (llmResult.IsFailure)
         {
@@ -77,9 +79,10 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
+        var format = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
 
         var pipe = new Pipe();
-        var llmResult = _llmService.StreamAsync(chatHistory, userPrompt);
+        var llmResult = _llmService.StreamChatAsync(chatHistory, userPrompt, format);
 
         if (llmResult.IsFailure)
         {
