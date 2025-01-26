@@ -19,7 +19,7 @@ public partial class SubtitlesSettings : ObservableObject
     private bool _showTranslation;
 
     [ObservableProperty]
-    private SubtitlesCaptureMode _whichSubtitlesToTranslate;
+    private SubtitlesScope _whichSubtitlesToTranslate;
 
     [ObservableProperty]
     private bool _translationStreamingEnabled;

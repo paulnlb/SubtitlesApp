@@ -86,13 +86,13 @@
                         <x:Int32>0</x:Int32>
                     </RadioButton.Value>
                 </RadioButton>
-                <RadioButton Content="Visible and next subtitles"
+                <RadioButton Content="Only visible subtitles"
                              GroupName="subtitlesScope">
                     <RadioButton.Value>
                         <x:Int32>1</x:Int32>
                     </RadioButton.Value>
                 </RadioButton>
-                <RadioButton Content="Only next subtitles"
+                <RadioButton Content="Only current subtitle"
                              GroupName="subtitlesScope">
                     <RadioButton.Value>
                         <x:Int32>2</x:Int32>

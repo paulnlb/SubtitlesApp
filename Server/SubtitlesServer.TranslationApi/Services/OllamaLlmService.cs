@@ -30,7 +30,11 @@ public class OllamaLlmService : ILlmService
         _logger = logger;
     }
 
-    public async Task<Result<string>> SendAsync(List<LlmMessageDto> chatHistory, string userPrompt)
+    public async Task<Result<string>> SendChatAsync(
+        List<LlmMessageDto> chatHistory,
+        string userPrompt,
+        object? responseFormat = null
+    )
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
 
@@ -51,7 +55,7 @@ public class OllamaLlmService : ILlmService
 
         try
         {
-            await foreach (var aiMessage in chat.SendAsync(userPrompt))
+            await foreach (var aiMessage in chat.SendAsync(userPrompt, null, format: responseFormat))
             {
                 response.Append(aiMessage);
             }
@@ -66,7 +70,11 @@ public class OllamaLlmService : ILlmService
         }
     }
 
-    public AsyncEnumerableResult<string> StreamAsync(List<LlmMessageDto> chatHistory, string userPrompt)
+    public AsyncEnumerableResult<string> StreamChatAsync(
+        List<LlmMessageDto> chatHistory,
+        string userPrompt,
+        object? responseFormat = null
+    )
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
 
@@ -83,7 +91,7 @@ public class OllamaLlmService : ILlmService
             Messages = _mapper.Map<List<Message>>(chatHistory),
         };
 
-        var responsePortions = chat.SendAsync(userPrompt);
+        var responsePortions = chat.SendAsync(userPrompt, null, format: responseFormat);
 
         return AsyncEnumerableResult<string>.Success(responsePortions);
     }
