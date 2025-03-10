@@ -12,12 +12,29 @@ namespace SubtitlesServer.TranslationApi.Extensions;
 
 public static class ServicesCollectionExtensions
 {
-    public static void AddAppServices(this IServiceCollection services)
+    public static void AddAppServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<ITranslationService, LlmTranslationService>();
-        services.AddScoped<ILlmService, OpenAILlmService>();
         services.AddAutoMapper(typeof(AutoMapperProfile));
         services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+        var llmTranslationConfig = new LlmTranslationConfig();
+        configuration.GetSection("LlmTranslationConfig").Bind(llmTranslationConfig);
+
+        switch (llmTranslationConfig.LlmProvider)
+        {
+            case LlmProvider.Ollama:
+                AddOllamaService(services, configuration);
+                break;
+            case LlmProvider.OpenAi:
+                AddOpenAiService(services);
+                break;
+        }
+    }
+
+    public static void AddOpenAiService(this IServiceCollection services)
+    {
+        services.AddScoped<ILlmService, OpenAILlmService>();
 
         services.AddSingleton<IChatCompletionService>(sp =>
         {
@@ -27,14 +44,16 @@ public static class ServicesCollectionExtensions
         services.AddKeyedTransient<Kernel>("OpenAIKernel");
     }
 
-    public static void AddHttpClient(this IServiceCollection services, IConfiguration configuration)
+    public static void AddOllamaService(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<ILlmService, OllamaLlmService>();
+
         var ollamaConfig = new OllamaConfig();
         configuration.GetSection("OllamaConfig").Bind(ollamaConfig);
 
-        //services.AddHttpClient<ILlmService, OllamaLlmService>(client =>
-        //{
-        //    client.BaseAddress = new Uri(ollamaConfig.BaseUrl);
-        //});
+        services.AddHttpClient<ILlmService, OllamaLlmService>(client =>
+        {
+            client.BaseAddress = new Uri(ollamaConfig.BaseUrl);
+        });
     }
 }
