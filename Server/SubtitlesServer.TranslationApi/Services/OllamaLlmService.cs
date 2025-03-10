@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json.Nodes;
 using AutoMapper;
 using Microsoft.Extensions.Options;
 using OllamaSharp;
@@ -33,7 +34,7 @@ public class OllamaLlmService : ILlmService
     public async Task<Result<string>> SendChatAsync(
         List<LlmMessageDto> chatHistory,
         string userPrompt,
-        object? responseFormat = null
+        JsonNode? responseFormat = null
     )
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
@@ -73,7 +74,7 @@ public class OllamaLlmService : ILlmService
     public AsyncEnumerableResult<string> StreamChatAsync(
         List<LlmMessageDto> chatHistory,
         string userPrompt,
-        object? responseFormat = null
+        JsonNode? responseFormat = null
     )
     {
         var client = new OllamaApiClient(_httpClient, _config.ModelName);
