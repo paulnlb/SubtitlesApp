@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Unicode;
 using AutoMapper;
@@ -53,7 +54,7 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
-        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
+        var responseFormat = GetResponseFormat();
 
         var llmResult = await _llmService.SendChatAsync(chatHistory, userPrompt, responseFormat);
 
@@ -79,7 +80,7 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
-        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
+        var responseFormat = GetResponseFormat();
 
         var pipe = new Pipe();
         var llmResult = _llmService.StreamChatAsync(chatHistory, userPrompt, responseFormat);
@@ -248,5 +249,23 @@ public class LlmTranslationService : ITranslationService
             await writer.WriteAsync(bytes);
             stringBuffer.Clear();
         }
+    }
+
+    private JsonNode? GetResponseFormat()
+    {
+        // OpenAI API is not currently compatible with root-level JSON array schema for structured outputs.
+        // Ref: https://community.openai.com/t/structured-outputs-with-arrays/957869
+        // Wrapping the array of Translation objects into another object would break the streaming feature,
+        // because it uses JsonSerializer.DeserializeAsyncEnumerable method.
+        // DeserializeAsyncEnumerable method works only for root-level JSON arrays.
+        // Ref: https://learn.microsoft.com/en-us/dotnet/api/system.text.json.jsonserializer.deserializeasyncenumerable?view=net-9.0#system-text-json-jsonserializer-deserializeasyncenumerable-1(system-io-stream-system-text-json-jsonserializeroptions-system-threading-cancellationtoken)
+        // Therefore, structured output feature is not used with OpenAILlmService for now
+
+        if (_llmService is OpenAILlmService)
+        {
+            return null;
+        }
+
+        return JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
     }
 }
