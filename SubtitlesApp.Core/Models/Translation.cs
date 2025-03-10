@@ -2,7 +2,7 @@
 
 public class Translation
 {
-    public string LanguageCode { get; set; }
+    public required string LanguageCode { get; set; } = default!;
 
-    public string Text { get; set; }
+    public required string Text { get; set; } = default!;
 }

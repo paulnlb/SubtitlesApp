@@ -4,6 +4,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OpenAI.Chat;
 using SubtitlesApp.Core.Result;
+using SubtitlesServer.TranslationApi.Helpers;
 using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Models;
 
@@ -32,7 +33,7 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
 
         if (responseFormat != null)
         {
-            SetResponseFormat(executionSettings, responseFormat);
+            SetupStructuredOutput(executionSettings, responseFormat);
         }
 
         try
@@ -42,7 +43,15 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
                 executionSettings,
                 kernel
             );
-            return Result<string>.Success(result.Content ?? string.Empty);
+            var resultContent = result.Content ?? string.Empty;
+
+            // The reason for unwrapping is described in comments inside the SetupStructuredOutput method
+            if (responseFormat != null && JsonHelper.IsJsonSchemaTypeOf(responseFormat, "array"))
+            {
+                resultContent = JsonHelper.UnwrapJsonArrayFromRootObject(resultContent);
+            }
+
+            return Result<string>.Success(resultContent);
         }
         catch (Exception ex)
         {
@@ -72,7 +81,7 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
 
         if (responseFormat != null)
         {
-            SetResponseFormat(executionSettings, responseFormat);
+            SetupStructuredOutput(executionSettings, responseFormat);
         }
 
         try
@@ -83,7 +92,15 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
                 kernel
             );
 
-            return AsyncEnumerableResult<string>.Success(resultParts.Select(content => content.Content ?? string.Empty));
+            var resultsContent = resultParts.Select(content => content.Content ?? string.Empty);
+
+            // The reason for unwrapping is described in comments inside the SetupStructuredOutput method
+            if (responseFormat != null && JsonHelper.IsJsonSchemaTypeOf(responseFormat, "array"))
+            {
+                resultsContent = JsonHelper.UnwrapJsonArrayFromRootObjectAsync(resultsContent);
+            }
+
+            return AsyncEnumerableResult<string>.Success(resultsContent);
         }
         catch (Exception ex)
         {
@@ -93,8 +110,25 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
         }
     }
 
-    private static void SetResponseFormat(OpenAIPromptExecutionSettings executionSettings, JsonNode responseFormat)
+    private static void SetupStructuredOutput(OpenAIPromptExecutionSettings executionSettings, JsonNode responseFormat)
     {
+        // OpenAI API is not currently compatible with root-level JSON array schema for structured outputs.
+        // Ref: https://community.openai.com/t/structured-outputs-with-arrays/957869
+        // The workaround here is to wrap the array into an object
+        // and then unwrap it back when parsing the OpenAi response
+
+        if (JsonHelper.IsJsonSchemaTypeOf(responseFormat, "array"))
+        {
+            var wrapped = new JsonObject
+            {
+                ["type"] = "object",
+                ["properties"] = new JsonObject { ["translations"] = responseFormat },
+                ["required"] = new JsonArray("translations"),
+                ["additionalProperties"] = false,
+            };
+            responseFormat = wrapped;
+        }
+
         var responseFormatStr = responseFormat.ToJsonString();
 
         var chatResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
