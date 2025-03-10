@@ -9,7 +9,8 @@ public class AutoMapperProfile : Profile
 {
     public AutoMapperProfile()
     {
-        CreateMap<WhisperRequestModel, WhisperDto>().ForMember(dest => dest.AudioStream, opts => opts.Ignore());
+        CreateMap<TranscriptionRequestModel, TranscriptionRequestDto>()
+            .ForMember(dest => dest.AudioStream, opts => opts.Ignore());
         CreateMap<SegmentData, SubtitleDto>()
             .ForMember(dest => dest.LanguageCode, opts => opts.MapFrom(src => src.Language))
             .ForMember(dest => dest.StartTime, opts => opts.MapFrom(src => src.Start))

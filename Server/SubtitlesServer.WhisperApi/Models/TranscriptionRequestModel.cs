@@ -1,6 +1,6 @@
 ﻿namespace SubtitlesServer.WhisperApi.Models;
 
-public class WhisperRequestModel
+public class TranscriptionRequestModel
 {
     public IFormFile AudioFile { get; set; }
 

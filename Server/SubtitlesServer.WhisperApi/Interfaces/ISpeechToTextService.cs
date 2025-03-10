@@ -5,5 +5,8 @@ namespace SubtitlesServer.WhisperApi.Interfaces;
 
 public interface ISpeechToTextService
 {
-    IAsyncEnumerable<SubtitleDto> TranscribeAudioAsync(WhisperDto whisperDto, CancellationToken cancellationToken = default);
+    IAsyncEnumerable<SubtitleDto> TranscribeAudioAsync(
+        TranscriptionRequestDto whisperDto,
+        CancellationToken cancellationToken = default
+    );
 }

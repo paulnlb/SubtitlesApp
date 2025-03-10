@@ -1,6 +1,6 @@
 ﻿namespace SubtitlesServer.WhisperApi.Models;
 
-public class WhisperDto
+public class TranscriptionRequestDto
 {
     public Stream AudioStream { get; set; }
 

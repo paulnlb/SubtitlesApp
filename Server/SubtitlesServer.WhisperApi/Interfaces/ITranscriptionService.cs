@@ -6,7 +6,7 @@ namespace SubtitlesServer.WhisperApi.Interfaces;
 public interface ITranscriptionService
 {
     Task<List<SubtitleDto>> TranscribeAudioAsync(
-        WhisperRequestModel whisperRequestModel,
+        TranscriptionRequestModel whisperRequestModel,
         CancellationToken cancellationToken = default
     );
 }

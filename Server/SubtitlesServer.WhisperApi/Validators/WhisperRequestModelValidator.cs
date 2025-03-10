@@ -3,7 +3,7 @@ using SubtitlesServer.WhisperApi.Models;
 
 namespace SubtitlesServer.WhisperApi.Validators;
 
-public class WhisperRequestModelValidator : AbstractValidator<WhisperRequestModel>
+public class WhisperRequestModelValidator : AbstractValidator<TranscriptionRequestModel>
 {
     public WhisperRequestModelValidator()
     {

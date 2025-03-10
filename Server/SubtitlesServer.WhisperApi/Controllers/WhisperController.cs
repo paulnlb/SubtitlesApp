@@ -20,7 +20,7 @@ public class WhisperController(
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
-        [FromForm] WhisperRequestModel requestModel,
+        [FromForm] TranscriptionRequestModel requestModel,
         CancellationToken cancellationToken
     )
     {
