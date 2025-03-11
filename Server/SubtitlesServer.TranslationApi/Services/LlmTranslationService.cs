@@ -18,21 +18,21 @@ namespace SubtitlesServer.TranslationApi.Services;
 
 public class LlmTranslationService : ITranslationService
 {
-    private readonly OllamaConfig _config;
+    private readonly LlmTranslationConfig _config;
     private readonly LanguageService _languageService;
     private readonly ILlmService _llmService;
     private readonly ILogger<LlmTranslationService> _logger;
     private readonly IMapper _mapper;
 
     public LlmTranslationService(
-        IOptions<OllamaConfig> ollamaOptions,
+        IOptions<LlmTranslationConfig> llmTranslationOptions,
         LanguageService languageService,
         ILlmService llmService,
         ILogger<LlmTranslationService> logger,
         IMapper mapper
     )
     {
-        _config = ollamaOptions.Value;
+        _config = llmTranslationOptions.Value;
         _languageService = languageService;
         _llmService = llmService;
         _logger = logger;
