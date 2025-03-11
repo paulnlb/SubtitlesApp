@@ -10,6 +10,8 @@ using SubtitlesServer.TranslationApi.Services;
 
 namespace SubtitlesServer.TranslationApi.Extensions;
 
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
 public static class ServicesCollectionExtensions
 {
     public static void AddAppServices(this IServiceCollection services, IConfiguration configuration)
@@ -24,10 +26,10 @@ public static class ServicesCollectionExtensions
         switch (llmTranslationConfig.LlmProvider)
         {
             case LlmProvider.Ollama:
-                AddOllamaService(services, configuration);
+                services.AddOllamaService(configuration);
                 break;
             case LlmProvider.OpenAi:
-                AddOpenAiService(services);
+                services.AddOpenAiService();
                 break;
         }
     }
@@ -38,10 +40,19 @@ public static class ServicesCollectionExtensions
 
         services.AddSingleton<IChatCompletionService>(sp =>
         {
-            OpenAIConfig openAIConfig = sp.GetRequiredService<IOptions<OpenAIConfig>>().Value;
-            return new OpenAIChatCompletionService(openAIConfig.ModelName, openAIConfig.ApiKey);
+            var openAIConfig = sp.GetRequiredService<IOptions<OpenAIConfig>>().Value;
+
+            if (string.IsNullOrEmpty(openAIConfig.Endpoint))
+            {
+                return new OpenAIChatCompletionService(openAIConfig.ModelName, openAIConfig.ApiKey);
+            }
+
+            return new OpenAIChatCompletionService(
+                openAIConfig.ModelName,
+                new Uri(openAIConfig.Endpoint),
+                openAIConfig.ApiKey
+            );
         });
-        services.AddKeyedTransient<Kernel>("OpenAIKernel");
     }
 
     public static void AddOllamaService(this IServiceCollection services, IConfiguration configuration)

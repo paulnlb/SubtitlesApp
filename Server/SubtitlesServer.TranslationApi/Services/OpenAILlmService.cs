@@ -10,8 +10,7 @@ using SubtitlesServer.TranslationApi.Models;
 
 namespace SubtitlesServer.TranslationApi.Services;
 
-public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel, ILogger<OpenAILlmService> logger)
-    : ILlmService
+public class OpenAILlmService(IChatCompletionService chatCompletionService, ILogger<OpenAILlmService> logger) : ILlmService
 {
     public async Task<Result<string>> SendChatAsync(
         List<LlmMessageDto> chatHistory,
@@ -19,7 +18,6 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
         JsonNode? responseFormat = null
     )
     {
-        var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
         var semanticKernelChatHistory = new ChatHistory();
         var chatMessagesContents = chatHistory.Select(chh => new Microsoft.SemanticKernel.ChatMessageContent(
             new AuthorRole(chh.Role),
@@ -40,8 +38,7 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
         {
             var result = await chatCompletionService.GetChatMessageContentAsync(
                 semanticKernelChatHistory,
-                executionSettings,
-                kernel
+                executionSettings
             );
             var resultContent = result.Content ?? string.Empty;
 
@@ -67,7 +64,6 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
         JsonNode? responseFormat = null
     )
     {
-        var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
         var semanticKernelChatHistory = new ChatHistory();
         var chatMessagesContents = chatHistory.Select(chh => new Microsoft.SemanticKernel.ChatMessageContent(
             new AuthorRole(chh.Role),
@@ -88,8 +84,7 @@ public class OpenAILlmService([FromKeyedServices("OpenAIKernel")] Kernel kernel,
         {
             var resultParts = chatCompletionService.GetStreamingChatMessageContentsAsync(
                 semanticKernelChatHistory,
-                executionSettings,
-                kernel
+                executionSettings
             );
 
             var resultsContent = resultParts.Select(content => content.Content ?? string.Empty);
