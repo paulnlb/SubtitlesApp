@@ -41,15 +41,18 @@ After adding these binaries, build the FfmpegAndroidBinding project.
 ## SubtitlesApp Server
 
 Back-end part is a set of multiple ASP.NET Core web apps. Each of them is responsible for different things:
-- **SubtitlesServer.WhisperApi** - API for transcription. Uses OpenAI Whisper under the hood. It can be easily configured to use different Whisper sizes and quantizations.
-- **SubtitlesServer.TranslationApi** - forms promts and connects to an Ollama-hosted LLM to provide translations for batches of subtitles, taking into account their common context. As the LLM speed may be a bottleneck, Translation API supports streaming of translated subtitles to the client, one by one. The API can be configured to use any LLM that Ollama supports.
+- **SubtitlesServer.WhisperApi** - Hosts OpenAI Whisper models and exposes API for transcription. It can be easily configured to use different Whisper sizes and quantizations.
+- **SubtitlesServer.TranslationApi** - forms prompts and connects to an LLM server to provide translations for batches of subtitles, taking their common context into account. Since LLM speed may be a bottleneck, TranslationApi supports streaming translated subtitles to the client one by one. TranslationApi can be configured to use any LLM hosted in Ollama or any OpenAI-compatible API server.
 - **SubtitlesServer.IdentityApi** - IdentityServer project, responsible for authentication and authorization accross the APIs;
 - **SubtitlesServer.BFF** - reverse proxy which redirects client requests to all of the above.
 
-> Note the difference: while TranslationApi forms prompts, interacts with external API and processes its responses, WhisperApi, in contrast, works with models directly via Whisper.net library. 
+> Note the difference: while TranslationApi forms prompts, interacts with an external API and processes its responses, WhisperApi, in contrast, works with models directly via Whisper.net library. 
 
 ### Available OpenAI Whisper models
 https://github.com/openai/whisper?tab=readme-ov-file#available-models-and-languages
 
 ### Available Ollama LLMs
 https://ollama.com/search
+
+### OpenAI models
+https://platform.openai.com/docs/models
