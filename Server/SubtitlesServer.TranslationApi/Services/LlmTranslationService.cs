@@ -2,7 +2,6 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Schema;
 using System.Text.Unicode;
 using AutoMapper;
 using Microsoft.Extensions.Options;
@@ -11,6 +10,7 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesServer.TranslationApi.Configs;
+using SubtitlesServer.TranslationApi.Helpers;
 using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Models;
 
@@ -18,21 +18,21 @@ namespace SubtitlesServer.TranslationApi.Services;
 
 public class LlmTranslationService : ITranslationService
 {
-    private readonly OllamaConfig _config;
+    private readonly LlmTranslationConfig _config;
     private readonly LanguageService _languageService;
     private readonly ILlmService _llmService;
     private readonly ILogger<LlmTranslationService> _logger;
     private readonly IMapper _mapper;
 
     public LlmTranslationService(
-        IOptions<OllamaConfig> ollamaOptions,
+        IOptions<LlmTranslationConfig> llmTranslationOptions,
         LanguageService languageService,
         ILlmService llmService,
         ILogger<LlmTranslationService> logger,
         IMapper mapper
     )
     {
-        _config = ollamaOptions.Value;
+        _config = llmTranslationOptions.Value;
         _languageService = languageService;
         _llmService = llmService;
         _logger = logger;
@@ -53,7 +53,7 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
-        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
+        var responseFormat = JsonHelper.GetJsonSchemaOf(typeof(Translation[]));
 
         var llmResult = await _llmService.SendChatAsync(chatHistory, userPrompt, responseFormat);
 
@@ -79,7 +79,7 @@ public class LlmTranslationService : ITranslationService
         }
 
         var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
-        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(Translation[]));
+        var responseFormat = JsonHelper.GetJsonSchemaOf(typeof(Translation[]));
 
         var pipe = new Pipe();
         var llmResult = _llmService.StreamChatAsync(chatHistory, userPrompt, responseFormat);
