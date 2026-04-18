@@ -59,6 +59,8 @@ public class OllamaLlmService : ILlmService
             await foreach (var aiMessage in chat.SendAsync(userPrompt, null, format: responseFormat))
             {
                 response.Append(aiMessage);
+
+                _logger.LogDebug("{aiMessage}", aiMessage);
             }
 
             return Result<string>.Success(response.ToString());

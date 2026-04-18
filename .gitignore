@@ -373,3 +373,6 @@ SettingsServiceDevelopment.cs
 WhisperModels/
 
 keys/
+
+# VSCode stuff
+.vscode
