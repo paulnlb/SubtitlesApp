@@ -205,6 +205,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = !PlayerControlsVisible;
     }
 
+    [RelayCommand]
+    public async Task OpenTranscribePopup()
+    {
+        var result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>();
+    }
+
+    [RelayCommand]
+    public async Task OpenTranslatePopup()
+    {
+        var result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>();
+    }
+
     #endregion
 
     #region public methods
@@ -315,8 +327,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             if (transcriptionResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
             {
                 _transcriptionStatus = TranscriptionStatus.Error;
-                await MainThread.InvokeOnMainThreadAsync(
-                    () => _builtInDialogService.DisplayError(transcriptionResult.Error)
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                    _builtInDialogService.DisplayError(transcriptionResult.Error)
                 );
                 return;
             }
@@ -336,8 +348,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
                     if (translationResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
                     {
-                        await MainThread.InvokeOnMainThreadAsync(
-                            () => _builtInDialogService.DisplayError(translationResult.Error)
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                            _builtInDialogService.DisplayError(translationResult.Error)
                         );
                     }
 

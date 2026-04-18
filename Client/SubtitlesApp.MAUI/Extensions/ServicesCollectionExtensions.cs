@@ -74,6 +74,8 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
         services.AddTransientPopup<InputPopup, InputPopupViewModel>();
         services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
+        services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
+        services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
         #endregion
 
         #region third-party

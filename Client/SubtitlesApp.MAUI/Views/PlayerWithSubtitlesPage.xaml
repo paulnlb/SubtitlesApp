@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:SubtitlesApp.Views"
@@ -16,8 +17,8 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-            <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+            <toolkit:IsNotNullConverter x:Key="IsNotNullConverter"/>
         </ResourceDictionary>
     </ContentPage.Resources>
 
@@ -28,8 +29,6 @@
                                     VerticalOptions="Start"
                                     HorizontalOptions="Start"
                                     Duration="{Binding MediaDuration, Mode=OneWayToSource}"
-                                    PositionChangedCommand="{Binding PositionChangedCommand}"
-                                    PositionChangedCommandParameter="{Binding Source={x:RelativeSource Self}, Path=Position}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
                                     MediaHeight="{Binding LayoutSettings.VideoHeightPx, Mode=OneWayToSource}"
                                     MediaWidth="{Binding LayoutSettings.VideoWidthPx, Mode=OneWayToSource}"
@@ -37,21 +36,21 @@
                                     layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength}">
 
             <customControls:MediaPlayer.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
+                <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}"/>
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"/>
             </customControls:MediaPlayer.GestureRecognizers>
         </customControls:MediaPlayer>
 
         <!--Subtitles section-->
         <Grid x:Name="subtitlesCollection"
               RowDefinitions="50, *"
-              ColumnDefinitions="11*, Auto, Auto, Auto"
+              ColumnDefinitions="11*, Auto, Auto, Auto, Auto"
               Padding="5, 0"
               layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.SubtitlesRelativeHorizontalLength}"
               layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.SubtitlesRelativeVerticalLength}">
 
             <Grid.GestureRecognizers>
-                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
+                <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"/>
             </Grid.GestureRecognizers>
 
             <Label Grid.Row="0"
@@ -60,7 +59,7 @@
                    VerticalOptions="Center"
                    FontAttributes="Bold"
                    FontSize="20"
-                   Margin="5" />
+                   Margin="5"/>
 
             <!--Languages info-->
             <HorizontalStackLayout Grid.Row="0"
@@ -69,28 +68,26 @@
                                    Margin="5, 0"
                                    HorizontalOptions="Center">
                 <Label Text="{Binding SubtitlesSettings.OriginalLanguage.Code}"
-                       VerticalTextAlignment="Center" />
+                       VerticalTextAlignment="Center"/>
                 <Image Source="{AppThemeBinding Dark=arrow_forward_light.png, Light=arrow_forward_dark.png}"
                        VerticalOptions="Center"
                        HorizontalOptions="Center"
                        HeightRequest="20"
-                       IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
+                       IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}"/>
                 <Label Text="{Binding SubtitlesSettings.TranslateToLanguage.Code}"
                        VerticalTextAlignment="Center"
-                       IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}" />
+                       IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={StaticResource IsNotNullConverter}}"/>
             </HorizontalStackLayout>
 
-            <!--Translate button-->
+            <!--!Transcribe button-->
             <ImageButton Grid.Row="0"
                          Grid.Column="2"
-                         Source="{AppThemeBinding Dark=translate_light.png, Light=translate_dark.png}"
+                         Source="{AppThemeBinding Dark=subtitles_light.png, Light=subtitles_dark.png}"
                          Padding="2"
                          HeightRequest="30"
                          WidthRequest="30"
                          Margin="5,0,0,0"
-                         Command="{Binding TranslateCommand}"
-                         IsEnabled="{Binding SubtitlesCollectionState.IsTranslationRunning, Converter={x:StaticResource InvertedBoolConverter}}"
-                         IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={x:StaticResource IsNotNullConverter}}" />
+                         Command="{Binding OpenTranscribePopupCommand}"/>
             <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
             <BoxView HeightRequest="30"
                      WidthRequest="30"
@@ -98,25 +95,42 @@
                      Grid.Row="0"
                      Grid.Column="2"
                      CornerRadius="5"
-                     BackgroundColor="#33FFFFFF"
-                     IsEnabled="{Binding SubtitlesCollectionState.IsTranslationRunning, Converter={x:StaticResource InvertedBoolConverter}}"
-                     IsVisible="{Binding SubtitlesSettings.TranslateToLanguage, Converter={x:StaticResource IsNotNullConverter}}">
+                     BackgroundColor="#33FFFFFF">
+            </BoxView>
+
+            <!--Translate button-->
+            <ImageButton Grid.Row="0"
+                         Grid.Column="3"
+                         Source="{AppThemeBinding Dark=translate_light.png, Light=translate_dark.png}"
+                         Padding="2"
+                         HeightRequest="30"
+                         WidthRequest="30"
+                         Margin="5,0,0,0"
+                         Command="{Binding OpenTranslatePopupCommand}"/>
+            <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
+            <BoxView HeightRequest="30"
+                     WidthRequest="30"
+                     Margin="5,0,0,0"
+                     Grid.Row="0"
+                     Grid.Column="3"
+                     CornerRadius="5"
+                     BackgroundColor="#33FFFFFF">
             </BoxView>
 
             <!--Subtitles settings-->
             <ImageButton Grid.Row="0"
-                         Grid.Column="3"
+                         Grid.Column="4"
                          Padding="1"
                          Source="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
                          HeightRequest="35"
                          WidthRequest="40"
                          Margin="5,0,0,0"
-                         Command="{Binding OpenSubtitlesSettingsCommand}" />
+                         Command="{Binding OpenSubtitlesSettingsCommand}"/>
             <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
             <BoxView HeightRequest="35"
                      WidthRequest="40"
                      Grid.Row="0"
-                     Grid.Column="3"
+                     Grid.Column="4"
                      CornerRadius="5"
                      Margin="5,0,0,0"
                      BackgroundColor="#33FFFFFF">
@@ -124,7 +138,7 @@
 
             <!--Subtitles list-->
             <customControls:ExdendedVirtualList Grid.Row="1"
-                                                Grid.ColumnSpan="4"
+                                                Grid.ColumnSpan="5"
                                                 Adapter="{Binding SubtitlesAdapter}"
                                                 FocusedItemIndex="{Binding SubtitlesCollectionState.CurrentSubtitleIndex}"
                                                 ScrolledVerticallyCommand="{Binding SubtitlesScrolledCommand}"
@@ -135,12 +149,12 @@
                     <DataTemplate x:DataType="clientModels:VisualSubtitle">
                         <customControls:SubtitleView SubtitleSource="{Binding .}"
                                                      TappedCommand="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext.SubtitleTappedCommand}"
-                                                     TappedCommandParameter="{Binding .}" />
+                                                     TappedCommandParameter="{Binding .}"/>
                     </DataTemplate>
                 </customControls:ExdendedVirtualList.ItemTemplate>
                 <customControls:ExdendedVirtualList.GlobalFooter>
                     <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                       IsVisible="{Binding IsBusy}" />
+                                       IsVisible="{Binding IsBusy}"/>
                 </customControls:ExdendedVirtualList.GlobalFooter>
                 <customControls:ExdendedVirtualList.EmptyView>
                     <VerticalStackLayout>
@@ -149,13 +163,13 @@
                                HorizontalOptions="Center"
                                FontSize="20"
                                Margin="10, 10"
-                               IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}" />
+                               IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}"/>
                         <Label Text="Generating subtitles, wait a little bit..."
                                Style="{StaticResource Headline}"
                                HorizontalOptions="Center"
                                FontSize="20"
                                Margin="10, 10"
-                               IsVisible="{Binding IsBusy}" />
+                               IsVisible="{Binding IsBusy}"/>
                     </VerticalStackLayout>
                 </customControls:ExdendedVirtualList.EmptyView>
             </customControls:ExdendedVirtualList>
@@ -163,14 +177,14 @@
             <!--"Scroll to current subtitle" button-->
             <Button x:Name="scrollToCurrentButton"
                     Grid.Row="1"
-                    Grid.ColumnSpan="4"
+                    Grid.ColumnSpan="5"
                     Text="Scroll to current subtitle"
                     Command="{Binding EnableAutoScrollCommand}"
                     VerticalOptions="End"
                     HorizontalOptions="Center"
                     HeightRequest="40"
                     Margin="0, 0, 0, 10"
-                    IsVisible="{Binding SubtitlesCollectionState.AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}" />
+                    IsVisible="{Binding SubtitlesCollectionState.AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}"/>
         </Grid>
     </layouts:AdaptiveLayout>
 </ContentPage>
