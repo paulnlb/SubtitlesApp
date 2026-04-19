@@ -1,19 +1,15 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using Android.Text.Format;
+using Android.Net.IpSec.Ike;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
-using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.Core.Utils;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Messages;
@@ -32,16 +28,19 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private ObservableCollectionAdapter<VisualSubtitle> _subtitlesAdapter;
 
     [ObservableProperty]
+    private ObservableCollection<VisualSubtitle> _translatedSubtitles;
+
+    [ObservableProperty]
+    private ObservableCollectionAdapter<VisualSubtitle> _translatedSubtitlesAdapter;
+
+    [ObservableProperty]
     private string? _mediaPath;
 
     [ObservableProperty]
-    private int _transcribeBufferLength;
-
-    [ObservableProperty]
-    private SubtitlesSettings _subtitlesSettings;
-
-    [ObservableProperty]
     private SubtitlesCollectionState _subtitlesCollectionState;
+
+    [ObservableProperty]
+    private SubtitlesCollectionState _translatedSubtitlesCollectionState;
 
     [ObservableProperty]
     private bool _playerControlsVisible;
@@ -63,10 +62,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private readonly IBuiltInDialogService _builtInDialogService;
 
     private readonly TimeSet _coveredTimeIntervals;
-    private readonly TaskQueue _translationTaskQueue;
-    private Task<ObservableCollectionResult<VisualSubtitle>>? _transcriptionTask;
-    private CancellationTokenSource _transcriptionCts;
-    private TranscriptionStatus _transcriptionStatus;
     private Language _subtitlesLanguage;
     #endregion
 
@@ -88,19 +83,11 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = true;
         MediaPath = null;
         Subtitles = [];
+        TranslatedSubtitles = [];
         SubtitlesAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_subtitles);
-        TranscribeBufferLength = settings.TranscribeBufferLength;
+        TranslatedSubtitlesAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_translatedSubtitles);
         SubtitlesCollectionState = new SubtitlesCollectionState { AutoScrollEnabled = true };
-        SubtitlesSettings = new SubtitlesSettings
-        {
-            AvailableLanguages = languageService.GetAllLanguages(),
-            OriginalLanguage = languageService.GetDefaultLanguage(),
-            TranslateToLanguage = null,
-            ShowTranslation = false,
-            WhichSubtitlesToTranslate = SubtitlesScope.OnlyVisible,
-            TranslationStreamingEnabled = true,
-            AutoTranslationEnabled = true,
-        };
+        TranslatedSubtitlesCollectionState = new SubtitlesCollectionState { AutoScrollEnabled = true };
         LayoutSettings = new PlayerSubtitlesLayoutSettings
         {
             PlayerRelativeVerticalLength = 0.3,
@@ -118,8 +105,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _subtitlesMapper = subtitlesMapper;
         _transcriptionService = transcriptionService;
         _coveredTimeIntervals = new TimeSet();
-        _translationTaskQueue = new TaskQueue();
-        _transcriptionStatus = TranscriptionStatus.Ready;
         _builtInDialogService = builtInDialogService;
         _subtitlesLanguage = languageService.GetDefaultLanguage();
         #endregion
@@ -131,33 +116,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     public void PositionChanged(TimeSpan currentPosition)
     {
         UpdateCurrentSubtitleIndex(currentPosition);
-
-        if (_transcriptionStatus == TranscriptionStatus.Ready && ShouldStartTranscription(currentPosition))
-        {
-            StartTranscription(currentPosition);
-        }
-    }
-
-    [RelayCommand]
-    public void Translate()
-    {
-        var subtitlesToTranslate = FilterSubtitlesByCurrentScope();
-
-        subtitlesToTranslate.RestoreOriginalLanguages();
-
-        _translationTaskQueue.EnqueueTask(async cancellationToken =>
-        {
-            SubtitlesCollectionState.IsTranslationRunning = true;
-
-            var translationResult = await TranslateAsync(subtitlesToTranslate, cancellationToken);
-
-            if (translationResult.IsFailure)
-            {
-                await MainThread.InvokeOnMainThreadAsync(() => _builtInDialogService.DisplayError(translationResult.Error));
-            }
-
-            SubtitlesCollectionState.IsTranslationRunning = false;
-        });
     }
 
     #region subtitles scrolling
@@ -191,19 +149,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     }
 
     [RelayCommand]
-    public async Task OpenSubtitlesSettings()
-    {
-        var result = await _popupService.ShowPopupAsync<SubtitlesSettingsPopupViewModel>(vm =>
-            vm.Settings = SubtitlesSettings.ShallowCopy()
-        );
-
-        if (result is SubtitlesSettings newSettings)
-        {
-            SubtitlesSettings = newSettings;
-        }
-    }
-
-    [RelayCommand]
     public void TogglePlayerControlsVisibility()
     {
         PlayerControlsVisible = !PlayerControlsVisible;
@@ -224,10 +169,25 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
 
         _subtitlesLanguage = transcriptionSettings.SubtitlesLanguage;
+        var timeIntervalToTranscribe = new TimeInterval(transcriptionSettings.FromTime, transcriptionSettings.ToTime);
 
-        Debug.WriteLine(
-            $"Transcription started. Selected language: {transcriptionSettings.SubtitlesLanguage.Code}; From: {transcriptionSettings.FromTime}, To: {transcriptionSettings.ToTime}"
+        var transcriptionResult = await _transcriptionService.TranscribeAsync(
+            MediaPath,
+            timeIntervalToTranscribe,
+            _subtitlesLanguage.Code,
+            default
         );
+
+        if (transcriptionResult.IsFailure)
+        {
+            await _builtInDialogService.DisplayError(transcriptionResult.Error);
+
+            return;
+        }
+
+        var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
+
+        InsertSubtitlesAndCoveredTime(visualSubs, timeIntervalToTranscribe);
     }
 
     [RelayCommand]
@@ -244,9 +204,26 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             return;
         }
 
-        Debug.WriteLine(
-            $"Transcription started. Selected language: {translationSettings.TargetLanguage.Code}; From: {translationSettings.FromTime}, To: {translationSettings.ToTime}"
+        var subtitlesToTranslate = Subtitles.Where(s =>
+            s.TimeInterval.StartTime >= translationSettings.FromTime && s.TimeInterval.EndTime <= translationSettings.ToTime
         );
+
+        var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
+
+        var translationResult = await _translationService.TranslateAndStreamAsync(
+            subtitlesDtos,
+            translationSettings.TargetLanguage.Code,
+            default
+        );
+
+        if (translationResult.IsFailure)
+        {
+            await _builtInDialogService.DisplayError(translationResult.Error);
+
+            return;
+        }
+
+        await InsertTranslatedSubtitles(translationResult.Value);
     }
 
     #endregion
@@ -255,8 +232,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     public void Clean()
     {
-        _transcriptionCts?.Cancel();
-        _translationTaskQueue.CancelAllTasks();
         _transcriptionService.Dispose();
     }
     #endregion
@@ -268,40 +243,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         {
             MediaPath = value.ToString();
         }
-    }
-
-    private IEnumerable<VisualSubtitle> FilterSubtitlesByCurrentScope()
-    {
-        var skip = SubtitlesSettings.WhichSubtitlesToTranslate switch
-        {
-            SubtitlesScope.All => 0,
-            SubtitlesScope.OnlyVisible => SubtitlesCollectionState.FirstVisibleSubtitleIndex,
-            SubtitlesScope.SingleCurrent => SubtitlesCollectionState.CurrentSubtitleIndex,
-            _ => throw new NotImplementedException(),
-        };
-        var take = SubtitlesSettings.WhichSubtitlesToTranslate switch
-        {
-            SubtitlesScope.All => -1,
-            SubtitlesScope.OnlyVisible => SubtitlesCollectionState.LastVisibleSubtitleIndex
-                - SubtitlesCollectionState.FirstVisibleSubtitleIndex
-                + 1,
-            SubtitlesScope.SingleCurrent => 1,
-            _ => throw new NotImplementedException(),
-        };
-
-        IEnumerable<VisualSubtitle> subtitlesToTranslate = Subtitles;
-
-        if (skip > 0)
-        {
-            subtitlesToTranslate = subtitlesToTranslate.Skip(skip);
-        }
-
-        if (take > -1)
-        {
-            subtitlesToTranslate = subtitlesToTranslate.Take(take);
-        }
-
-        return subtitlesToTranslate;
     }
 
     private VisualSubtitle? GetCurrentSubtitle()
@@ -335,144 +276,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         Subtitles.InsertMany(subtitles);
     }
 
-    private bool ShouldStartTranscription(TimeSpan position)
+    private async Task InsertTranslatedSubtitles(IAsyncEnumerable<SubtitleDto> translatedSubtitles)
     {
-        return _subtitlesTimeSetService.ShouldStartTranscription(_coveredTimeIntervals, position, MediaDuration);
-    }
-
-    private void StartTranscription(TimeSpan currentPosition)
-    {
-        // We do not wait for a transcription task, but we store it the vm to track its progress.
-        // Currently the business logic does not allow us to create a queue of transcription tasks
-        // (like we do with translations)
-        _transcriptionCts = new CancellationTokenSource();
-        _transcriptionTask = TranscribeAsync(currentPosition, _transcriptionCts.Token);
-
-        _transcriptionStatus = TranscriptionStatus.Transcribing;
-        IsBusy = true;
-
-        _transcriptionTask.ContinueWith(async a =>
+        await foreach (var sub in translatedSubtitles)
         {
-            ObservableCollectionResult<VisualSubtitle> transcriptionResult = a.Result;
-            IsBusy = false;
-
-            if (transcriptionResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
-            {
-                _transcriptionStatus = TranscriptionStatus.Error;
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                    _builtInDialogService.DisplayError(transcriptionResult.Error)
-                );
-                return;
-            }
-
-            _transcriptionStatus = TranscriptionStatus.Ready;
-
-            if (SubtitlesSettings.AutoTranslationEnabled && SubtitlesSettings.TranslateToLanguage?.Code != null)
-            {
-                // As translation process may go slower than transcription, so we maintain
-                // a queue of translation tasks to ensure they will all be executed
-                // one by one, in FIFO manner
-                _translationTaskQueue.EnqueueTask(async cancellationToken =>
-                {
-                    SubtitlesCollectionState.IsTranslationRunning = true;
-
-                    var translationResult = await TranslateAsync(transcriptionResult.Value, cancellationToken);
-
-                    if (translationResult.IsFailure && transcriptionResult.Error.Code != ErrorCode.OperationCanceled)
-                    {
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                            _builtInDialogService.DisplayError(translationResult.Error)
-                        );
-                    }
-
-                    SubtitlesCollectionState.IsTranslationRunning = false;
-                });
-            }
-        });
-    }
-
-    private async Task<ObservableCollectionResult<VisualSubtitle>> TranscribeAsync(
-        TimeSpan position,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var timeIntervalToTranscribe = _subtitlesTimeSetService.GetTimeIntervalForTranscription(
-            _coveredTimeIntervals,
-            position,
-            TimeSpan.FromSeconds(TranscribeBufferLength),
-            MediaDuration
-        );
-
-        if (timeIntervalToTranscribe == null)
-        {
-            return ObservableCollectionResult<VisualSubtitle>.Failure(
-                new Error(ErrorCode.Unspecified, "Time interval to transcribe is empty.")
-            );
+            TranslatedSubtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(sub));
         }
-
-        var transcriptionResult = await _transcriptionService.TranscribeAsync(
-            MediaPath,
-            timeIntervalToTranscribe,
-            SubtitlesSettings,
-            cancellationToken
-        );
-
-        if (transcriptionResult.IsFailure)
-        {
-            return ObservableCollectionResult<VisualSubtitle>.Failure(transcriptionResult.Error);
-        }
-
-        var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
-
-        InsertSubtitlesAndCoveredTime(visualSubs, timeIntervalToTranscribe);
-
-        return ObservableCollectionResult<VisualSubtitle>.Success(visualSubs);
-    }
-
-    private async Task<Result> TranslateAsync(
-        IEnumerable<VisualSubtitle> subtitlesToTranslate,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (!subtitlesToTranslate.Any())
-        {
-            return Result.Success();
-        }
-
-        var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
-
-        if (SubtitlesSettings.TranslationStreamingEnabled)
-        {
-            var translationResult = await _translationService.TranslateAndStreamAsync(
-                subtitlesDtos,
-                SubtitlesSettings.TranslateToLanguage!.Code,
-                cancellationToken
-            );
-
-            if (translationResult.IsFailure)
-            {
-                return Result.Failure(translationResult.Error);
-            }
-
-            await UpdateSubtitlesTranslationsAsync(translationResult.Value, subtitlesToTranslate);
-        }
-        else
-        {
-            var translationResult = await _translationService.TranslateAsync(
-                subtitlesDtos,
-                SubtitlesSettings.TranslateToLanguage!.Code,
-                cancellationToken
-            );
-
-            if (translationResult.IsFailure)
-            {
-                return Result.Failure(translationResult.Error);
-            }
-
-            UpdateSubtitlesTranslations(translationResult.Value, subtitlesToTranslate);
-        }
-
-        return Result.Success();
     }
 
     private void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)
@@ -497,83 +306,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             currentSubtitle.IsHighlighted = false;
             SubtitlesCollectionState.CurrentSubtitleIndex = newIndex;
             newSub.IsHighlighted = true;
-        }
-    }
-
-    private void UpdateSubtitleTranslation(SubtitleDto translationDto, VisualSubtitle subtitleToTranslate)
-    {
-        subtitleToTranslate.RestoreOriginalLanguage();
-        subtitleToTranslate.Translation = new Translation
-        {
-            LanguageCode = translationDto.LanguageCode,
-            Text = translationDto.Text,
-        };
-
-        if (SubtitlesSettings.ShowTranslation)
-        {
-            subtitleToTranslate.SwitchToTranslation();
-        }
-    }
-
-    private void UpdateSubtitlesTranslations(
-        List<SubtitleDto> subtitleTranslationDtos,
-        IEnumerable<VisualSubtitle> visualSubtitles
-    )
-    {
-        foreach (var (translationDto, subtitleToTranslate) in subtitleTranslationDtos.Zip(visualSubtitles, Tuple.Create))
-        {
-            UpdateSubtitleTranslation(translationDto, subtitleToTranslate);
-        }
-    }
-
-    private async Task UpdateSubtitlesTranslationsAsync(
-        IAsyncEnumerable<SubtitleDto> subtitleTranslationDtos,
-        IEnumerable<VisualSubtitle> visualSubtitles
-    )
-    {
-        var translationEnumerator = subtitleTranslationDtos.GetAsyncEnumerator();
-        foreach (var visualSubtitle in visualSubtitles)
-        {
-            if (!await translationEnumerator.MoveNextAsync())
-            {
-                break;
-            }
-
-            UpdateSubtitleTranslation(translationEnumerator.Current, visualSubtitle);
-        }
-    }
-
-    #endregion
-
-    #region event handlers
-
-    partial void OnSubtitlesSettingsChanged(SubtitlesSettings? oldValue, SubtitlesSettings newValue)
-    {
-        // Skip SubtitlesSettings object initialization
-        if (oldValue == null)
-        {
-            return;
-        }
-
-        // Skip if translation has been disabled
-        if (newValue.TranslateToLanguage?.Code == null)
-        {
-            return;
-        }
-
-        // Background translation switch is toggled
-        if (newValue.ShowTranslation != oldValue.ShowTranslation)
-        {
-            var filteredSubs = FilterSubtitlesByCurrentScope();
-
-            if (newValue.ShowTranslation)
-            {
-                filteredSubs.SwitchToTranslations();
-            }
-            else
-            {
-                filteredSubs.RestoreOriginalLanguages();
-            }
         }
     }
 

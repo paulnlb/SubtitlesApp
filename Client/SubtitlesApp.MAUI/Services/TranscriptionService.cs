@@ -34,7 +34,7 @@ public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesServ
     public async Task<ListResult<SubtitleDto>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeIntervalToTranscribe,
-        SubtitlesSettings subtitlesSettings,
+        string languageCode,
         CancellationToken cancellationToken = default
     )
     {
@@ -49,7 +49,7 @@ public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesServ
 
             var transcriptionResult = await subtitlesService.GetSubsAsync(
                 audio,
-                subtitlesSettings.OriginalLanguage.Code,
+                languageCode,
                 timeIntervalToTranscribe.StartTime,
                 cancellationToken
             );
