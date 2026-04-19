@@ -5,12 +5,9 @@ namespace SubtitlesApp.ClientModels;
 
 public partial class TranscriptionSettings : ObservableObject
 {
-    [ObservableProperty]
-    private Language _subtitlesLanguage;
+    public Language SubtitlesLanguage { get; set; }
 
-    [ObservableProperty]
-    private TimeSpan _fromTime;
+    public TimeSpan FromTime { get; set; }
 
-    [ObservableProperty]
-    private TimeSpan _toTime;
+    public TimeSpan ToTime { get; set; }
 }

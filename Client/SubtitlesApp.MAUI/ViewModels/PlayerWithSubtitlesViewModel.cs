@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Android.Text.Format;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -208,7 +210,16 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task OpenTranscribePopup()
     {
-        var result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>();
+        var result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm => vm.MediaDuration = MediaDuration);
+
+        if (result is not TranscriptionSettings transcriptionSettings)
+        {
+            return;
+        }
+
+        Debug.WriteLine(
+            $"Transcription started. Selected language: {transcriptionSettings.SubtitlesLanguage.Code}; From: {transcriptionSettings.FromTime}, To: {transcriptionSettings.ToTime}"
+        );
     }
 
     [RelayCommand]
