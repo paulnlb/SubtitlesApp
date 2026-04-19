@@ -67,6 +67,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private Task<ObservableCollectionResult<VisualSubtitle>>? _transcriptionTask;
     private CancellationTokenSource _transcriptionCts;
     private TranscriptionStatus _transcriptionStatus;
+    private Language _subtitlesLanguage;
     #endregion
 
     public TimeSpan MediaDuration { get; set; }
@@ -120,6 +121,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _translationTaskQueue = new TaskQueue();
         _transcriptionStatus = TranscriptionStatus.Ready;
         _builtInDialogService = builtInDialogService;
+        _subtitlesLanguage = languageService.GetDefaultLanguage();
         #endregion
     }
 
@@ -210,12 +212,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task OpenTranscribePopup()
     {
-        var result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm => vm.MediaDuration = MediaDuration);
+        var result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+        {
+            vm.MediaDuration = MediaDuration;
+            vm.SubtitlesLanguage = _subtitlesLanguage;
+        });
 
         if (result is not TranscriptionSettings transcriptionSettings)
         {
             return;
         }
+
+        _subtitlesLanguage = transcriptionSettings.SubtitlesLanguage;
 
         Debug.WriteLine(
             $"Transcription started. Selected language: {transcriptionSettings.SubtitlesLanguage.Code}; From: {transcriptionSettings.FromTime}, To: {transcriptionSettings.ToTime}"
@@ -225,7 +233,20 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task OpenTranslatePopup()
     {
-        var result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>();
+        var result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+        {
+            vm.MediaDuration = MediaDuration;
+            vm.SourceLanguageCode = _subtitlesLanguage.Code;
+        });
+
+        if (result is not TranslationSettings translationSettings)
+        {
+            return;
+        }
+
+        Debug.WriteLine(
+            $"Transcription started. Selected language: {translationSettings.TargetLanguage.Code}; From: {translationSettings.FromTime}, To: {translationSettings.ToTime}"
+        );
     }
 
     #endregion
