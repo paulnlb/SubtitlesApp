@@ -19,7 +19,7 @@ public static class ServicesCollectionExtensions
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
         #region transient
-        services.AddTransient<IMediaProcessor, FfmpegService>();
+        services.AddTransient<IMediaProcessor, FfmpegNativeService>();
         services.AddTransient<IVideoPicker, VideoPicker>();
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();

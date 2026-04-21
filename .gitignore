@@ -376,3 +376,5 @@ keys/
 
 # VSCode stuff
 .vscode
+
+lib/

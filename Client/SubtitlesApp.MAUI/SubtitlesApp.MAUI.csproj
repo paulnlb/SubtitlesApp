@@ -1,84 +1,95 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
+  <PropertyGroup>
     <TargetFrameworks>net8.0-android</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
+    <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+    <!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
 
-		<!-- Note for MacCatalyst:
+    <!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
 		When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
 		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
+    <!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
-		<OutputType>Exe</OutputType>
-		<RootNamespace>SubtitlesApp</RootNamespace>
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SubtitlesApp</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
 
-		<!-- Display name -->
-		<ApplicationTitle>SubtitlesApp</ApplicationTitle>
+    <!-- Display name -->
+    <ApplicationTitle>SubtitlesApp</ApplicationTitle>
 
-		<!-- App Identifier -->
-		<ApplicationId>com.companyname.subtitlesapp</ApplicationId>
+    <!-- App Identifier -->
+    <ApplicationId>com.companyname.subtitlesapp</ApplicationId>
 
-		<!-- Versions -->
-		<ApplicationDisplayVersion>0.4.6</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>0.4.6</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
 
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
-	</PropertyGroup>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'"
+      >21.0</SupportedOSPlatformVersion
+    >
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'"
+      >10.0.17763.0</SupportedOSPlatformVersion
+    >
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'"
+      >10.0.17763.0</TargetPlatformMinVersion
+    >
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'"
+      >13.0</SupportedOSPlatformVersion
+    >
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
-	  <AndroidPackageFormat>apk</AndroidPackageFormat>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+  <ItemGroup>
+    <!-- App Icon -->
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 
-		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
+    <!-- Splash Screen -->
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
-		<!-- Custom Fonts -->
-		<MauiFont Include="Resources\Fonts\*" />
+    <!-- Images -->
+    <MauiImage Include="Resources\Images\*" />
+    <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
-		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
-		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-	</ItemGroup>
+    <!-- Custom Fonts -->
+    <MauiFont Include="Resources\Fonts\*" />
 
-	<ItemGroup>
-	  <None Remove="Resources\Images\fast_forward_icon.png" />
-	  <None Remove="Resources\Images\fast_rewind_icon.png" />
-	  <None Remove="Resources\Images\pause_icon.png" />
-	  <None Remove="Resources\Images\play_icon.png" />
-	</ItemGroup>
+    <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
-		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="IdentityModel.OidcClient" Version="6.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-		<PackageReference Include="PageFullScreen.Maui" Version="1.0.0" />
-		<PackageReference Include="Redth.Maui.VirtualListView" Version="0.4.0" />
-		<PackageReference Include="Riok.Mapperly" Version="4.1.1" />
-		<PackageReference Include="UraniumUI.Dialogs.CommunityToolkit" Version="2.8.1" />
-		<PackageReference Include="UraniumUI.Material" Version="2.8.1" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\Images\fast_forward_icon.png" />
+    <None Remove="Resources\Images\fast_rewind_icon.png" />
+    <None Remove="Resources\Images\pause_icon.png" />
+    <None Remove="Resources\Images\play_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
+    <PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="IdentityModel.OidcClient" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+    <PackageReference Include="PageFullScreen.Maui" Version="1.0.0" />
+    <PackageReference Include="Redth.Maui.VirtualListView" Version="0.4.0" />
+    <PackageReference Include="Riok.Mapperly" Version="4.1.1" />
+    <PackageReference Include="UraniumUI.Dialogs.CommunityToolkit" Version="2.8.1" />
+    <PackageReference Include="UraniumUI.Material" Version="2.8.1" />
+  </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.Contains('-android')) != false ">
     <ProjectReference Include="..\FfmpegAndroidBinding\FfmpegAndroidBinding.csproj" />
@@ -136,4 +147,11 @@
     </MauiXaml>
   </ItemGroup>
 
+  <ItemGroup>
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libffmpegwrapper.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavcodec.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavformat.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavutil.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libswresample.so" />
+  </ItemGroup>
 </Project>
