@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Threading;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;

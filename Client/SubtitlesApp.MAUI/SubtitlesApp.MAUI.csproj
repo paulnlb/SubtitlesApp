@@ -91,10 +91,6 @@
     <PackageReference Include="UraniumUI.Material" Version="2.8.1" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(TargetFramework.Contains('-android')) != false ">
-    <ProjectReference Include="..\FfmpegAndroidBinding\FfmpegAndroidBinding.csproj" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
   </ItemGroup>
@@ -153,5 +149,23 @@
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavformat.so" />
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavutil.so" />
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libswresample.so" />
+
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libffmpegwrapper.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavcodec.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavformat.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavutil.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libswresample.so" />
+
+    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libffmpegwrapper.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavcodec.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavformat.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavutil.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libswresample.so" />
+
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libffmpegwrapper.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavcodec.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavformat.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavutil.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libswresample.so" />
   </ItemGroup>
 </Project>
