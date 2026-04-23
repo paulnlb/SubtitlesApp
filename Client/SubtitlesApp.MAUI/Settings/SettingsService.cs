@@ -8,13 +8,7 @@ public class SettingsService : ISettingsService
     private const string _baseUrl = "http://localhost:8080/";
 
     private const string _unixSocketPathKey = "unix_socket_path";
-    private readonly string _unixSocketPath = Path.Combine(
-        FileSystem.Current.AppDataDirectory,
-        "media.sock"
-    );
-
-    private const string _transcribeBufferLengthKey = "transcribe_buffer_length";
-    private const int _transcribeBufferLength = 60;
+    private readonly string _unixSocketPath = Path.Combine(FileSystem.Current.AppDataDirectory, "media.sock");
 
     private const string _transcriptionPathKey = "transcription_path";
     private const string _transcriptionPath = "api/whisper/transcription";
@@ -56,12 +50,6 @@ public class SettingsService : ISettingsService
     {
         get => Preferences.Get(_baseUrlKey, _baseUrl);
         set => Preferences.Set(_baseUrlKey, value);
-    }
-
-    public int TranscribeBufferLength
-    {
-        get => Preferences.Get(_transcribeBufferLengthKey, _transcribeBufferLength);
-        set => Preferences.Set(_transcribeBufferLengthKey, value);
     }
 
     public string IdentityPath

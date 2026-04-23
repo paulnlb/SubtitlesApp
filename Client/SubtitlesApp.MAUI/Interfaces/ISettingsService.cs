@@ -11,8 +11,6 @@ public interface ISettingsService
 
     string UnixSocketPath { get; set; }
 
-    int TranscribeBufferLength { get; set; }
-
     string IdentityPath { get; set; }
 
     string OidcClientId { get; set; }
