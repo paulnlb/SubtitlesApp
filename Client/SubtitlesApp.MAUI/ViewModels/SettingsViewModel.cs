@@ -14,14 +14,4 @@ public partial class SettingsViewModel(ISettingsService settingsService) : Obser
             OnPropertyChanged();
         }
     }
-
-    public int TranscribeBufferLength
-    {
-        get => settingsService.TranscribeBufferLength;
-        set
-        {
-            settingsService.TranscribeBufferLength = value;
-            OnPropertyChanged();
-        }
-    }
 }

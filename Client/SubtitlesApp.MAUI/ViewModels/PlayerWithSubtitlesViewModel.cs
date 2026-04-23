@@ -1,12 +1,10 @@
 ﻿using System.Collections.ObjectModel;
-using Android.Net.IpSec.Ike;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
@@ -53,26 +51,30 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     #endregion
 
-    #region private fields
+    #region services
+
     private readonly ITranslationService _translationService;
     private readonly IPopupService _popupService;
-    private readonly ISubtitlesTimeSetService _subtitlesTimeSetService;
-    private readonly SubtitlesMapper _subtitlesMapper;
     private readonly ITranscriptionService _transcriptionService;
     private readonly IBuiltInDialogService _builtInDialogService;
+    private readonly LanguageService _languageService;
 
-    private readonly TimeSet _coveredTimeIntervals;
-    private Language _subtitlesLanguage;
+    #endregion
+
+    #region private fields
+
+    private readonly SubtitlesMapper _subtitlesMapper;
+    private TranscriptionSettings? _transcriptionSettings;
+    private TranslationSettings? _translationSettings;
+
     #endregion
 
     public TimeSpan MediaDuration { get; set; }
 
     public PlayerWithSubtitlesViewModel(
-        ISettingsService settings,
         ITranslationService translationService,
         LanguageService languageService,
         IPopupService popupService,
-        ISubtitlesTimeSetService subtitlesTimeSetService,
         SubtitlesMapper subtitlesMapper,
         ITranscriptionService transcriptionService,
         IBuiltInDialogService builtInDialogService
@@ -98,16 +100,13 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         #endregion
 
-        #region private properties
         _translationService = translationService;
         _popupService = popupService;
-        _subtitlesTimeSetService = subtitlesTimeSetService;
-        _subtitlesMapper = subtitlesMapper;
         _transcriptionService = transcriptionService;
-        _coveredTimeIntervals = new TimeSet();
         _builtInDialogService = builtInDialogService;
-        _subtitlesLanguage = languageService.GetDefaultLanguage();
-        #endregion
+        _languageService = languageService;
+
+        _subtitlesMapper = subtitlesMapper;
     }
 
     #region commands
@@ -155,26 +154,40 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     }
 
     [RelayCommand]
-    public async Task OpenTranscribePopup()
+    public async Task Transcribe()
     {
-        var result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
-        {
-            vm.MediaDuration = MediaDuration;
-            vm.SubtitlesLanguage = _subtitlesLanguage;
-        });
+        object? result;
 
-        if (result is not TranscriptionSettings transcriptionSettings)
+        if (_transcriptionSettings is null)
+        {
+            result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+            {
+                vm.MediaDuration = MediaDuration;
+                vm.SubtitlesLanguage = _languageService.GetDefaultLanguage();
+            });
+        }
+        else
+        {
+            result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+            {
+                vm.MediaDuration = MediaDuration;
+                vm.SubtitlesLanguage = _transcriptionSettings.SubtitlesLanguage;
+                vm.FromTime = _transcriptionSettings.FromTime;
+                vm.ToTime = _transcriptionSettings.ToTime;
+            });
+        }
+
+        if (result is not TranscriptionSettings newSettings)
         {
             return;
         }
 
-        _subtitlesLanguage = transcriptionSettings.SubtitlesLanguage;
-        var timeIntervalToTranscribe = new TimeInterval(transcriptionSettings.FromTime, transcriptionSettings.ToTime);
+        _transcriptionSettings = newSettings;
 
         var transcriptionResult = await _transcriptionService.TranscribeAsync(
             MediaPath,
-            timeIntervalToTranscribe,
-            _subtitlesLanguage.Code,
+            new TimeInterval(newSettings.FromTime, newSettings.ToTime),
+            newSettings.SubtitlesLanguage.Code,
             default
         );
 
@@ -187,32 +200,48 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
 
-        InsertSubtitlesAndCoveredTime(visualSubs, timeIntervalToTranscribe);
+        Subtitles.InsertMany(visualSubs);
     }
 
     [RelayCommand]
-    public async Task OpenTranslatePopup()
+    public async Task Translate()
     {
-        var result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
-        {
-            vm.MediaDuration = MediaDuration;
-            vm.SourceLanguageCode = _subtitlesLanguage.Code;
-        });
+        object? result;
 
-        if (result is not TranslationSettings translationSettings)
+        if (_translationSettings is null)
+        {
+            result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+            {
+                vm.MediaDuration = MediaDuration;
+            });
+        }
+        else
+        {
+            result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+            {
+                vm.MediaDuration = MediaDuration;
+                vm.TargetLanguage = _translationSettings.TargetLanguage;
+                vm.FromTime = _translationSettings.FromTime;
+                vm.ToTime = _translationSettings.ToTime;
+            });
+        }
+
+        if (result is not TranslationSettings newSettings)
         {
             return;
         }
 
+        _translationSettings = newSettings;
+
         var subtitlesToTranslate = Subtitles.Where(s =>
-            s.TimeInterval.StartTime >= translationSettings.FromTime && s.TimeInterval.EndTime <= translationSettings.ToTime
+            s.TimeInterval.StartTime >= newSettings.FromTime && s.TimeInterval.EndTime <= newSettings.ToTime
         );
 
         var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
 
         var translationResult = await _translationService.TranslateAndStreamAsync(
             subtitlesDtos,
-            translationSettings.TargetLanguage.Code,
+            newSettings.TargetLanguage.Code,
             default
         );
 
@@ -223,7 +252,10 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             return;
         }
 
-        await InsertTranslatedSubtitles(translationResult.Value);
+        await foreach (var sub in translationResult.Value)
+        {
+            TranslatedSubtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(sub));
+        }
     }
 
     #endregion
@@ -234,6 +266,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         _transcriptionService.Dispose();
     }
+
     #endregion
 
     #region private methods
@@ -253,35 +286,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
 
         return Subtitles[SubtitlesCollectionState.CurrentSubtitleIndex];
-    }
-
-    private void InsertSubtitlesAndCoveredTime(
-        ObservableCollection<VisualSubtitle> subtitles,
-        TimeInterval timeIntervalToTranscribe
-    )
-    {
-        var lastAddedSub = subtitles.LastOrDefault();
-
-        if (lastAddedSub == null || timeIntervalToTranscribe.EndTime == MediaDuration)
-        {
-            _coveredTimeIntervals.Insert(new TimeInterval(timeIntervalToTranscribe));
-        }
-        else
-        {
-            _coveredTimeIntervals.Insert(
-                new TimeInterval(timeIntervalToTranscribe.StartTime, lastAddedSub.TimeInterval.StartTime)
-            );
-        }
-
-        Subtitles.InsertMany(subtitles);
-    }
-
-    private async Task InsertTranslatedSubtitles(IAsyncEnumerable<SubtitleDto> translatedSubtitles)
-    {
-        await foreach (var sub in translatedSubtitles)
-        {
-            TranslatedSubtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(sub));
-        }
     }
 
     private void UpdateCurrentSubtitleIndex(TimeSpan currentPosition)

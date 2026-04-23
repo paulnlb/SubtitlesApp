@@ -34,7 +34,6 @@ public static class ServicesCollectionExtensions
         services.AddScoped<HttpsClientHandlerService>();
         services.AddScoped<IHttpRequestService, HttpRequestService>();
         services.AddScoped<ITranslationService, TranslationService>();
-        services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
         #endregion
 
         #region singleton
@@ -70,8 +69,6 @@ public static class ServicesCollectionExtensions
         #endregion
 
         #region popups
-        services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
-        services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
         services.AddTransientPopup<InputPopup, InputPopupViewModel>();
         services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();

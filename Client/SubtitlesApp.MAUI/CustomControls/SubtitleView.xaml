@@ -7,60 +7,28 @@
              x:DataType="clientModels:VisualSubtitle"
              x:Name="this">
 
-    <ContentView.Resources>
-        <ResourceDictionary>
-            <converters:IsTranslatableConverter x:Key="IsTranslatableConverter" />
-        </ResourceDictionary>
-    </ContentView.Resources>
-
-    <SwipeView>
-        <Label Text="{Binding Text}"
-               FontSize="16"
-               VerticalTextAlignment="Center"
-               Padding="5">
-            <Label.GestureRecognizers>
-                <TapGestureRecognizer NumberOfTapsRequired="2"
-                                      Command="{Binding Source={x:Reference this}, Path=TappedCommand}"
-                                      CommandParameter="{Binding Source={x:Reference this}, Path=TappedCommandParameter}" />
-            </Label.GestureRecognizers>
-            <Label.Triggers>
-                <DataTrigger TargetType="Label"
-                             Binding="{Binding IsHighlighted}"
-                             Value="True">
-                    <Setter Property="BackgroundColor"
-                            Value="{AppThemeBinding Dark=Gray, Light=LightGray}" />
-                </DataTrigger>
-                <DataTrigger TargetType="Label"
-                             Binding="{Binding IsHighlighted}"
-                             Value="False">
-                    <Setter Property="BackgroundColor"
-                            Value="Transparent" />
-                </DataTrigger>
-            </Label.Triggers>
-        </Label>
-
-        <SwipeView.RightItems>
-            <SwipeItems Mode="Reveal">
-                <SwipeItem Text="{Binding Translation.LanguageCode}"
-                           Invoked="OnSwipedRight"
-                           CommandParameter="{Binding .}">
-                    <SwipeItem.IsVisible>
-                        <MultiBinding Converter="{StaticResource IsTranslatableConverter}">
-                            <Binding Path="IsTranslated" />
-                            <Binding Path="Translation" />
-                        </MultiBinding>
-                    </SwipeItem.IsVisible>
-                </SwipeItem>
-            </SwipeItems>
-        </SwipeView.RightItems>
-        <SwipeView.LeftItems>
-            <SwipeItems Mode="Reveal">
-                <SwipeItem IsVisible="{Binding IsTranslated}"
-                           Text="{Binding Translation.LanguageCode}"
-                           Invoked="OnSwipedLeft"
-                           CommandParameter="{Binding .}">
-                </SwipeItem>
-            </SwipeItems>
-        </SwipeView.LeftItems>
-    </SwipeView>
+    <Label Text="{Binding Text}"
+           FontSize="16"
+           VerticalTextAlignment="Center"
+           Padding="5">
+        <Label.GestureRecognizers>
+            <TapGestureRecognizer NumberOfTapsRequired="2"
+                                  Command="{Binding Source={x:Reference this}, Path=TappedCommand}"
+                                  CommandParameter="{Binding Source={x:Reference this}, Path=TappedCommandParameter}"/>
+        </Label.GestureRecognizers>
+        <Label.Triggers>
+            <DataTrigger TargetType="Label"
+                         Binding="{Binding IsHighlighted}"
+                         Value="True">
+                <Setter Property="BackgroundColor"
+                        Value="{AppThemeBinding Dark=Gray, Light=LightGray}"/>
+            </DataTrigger>
+            <DataTrigger TargetType="Label"
+                         Binding="{Binding IsHighlighted}"
+                         Value="False">
+                <Setter Property="BackgroundColor"
+                        Value="Transparent"/>
+            </DataTrigger>
+        </Label.Triggers>
+    </Label>
 </ContentView>

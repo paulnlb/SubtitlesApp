@@ -72,7 +72,7 @@
                          HeightRequest="30"
                          WidthRequest="30"
                          Margin="5,0,0,0"
-                         Command="{Binding OpenTranscribePopupCommand}"/>
+                         Command="{Binding TranscribeCommand}"/>
             <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
             <BoxView HeightRequest="30"
                      WidthRequest="30"
@@ -91,7 +91,7 @@
                          HeightRequest="30"
                          WidthRequest="30"
                          Margin="5,0,0,0"
-                         Command="{Binding OpenTranslatePopupCommand}"/>
+                         Command="{Binding TranslateCommand}"/>
             <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
             <BoxView HeightRequest="30"
                      WidthRequest="30"
@@ -148,6 +148,7 @@
 
                 <material:TabItem Title="Translated">
                     <material:TabItem.Content>
+                        <!-- Translations list -->
                         <customControls:ExdendedVirtualList
                             Adapter="{Binding TranslatedSubtitlesAdapter}"
                             FocusedItemIndex="{Binding TranslatedSubtitlesCollectionState.CurrentSubtitleIndex}"

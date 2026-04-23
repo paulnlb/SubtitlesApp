@@ -68,5 +68,10 @@ public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesServ
             var error = new Error(ErrorCode.OperationCanceled, "Transcription operation has been canceled");
             return ListResult<SubtitleDto>.Failure(error);
         }
+        catch (Exception)
+        {
+            var error = new Error(ErrorCode.InternalClientError, "An unexpected error has occured.");
+            return ListResult<SubtitleDto>.Failure(error);
+        }
     }
 }

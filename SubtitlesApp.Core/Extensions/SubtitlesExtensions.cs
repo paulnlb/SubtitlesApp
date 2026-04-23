@@ -102,24 +102,6 @@ public static class SubtitlesExtensions
         list.Insert(insertionIndex, newSubtitle);
     }
 
-    public static void SwitchToTranslations<T>(this IEnumerable<T> list)
-        where T : Subtitle
-    {
-        foreach (var subtitle in list)
-        {
-            subtitle.SwitchToTranslation();
-        }
-    }
-
-    public static void RestoreOriginalLanguages<T>(this IEnumerable<T> list)
-        where T : Subtitle
-    {
-        foreach (var subtitle in list)
-        {
-            subtitle.RestoreOriginalLanguage();
-        }
-    }
-
     public static void InsertMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems)
         where T : Subtitle
     {

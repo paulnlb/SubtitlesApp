@@ -9,17 +9,13 @@
         <ResourceDictionary>
             <Style TargetType="Entry">
                 <Setter Property="Margin"
-                        Value="0, 0, 0, 20" />
+                        Value="0, 0, 0, 20"/>
             </Style>
         </ResourceDictionary>
     </ContentPage.Resources>
 
     <VerticalStackLayout Margin="20, 30">
-        <Label Text="Backend base url" />
-        <Entry Text="{Binding BackendBaseUrl}" />
-
-        <Label Text="Transcribe buffer length (in seconds)" />
-        <Entry Text="{Binding TranscribeBufferLength}"
-               Keyboard="Numeric" />
+        <Label Text="Backend base url"/>
+        <Entry Text="{Binding BackendBaseUrl}"/>
     </VerticalStackLayout>
 </ContentPage>

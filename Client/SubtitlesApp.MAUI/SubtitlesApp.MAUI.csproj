@@ -28,18 +28,10 @@
     <ApplicationDisplayVersion>0.4.6</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'"
-      >21.0</SupportedOSPlatformVersion
-    >
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'"
-      >10.0.17763.0</SupportedOSPlatformVersion
-    >
-    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'"
-      >10.0.17763.0</TargetPlatformMinVersion
-    >
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'"
-      >13.0</SupportedOSPlatformVersion
-    >
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
@@ -99,12 +91,6 @@
     <Compile Update="CustomControls\MediaPlayer.xaml.cs">
       <DependentUpon>MediaPlayer.xaml</DependentUpon>
     </Compile>
-    <Compile Update="CustomControls\Popups\TranslationSettingsPopup.xaml.cs">
-      <DependentUpon>TranslationSettingsPopup.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="CustomControls\Popups\SubtitlesSettingsPopup.xaml.cs">
-      <DependentUpon>SubtitlesSettingsPopup.xaml</DependentUpon>
-    </Compile>
     <Compile Update="CustomControls\SubtitleView.xaml.cs">
       <DependentUpon>SubtitleView.xaml</DependentUpon>
     </Compile>
@@ -124,12 +110,6 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\MediaPlayer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="CustomControls\Popups\TranslationSettingsPopup.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="CustomControls\Popups\SubtitlesSettingsPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\SubtitleView.xaml">
