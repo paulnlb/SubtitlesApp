@@ -1,6 +1,8 @@
+using Android.Nfc.CardEmulators;
 using MauiPageFullScreen;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.ViewModels;
+using UraniumUI.Material.Controls;
 
 namespace SubtitlesApp.Views;
 
@@ -26,6 +28,15 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
         playerSubtitlesPage.PropertyChanged += PlayerSubtitlesPage_PropertyChanged;
+
+        viewModel.SubsScrollRequested += (s, e) =>
+        {
+            subtitlesList.ScrollToIndex(viewModel.SubtitlesCollectionState.CurrentSubtitleIndex);
+        };
+        viewModel.TranslationsScrollRequested += (s, e) =>
+        {
+            translationsList.ScrollToIndex(viewModel.TranslationsCollectionState.CurrentSubtitleIndex);
+        };
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -79,6 +90,29 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
         {
             HandlePanGestureHorizontal(sender, e);
+        }
+    }
+
+    private void OnSelectedTabChanged(object? sender, TabItem e)
+    {
+        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        {
+            return;
+        }
+
+        if (e is null)
+        {
+            return;
+        }
+        else if (e.Title == "Subtitles")
+        {
+            vm.IsSubtitlesSelected = true;
+            vm.IsTranslationsSelected = false;
+        }
+        else if (e.Title == "Translations")
+        {
+            vm.IsSubtitlesSelected = false;
+            vm.IsTranslationsSelected = true;
         }
     }
 
@@ -307,7 +341,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
     }
-
     #endregion
 
     #region workaround for vertical fullscreen mode

@@ -16,12 +16,27 @@ public partial class SubtitlesCollectionState : ObservableObject
     [ObservableProperty]
     private bool _autoScrollEnabled;
 
-    public delegate void AutoScrollEnabledChangedEventHandler(bool newValue);
-
-    public event AutoScrollEnabledChangedEventHandler AutoScrollEnabledChanged;
-
-    partial void OnAutoScrollEnabledChanged(bool value)
+    partial void OnFirstVisibleSubtitleIndexChanged(int value)
     {
-        AutoScrollEnabledChanged?.Invoke(value);
+        if (value - CurrentSubtitleIndex >= 2)
+        {
+            AutoScrollEnabled = false;
+        }
+        else
+        {
+            AutoScrollEnabled = true;
+        }
+    }
+
+    partial void OnLastVisibleSubtitleIndexChanged(int value)
+    {
+        if (CurrentSubtitleIndex - value >= 2)
+        {
+            AutoScrollEnabled = false;
+        }
+        else
+        {
+            AutoScrollEnabled = true;
+        }
     }
 }
