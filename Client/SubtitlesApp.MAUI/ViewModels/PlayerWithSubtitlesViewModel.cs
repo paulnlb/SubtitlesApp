@@ -125,9 +125,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         if (IsSubtitlesSelected)
         {
-            UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
+            var isUpdated = UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
 
-            if (SubtitlesCollectionState.AutoScrollEnabled)
+            if (isUpdated && SubtitlesCollectionState.AutoScrollEnabled)
             {
                 SubsScrollRequested?.Invoke(this, EventArgs.Empty);
             }
@@ -136,9 +136,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
         else if (IsTranslationsSelected)
         {
-            UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
+            var isUpdated = UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
 
-            if (TranslationsCollectionState.AutoScrollEnabled)
+            if (isUpdated && TranslationsCollectionState.AutoScrollEnabled)
             {
                 TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
             }
@@ -153,10 +153,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         if (IsSubtitlesSelected)
         {
             SubsScrollRequested?.Invoke(this, EventArgs.Empty);
+            SubtitlesCollectionState.AutoScrollEnabled = true;
         }
         else
         {
             TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
+            TranslationsCollectionState.AutoScrollEnabled = true;
         }
     }
 
@@ -299,7 +301,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    private static void UpdateCurrentSubtitleIndex(
+    private static bool UpdateCurrentSubtitleIndex(
         TimeSpan currPosition,
         ObservableCollection<VisualSubtitle> subtitles,
         SubtitlesCollectionState collectionState
@@ -307,7 +309,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         if (subtitles is null or { Count: 0 })
         {
-            return;
+            return false;
         }
 
         var currIndex = collectionState.CurrentSubtitleIndex;
@@ -316,7 +318,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         if (currSub.TimeInterval.ContainsTime(currPosition))
         {
             currSub.IsHighlighted = true;
-            return;
+
+            return false;
         }
 
         VisualSubtitle? prevSub = currIndex > 0 ? subtitles[currIndex - 1] : null;
@@ -345,7 +348,11 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             currSub.IsHighlighted = false;
             collectionState.CurrentSubtitleIndex = newIndex;
             newSub.IsHighlighted = true;
+
+            return true;
         }
+
+        return false;
     }
 
     #endregion
