@@ -33,47 +33,13 @@ public static class SubtitlesExtensions
         return (null, -1);
     }
 
-    public static (T? Sub, int index) GetNextClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime)
-        where T : Subtitle
-    {
-        int low = 0;
-        int high = list.Count - 1;
-        int mid = low + (high - low) / 2;
-
-        if (list.Count == 0)
-            return (null, 0);
-
-        if (list[0].TimeInterval.StartTime >= mediaTime)
-            return (list[0], 0);
-        if (list[^1].TimeInterval.EndTime <= mediaTime)
-            return (null, -1);
-
-        while (low < high)
-        {
-            var midVal = list[mid];
-
-            if (midVal.TimeInterval.IsEarlierThan(mediaTime))
-            {
-                low = mid + 1;
-            }
-            else
-            {
-                high = mid;
-            }
-
-            mid = low + (high - low) / 2;
-        }
-
-        return (list[mid], mid);
-    }
-
     public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle)
         where T : Subtitle
     {
         bool overlapsWithPrevious = false;
         bool overlapsWithNext = false;
 
-        (_, int insertionIndex) = list.GetNextClosest(newSubtitle.TimeInterval.EndTime);
+        var insertionIndex = list.GetNextClosest(newSubtitle.TimeInterval.EndTime);
 
         if (insertionIndex == -1)
         {
@@ -111,51 +77,37 @@ public static class SubtitlesExtensions
         }
     }
 
-    public static void InsertMany<T>(
-        this ObservableCollection<T> list,
-        ObservableCollection<T> newItems,
-        Action<T> foreachAction
-    )
+    private static int GetNextClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime)
         where T : Subtitle
     {
-        foreach (var item in newItems)
-        {
-            foreachAction(item);
-            list.Insert(item);
-        }
-    }
+        int low = 0;
+        int high = list.Count - 1;
+        int mid = low + (high - low) / 2;
 
-    public static void ReplaceMany<T>(this ObservableCollection<T> list, ObservableCollection<T> newItems, int skip = 0)
-        where T : Subtitle
-    {
-        if (newItems.Count != list.Count - skip)
-        {
-            throw new ArgumentException("ReplaceMany failed: new items lists sizes do not match");
-        }
+        if (list.Count == 0)
+            return 0;
 
-        for (int i = 0; i < newItems.Count; i++)
-        {
-            list[skip + i] = newItems[i];
-        }
-    }
+        if (list[0].TimeInterval.StartTime >= mediaTime)
+            return 0;
+        if (list[^1].TimeInterval.EndTime <= mediaTime)
+            return -1;
 
-    public static void ReplaceMany<T>(
-        this ObservableCollection<T> list,
-        ObservableCollection<T> newItems,
-        Action<T> foreachAction,
-        int skip = 0
-    )
-        where T : Subtitle
-    {
-        if (newItems.Count != list.Count - skip)
+        while (low < high)
         {
-            throw new ArgumentException("ReplaceMany failed: new items lists sizes do not match");
+            var midVal = list[mid];
+
+            if (midVal.TimeInterval.IsEarlierThan(mediaTime))
+            {
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid;
+            }
+
+            mid = low + (high - low) / 2;
         }
 
-        for (int i = 0; i < newItems.Count; i++)
-        {
-            foreachAction(newItems[i]);
-            list[skip + i] = newItems[i];
-        }
+        return mid;
     }
 }
