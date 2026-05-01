@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Core.Result;
+﻿using SubtitlesServer.Shared.Result;
 
 namespace SubtitlesServer.WhisperApi.Interfaces;
 

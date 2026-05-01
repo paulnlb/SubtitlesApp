@@ -1,12 +1,12 @@
 using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Interfaces;
+using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Platforms.Android.FfmpegNative;
 using SubtitlesApp.Services.Sockets;
 
 namespace SubtitlesApp.Services;
 
-public partial class FfmpegNativeService : IMediaProcessor
+public partial class FfmpegNativeService : IAudioExtractor
 {
     private readonly ISocketListener _socketListener;
 

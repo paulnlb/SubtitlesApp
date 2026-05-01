@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Extensions;
+using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
@@ -86,7 +87,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         IPopupService popupService,
         SubtitlesMapper subtitlesMapper,
         ITranscriptionService transcriptionService,
-        IBuiltInDialogService builtInDialogService
+        Interfaces.IBuiltInDialogService builtInDialogService
     )
     {
         #region observable properties
@@ -227,18 +228,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task Translate()
     {
-        object? result;
+        object? popupResult;
 
         if (_translationSettings is null)
         {
-            result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+            popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
             {
                 vm.MediaDuration = MediaDuration;
             });
         }
         else
         {
-            result = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+            popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
             {
                 vm.MediaDuration = MediaDuration;
                 vm.TargetLanguage = _translationSettings.TargetLanguage;
@@ -247,7 +248,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             });
         }
 
-        if (result is not TranslationSettings newSettings)
+        if (popupResult is not TranslationSettings newSettings)
         {
             return;
         }
@@ -260,22 +261,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
 
-        var translationResult = await _translationService.TranslateAndStreamAsync(
-            subtitlesDtos,
-            newSettings.TargetLanguage.Code,
-            default
-        );
+        var translationResults = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage.Code, default);
 
-        if (translationResult.IsFailure)
+        await foreach (var result in translationResults)
         {
-            await _builtInDialogService.DisplayError(translationResult.Error);
+            if (result.IsFailure)
+            {
+                await _builtInDialogService.DisplayError(result.Error);
 
-            return;
-        }
+                return;
+            }
 
-        await foreach (var sub in translationResult.Value)
-        {
-            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(sub));
+            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
         }
     }
 

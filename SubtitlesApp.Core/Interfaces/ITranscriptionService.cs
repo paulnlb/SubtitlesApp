@@ -1,9 +1,8 @@
-﻿using SubtitlesApp.ClientModels;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 
-namespace SubtitlesApp.Interfaces;
+namespace SubtitlesApp.Core.Interfaces;
 
 public interface ITranscriptionService : IDisposable
 {

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using AutoMapper;
-using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Services;
+using SubtitlesServer.Shared.Models;
+using SubtitlesServer.Shared.Services;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;
 using SubtitlesServer.WhisperApi.Services.ModelProviders;

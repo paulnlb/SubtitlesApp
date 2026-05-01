@@ -1,8 +1,8 @@
-using SubtitlesApp.Interfaces;
+using SubtitlesApp.Core.Interfaces;
 
 namespace SubtitlesApp.Services;
 
-public partial class FfmpegNativeService : IMediaProcessor
+public partial class FfmpegNativeService : IAudioExtractor
 {
     public partial void Dispose();
 

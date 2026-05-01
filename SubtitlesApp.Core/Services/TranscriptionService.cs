@@ -1,12 +1,13 @@
-﻿using SubtitlesApp.ClientModels;
-using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Interfaces;
+using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
-using SubtitlesApp.Interfaces;
 
-namespace SubtitlesApp.Services;
+namespace SubtitlesApp.Core.Services;
 
-public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesService subtitlesService) : ITranscriptionService
+public class TranscriptionService(IAudioExtractor audioExtractor, ITranscriptionApiClient subtitlesClient)
+    : ITranscriptionService
 {
     private bool _disposed;
 
@@ -25,7 +26,7 @@ public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesServ
 
         if (disposing)
         {
-            mediaProcessor.Dispose();
+            audioExtractor.Dispose();
         }
 
         _disposed = true;
@@ -40,25 +41,25 @@ public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesServ
     {
         try
         {
-            var audio = await mediaProcessor.ExtractAudioAsync(
+            var audio = await audioExtractor.ExtractAudioAsync(
                 mediaPath,
                 timeIntervalToTranscribe.StartTime,
                 timeIntervalToTranscribe.EndTime,
                 cancellationToken
             );
 
-            var transcriptionResult = await subtitlesService.GetSubsAsync(
-                audio,
-                languageCode,
-                timeIntervalToTranscribe.StartTime,
-                cancellationToken
-            );
-
             cancellationToken.ThrowIfCancellationRequested();
+
+            var transcriptionResult = await subtitlesClient.GetSubsAsync(audio, languageCode, cancellationToken);
 
             if (transcriptionResult.IsFailure)
             {
                 return ListResult<SubtitleDto>.Failure(transcriptionResult.Error);
+            }
+
+            if (timeIntervalToTranscribe.StartTime != TimeSpan.Zero)
+            {
+                AlignSubsByTime(transcriptionResult.Value, timeIntervalToTranscribe.StartTime);
             }
 
             return ListResult<SubtitleDto>.Success(transcriptionResult.Value);
@@ -72,6 +73,15 @@ public class TranscriptionService(IMediaProcessor mediaProcessor, ISubtitlesServ
         {
             var error = new Error(ErrorCode.InternalClientError, "An unexpected error has occured.");
             return ListResult<SubtitleDto>.Failure(error);
+        }
+    }
+
+    private static void AlignSubsByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
+    {
+        foreach (var subtitleDto in subsToAlign)
+        {
+            subtitleDto.StartTime += timeOffset;
+            subtitleDto.EndTime += timeOffset;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using AutoMapper;
-using SubtitlesApp.Core.DTOs;
+using SubtitlesServer.Shared.Models;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;
 

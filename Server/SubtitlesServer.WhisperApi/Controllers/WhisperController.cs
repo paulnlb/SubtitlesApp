@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using SubtitlesApp.Core.Result;
-using SubtitlesApp.Core.Services;
+using SubtitlesServer.Shared.Result;
+using SubtitlesServer.Shared.Services;
 using SubtitlesServer.WhisperApi.Configs;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;

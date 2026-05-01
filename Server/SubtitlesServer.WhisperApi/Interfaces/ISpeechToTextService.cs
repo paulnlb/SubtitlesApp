@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesServer.Shared.Models;
 using SubtitlesServer.WhisperApi.Models;
 
 namespace SubtitlesServer.WhisperApi.Interfaces;

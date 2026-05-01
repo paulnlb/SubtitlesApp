@@ -1,17 +1,38 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SubtitlesApp.Interfaces;
+using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.ViewModels;
 
-public partial class SettingsViewModel(ISettingsService settingsService) : ObservableObject
+public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscriptionSettings transcriptionSettings)
+    : ObservableObject
 {
-    public string BackendBaseUrl
+    [ObservableProperty]
+    private string _trancriptionApiKey = transcriptionSettings.ApiKey;
+
+    [ObservableProperty]
+    private string _trancriptionEndpoint = transcriptionSettings.Endpoint ?? string.Empty;
+
+    [ObservableProperty]
+    private string _transcriptionModel = transcriptionSettings.Model;
+
+    [ObservableProperty]
+    private string _openAiApiKey = openAiSettings.ApiKey;
+
+    [ObservableProperty]
+    private string _openAiEndpoint = openAiSettings.Endpoint ?? string.Empty;
+
+    [ObservableProperty]
+    private string _openAiModel = openAiSettings.Model;
+
+    [RelayCommand]
+    public void Save()
     {
-        get => settingsService.BackendBaseUrl;
-        set
-        {
-            settingsService.BackendBaseUrl = value;
-            OnPropertyChanged();
-        }
+        openAiSettings.ApiKey = OpenAiApiKey;
+        openAiSettings.Endpoint = OpenAiEndpoint;
+        openAiSettings.Model = OpenAiModel;
+        transcriptionSettings.ApiKey = TrancriptionApiKey;
+        transcriptionSettings.Endpoint = TrancriptionEndpoint;
+        transcriptionSettings.Model = TranscriptionModel;
     }
 }

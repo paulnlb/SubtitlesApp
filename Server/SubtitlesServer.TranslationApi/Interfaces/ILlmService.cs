@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Nodes;
-using SubtitlesApp.Core.Result;
+using SubtitlesServer.Shared.Result;
 using SubtitlesServer.TranslationApi.Models;
 
 namespace SubtitlesServer.TranslationApi.Interfaces;

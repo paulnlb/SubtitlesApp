@@ -1,37 +1,37 @@
-﻿using CommunityToolkit.Maui;
+﻿using System.Text;
+using CommunityToolkit.Maui;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.Extensions;
 using UraniumUI;
 
-namespace SubtitlesApp
+namespace SubtitlesApp;
+
+public static class MauiProgram
 {
-    public static class MauiProgram
+    public static MauiApp CreateMauiApp()
     {
-        public static MauiApp CreateMauiApp()
-        {
-            var builder = MauiApp.CreateBuilder();
-            builder
-                .UseMauiApp<App>()
-                .UseFullScreen()
-                .UseUraniumUI()
-                .UseUraniumUIMaterial()
-                .UseMauiCommunityToolkit()
-                .UseMauiCommunityToolkitMediaElement()
-                .UseVirtualListView()
-                .ConfigureFonts(fonts =>
-                {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                });
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .UseFullScreen()
+            .UseUraniumUI()
+            .UseUraniumUIMaterial()
+            .UseMauiCommunityToolkit()
+            .UseMauiCommunityToolkitMediaElement()
+            .UseVirtualListView()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
 
 #if DEBUG
-            builder.Logging.AddDebug();
+        builder.Logging.AddDebug();
 #endif
 
-            builder.Services.AddSubtitlesAppServices();
+        builder.Services.AddSubtitlesAppServices();
 
-            return builder.Build();
-        }
+        return builder.Build();
     }
 }

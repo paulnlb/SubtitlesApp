@@ -4,7 +4,7 @@ using AutoMapper;
 using Microsoft.Extensions.Options;
 using OllamaSharp;
 using OllamaSharp.Models.Chat;
-using SubtitlesApp.Core.Result;
+using SubtitlesServer.Shared.Result;
 using SubtitlesServer.TranslationApi.Configs;
 using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Models;

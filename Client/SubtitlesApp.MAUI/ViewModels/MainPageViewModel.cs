@@ -11,7 +11,6 @@ public partial class MainPageViewModel : ObservableObject
     private const string LoadOnlineVideo = "Load Online Video";
     private const string LoadLocalResource = "Choose Local Video From Device";
 
-    private readonly IAuthService _authService;
     private readonly IBuiltInDialogService _dialogService;
     private readonly IVideoPicker _videoPicker;
     private readonly IPopupService _popupService;
@@ -19,57 +18,13 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoggedIn;
 
-    public MainPageViewModel(
-        IAuthService authService,
-        IBuiltInDialogService dialogService,
-        IVideoPicker videoPicker,
-        IPopupService popupService
-    )
+    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, IPopupService popupService)
     {
-        _authService = authService;
         _dialogService = dialogService;
         _videoPicker = videoPicker;
         _popupService = popupService;
 
-        _isLoggedIn = !string.IsNullOrEmpty(_authService.GetAccessTokenAsync().Result);
-    }
-
-    [RelayCommand]
-    public async Task LogInAsync()
-    {
-        _popupService.ShowPopup<LoadingPopupViewModel>();
-
-        var result = await _authService.LogInAsync();
-
-        if (result.IsSuccess)
-        {
-            IsLoggedIn = true;
-        }
-        else
-        {
-            await _dialogService.DisplayError(result.Error);
-        }
-
-        _popupService.ClosePopup();
-    }
-
-    [RelayCommand]
-    public async Task LogOutAsync()
-    {
-        _popupService.ShowPopup<LoadingPopupViewModel>();
-
-        var result = await _authService.LogOutAsync();
-
-        if (result.IsSuccess)
-        {
-            IsLoggedIn = false;
-        }
-        else
-        {
-            await _dialogService.DisplayError(result.Error);
-        }
-
-        _popupService.ClosePopup();
+        _isLoggedIn = false;
     }
 
     [RelayCommand]

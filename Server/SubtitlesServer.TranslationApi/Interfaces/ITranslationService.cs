@@ -1,5 +1,5 @@
-﻿using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Result;
+﻿using SubtitlesServer.Shared.Models;
+using SubtitlesServer.Shared.Result;
 
 namespace SubtitlesServer.TranslationApi.Interfaces;
 

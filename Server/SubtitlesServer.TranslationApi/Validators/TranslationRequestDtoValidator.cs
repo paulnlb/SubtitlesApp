@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using SubtitlesApp.Core.DTOs;
+using SubtitlesServer.Shared.Models;
 
 namespace SubtitlesServer.TranslationApi.Validators;
 

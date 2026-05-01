@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using OllamaSharp.Models.Chat;
-using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Models;
+using SubtitlesServer.Shared.Models;
 using SubtitlesServer.TranslationApi.Models;
 
 namespace SubtitlesServer.TranslationApi.Mapper;

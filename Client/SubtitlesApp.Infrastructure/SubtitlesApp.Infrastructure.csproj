@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Interfaces/" />
+    <Folder Include="Interfaces/Settings/" />
+    <Folder Include="Mapper/" />
+    <Folder Include="HttpClients/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../SubtitlesApp.Core/SubtitlesApp.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenAI" Version="2.10.0" />
+  </ItemGroup>
+</Project>

@@ -1,9 +1,8 @@
 ﻿using System.Text.Json.Nodes;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OpenAI.Chat;
-using SubtitlesApp.Core.Result;
+using SubtitlesServer.Shared.Result;
 using SubtitlesServer.TranslationApi.Helpers;
 using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Models;

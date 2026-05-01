@@ -6,48 +6,34 @@
              x:Class="SubtitlesApp.Views.MainPage"
              x:DataType="viewModels:MainPageViewModel">
 
-    <ContentPage.Resources>
-        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-    </ContentPage.Resources>
+        <ContentPage.Resources>
+                <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
+        </ContentPage.Resources>
 
-    <VerticalStackLayout>
-        <VerticalStackLayout Padding="30,0"
-                             Spacing="25">
-            <Image Margin="0, 40, 0, 0"
-                   Source="subtitles.png"
-                   HeightRequest="175"
-                   Aspect="AspectFit" />
+        <VerticalStackLayout>
+                <VerticalStackLayout Padding="30,0"
+                                     Spacing="25">
+                        <Image Margin="0, 40, 0, 0"
+                               Source="subtitles.png"
+                               HeightRequest="175"
+                               Aspect="AspectFit"/>
 
-            <Label Text="Welcome to SubtitlesApp!"
-                   Style="{StaticResource Headline}"
-                   SemanticProperties.HeadingLevel="Level1" />
+                        <Label Text="Welcome to SubtitlesApp!"
+                               Style="{StaticResource Headline}"
+                               SemanticProperties.HeadingLevel="Level1"/>
 
-            <Button x:Name="CounterBtn"
-                    Text="Open a file"
-                    SemanticProperties.Hint="Opens a file to view"
-                    HorizontalOptions="Fill"
-                    Command="{Binding OpenMediaFileCommand}" />
+                        <Button x:Name="CounterBtn"
+                                Text="Open a file"
+                                SemanticProperties.Hint="Opens a file to view"
+                                HorizontalOptions="Fill"
+                                Command="{Binding OpenMediaFileCommand}"/>
 
-            <Button x:Name="SettingsBtn"
-                    Text="App settings"
-                    SemanticProperties.Hint="Opens app settings"
-                    HorizontalOptions="Fill"
-                    Command="{Binding OpenSettingsCommand}" />
-
-            <Button x:Name="LogoutBtn"
-                    IsVisible="{Binding IsLoggedIn}"
-                    Text="Logout"
-                    SemanticProperties.Hint="Log out"
-                    HorizontalOptions="Fill"
-                    Command="{Binding LogOutCommand}" />
-
-            <Button x:Name="LoginBtn"
-                    IsVisible="{Binding IsLoggedIn, Converter={x:StaticResource InvertedBoolConverter}}"
-                    Text="Log in"
-                    SemanticProperties.Hint="Log out"
-                    HorizontalOptions="Fill"
-                    Command="{Binding LogInCommand}" />
+                        <Button x:Name="SettingsBtn"
+                                Text="App settings"
+                                SemanticProperties.Hint="Opens app settings"
+                                HorizontalOptions="Fill"
+                                Command="{Binding OpenSettingsCommand}"/>
+                </VerticalStackLayout>
         </VerticalStackLayout>
-    </VerticalStackLayout>
 
 </ContentPage>

@@ -1,9 +1,9 @@
-﻿namespace SubtitlesApp.Interfaces;
+﻿namespace SubtitlesApp.Core.Interfaces;
 
 /// <summary>
 /// Processes media and returns audio bytes
 /// </summary>
-public interface IMediaProcessor : IDisposable
+public interface IAudioExtractor : IDisposable
 {
     /// <summary>
     ///     Exctract audio from source
@@ -17,5 +17,6 @@ public interface IMediaProcessor : IDisposable
         string sourcePath,
         TimeSpan startTime,
         TimeSpan endTime,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }
