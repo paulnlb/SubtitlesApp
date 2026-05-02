@@ -1,4 +1,5 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using System.Runtime.CompilerServices;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Models;
@@ -34,7 +35,7 @@ public class TranscriptionService(IAudioExtractor audioExtractor, ITranscription
 
     public async Task<ListResult<SubtitleDto>> TranscribeAsync(
         string mediaPath,
-        TimeInterval timeIntervalToTranscribe,
+        TimeInterval timeInterval,
         string languageCode,
         CancellationToken cancellationToken = default
     )
@@ -43,8 +44,8 @@ public class TranscriptionService(IAudioExtractor audioExtractor, ITranscription
         {
             var audio = await audioExtractor.ExtractAudioAsync(
                 mediaPath,
-                timeIntervalToTranscribe.StartTime,
-                timeIntervalToTranscribe.EndTime,
+                timeInterval.StartTime,
+                timeInterval.EndTime,
                 cancellationToken
             );
 
@@ -57,9 +58,9 @@ public class TranscriptionService(IAudioExtractor audioExtractor, ITranscription
                 return ListResult<SubtitleDto>.Failure(transcriptionResult.Error);
             }
 
-            if (timeIntervalToTranscribe.StartTime != TimeSpan.Zero)
+            if (timeInterval.StartTime != TimeSpan.Zero)
             {
-                AlignSubsByTime(transcriptionResult.Value, timeIntervalToTranscribe.StartTime);
+                AlignSubsByTime(transcriptionResult.Value, timeInterval.StartTime);
             }
 
             return ListResult<SubtitleDto>.Success(transcriptionResult.Value);
@@ -73,6 +74,26 @@ public class TranscriptionService(IAudioExtractor audioExtractor, ITranscription
         {
             var error = new Error(ErrorCode.InternalClientError, "An unexpected error has occured.");
             return ListResult<SubtitleDto>.Failure(error);
+        }
+    }
+
+    public async IAsyncEnumerable<ListResult<SubtitleDto>> TranscribeWithSplitAsync(
+        string mediaPath,
+        TimeInterval timeInterval,
+        string languageCode,
+        TimeSpan splitTo,
+        TimeSpan overlapSize = default,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        foreach (var subInterval in timeInterval.Split(splitTo, overlapSize))
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                yield break;
+            }
+
+            yield return await TranscribeAsync(mediaPath, subInterval, languageCode, cancellationToken);
         }
     }
 

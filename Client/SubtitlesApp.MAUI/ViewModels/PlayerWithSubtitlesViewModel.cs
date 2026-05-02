@@ -206,23 +206,28 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         _transcriptionSettings = newSettings;
 
-        var transcriptionResult = await _transcriptionService.TranscribeAsync(
+        var transcriptionResults = _transcriptionService.TranscribeWithSplitAsync(
             MediaPath,
             new TimeInterval(newSettings.FromTime, newSettings.ToTime),
             newSettings.SubtitlesLanguage.Code,
+            TimeSpan.FromMinutes(1),
+            TimeSpan.FromSeconds(5),
             default
         );
 
-        if (transcriptionResult.IsFailure)
+        await foreach (var transcriptionResult in transcriptionResults)
         {
-            await _builtInDialogService.DisplayError(transcriptionResult.Error);
+            if (transcriptionResult.IsFailure)
+            {
+                await _builtInDialogService.DisplayError(transcriptionResult.Error);
 
-            return;
+                return;
+            }
+
+            var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
+
+            Subtitles.InsertMany(visualSubs);
         }
-
-        var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
-
-        Subtitles.InsertMany(visualSubs);
     }
 
     [RelayCommand]

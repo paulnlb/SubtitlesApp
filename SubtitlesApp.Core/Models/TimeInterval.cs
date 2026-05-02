@@ -34,14 +34,11 @@ public class TimeInterval
 
     public TimeSpan EndTime { get; }
 
-    public bool ContainsTime(TimeSpan time) =>
-        StartTime <= time && EndTime > time;
+    public bool ContainsTime(TimeSpan time) => StartTime <= time && EndTime > time;
 
-    public bool IsEarlierThan(TimeSpan time) =>
-        StartTime < time && EndTime <= time;
+    public bool IsEarlierThan(TimeSpan time) => StartTime < time && EndTime <= time;
 
-    public bool IsLaterThan(TimeSpan time) =>
-        StartTime > time && EndTime > time;
+    public bool IsLaterThan(TimeSpan time) => StartTime > time && EndTime > time;
 
     public bool Overlaps(TimeInterval other)
     {
@@ -62,7 +59,8 @@ public class TimeInterval
     {
         return new TimeInterval(
             StartTime < other.StartTime ? StartTime : other.StartTime,
-            EndTime > other.EndTime ? EndTime : other.EndTime);
+            EndTime > other.EndTime ? EndTime : other.EndTime
+        );
     }
 
     public TimeInterval Substract(TimeInterval other)
@@ -78,5 +76,34 @@ public class TimeInterval
         }
 
         return new TimeInterval(other.EndTime, EndTime);
+    }
+
+    public IEnumerable<TimeInterval> Split(TimeSpan subIntervalSize, TimeSpan overlapSize = default)
+    {
+        if (overlapSize >= subIntervalSize)
+        {
+            throw new ArgumentException("Overlap size must be smaller than sub-interval size.");
+        }
+
+        var currentStart = StartTime;
+
+        while (currentStart < EndTime)
+        {
+            var currentEnd = currentStart + subIntervalSize;
+
+            if (currentEnd > EndTime)
+            {
+                currentEnd = EndTime;
+            }
+
+            yield return new TimeInterval(currentStart, currentEnd);
+
+            if (currentEnd == EndTime)
+            {
+                yield break;
+            }
+
+            currentStart = currentEnd - overlapSize;
+        }
     }
 }
