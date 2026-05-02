@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using Android.Text.Format;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -178,11 +179,11 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task Transcribe()
     {
-        object? result;
+        object? popupResult;
 
         if (_transcriptionSettings is null)
         {
-            result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+            popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
             {
                 vm.MediaDuration = MediaDuration;
                 vm.SubtitlesLanguage = _languageService.GetDefaultLanguage();
@@ -190,7 +191,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
         else
         {
-            result = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+            popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
             {
                 vm.MediaDuration = MediaDuration;
                 vm.SubtitlesLanguage = _transcriptionSettings.SubtitlesLanguage;
@@ -199,34 +200,32 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             });
         }
 
-        if (result is not TranscriptionSettings newSettings)
+        if (popupResult is not TranscriptionSettings newSettings)
         {
             return;
         }
 
         _transcriptionSettings = newSettings;
 
-        var transcriptionResults = _transcriptionService.TranscribeWithSplitAsync(
+        var results = _transcriptionService.TranscribeAsync(
             MediaPath,
             new TimeInterval(newSettings.FromTime, newSettings.ToTime),
             newSettings.SubtitlesLanguage.Code,
-            TimeSpan.FromMinutes(1),
-            TimeSpan.FromSeconds(5),
             default
         );
 
-        await foreach (var transcriptionResult in transcriptionResults)
+        await foreach (var result in results)
         {
-            if (transcriptionResult.IsFailure)
+            if (result.IsFailure)
             {
-                await _builtInDialogService.DisplayError(transcriptionResult.Error);
+                await _builtInDialogService.DisplayError(result.Error);
 
                 return;
             }
 
-            var visualSubs = _subtitlesMapper.SubtitlesDtosToObservableVisualSubtitles(transcriptionResult.Value);
+            var visualSub = _subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value);
 
-            Subtitles.InsertMany(visualSubs);
+            Subtitles.Insert(visualSub);
         }
     }
 
@@ -266,9 +265,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
 
-        var translationResults = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage.Code, default);
+        var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, default);
 
-        await foreach (var result in translationResults)
+        await foreach (var result in results)
         {
             if (result.IsFailure)
             {

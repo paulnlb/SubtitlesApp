@@ -4,7 +4,7 @@ using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.ViewModels;
 
-public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscriptionSettings transcriptionSettings)
+public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscriptionClientSettings transcriptionSettings)
     : ObservableObject
 {
     [ObservableProperty]

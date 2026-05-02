@@ -2,13 +2,17 @@
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Core.Services;
 
-public class TranscriptionService(IAudioExtractor audioExtractor, ITranscriptionApiClient subtitlesClient)
-    : ITranscriptionService
+public class TranscriptionService(
+    IAudioExtractor audioExtractor,
+    ITranscriptionApiClient subtitlesClient,
+    ITranscriptionSettings settings
+) : ITranscriptionService
 {
     private bool _disposed;
 
@@ -33,7 +37,48 @@ public class TranscriptionService(IAudioExtractor audioExtractor, ITranscription
         _disposed = true;
     }
 
-    public async Task<ListResult<SubtitleDto>> TranscribeAsync(
+    public async IAsyncEnumerable<Result<SubtitleDto>> TranscribeAsync(
+        string mediaPath,
+        TimeInterval timeInterval,
+        string languageCode,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        var lastEmittedEndTime = TimeSpan.Zero;
+
+        foreach (var subInterval in timeInterval.Split(settings.SubIntervalSize, settings.OverlapSize))
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                yield break;
+            }
+
+            var subtitlesResult = await TranscribeAsyncInternal(mediaPath, subInterval, languageCode, cancellationToken);
+
+            if (subtitlesResult.IsFailure)
+            {
+                yield return Result<SubtitleDto>.Failure(subtitlesResult.Error);
+                yield break;
+            }
+
+            var subtitles = subtitlesResult.Value;
+
+            foreach (var subtitle in subtitles)
+            {
+                if (subtitle.EndTime <= lastEmittedEndTime + settings.Epsilon)
+                {
+                    continue;
+                }
+                else
+                {
+                    yield return Result<SubtitleDto>.Success(subtitle);
+                    lastEmittedEndTime = subtitle.EndTime;
+                }
+            }
+        }
+    }
+
+    private async Task<ListResult<SubtitleDto>> TranscribeAsyncInternal(
         string mediaPath,
         TimeInterval timeInterval,
         string languageCode,
@@ -74,26 +119,6 @@ public class TranscriptionService(IAudioExtractor audioExtractor, ITranscription
         {
             var error = new Error(ErrorCode.InternalClientError, "An unexpected error has occured.");
             return ListResult<SubtitleDto>.Failure(error);
-        }
-    }
-
-    public async IAsyncEnumerable<ListResult<SubtitleDto>> TranscribeWithSplitAsync(
-        string mediaPath,
-        TimeInterval timeInterval,
-        string languageCode,
-        TimeSpan splitTo,
-        TimeSpan overlapSize = default,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default
-    )
-    {
-        foreach (var subInterval in timeInterval.Split(splitTo, overlapSize))
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                yield break;
-            }
-
-            yield return await TranscribeAsync(mediaPath, subInterval, languageCode, cancellationToken);
         }
     }
 

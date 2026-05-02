@@ -16,4 +16,6 @@ public enum ErrorCode
     Forbidden,
     ValidationFailed,
     FailedServerResponse,
+    RetryLimitExceeded,
+    InvalidLlmTranslation,
 }

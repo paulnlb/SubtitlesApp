@@ -51,8 +51,9 @@ public static class ServicesCollectionExtensions
         #region preferences
         services.AddSingleton(Preferences.Default);
         services.AddSingleton<IOpenAiSettings, OpenAiSettings>();
-        services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
+        services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
+        services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
 
 #if RELEASE
         services.AddSingleton<ISettingsService, SettingsService>();

@@ -78,18 +78,23 @@ public class TimeInterval
         return new TimeInterval(other.EndTime, EndTime);
     }
 
-    public IEnumerable<TimeInterval> Split(TimeSpan subIntervalSize, TimeSpan overlapSize = default)
+    public IEnumerable<TimeInterval> Split(TimeSpan size, TimeSpan overlap = default)
     {
-        if (overlapSize >= subIntervalSize)
+        if (overlap >= size)
         {
             throw new ArgumentException("Overlap size must be smaller than sub-interval size.");
+        }
+        if (size == TimeSpan.Zero || size == EndTime - StartTime)
+        {
+            yield return this;
+            yield break;
         }
 
         var currentStart = StartTime;
 
         while (currentStart < EndTime)
         {
-            var currentEnd = currentStart + subIntervalSize;
+            var currentEnd = currentStart + size;
 
             if (currentEnd > EndTime)
             {
@@ -103,7 +108,7 @@ public class TimeInterval
                 yield break;
             }
 
-            currentStart = currentEnd - overlapSize;
+            currentStart = currentEnd - overlap;
         }
     }
 }

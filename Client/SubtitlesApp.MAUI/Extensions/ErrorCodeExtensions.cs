@@ -21,6 +21,9 @@ public static class ErrorCodeExtensions
             ErrorCode.TokenExpired => "Access token expired.",
             ErrorCode.Forbidden => "You cannot access this resource.",
             ErrorCode.ValidationFailed => "Sent data is invalid.",
+            ErrorCode.FailedServerResponse => "Received failed status from server.",
+            ErrorCode.RetryLimitExceeded => "Retry limit exceeded.",
+            ErrorCode.InvalidLlmTranslation => "LLM translation failed. Please try again.",
             _ => string.Empty,
         };
     }

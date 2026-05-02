@@ -4,16 +4,18 @@ namespace SubtitlesApp.Settings;
 
 public class LlmTranslationSettings : ILlmTranslationSettings
 {
-    public string DefaultSystemPrompt
-    {
-        get =>
-            """
-                **Role**: You are a highly skilled translator specializing in translating subtitles for media content.
-                **Task**: Translate the provided subtitles accurately while preserving the original meaning, tone, and context. Ensure that the translations are culturally appropriate and maintain the intended emotional impact. Pay special attention to idiomatic expressions, humor, and cultural references to ensure they resonate with the target audience.
-                """;
-    }
-    public int RetryCount
-    {
-        get => 3;
-    }
+    public string DefaultSystemPrompt =>
+        """
+            You are a subtitle translation engine.
+            Rules:
+            - Translate each item independently.
+            - Do not merge, split, reorder, or omit items.
+            - Preserve numbering exactly.
+            - Output valid JSON only.
+            """;
+    public int RetryCount => 3;
+
+    public int ChunkSize => 10;
+
+    public int Overlap => 1;
 }

@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using OpenAI;
 using OpenAI.Responses;
@@ -18,6 +19,11 @@ namespace SubtitlesApp.Infrastructure.HttpClients;
 public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
 {
     private readonly ResponsesClient _responsesClient = InitClient(settings);
+    private readonly JsonSerializerOptions _schemaGenerationOptions = new(JsonSerializerOptions.Default)
+    {
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    };
+    private readonly JsonSchemaExporterOptions _schemaExporterOptions = new() { TreatNullObliviousAsNonNullable = true };
 
     public async Task<Result<string>> SendChatAsync(
         List<LlmMessageDto> chatHistory,
@@ -36,8 +42,6 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
 
         if (responseFormat is JsonNode schema)
         {
-            schema["additionalProperties"] = false;
-            schema["type"] = "object";
             var bytes = JsonSerializer.SerializeToUtf8Bytes(schema);
             var binaryData = BinaryData.FromBytes(bytes);
 
@@ -89,7 +93,7 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
 
     public async Task<Result<T>> SendChatAsync<T>(List<LlmMessageDto> chatHistory, string userPrompt)
     {
-        var responseFormat = JsonSerializerOptions.Default.GetJsonSchemaAsNode(typeof(T));
+        var responseFormat = _schemaGenerationOptions.GetJsonSchemaAsNode(typeof(T), _schemaExporterOptions);
 
         var result = await SendChatAsync(chatHistory, userPrompt, responseFormat);
 

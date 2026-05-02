@@ -9,7 +9,7 @@ using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.Infrastructure.HttpClients;
 
-public class OpenAiTranscriptionClent(ITranscriptionSettings settings) : ITranscriptionApiClient
+public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : ITranscriptionApiClient
 {
     private readonly AudioClient _client = InitClient(settings);
 
@@ -62,7 +62,7 @@ public class OpenAiTranscriptionClent(ITranscriptionSettings settings) : ITransc
         return ListResult<SubtitleDto>.Success(subtitles);
     }
 
-    private static AudioClient InitClient(ITranscriptionSettings settings)
+    private static AudioClient InitClient(ITranscriptionClientSettings settings)
     {
         if (!string.IsNullOrWhiteSpace(settings.Endpoint))
         {

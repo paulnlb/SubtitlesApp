@@ -1,60 +1,95 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
+using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Interfaces.Settings;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Core.Services;
 
-public class LlmTranslationService(ILlmTranslationSettings settings, LanguageService languageService, ILlmClient llmClient)
-    : ITranslationService
+public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient llmClient) : ITranslationService
 {
-    private readonly List<LlmMessageDto> _chatHistory = [new("system", settings.DefaultSystemPrompt)];
+    private static readonly JsonSerializerOptions _writeOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     public async IAsyncEnumerable<Result<SubtitleDto>> TranslateAsync(
         List<SubtitleDto> sourceSubtitles,
-        string targetLanguageCode,
+        Language targetLanguage,
         [EnumeratorCancellation] CancellationToken cancellationToken
     )
     {
-        var targetLanguage = languageService.GetLanguageByCode(targetLanguageCode);
+        var isFirstChunk = true;
 
-        if (targetLanguage == null)
+        foreach (var chunk in sourceSubtitles.ChunkWithOverlap(settings.ChunkSize, settings.Overlap))
         {
-            var error = new Error(
-                ErrorCode.BadRequest,
-                $"Target language code {targetLanguageCode} is invalid or not supported"
-            );
-
-            yield return Result<SubtitleDto>.Failure(error);
-            yield break;
-        }
-
-        var i = 0;
-        var retryCounter = 0;
-
-        while (i < sourceSubtitles.Count)
-        {
-            var sub = sourceSubtitles[i];
-
             if (cancellationToken.IsCancellationRequested)
             {
-                yield return Result<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
-
-                break;
+                yield break;
             }
 
-            var userMsg = GetUserMsg(targetLanguage.Name, sub.Text);
-            Result<TranslationDto> llmResult;
+            var translatedSubs = await TranslateAsyncInternal(chunk, targetLanguage, cancellationToken);
+
+            if (translatedSubs.IsFailure)
+            {
+                yield return Result<SubtitleDto>.Failure(translatedSubs.Error);
+                yield break;
+            }
+
+            var skippedCount = 0;
+
+            foreach (var subtitle in translatedSubs.Value)
+            {
+                if (!isFirstChunk && skippedCount < settings.Overlap)
+                {
+                    skippedCount++;
+                    continue;
+                }
+
+                yield return Result<SubtitleDto>.Success(subtitle);
+            }
+
+            isFirstChunk = false;
+        }
+    }
+
+    #region Private Methods
+
+    private async Task<ListResult<SubtitleDto>> TranslateAsyncInternal(
+        List<SubtitleDto> sourceSubtitles,
+        Language targetLanguage,
+        CancellationToken cancellationToken
+    )
+    {
+        List<LlmMessageDto> chatHistory = [new(LlmRoleConstants.System, settings.DefaultSystemPrompt)];
+
+        var retryCounter = 0;
+
+        while (retryCounter <= settings.RetryCount)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
+            }
+
+            var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles);
+            Result<LlmSubtitleListDto> llmResult;
 
             try
             {
-                llmResult = await llmClient.SendChatAsync<TranslationDto>(_chatHistory, userMsg.Content);
+                llmResult = await llmClient.SendChatAsync<LlmSubtitleListDto>(chatHistory, userPrompt);
             }
             catch (Exception ex)
             {
-                llmResult = Result<TranslationDto>.Failure(
+                llmResult = Result<LlmSubtitleListDto>.Failure(
                     new Error(ErrorCode.InternalClientError, $"LLM translation failed with error: {ex.Message}")
                 );
             }
@@ -66,42 +101,81 @@ public class LlmTranslationService(ILlmTranslationSettings settings, LanguageSer
             }
             else if (llmResult.IsFailure)
             {
-                yield return Result<SubtitleDto>.Failure(llmResult.Error);
-
-                break;
+                return ListResult<SubtitleDto>.Failure(llmResult.Error);
             }
 
-            var translatedText = llmResult.Value.TranslatedText;
+            var llmSubtitles = llmResult.Value.Items;
+            var isTranlationValid = llmSubtitles.Count == sourceSubtitles.Count && IsTranlsationValid(llmSubtitles);
 
-            _chatHistory.Add(userMsg);
-            _chatHistory.Add(new("assistant", translatedText));
+            if (!isTranlationValid && retryCounter <= settings.RetryCount)
+            {
+                retryCounter++;
+                continue;
+            }
+            else if (!isTranlationValid)
+            {
+                return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.InvalidLlmTranslation));
+            }
 
-            yield return Result<SubtitleDto>.Success(
-                new SubtitleDto
-                {
-                    LanguageCode = targetLanguageCode,
-                    Text = translatedText,
-                    StartTime = sub.StartTime,
-                    EndTime = sub.EndTime,
-                }
-            );
+            var translatedSubs = MapTranslationsToSubs(targetLanguage.Code, llmSubtitles, sourceSubtitles);
 
-            i++;
+            return ListResult<SubtitleDto>.Success(translatedSubs);
         }
+
+        return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.RetryLimitExceeded));
     }
 
-    #region Private Methods
-
-    private static LlmMessageDto GetUserMsg(string targetLang, string text)
+    private static string FormUserPrompt(string targetLang, List<SubtitleDto> sourceSubs)
     {
-        return new LlmMessageDto(
-            "user",
-            $"""
-            Target language: {targetLang}.
+        int id = 1;
+        var llmSubsList = new LlmSubtitleListDto { Items = [] };
 
-            Text: {text}.
-            """
-        );
+        foreach (var srcSub in sourceSubs)
+        {
+            llmSubsList.Items.Add(new() { Id = id, Text = srcSub.Text });
+            id++;
+        }
+
+        var serializedSubs = JsonSerializer.Serialize(llmSubsList, _writeOptions);
+
+        return string.Format("Translate to {0}.\n\n{1}.", targetLang, serializedSubs);
+    }
+
+    private static List<SubtitleDto> MapTranslationsToSubs(
+        string targetLangCode,
+        List<LlmSubtitleDto> llmSubtitles,
+        List<SubtitleDto> sourceSubs
+    )
+    {
+        List<SubtitleDto> results = [];
+
+        foreach (var (srcSub, llmSub) in sourceSubs.Zip(llmSubtitles))
+        {
+            results.Add(
+                new()
+                {
+                    LanguageCode = targetLangCode,
+                    Text = llmSub.Text,
+                    StartTime = srcSub.StartTime,
+                    EndTime = srcSub.EndTime,
+                }
+            );
+        }
+
+        return results;
+    }
+
+    private static bool IsTranlsationValid(List<LlmSubtitleDto> llmSubtitles)
+    {
+        for (int i = 0; i < llmSubtitles.Count; i++)
+        {
+            if (llmSubtitles[i].Id != i + 1)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     #endregion

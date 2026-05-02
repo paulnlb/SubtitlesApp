@@ -14,29 +14,10 @@ public interface ITranscriptionService : IDisposable
     /// <param name="languageCode">Language code of the language in which the media is spoken</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Result of transcription. If the result is successfull, it will contain a list of transcribed subtitles</returns>
-    Task<ListResult<SubtitleDto>> TranscribeAsync(
+    IAsyncEnumerable<Result<SubtitleDto>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeInterval,
         string languageCode,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    ///    Extracts a part within given time interval from given media, splits it into smaller parts and transcribes them (generates subtitles).
-    /// </summary>
-    /// <param name="mediaPath"></param>
-    /// <param name="timeInterval"></param>
-    /// <param name="languageCode"></param>
-    /// <param name="splitTo"></param>
-    /// <param name="overlapSize"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    IAsyncEnumerable<ListResult<SubtitleDto>> TranscribeWithSplitAsync(
-        string mediaPath,
-        TimeInterval timeInterval,
-        string languageCode,
-        TimeSpan splitTo,
-        TimeSpan overlapSize = default,
         CancellationToken cancellationToken = default
     );
 }

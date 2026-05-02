@@ -1,6 +1,6 @@
 namespace SubtitlesApp.Infrastructure.Interfaces.Settings;
 
-public interface ITranscriptionSettings
+public interface ITranscriptionClientSettings
 {
     public string Model { get; set; }
 
