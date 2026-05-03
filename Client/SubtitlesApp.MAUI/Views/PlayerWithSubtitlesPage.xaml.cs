@@ -29,14 +29,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
         playerSubtitlesPage.PropertyChanged += PlayerSubtitlesPage_PropertyChanged;
 
-        viewModel.SubsScrollRequested += (s, e) =>
-        {
-            subtitlesList.ScrollToIndex(viewModel.SubtitlesCollectionState.CurrentSubtitleIndex);
-        };
-        viewModel.TranslationsScrollRequested += (s, e) =>
-        {
-            translationsList.ScrollToIndex(viewModel.TranslationsCollectionState.CurrentSubtitleIndex);
-        };
+        viewModel.SubsScrollRequested += OnSubScrollRequested;
+        viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -47,6 +41,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mediaPlayer.DisconnectHandler();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
         playerSubtitlesPage.PropertyChanged -= PlayerSubtitlesPage_PropertyChanged;
+        subtitlesList.Clean();
+        translationsList.Clean();
+        vm.SubsScrollRequested += OnSubScrollRequested;
+        vm.TranslationsScrollRequested += OnTranslationScrollRequested;
 
         base.OnNavigatedFrom(args);
     }
@@ -114,6 +112,26 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             vm.IsSubtitlesSelected = false;
             vm.IsTranslationsSelected = true;
         }
+    }
+
+    private void OnSubScrollRequested(object? sender, EventArgs e)
+    {
+        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        {
+            return;
+        }
+
+        subtitlesList.ScrollToIndex(vm.SubtitlesCollectionState.CurrentSubtitleIndex);
+    }
+
+    private void OnTranslationScrollRequested(object? sender, EventArgs e)
+    {
+        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        {
+            return;
+        }
+
+        translationsList.ScrollToIndex(vm.TranslationsCollectionState.CurrentSubtitleIndex);
     }
 
     #region handle vertical pan gesture

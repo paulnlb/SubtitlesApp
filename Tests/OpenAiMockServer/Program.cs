@@ -33,7 +33,7 @@ app.MapPost(
         {
             latinWordsCache ??= await TextHelper.ReadWordsAsync(@"Assets/lorem_ipsum.txt");
 
-            return new TranscriptionResponse() { Segments = SeedHelper.MakeSegments(latinWordsCache, 10, 10).ToList() };
+            return new TranscriptionResponse() { Segments = SeedHelper.MakeSegments(latinWordsCache, 15, 10).ToList() };
         }
     )
     .WithName("Transcription");

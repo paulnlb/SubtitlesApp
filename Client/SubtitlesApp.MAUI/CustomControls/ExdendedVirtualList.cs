@@ -54,6 +54,11 @@ public class ExdendedVirtualList : VirtualListView
 
     ~ExdendedVirtualList()
     {
+        Clean();
+    }
+
+    public void Clean()
+    {
         OnScrolled -= ElementScrolled;
     }
 

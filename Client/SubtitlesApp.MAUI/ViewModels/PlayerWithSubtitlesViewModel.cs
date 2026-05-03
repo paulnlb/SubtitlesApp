@@ -108,6 +108,8 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             SubtitlesRelativeVerticalLength = 0.7,
             SubtitlesRelativeHorizontalLength = 0.35,
         };
+        IsSubtitlesSelected = true;
+        IsTranslationsSelected = false;
 
         #endregion
 
