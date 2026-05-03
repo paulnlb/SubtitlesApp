@@ -27,16 +27,14 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         [EnumeratorCancellation] CancellationToken cancellationToken
     )
     {
-        var isFirstChunk = true;
-
-        foreach (var chunk in sourceSubtitles.ChunkWithOverlap(settings.ChunkSize, settings.Overlap))
+        foreach (var chunk in sourceSubtitles.Chunk(settings.ChunkSize))
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 yield break;
             }
 
-            var translatedSubs = await TranslateAsyncInternal(chunk, targetLanguage, cancellationToken);
+            var translatedSubs = await TranslateAsyncInternal([.. chunk], targetLanguage, cancellationToken);
 
             if (translatedSubs.IsFailure)
             {
@@ -44,20 +42,15 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
                 yield break;
             }
 
-            var skippedCount = 0;
-
             foreach (var subtitle in translatedSubs.Value)
             {
-                if (!isFirstChunk && skippedCount < settings.Overlap)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    skippedCount++;
-                    continue;
+                    yield break;
                 }
 
                 yield return Result<SubtitleDto>.Success(subtitle);
             }
-
-            isFirstChunk = false;
         }
     }
 
