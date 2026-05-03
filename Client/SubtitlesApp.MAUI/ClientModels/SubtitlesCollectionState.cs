@@ -15,40 +15,4 @@ public partial class SubtitlesCollectionState : ObservableObject
 
     [ObservableProperty]
     private bool _autoScrollEnabled;
-
-    partial void OnCurrentSubtitleIndexChanged(int value)
-    {
-        if (value - LastVisibleSubtitleIndex >= 2 || FirstVisibleSubtitleIndex - value >= 2)
-        {
-            AutoScrollEnabled = false;
-        }
-        else
-        {
-            AutoScrollEnabled = true;
-        }
-    }
-
-    partial void OnFirstVisibleSubtitleIndexChanged(int value)
-    {
-        if (value - CurrentSubtitleIndex >= 2)
-        {
-            AutoScrollEnabled = false;
-        }
-        else
-        {
-            AutoScrollEnabled = true;
-        }
-    }
-
-    partial void OnLastVisibleSubtitleIndexChanged(int value)
-    {
-        if (CurrentSubtitleIndex - value >= 2)
-        {
-            AutoScrollEnabled = false;
-        }
-        else
-        {
-            AutoScrollEnabled = true;
-        }
-    }
 }

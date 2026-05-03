@@ -125,43 +125,48 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public void PositionChanged(TimeSpan currentPosition)
     {
-        if (IsSubtitlesSelected)
+        var isSubUpdated = UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
+
+        var isTranslationUpdated = UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
+
+        if (isTranslationUpdated && TranslationsCollectionState.AutoScrollEnabled)
         {
-            var isUpdated = UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
-
-            if (isUpdated && SubtitlesCollectionState.AutoScrollEnabled)
-            {
-                SubsScrollRequested?.Invoke(this, EventArgs.Empty);
-            }
-
-            UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
+            TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
         }
-        else if (IsTranslationsSelected)
+        if (isSubUpdated && SubtitlesCollectionState.AutoScrollEnabled)
         {
-            var isUpdated = UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
-
-            if (isUpdated && TranslationsCollectionState.AutoScrollEnabled)
-            {
-                TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
-            }
-
-            UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
+            SubsScrollRequested?.Invoke(this, EventArgs.Empty);
         }
     }
 
     [RelayCommand]
-    public void ScrollToFocused()
+    public void ScrollToCurentSub()
     {
-        if (IsSubtitlesSelected)
+        var currentVisible =
+            SubtitlesCollectionState.CurrentSubtitleIndex <= SubtitlesCollectionState.LastVisibleSubtitleIndex
+            && SubtitlesCollectionState.CurrentSubtitleIndex >= SubtitlesCollectionState.FirstVisibleSubtitleIndex;
+
+        if (!currentVisible)
         {
             SubsScrollRequested?.Invoke(this, EventArgs.Empty);
-            SubtitlesCollectionState.AutoScrollEnabled = true;
         }
-        else
+
+        SubtitlesCollectionState.AutoScrollEnabled = true;
+    }
+
+    [RelayCommand]
+    public void ScrollToCurentTranslation()
+    {
+        var currentVisible =
+            TranslationsCollectionState.CurrentSubtitleIndex <= TranslationsCollectionState.LastVisibleSubtitleIndex
+            && TranslationsCollectionState.CurrentSubtitleIndex >= TranslationsCollectionState.FirstVisibleSubtitleIndex;
+
+        if (!currentVisible)
         {
             TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
-            TranslationsCollectionState.AutoScrollEnabled = true;
         }
+
+        TranslationsCollectionState.AutoScrollEnabled = true;
     }
 
     [RelayCommand]
@@ -280,6 +285,25 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
+    [RelayCommand]
+    public void SubsScrolled()
+    {
+        var currentVisible =
+            SubtitlesCollectionState.CurrentSubtitleIndex <= SubtitlesCollectionState.LastVisibleSubtitleIndex
+            && SubtitlesCollectionState.CurrentSubtitleIndex >= SubtitlesCollectionState.FirstVisibleSubtitleIndex;
+
+        SubtitlesCollectionState.AutoScrollEnabled = currentVisible;
+    }
+
+    [RelayCommand]
+    public void TranslationsScrolled()
+    {
+        var currentVisible =
+            TranslationsCollectionState.CurrentSubtitleIndex <= TranslationsCollectionState.LastVisibleSubtitleIndex
+            && TranslationsCollectionState.CurrentSubtitleIndex >= TranslationsCollectionState.FirstVisibleSubtitleIndex;
+
+        TranslationsCollectionState.AutoScrollEnabled = currentVisible;
+    }
     #endregion
 
     #region public methods

@@ -105,7 +105,8 @@
 
             <material:TabView Grid.Row="1"
                               Grid.ColumnSpan="3"
-                              SelectedTabChanged="OnSelectedTabChanged">
+                              SelectedTabChanged="OnSelectedTabChanged"
+                              CachingStrategy="CacheOnLayout">
                 <material:TabItem Title="Subtitles">
                     <material:TabItem.Content>
                         <!--Subtitles list-->
@@ -113,7 +114,8 @@
                             x:Name="subtitlesList"
                             Adapter="{Binding SubtitlesAdapter}"
                             FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
-                            LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}">
+                            LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}"
+                            ScrolledCommandDerived="{Binding SubsScrolledCommand}">
                             <customControls:ExdendedVirtualList.ItemTemplate>
                                 <DataTemplate x:DataType="clientModels:VisualSubtitle">
                                     <customControls:SubtitleView SubtitleSource="{Binding .}"
@@ -153,7 +155,8 @@
                             x:Name="translationsList"
                             Adapter="{Binding TranslationsAdapter}"
                             FirstVisibleItemIndex="{Binding TranslationsCollectionState.FirstVisibleSubtitleIndex}"
-                            LastVisibleItemIndex="{Binding TranslationsCollectionState.LastVisibleSubtitleIndex}">
+                            LastVisibleItemIndex="{Binding TranslationsCollectionState.LastVisibleSubtitleIndex}"
+                            ScrolledCommandDerived="{Binding TranslationsScrolledCommand}">
                             <customControls:ExdendedVirtualList.ItemTemplate>
                                 <DataTemplate x:DataType="clientModels:VisualSubtitle">
                                     <customControls:SubtitleView SubtitleSource="{Binding .}"
@@ -191,7 +194,7 @@
                     Grid.Row="1"
                     Grid.ColumnSpan="3"
                     Text="Scroll to current subtitle"
-                    Command="{Binding ScrollToFocusedCommand}"
+                    Command="{Binding ScrollToCurentSubCommand}"
                     VerticalOptions="End"
                     HorizontalOptions="Center"
                     HeightRequest="40"
@@ -210,7 +213,7 @@
                     Grid.Row="1"
                     Grid.ColumnSpan="3"
                     Text="Scroll to current translation"
-                    Command="{Binding ScrollToFocusedCommand}"
+                    Command="{Binding ScrollToCurentTranslationCommand}"
                     VerticalOptions="End"
                     HorizontalOptions="Center"
                     HeightRequest="40"

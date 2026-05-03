@@ -20,6 +20,13 @@ public class ExdendedVirtualList : VirtualListView
         BindingMode.OneWayToSource
     );
 
+    public static readonly BindableProperty ScrolledCommandDerivedProperty = BindableProperty.Create(
+        nameof(ScrolledCommandDerived),
+        typeof(ICommand),
+        typeof(ExdendedVirtualList),
+        null
+    );
+
     public int FirstVisibleItemIndex
     {
         get => (int)GetValue(FirstVisibleItemIndexProperty);
@@ -30,6 +37,13 @@ public class ExdendedVirtualList : VirtualListView
     {
         get => (int)GetValue(LastVisibleItemIndexProperty);
         set => SetValue(LastVisibleItemIndexProperty, value);
+    }
+
+    // Executed after the ElementScrolled updated visible intexes
+    public ICommand? ScrolledCommandDerived
+    {
+        get => (ICommand?)GetValue(ScrolledCommandDerivedProperty);
+        set => SetValue(ScrolledCommandDerivedProperty, value);
     }
 
     public ExdendedVirtualList()
@@ -61,6 +75,9 @@ public class ExdendedVirtualList : VirtualListView
         {
             LastVisibleItemIndex = visiblePositions[^1].ItemIndex;
         }
+
+        if (ScrolledCommandDerived != null && ScrolledCommandDerived.CanExecute(e))
+            ScrolledCommandDerived.Execute(e);
     }
 
     public void ScrollToIndex(int index)
