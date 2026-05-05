@@ -18,7 +18,8 @@ namespace SubtitlesApp.Infrastructure.HttpClients;
 #pragma warning disable OPENAI001
 public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
 {
-    private readonly ResponsesClient _responsesClient = InitClient(settings);
+    private readonly Task<ResponsesClient> _responsesClientTask = InitClient(settings);
+    private readonly IOpenAiSettings _settings = settings;
     private readonly JsonSerializerOptions _schemaGenerationOptions = new(JsonSerializerOptions.Default)
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
@@ -33,7 +34,7 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
     {
         CreateResponseOptions options = new()
         {
-            Model = settings.Model,
+            Model = _settings.Model,
             ReasoningOptions = new() { ReasoningEffortLevel = ResponseReasoningEffortLevel.None },
         };
 
@@ -54,7 +55,8 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
 
         try
         {
-            response = await _responsesClient.CreateResponseAsync(options);
+            var responsesClient = await _responsesClientTask;
+            response = await responsesClient.CreateResponseAsync(options);
         }
         catch (Exception ex)
         {
@@ -119,16 +121,16 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
         return Result<T>.Success(deserialized);
     }
 
-    private static ResponsesClient InitClient(IOpenAiSettings settings)
+    private static async Task<ResponsesClient> InitClient(IOpenAiSettings settings)
     {
         if (!string.IsNullOrWhiteSpace(settings.Endpoint))
         {
             return new(
-                new ApiKeyCredential(settings.ApiKey),
+                new ApiKeyCredential(await settings.GetApiKey()),
                 new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
             );
         }
 
-        return new(settings.ApiKey);
+        return new(await settings.GetApiKey());
     }
 }

@@ -11,7 +11,7 @@ namespace SubtitlesApp.Infrastructure.HttpClients;
 
 public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : ITranscriptionApiClient
 {
-    private readonly AudioClient _client = InitClient(settings);
+    private readonly Task<AudioClient> _audioClientTask = InitClient(settings);
 
     public async Task<ListResult<SubtitleDto>> GetSubsAsync(
         byte[] audioBytes,
@@ -35,7 +35,8 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
 
         try
         {
-            apiResult = await _client.TranscribeAudioAsync(stream, "audio.wav", transcriptionOptions);
+            var audioClient = await _audioClientTask;
+            apiResult = await audioClient.TranscribeAudioAsync(stream, "audio.wav", transcriptionOptions);
         }
         catch (Exception ex)
         {
@@ -62,17 +63,17 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
         return ListResult<SubtitleDto>.Success(subtitles);
     }
 
-    private static AudioClient InitClient(ITranscriptionClientSettings settings)
+    private static async Task<AudioClient> InitClient(ITranscriptionClientSettings settings)
     {
         if (!string.IsNullOrWhiteSpace(settings.Endpoint))
         {
             return new(
                 settings.Model,
-                new ApiKeyCredential(settings.ApiKey),
+                new ApiKeyCredential(await settings.GetApiKey()),
                 new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
             );
         }
 
-        return new(settings.Model, settings.ApiKey);
+        return new(settings.Model, await settings.GetApiKey());
     }
 }

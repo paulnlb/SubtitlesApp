@@ -18,14 +18,19 @@ public class TranscriptionClientSettings : ITranscriptionClientSettings
         get => Preferences.Get(_modelKey, _defaultModel);
         set => Preferences.Set(_modelKey, value);
     }
-    public string ApiKey
-    {
-        get => Preferences.Get(_apiKeyKey, _defaultApiKey);
-        set => Preferences.Set(_apiKeyKey, value);
-    }
     public string? Endpoint
     {
         get => Preferences.Get(_endpointKey, _defaultEndpoint);
         set => Preferences.Set(_endpointKey, value ?? _defaultEndpoint);
+    }
+
+    public async Task<string> GetApiKey()
+    {
+        return await SecureStorage.Default.GetAsync(_apiKeyKey) ?? _defaultApiKey;
+    }
+
+    public Task SetApiKey(string value)
+    {
+        return SecureStorage.Default.SetAsync(_apiKeyKey, value);
     }
 }

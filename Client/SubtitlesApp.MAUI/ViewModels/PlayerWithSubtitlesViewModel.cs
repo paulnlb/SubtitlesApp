@@ -290,21 +290,21 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public void SubsScrolled()
     {
-        var currentVisible =
+        var isCurrentVisible =
             SubtitlesCollectionState.CurrentSubtitleIndex <= SubtitlesCollectionState.LastVisibleSubtitleIndex
             && SubtitlesCollectionState.CurrentSubtitleIndex >= SubtitlesCollectionState.FirstVisibleSubtitleIndex;
 
-        SubtitlesCollectionState.AutoScrollEnabled = currentVisible;
+        SubtitlesCollectionState.AutoScrollEnabled = isCurrentVisible;
     }
 
     [RelayCommand]
     public void TranslationsScrolled()
     {
-        var currentVisible =
+        var isCurrentVisible =
             TranslationsCollectionState.CurrentSubtitleIndex <= TranslationsCollectionState.LastVisibleSubtitleIndex
             && TranslationsCollectionState.CurrentSubtitleIndex >= TranslationsCollectionState.FirstVisibleSubtitleIndex;
 
-        TranslationsCollectionState.AutoScrollEnabled = currentVisible;
+        TranslationsCollectionState.AutoScrollEnabled = isCurrentVisible;
     }
     #endregion
 

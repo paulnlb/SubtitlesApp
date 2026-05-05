@@ -1,4 +1,3 @@
-using Android.Nfc.CardEmulators;
 using MauiPageFullScreen;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.ViewModels;
