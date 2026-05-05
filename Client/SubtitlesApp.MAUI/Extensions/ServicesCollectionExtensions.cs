@@ -54,12 +54,8 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
-
-#if RELEASE
         services.AddSingleton<ISettingsService, SettingsService>();
-#else
-        services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
-#endif
+
         #endregion
 
         #region popups
