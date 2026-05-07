@@ -4,14 +4,6 @@ namespace SubtitlesApp.CustomControls;
 
 public class ExdendedVirtualList : VirtualListView
 {
-    public static readonly BindableProperty FocusedItemIndexProperty = BindableProperty.Create(
-        nameof(FocusedItemIndex),
-        typeof(int),
-        typeof(ExdendedVirtualList),
-        0,
-        propertyChanged: OnFocusedItemIndexChanged
-    );
-
     public static readonly BindableProperty FirstVisibleItemIndexProperty = BindableProperty.Create(
         nameof(FirstVisibleItemIndex),
         typeof(int),
@@ -28,32 +20,12 @@ public class ExdendedVirtualList : VirtualListView
         BindingMode.OneWayToSource
     );
 
-    public static readonly BindableProperty ScrolledVerticallyCommandProperty = BindableProperty.Create(
-        nameof(ScrolledVerticallyCommand),
+    public static readonly BindableProperty ScrolledCommandDerivedProperty = BindableProperty.Create(
+        nameof(ScrolledCommandDerived),
         typeof(ICommand),
         typeof(ExdendedVirtualList),
         null
     );
-
-    public static readonly BindableProperty AutoScrollEnabledProperty = BindableProperty.Create(
-        nameof(AutoScrollEnabled),
-        typeof(bool),
-        typeof(ExdendedVirtualList),
-        true,
-        propertyChanged: OnAutoScrollEnabledChanged
-    );
-
-    public int FocusedItemIndex
-    {
-        get => (int)GetValue(FocusedItemIndexProperty);
-        set => SetValue(FocusedItemIndexProperty, value);
-    }
-
-    public ICommand ScrolledVerticallyCommand
-    {
-        get => (ICommand)GetValue(ScrolledVerticallyCommandProperty);
-        set => SetValue(ScrolledVerticallyCommandProperty, value);
-    }
 
     public int FirstVisibleItemIndex
     {
@@ -67,10 +39,11 @@ public class ExdendedVirtualList : VirtualListView
         set => SetValue(LastVisibleItemIndexProperty, value);
     }
 
-    public bool AutoScrollEnabled
+    // Executed after the ElementScrolled updated visible intexes
+    public ICommand? ScrolledCommandDerived
     {
-        get => (bool)GetValue(AutoScrollEnabledProperty);
-        set => SetValue(AutoScrollEnabledProperty, value);
+        get => (ICommand?)GetValue(ScrolledCommandDerivedProperty);
+        set => SetValue(ScrolledCommandDerivedProperty, value);
     }
 
     public ExdendedVirtualList()
@@ -81,40 +54,12 @@ public class ExdendedVirtualList : VirtualListView
 
     ~ExdendedVirtualList()
     {
+        Clean();
+    }
+
+    public void Clean()
+    {
         OnScrolled -= ElementScrolled;
-    }
-
-    private static void OnAutoScrollEnabledChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        if (bindable is not ExdendedVirtualList extendedCollectionView)
-        {
-            return;
-        }
-
-        if (newValue is not bool autoScrollEnabled)
-        {
-            return;
-        }
-
-        if (autoScrollEnabled)
-        {
-            extendedCollectionView.ScrollToIndexIfNotVisible(extendedCollectionView.FocusedItemIndex);
-        }
-    }
-
-    private static void OnFocusedItemIndexChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        if (bindable is not ExdendedVirtualList extendedCollectionView)
-        {
-            return;
-        }
-
-        var newIndex = (int)newValue;
-
-        if (newIndex > 0 && extendedCollectionView.AutoScrollEnabled)
-        {
-            extendedCollectionView.ScrollToIndexIfNotVisible(newIndex);
-        }
     }
 
     private void ElementScrolled(object? sender, ScrolledEventArgs e)
@@ -136,16 +81,12 @@ public class ExdendedVirtualList : VirtualListView
             LastVisibleItemIndex = visiblePositions[^1].ItemIndex;
         }
 
-        ScrolledVerticallyCommand.Execute(null);
+        if (ScrolledCommandDerived != null && ScrolledCommandDerived.CanExecute(e))
+            ScrolledCommandDerived.Execute(e);
     }
 
-    private void ScrollToIndexIfNotVisible(int index)
+    public void ScrollToIndex(int index)
     {
-        if (index >= FirstVisibleItemIndex && index <= LastVisibleItemIndex)
-        {
-            return;
-        }
-
         ScrollToItem(new ItemPosition(0, index), true);
     }
 }

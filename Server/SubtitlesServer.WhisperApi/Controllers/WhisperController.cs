@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using SubtitlesApp.Core.Result;
-using SubtitlesApp.Core.Services;
+using SubtitlesServer.Shared.Result;
+using SubtitlesServer.Shared.Services;
 using SubtitlesServer.WhisperApi.Configs;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;
@@ -20,7 +20,7 @@ public class WhisperController(
 {
     [HttpPost("transcription")]
     public async Task<IActionResult> TranscribeAudio(
-        [FromForm] WhisperRequestModel requestModel,
+        [FromForm] TranscriptionRequestModel requestModel,
         CancellationToken cancellationToken
     )
     {
@@ -28,7 +28,6 @@ public class WhisperController(
 
         if (subtitlesLanguage == null)
         {
-            logger.LogError("Invalid language code: {languageCode}", requestModel.LanguageCode);
             return BadRequest(new Error(ErrorCode.BadRequest, "Invalid language code"));
         }
 
@@ -36,7 +35,6 @@ public class WhisperController(
 
         if (validationResult.IsFailure)
         {
-            logger.LogError("Invalid audio file: {error}", validationResult.Error);
             return BadRequest(validationResult.Error);
         }
 

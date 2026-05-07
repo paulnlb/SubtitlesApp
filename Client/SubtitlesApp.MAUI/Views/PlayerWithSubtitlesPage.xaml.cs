@@ -1,6 +1,7 @@
 using MauiPageFullScreen;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.ViewModels;
+using UraniumUI.Material.Controls;
 
 namespace SubtitlesApp.Views;
 
@@ -26,6 +27,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
         playerSubtitlesPage.PropertyChanged += PlayerSubtitlesPage_PropertyChanged;
+
+        viewModel.SubsScrollRequested += OnSubScrollRequested;
+        viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -36,6 +40,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mediaPlayer.DisconnectHandler();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
         playerSubtitlesPage.PropertyChanged -= PlayerSubtitlesPage_PropertyChanged;
+        subtitlesList.Clean();
+        translationsList.Clean();
+        vm.SubsScrollRequested += OnSubScrollRequested;
+        vm.TranslationsScrollRequested += OnTranslationScrollRequested;
 
         base.OnNavigatedFrom(args);
     }
@@ -80,6 +88,49 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         {
             HandlePanGestureHorizontal(sender, e);
         }
+    }
+
+    private void OnSelectedTabChanged(object? sender, TabItem e)
+    {
+        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        {
+            return;
+        }
+
+        if (e is null)
+        {
+            return;
+        }
+        else if (e.Title == "Subtitles")
+        {
+            vm.IsSubtitlesSelected = true;
+            vm.IsTranslationsSelected = false;
+        }
+        else if (e.Title == "Translations")
+        {
+            vm.IsSubtitlesSelected = false;
+            vm.IsTranslationsSelected = true;
+        }
+    }
+
+    private void OnSubScrollRequested(object? sender, EventArgs e)
+    {
+        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        {
+            return;
+        }
+
+        subtitlesList.ScrollToIndex(vm.SubtitlesCollectionState.CurrentSubtitleIndex);
+    }
+
+    private void OnTranslationScrollRequested(object? sender, EventArgs e)
+    {
+        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        {
+            return;
+        }
+
+        translationsList.ScrollToIndex(vm.TranslationsCollectionState.CurrentSubtitleIndex);
     }
 
     #region handle vertical pan gesture
@@ -307,7 +358,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
     }
-
     #endregion
 
     #region workaround for vertical fullscreen mode

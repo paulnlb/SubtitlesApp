@@ -10,14 +10,11 @@ namespace SubtitlesApp.Mapper;
 public partial class SubtitlesMapper
 {
     [MapPropertyFromSource(nameof(VisualSubtitle.TimeInterval))]
-    [MapperIgnoreTarget(nameof(VisualSubtitle.Translation))]
     [MapperIgnoreTarget(nameof(VisualSubtitle.IsHighlighted))]
     public partial VisualSubtitle SubtitleDtoToVisualSubtitle(SubtitleDto subtitleDto);
 
     [MapProperty(nameof(VisualSubtitle.TimeInterval.StartTime), nameof(SubtitleDto.StartTime))]
     [MapProperty(nameof(VisualSubtitle.TimeInterval.EndTime), nameof(SubtitleDto.EndTime))]
-    [MapperIgnoreSource(nameof(VisualSubtitle.Translation))]
-    [MapperIgnoreSource(nameof(VisualSubtitle.IsTranslated))]
     [MapperIgnoreSource(nameof(VisualSubtitle.IsHighlighted))]
     public partial SubtitleDto VisualSubtitleToSubtitleDto(VisualSubtitle visualSubtitle);
 

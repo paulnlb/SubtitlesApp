@@ -1,5 +1,5 @@
 ﻿using Catalyst;
-using SubtitlesApp.Core.Constants;
+using SubtitlesServer.Shared.Models;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Services.ModelProviders;
 

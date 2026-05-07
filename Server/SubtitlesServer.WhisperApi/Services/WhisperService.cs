@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using AutoMapper;
-using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Services;
+using SubtitlesServer.Shared.Models;
+using SubtitlesServer.Shared.Services;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;
 using SubtitlesServer.WhisperApi.Services.ModelProviders;
@@ -17,7 +17,7 @@ public class WhisperService(
 ) : ISpeechToTextService
 {
     public async IAsyncEnumerable<SubtitleDto> TranscribeAudioAsync(
-        WhisperDto whisperDto,
+        TranscriptionRequestDto whisperDto,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
@@ -47,7 +47,7 @@ public class WhisperService(
         }
     }
 
-    private static WhisperProcessor BuildWhisperProcessor(WhisperFactory factory, WhisperDto whisperDto)
+    private static WhisperProcessor BuildWhisperProcessor(WhisperFactory factory, TranscriptionRequestDto whisperDto)
     {
         var whisperBuilder = factory.CreateBuilder().WithLanguage(whisperDto.LanguageCode);
 

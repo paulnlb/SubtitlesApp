@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using AutoMapper;
-using SubtitlesApp.Core.DTOs;
+using SubtitlesServer.Shared.Models;
 using SubtitlesServer.WhisperApi.Interfaces;
 using SubtitlesServer.WhisperApi.Models;
 
@@ -10,7 +10,7 @@ public class TranscriptionService(ISpeechToTextService speechToTextService, INlp
     : ITranscriptionService
 {
     public async Task<List<SubtitleDto>> TranscribeAudioAsync(
-        WhisperRequestModel whisperRequestModel,
+        TranscriptionRequestModel whisperRequestModel,
         CancellationToken cancellationToken = default
     )
     {
@@ -90,12 +90,12 @@ public class TranscriptionService(ISpeechToTextService speechToTextService, INlp
         return resultSubtitles;
     }
 
-    private async Task<WhisperDto> MapRequestToDto(
-        WhisperRequestModel whisperRequestModel,
+    private async Task<TranscriptionRequestDto> MapRequestToDto(
+        TranscriptionRequestModel whisperRequestModel,
         CancellationToken cancellationToken
     )
     {
-        var whisperDto = mapper.Map<WhisperDto>(whisperRequestModel);
+        var whisperDto = mapper.Map<TranscriptionRequestDto>(whisperRequestModel);
         whisperDto.AudioStream = new MemoryStream();
         await whisperRequestModel.AudioFile.CopyToAsync(whisperDto.AudioStream, cancellationToken);
         whisperDto.AudioStream.Seek(0, SeekOrigin.Begin);

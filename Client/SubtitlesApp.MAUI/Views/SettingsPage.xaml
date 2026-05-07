@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="SubtitlesApp.Views.SettingsPage"
              x:DataType="viewModels:SettingsViewModel"
              Title="Settings">
@@ -9,17 +10,103 @@
         <ResourceDictionary>
             <Style TargetType="Entry">
                 <Setter Property="Margin"
-                        Value="0, 0, 0, 20" />
+                        Value="0, 0, 0, 20"/>
+            </Style>
+            <Style TargetType="Label">
+                <Setter Property="VerticalOptions"
+                        Value="Center"/>
             </Style>
         </ResourceDictionary>
+        <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
     </ContentPage.Resources>
 
-    <VerticalStackLayout Margin="20, 30">
-        <Label Text="Backend base url" />
-        <Entry Text="{Binding BackendBaseUrl}" />
+    <VerticalStackLayout Margin="20,30"
+                         Spacing="16">
 
-        <Label Text="Transcribe buffer length (in seconds)" />
-        <Entry Text="{Binding TranscribeBufferLength}"
-               Keyboard="Numeric" />
+        <!-- Transcription -->
+        <Label Text="Transcription"
+               FontAttributes="Bold"/>
+
+        <Grid ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,Auto,Auto"
+              ColumnSpacing="10"
+              RowSpacing="10">
+
+            <Label Grid.Row="0"
+                   Text="Model"/>
+            <Entry Grid.Row="0"
+                   Grid.Column="1"
+                   Text="{Binding TranscriptionModel}"/>
+
+            <Label Grid.Row="1"
+                   Text="Endpoint (optional)"/>
+            <Entry Grid.Row="1"
+                   Grid.Column="1"
+                   Text="{Binding TranscriptionEndpoint}"/>
+
+            <Label Grid.Row="2"
+                   Text="API key (optional)"/>
+            <Grid Grid.Row="2"
+                  Grid.Column="1"
+                  ColumnDefinitions="*,Auto">
+                <Entry Grid.Column="0"
+                       IsPassword="{Binding IsTranscriptionKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
+                       Text="{Binding TranscriptionApiKey}"
+                       IsEnabled="{Binding IsTranscriptionKeyShown}"/>
+                <ImageButton Grid.Column="1"
+                             Source="{AppThemeBinding Dark=visibility_light.png, Light=visibility_dark.png}"
+                             Padding="2"
+                             HeightRequest="30"
+                             WidthRequest="30"
+                             Command="{Binding ShowTranscriptionKeyCommand}"/>
+            </Grid>
+
+        </Grid>
+
+        <!-- LLM -->
+        <Label Text="LLM Translation"
+               FontAttributes="Bold"/>
+
+        <Grid ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,Auto,Auto"
+              ColumnSpacing="10"
+              RowSpacing="10">
+
+            <Label Grid.Row="0"
+                   Text="Model"/>
+            <Entry Grid.Row="0"
+                   Grid.Column="1"
+                   Text="{Binding OpenAiModel}"/>
+
+            <Label Grid.Row="1"
+                   Text="Endpoint (optional)"/>
+            <Entry Grid.Row="1"
+                   Grid.Column="1"
+                   Text="{Binding OpenAiEndpoint}"/>
+
+            <Label Grid.Row="2"
+                   Text="API key (optional)"/>
+            <Grid Grid.Row="2"
+                  Grid.Column="1"
+                  ColumnDefinitions="*,Auto">
+                <Entry Grid.Column="0"
+                       IsPassword="{Binding IsOpenAiKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
+                       Text="{Binding OpenAiApiKey}"
+                       IsEnabled="{Binding IsOpenAiKeyShown}"/>
+                <ImageButton Grid.Column="1"
+                             Source="{AppThemeBinding Dark=visibility_light.png, Light=visibility_dark.png}"
+                             Padding="2"
+                             HeightRequest="30"
+                             WidthRequest="30"
+                             Command="{Binding ShowLlmKeyCommand}"/>
+            </Grid>
+
+        </Grid>
+
+        <Button Text="Save"
+                Margin="0,10,0,0"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsDirty}"/>
+
     </VerticalStackLayout>
 </ContentPage>

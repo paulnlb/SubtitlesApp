@@ -5,11 +5,11 @@ using SubtitlesServer.TranslationApi.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<OllamaConfig>(builder.Configuration.GetSection("OllamaConfig"));
+builder.Services.Configure<OpenAIConfig>(builder.Configuration.GetSection("OpenAIConfig"));
+builder.Services.Configure<LlmTranslationConfig>(builder.Configuration.GetSection("LlmTranslationConfig"));
 
 builder.Services.AddSharedServices(builder.Configuration);
-builder.Services.AddAppServices();
-
-builder.Services.AddHttpClient(builder.Configuration);
+builder.Services.AddAppServices(builder.Configuration);
 
 var app = builder.Build();
 

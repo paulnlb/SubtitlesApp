@@ -1,6 +1,11 @@
 ﻿using CommunityToolkit.Maui;
+using SubtitlesApp.Core.Interfaces;
+using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.CustomControls.Popups;
+using SubtitlesApp.Infrastructure.HttpClients;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
@@ -19,38 +24,22 @@ public static class ServicesCollectionExtensions
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
         #region transient
-        services.AddTransient<IMediaProcessor, FfmpegService>();
         services.AddTransient<IVideoPicker, VideoPicker>();
         services.AddTransient<ISocketListener, UnixSocketListener>();
         services.AddTransient<ISocketSender, UnixSocketSender>();
-        services.AddTransient<ITranscriptionService, TranscriptionService>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
-        #endregion
 
-        #region scoped
-        services.AddScoped<ISubtitlesService, SubtitlesService>();
-        services.AddScoped<IdentityModel.OidcClient.Browser.IBrowser, MauiAuthenticationBrowser>();
-        services.AddScoped<HttpsClientHandlerService>();
-        services.AddScoped<IHttpRequestService, HttpRequestService>();
-        services.AddScoped<ITranslationService, TranslationService>();
-        services.AddScoped<ISubtitlesTimeSetService, SubtitlesTimeSetService>();
+        services.AddTransient<ITranscriptionService, TranscriptionService>();
+        services.AddTransient<ITranslationService, LlmTranslationService>();
+        services.AddTransient<ILlmClient, OpenAiLlmClient>();
+        services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
+        services.AddTransient<IAudioExtractor, FfmpegNativeService>();
+        services.AddTransient<HttpsClientHandlerService>();
         #endregion
 
         #region singleton
-        services.AddSingleton<IAuthService, AuthService>();
         services.AddSingleton<LanguageService>();
-        #endregion
-
-        #region HttpClient
-#if DEBUG
-        var service = new HttpsClientHandlerService();
-        var handler = service.GetPlatformMessageHandler();
-
-        services.AddHttpClient<IHttpRequestService, HttpRequestService>().ConfigurePrimaryHttpMessageHandler(() => handler);
-#else
-        services.AddHttpClient<IHttpRequestService, HttpRequestService>();
-#endif
         #endregion
 
         #region pages
@@ -61,19 +50,19 @@ public static class ServicesCollectionExtensions
 
         #region preferences
         services.AddSingleton(Preferences.Default);
-
-#if RELEASE
+        services.AddSingleton<IOpenAiSettings, OpenAiSettings>();
+        services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
+        services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
+        services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
         services.AddSingleton<ISettingsService, SettingsService>();
-#else
-        services.AddSingleton<ISettingsService, SettingsServiceDevelopment>();
-#endif
+
         #endregion
 
         #region popups
-        services.AddTransientPopup<SubtitlesSettingsPopup, SubtitlesSettingsPopupViewModel>();
-        services.AddTransientPopup<TranslationSettingsPopup, TranslationSettingsPopupViewModel>();
         services.AddTransientPopup<InputPopup, InputPopupViewModel>();
         services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
+        services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
+        services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
         #endregion
 
         #region third-party

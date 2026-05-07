@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SubtitlesApp.Core.DTOs;
-using SubtitlesServer.Shared.Extensions;
+using SubtitlesServer.Shared.Models;
+using SubtitlesServer.Shared.Result;
 using SubtitlesServer.TranslationApi.Interfaces;
 
 namespace SubtitlesServer.TranslationApi.Controllers;
@@ -14,14 +14,34 @@ public class TranslationController(ITranslationService translationService) : Con
     {
         var result = await translationService.TranslateAsync(request);
 
-        return this.ConvertToActionResult(result);
+        if (result.IsFailure)
+        {
+            return result.Error.Code switch
+            {
+                ErrorCode.BadRequest => BadRequest(result.Error),
+                ErrorCode.BadGateway => StatusCode(statusCode: StatusCodes.Status502BadGateway, result.Error),
+                _ => StatusCode(statusCode: StatusCodes.Status500InternalServerError, result.Error),
+            };
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpPost("stream")]
     public IActionResult TranslateAndStream([FromBody] TranslationRequestDto request)
     {
-        var translationResult = translationService.TranslateAndStreamAsync(request);
+        var result = translationService.TranslateAndStreamAsync(request);
 
-        return this.ConvertToActionResult(translationResult);
+        if (result.IsFailure)
+        {
+            return result.Error.Code switch
+            {
+                ErrorCode.BadRequest => BadRequest(result.Error),
+                ErrorCode.BadGateway => StatusCode(statusCode: StatusCodes.Status502BadGateway, result.Error),
+                _ => StatusCode(statusCode: StatusCodes.Status500InternalServerError, result.Error),
+            };
+        }
+
+        return Ok(result.Value);
     }
 }

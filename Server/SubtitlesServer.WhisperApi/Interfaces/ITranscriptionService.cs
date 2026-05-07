@@ -1,4 +1,4 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesServer.Shared.Models;
 using SubtitlesServer.WhisperApi.Models;
 
 namespace SubtitlesServer.WhisperApi.Interfaces;
@@ -6,7 +6,7 @@ namespace SubtitlesServer.WhisperApi.Interfaces;
 public interface ITranscriptionService
 {
     Task<List<SubtitleDto>> TranscribeAudioAsync(
-        WhisperRequestModel whisperRequestModel,
+        TranscriptionRequestModel whisperRequestModel,
         CancellationToken cancellationToken = default
     );
 }

@@ -15,4 +15,7 @@ public enum ErrorCode
     TokenExpired,
     Forbidden,
     ValidationFailed,
+    FailedServerResponse,
+    RetryLimitExceeded,
+    InvalidLlmTranslation,
 }

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using SubtitlesApp.Core.Result;
+using SubtitlesServer.Shared.Result;
 using SubtitlesServer.WhisperApi.Interfaces;
 
 namespace SubtitlesServer.WhisperApi.Services;

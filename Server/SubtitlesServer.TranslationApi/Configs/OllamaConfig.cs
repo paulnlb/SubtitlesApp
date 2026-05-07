@@ -9,6 +9,4 @@ public class OllamaConfig
     public float Temperature { get; set; }
 
     public int NumCtx { get; set; }
-
-    public string DefaultSystemPrompt { get; set; }
 }

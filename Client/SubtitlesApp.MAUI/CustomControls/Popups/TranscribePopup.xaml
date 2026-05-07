@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+               xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+               xmlns:conv="clr-namespace:SubtitlesApp.Converters"
+               x:Class="SubtitlesApp.CustomControls.Popups.TranscribePopup"
+               x:DataType="viewModels:TranscribePopupViewModel"
+               Color="{AppThemeBinding Dark=#424242, Light=#FFFFFF}">
+    <toolkit:Popup.Resources>
+        <conv:TimeSpanConverter x:Key="TimeSpanConverter"/>
+        <conv:AllTrueMultiConverter x:Key="AllTrueConverter"/>
+        <Style x:Key="InvalidEntryStyle"
+               TargetType="Entry">
+            <Setter Property="TextColor"
+                    Value="Red"/>
+        </Style>
+    </toolkit:Popup.Resources>
+    <Grid WidthRequest="300"
+          RowDefinitions="Auto, 20, 50, *"
+          ColumnDefinitions="*, *"
+          Padding="10">
+        <uranium:StatefulContentView Grid.Row="0"
+                                     Grid.ColumnSpan="2"
+                                     Margin="0,0,0,10"
+                                     TappedCommand="{Binding ChooseSubtitlesLanguageCommand}">
+            <Border Padding="20">
+                <VerticalStackLayout>
+                    <Label Text="Language"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
+                    <Label Text="{Binding SubtitlesLanguage.Name}"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Border>
+        </uranium:StatefulContentView>
+
+        <Label Grid.Row="1"
+               Grid.Column="0"
+               Text="From"
+               VerticalTextAlignment="End"/>
+        <Label Grid.Row="1"
+               Grid.Column="1"
+               Text="To"
+               VerticalTextAlignment="End"/>
+
+        <Entry Grid.Row="2"
+               Grid.Column="0"
+               Placeholder="{Binding FromTime, StringFormat='{0:hh\\:mm\\:ss}'}"
+               Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}">
+            <Entry.Behaviors>
+                <toolkit:TextValidationBehavior x:Name="fromValidationBehavior"
+                                                InvalidStyle="{StaticResource InvalidEntryStyle}"
+                                                Flags="ValidateOnValueChanged"
+                                                RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
+                                                IsValid="False"/>
+            </Entry.Behaviors>
+        </Entry>
+        <Entry Grid.Row="2"
+               Grid.Column="1"
+               Placeholder="{Binding ToTime, StringFormat='{0:hh\\:mm\\:ss}'}"
+               Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}">
+            <Entry.Behaviors>
+                <toolkit:TextValidationBehavior x:Name="toValidationBehavior"
+                                                InvalidStyle="{StaticResource InvalidEntryStyle}"
+                                                Flags="ValidateOnValueChanged"
+                                                RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
+                                                IsValid="False"/>
+            </Entry.Behaviors>
+        </Entry>
+
+
+        <Button Grid.Row="3"
+                Grid.Column="0"
+                Text="Cancel"
+                Command="{Binding CancelCommand}"
+                Background="Transparent"
+                TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+        <Button Grid.Row="3"
+                Grid.Column="1"
+                Text="Transcribe"
+                Command="{Binding SaveCommand}"
+                Background="Transparent"
+                TextColor="{AppThemeBinding Light=Black, Dark=White}">
+            <Button.IsEnabled>
+                <MultiBinding Converter="{StaticResource AllTrueConverter}">
+                    <Binding Source="{x:Reference fromValidationBehavior}"
+                             Path="IsValid"/>
+                    <Binding Source="{x:Reference toValidationBehavior}"
+                             Path="IsValid"/>
+                    <Binding Path="IsTimeRangeValid"/>
+                </MultiBinding>
+            </Button.IsEnabled>
+        </Button>
+    </Grid>
+</toolkit:Popup>

@@ -2,14 +2,15 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Unicode;
 using AutoMapper;
 using Microsoft.Extensions.Options;
-using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.Result;
-using SubtitlesApp.Core.Services;
+using SubtitlesServer.Shared.Models;
+using SubtitlesServer.Shared.Result;
+using SubtitlesServer.Shared.Services;
 using SubtitlesServer.TranslationApi.Configs;
+using SubtitlesServer.TranslationApi.Helpers;
 using SubtitlesServer.TranslationApi.Interfaces;
 using SubtitlesServer.TranslationApi.Models;
 
@@ -17,21 +18,21 @@ namespace SubtitlesServer.TranslationApi.Services;
 
 public class LlmTranslationService : ITranslationService
 {
-    private readonly OllamaConfig _config;
+    private readonly LlmTranslationConfig _config;
     private readonly LanguageService _languageService;
     private readonly ILlmService _llmService;
     private readonly ILogger<LlmTranslationService> _logger;
     private readonly IMapper _mapper;
 
     public LlmTranslationService(
-        IOptions<OllamaConfig> ollamaOptions,
+        IOptions<LlmTranslationConfig> llmTranslationOptions,
         LanguageService languageService,
         ILlmService llmService,
         ILogger<LlmTranslationService> logger,
         IMapper mapper
     )
     {
-        _config = ollamaOptions.Value;
+        _config = llmTranslationOptions.Value;
         _languageService = languageService;
         _llmService = llmService;
         _logger = logger;
@@ -51,16 +52,20 @@ public class LlmTranslationService : ITranslationService
             return ListResult<SubtitleDto>.Failure(error);
         }
 
-        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
+        var chatHistory = CreateChatHistory(targetLanguage.Name);
+        var userPrompt = MakeUserPrompt(requestDto.SourceSubtitles);
+        var responseFormat = GetResponseFormat();
 
-        var llmResult = await _llmService.SendAsync(chatHistory, userPrompt);
+        var llmResult = await _llmService.SendChatAsync(chatHistory, userPrompt, responseFormat);
 
         if (llmResult.IsFailure)
         {
             return ListResult<SubtitleDto>.Failure(llmResult.Error);
         }
 
-        return DeserializeSubtitles(requestDto, llmResult.Value);
+        var translatedSubs = DeserializeSubtitles(llmResult.Value);
+
+        return ListResult<SubtitleDto>.Success(translatedSubs);
     }
 
     public AsyncEnumerableResult<SubtitleDto> TranslateAndStreamAsync(TranslationRequestDto requestDto)
@@ -76,10 +81,12 @@ public class LlmTranslationService : ITranslationService
             return AsyncEnumerableResult<SubtitleDto>.Failure(error);
         }
 
-        var (chatHistory, userPrompt) = CreateHistoryAndPrompt(requestDto, targetLanguage.Name);
+        var chatHistory = CreateChatHistory(targetLanguage.Name);
+        var userPrompt = MakeUserPrompt(requestDto.SourceSubtitles);
+        var responseFormat = GetResponseFormat();
 
         var pipe = new Pipe();
-        var llmResult = _llmService.StreamAsync(chatHistory, userPrompt);
+        var llmResult = _llmService.StreamChatAsync(chatHistory, userPrompt, responseFormat);
 
         if (llmResult.IsFailure)
         {
@@ -92,47 +99,50 @@ public class LlmTranslationService : ITranslationService
         return AsyncEnumerableResult<SubtitleDto>.Success(subtitlesEnumerable);
     }
 
-    private (List<LlmMessageDto> ChatHistory, string UserPrompt) CreateHistoryAndPrompt(
-        TranslationRequestDto translationRequestDto,
-        string languageName
-    )
+    #region Private Methods
+    private static JsonNode GetResponseFormat()
     {
-        var systemPrompt = string.Format(_config.DefaultSystemPrompt, languageName);
-        var userPrompt = SerializeSubtitlesToPrompt(translationRequestDto.SourceSubtitles);
+        var json = """
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Text": { "type": "string" },
+                  "StartTime": { "type": "string" },
+                  "EndTime": { "type": "string" },
+                  "LanguageCode": { "type": "string" }
+                },
+                "required": ["Text", "StartTime", "EndTime", "LanguageCode"],
+                "additionalProperties": false
+              }
+            }
+            """;
 
-        return ([new("system", systemPrompt)], userPrompt);
+        return JsonNode.Parse(json)!;
     }
 
-    private ListResult<SubtitleDto> DeserializeSubtitles(TranslationRequestDto requestDto, string llmResponse)
+    private List<LlmMessageDto> CreateChatHistory(string languageName)
     {
-        var llmTranslations = JsonSerializer.Deserialize<List<Translation>>(
-            llmResponse,
-            new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Arabic),
-            }
-        );
+        var systemPrompt = string.Format(_config.DefaultSystemPrompt, languageName);
 
-        if (llmTranslations?.Count != requestDto.SourceSubtitles.Count)
-        {
-            var error = new Error(
-                ErrorCode.BadGateway,
-                $"Sizes of source and translated subtitles lists do not match. Expected: {requestDto.SourceSubtitles.Count}, but was: {llmTranslations?.Count}"
-            );
-            return ListResult<SubtitleDto>.Failure(error);
-        }
+        return [new("system", systemPrompt)];
+    }
 
-        if (!ValidateTranslations(requestDto, llmTranslations))
-        {
-            var error = new Error(ErrorCode.BadGateway, $"Original subtitles and translations do not match.");
-            return ListResult<SubtitleDto>.Failure(error);
-        }
-
-        var translatedSubtitlesDtos = _mapper.Map<List<SubtitleDto>>(requestDto.SourceSubtitles);
-        _mapper.Map(llmTranslations, translatedSubtitlesDtos);
-
-        return ListResult<SubtitleDto>.Success(translatedSubtitlesDtos);
+    private static List<SubtitleDto> DeserializeSubtitles(string llmResponse)
+    {
+        return JsonSerializer.Deserialize<List<SubtitleDto>>(
+                llmResponse,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.Create(
+                        UnicodeRanges.BasicLatin,
+                        UnicodeRanges.Cyrillic,
+                        UnicodeRanges.Arabic
+                    ),
+                }
+            ) ?? [];
     }
 
     private async IAsyncEnumerable<SubtitleDto> DeserializeSubtitlesFromStreamAsync(
@@ -172,10 +182,10 @@ public class LlmTranslationService : ITranslationService
         }
     }
 
-    private string SerializeSubtitlesToPrompt(List<SubtitleDto> subtitlesDtos)
+    private static string MakeUserPrompt(List<SubtitleDto> subtitlesDtos)
     {
         var serializedSubtitles = JsonSerializer.Serialize(
-            _mapper.Map<List<Translation>>(subtitlesDtos),
+            subtitlesDtos,
             new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -183,25 +193,8 @@ public class LlmTranslationService : ITranslationService
             }
         );
 
-        var rawPrompt =
-            @"Translate the following subtitles:
-{0}";
+        var rawPrompt = @"Translate the following subtitles:{0}";
         return string.Format(rawPrompt, serializedSubtitles);
-    }
-
-    private static bool ValidateTranslations(TranslationRequestDto requestDto, List<Translation> translations)
-    {
-        for (int i = 0; i < translations.Count; i++)
-        {
-            var translation = translations[i];
-
-            if (requestDto.TargetLanguageCode != translation?.LanguageCode)
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     // Besides of just writing, this method does additional buffering to increase the size of written chunks,
@@ -246,4 +239,6 @@ public class LlmTranslationService : ITranslationService
             stringBuffer.Clear();
         }
     }
+
+    #endregion
 }

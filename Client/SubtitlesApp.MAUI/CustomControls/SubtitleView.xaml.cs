@@ -55,14 +55,4 @@ public partial class SubtitleView : ContentView
             subtitleView.BindingContext = newValue;
         }
     }
-
-    private void OnSwipedRight(object sender, EventArgs e)
-    {
-        SubtitleSource?.SwitchToTranslation();
-    }
-
-    private void OnSwipedLeft(object sender, EventArgs e)
-    {
-        SubtitleSource?.RestoreOriginalLanguage();
-    }
 }
