@@ -44,16 +44,23 @@ public class TranscriptionService(
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        var lastEmittedEndTime = TimeSpan.Zero;
+        var subIntervalStart = timeInterval.StartTime;
+        var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
 
-        foreach (var subInterval in timeInterval.Split(settings.SubIntervalSize, settings.OverlapSize))
+        while (subIntervalStart < timeInterval.EndTime)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 yield break;
             }
 
-            var subtitlesResult = await TranscribeAsyncInternal(mediaPath, subInterval, languageCode, cancellationToken);
+            var subtitlesResult = await TranscribeAsyncInternal(
+                mediaPath,
+                subIntervalStart,
+                subIntervalEnd,
+                languageCode,
+                cancellationToken
+            );
 
             if (subtitlesResult.IsFailure)
             {
@@ -61,38 +68,42 @@ public class TranscriptionService(
                 yield break;
             }
 
+            subIntervalStart = subIntervalEnd;
+            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
+
             var subtitles = subtitlesResult.Value;
+
+            // implement overlapping by expanding the sub-interval start time backwards by one subtitle
+            // not applicable if there is 0 or 1 subtitle in the sub-interval
+            // also not applicable if the current sub-interval is the last one
+            if (subtitles.Count > 1 && subIntervalEnd < timeInterval.EndTime)
+            {
+                subIntervalStart = subtitles.Last().StartTime;
+            }
 
             foreach (var subtitle in subtitles)
             {
-                if (subtitle.EndTime <= lastEmittedEndTime + settings.Epsilon)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    continue;
+                    yield break;
                 }
-                else
-                {
-                    yield return Result<SubtitleDto>.Success(subtitle);
-                    lastEmittedEndTime = subtitle.EndTime;
-                }
+
+                yield return Result<SubtitleDto>.Success(subtitle);
             }
         }
     }
 
     private async Task<ListResult<SubtitleDto>> TranscribeAsyncInternal(
         string mediaPath,
-        TimeInterval timeInterval,
+        TimeSpan startTime,
+        TimeSpan endTime,
         string languageCode,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            var audio = await audioExtractor.ExtractAudioAsync(
-                mediaPath,
-                timeInterval.StartTime,
-                timeInterval.EndTime,
-                cancellationToken
-            );
+            var audio = await audioExtractor.ExtractAudioAsync(mediaPath, startTime, endTime, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -103,9 +114,9 @@ public class TranscriptionService(
                 return ListResult<SubtitleDto>.Failure(transcriptionResult.Error);
             }
 
-            if (timeInterval.StartTime != TimeSpan.Zero)
+            if (startTime != TimeSpan.Zero)
             {
-                AlignSubsByTime(transcriptionResult.Value, timeInterval.StartTime);
+                AlignSubsByTime(transcriptionResult.Value, startTime);
             }
 
             return ListResult<SubtitleDto>.Success(transcriptionResult.Value);
@@ -130,4 +141,7 @@ public class TranscriptionService(
             subtitleDto.EndTime += timeOffset;
         }
     }
+
+    private TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime) =>
+        maxEndTime >= startTime + settings.SubIntervalSize ? maxEndTime : startTime + settings.SubIntervalSize;
 }

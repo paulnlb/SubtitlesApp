@@ -53,7 +53,7 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
                 new()
                 {
                     LanguageCode = apiResult.Language,
-                    Text = segment.Text,
+                    Text = segment.Text.TrimStart(),
                     StartTime = segment.StartTime,
                     EndTime = segment.EndTime,
                 }

@@ -39,12 +39,21 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     [RelayCommand]
     public async Task Save()
     {
-        await openAiSettings.SetApiKey(OpenAiApiKey);
+        if (OpenAiApiKey != SampleApiKey)
+        {
+            await openAiSettings.SetApiKey(OpenAiApiKey);
+        }
+
         openAiSettings.Endpoint = OpenAiEndpoint;
         openAiSettings.Model = OpenAiModel;
-        await transcriptionSettings.SetApiKey(TranscriptionApiKey);
+
+        if (TranscriptionApiKey != SampleApiKey)
+        {
+            await transcriptionSettings.SetApiKey(TranscriptionApiKey);
+        }
         transcriptionSettings.Endpoint = TranscriptionEndpoint;
         transcriptionSettings.Model = TranscriptionModel;
+        IsDirty = false;
     }
 
     [RelayCommand]
