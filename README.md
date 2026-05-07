@@ -17,8 +17,10 @@ Inside the app, users can:
 - Interact with the subtitle list: scroll through it and double-tap a subtitle to rewind the video;
 - Hide or reveal the subtitle list using swipe gestures.
 
-Subtitles are displayed in a scrollable list that is automatically synchronized with the current video playback. The list can also be manually scrolled and hidden or revealed when needed.\
-For video transcription, the app relies on an OpenAI-compatible transcription API. You can configure the model, endpoint (including local/self-hosted servers), and API key.\
+Subtitles are displayed in a scrollable list that is automatically synchronized with the current video playback. The list can also be manually scrolled and hidden or revealed when needed.
+
+For video transcription, the app relies on an OpenAI-compatible transcription API. You can configure the model, endpoint (including local/self-hosted servers), and API key.
+
 For translation, the app relies on the OpenAI-compatible `/responses` API. The app uses LLMs for subtitle translation because even small locally hosted models can provide fluent translations and broad language support. You can configure the model, endpoint (including local/self-hosted servers), and API key.
 
 
