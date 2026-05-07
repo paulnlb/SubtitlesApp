@@ -1,58 +1,26 @@
 # SubtitlesApp
 
-SubtitlesApp is a full-stack .NET application that uses AI tools to generate and translate subtitles for any video.
+SubtitlesApp is a .NET MAUI mobile application that uses AI tools to generate subtitles for any video, translate them into multiple languages, and display them as a navigable collection, similar to a deck of cards.
 
-<img src="https://github.com/user-attachments/assets/c47a804b-c9cf-428e-b13b-6adb7d9b8a91" width="900"/>
+<img width="900" alt="SubAppPreview" src="https://github.com/user-attachments/assets/53e7db25-70c9-485e-aefd-a4e62cb0b3a4" />
 
-## Tech stack
-- Client app: .NET MAUI application;
-- Backends: ASP.NET Core WebApi applications. 
+## Supported Platforms
+✅ Android\
+❌ Everything else
 
-## SubtitlesApp Client
-
-### Features
-Inside the client app, a user can:
+## Features
+Inside the app, users can:
 - Play local or remote videos;
-- See generated subtitles for any video;
-- Hide or show subtitles by swiping the player;
-- Translate subtitles;
-- Hide or show translation for each subtitle by swipe;
-- Set languages for subtitles/translations.
-- Register or log in to access protected transcription and translation APIs;
+- Generate subtitles for any video by selecting the start time, end time, and optionally the source language;
+- Translate subtitles into multiple languages;
+- Instantly switch between original subtitles and their translations;
+- Interact with the subtitle list: scroll through it and double-tap a subtitle to rewind the video;
+- Hide or reveal the subtitle list using swipe gestures.
 
-Subtitles are shown inside a scrollable list which is automatically synchronized with the current video playback.
+Subtitles are displayed in a scrollable list that is automatically synchronized with the current video playback. The list can also be manually scrolled and hidden or revealed when needed.\
+For video transcription, the app relies on an OpenAI-compatible transcription API. You can configure the model, endpoint (including local/self-hosted servers), and API key.\
+For translation, the app relies on the OpenAI-compatible `/responses` API. The app uses LLMs for subtitle translation because even small locally hosted models can provide fluent translations and broad language support. You can configure the model, endpoint (including local/self-hosted servers), and API key.
 
-To simulate near real-time transcription during video playback, the app extracts portions of the video (60 seconds by default) in the background, converts them to audio, resamples them, and then sends them to the backend.
 
-### Platforms:
- ✅ Android;\
- ❌ iOS.
 
-### Important note about FfmpegAndroidBinding
-[FfmpegAndroidBinding](https://github.com/paulnlb/SubtitlesApp/tree/master/Client/FfmpegAndroidBinding) allows to use FfmpegKit API inside the .NET Maui application.
 
-**BUT**, it won't work until you add the following files to the [Jars](https://github.com/paulnlb/SubtitlesApp/tree/master/Client/FfmpegAndroidBinding/Jars) directory:
-- [ffmpeg-kit-full-6.0-2.LTS.aar](https://github.com/arthenica/ffmpeg-kit/releases/download/v6.0.LTS/ffmpeg-kit-full-6.0-2.LTS.aar)
-- [smart-exception-common-0.2.1.jar](https://github.com/tanersener/smart-exception/releases/download/v0.2.1/smart-exception-common-0.2.1.jar)
-- [smart-exception-java-0.2.1.jar](https://github.com/tanersener/smart-exception/releases/download/v0.2.1/smart-exception-java-0.2.1.jar)
-
-After adding these binaries, build the FfmpegAndroidBinding project.
-
-## SubtitlesApp Server
-
-Back-end part is a set of multiple ASP.NET Core web apps. Each of them is responsible for different things:
-- **SubtitlesServer.WhisperApi** - Hosts OpenAI Whisper models and exposes API for transcription. It can be easily configured to use different Whisper sizes and quantizations.
-- **SubtitlesServer.TranslationApi** - forms prompts and connects to an LLM server to provide translations for batches of subtitles, taking their common context into account. Since LLM speed may be a bottleneck, TranslationApi supports streaming translated subtitles to the client one by one. TranslationApi can be configured to use any LLM hosted in Ollama or any OpenAI-compatible API server.
-- **SubtitlesServer.IdentityApi** - IdentityServer project, responsible for authentication and authorization accross the APIs;
-- **SubtitlesServer.BFF** - reverse proxy which redirects client requests to all of the above.
-
-> Note the difference: while TranslationApi forms prompts, interacts with an external API and processes its responses, WhisperApi, in contrast, works with models directly via Whisper.net library. 
-
-### Available OpenAI Whisper models
-https://github.com/openai/whisper?tab=readme-ov-file#available-models-and-languages
-
-### Available Ollama LLMs
-https://ollama.com/search
-
-### OpenAI models
-https://platform.openai.com/docs/models
