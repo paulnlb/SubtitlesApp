@@ -151,16 +151,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
             case GestureStatus.Running:
 
-                // Handle the special case for Android: e.TotalY is reset to 0 when the position of a sender changed.
-                // In that case, e.TotalY becomes deltaY, so we need to maintain an additional "totalY" variable
-                if (DeviceInfo.Platform == DevicePlatform.Android && sender == subtitlesCollection)
-                {
-                    totalY += e.TotalY;
-                }
-                else
-                {
-                    totalY = e.TotalY;
-                }
+                totalY = e.TotalY;
 
                 subtitlesCollection.TranslationY = Math.Clamp(
                     subtitlesLastTranslateY + totalY,
@@ -265,16 +256,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 break;
             case GestureStatus.Running:
 
-                // Handle the special case for Android: e.TotalX is reset to 0 when the position of a sender changed.
-                // In that case, e.TotalX becomes deltaX, so we need to maintain an additional "totalX" variable
-                if (DeviceInfo.Platform == DevicePlatform.Android && sender == subtitlesCollection)
-                {
-                    totalX += e.TotalX;
-                }
-                else
-                {
-                    totalX = e.TotalX;
-                }
+                totalX = e.TotalX;
 
                 subtitlesCollection.TranslationX = Math.Clamp(
                     subtitlesLastTranslateX + totalX,

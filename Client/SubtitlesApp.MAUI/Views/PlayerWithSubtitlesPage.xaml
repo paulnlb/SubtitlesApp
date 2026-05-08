@@ -24,7 +24,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <layouts:AdaptiveLayout>
+    <layouts:AdaptiveLayout SafeAreaEdges="None">
         <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"

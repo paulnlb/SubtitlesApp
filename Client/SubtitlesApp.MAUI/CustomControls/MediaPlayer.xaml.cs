@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Input;
-using CommunityToolkit.Maui.Core.Primitives;
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.Messaging;
 using SubtitlesApp.Messages;
