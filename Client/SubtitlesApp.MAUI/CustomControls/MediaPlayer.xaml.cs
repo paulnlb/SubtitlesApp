@@ -3,6 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.Messaging;
+using SubtitlesApp.Helpers;
 using SubtitlesApp.Messages;
 
 namespace SubtitlesApp.CustomControls;
@@ -184,6 +185,56 @@ public partial class MediaPlayer : ContentView
         MauiMediaElement.PropertyChanged -= MediaElementPropertyChanged;
         MauiMediaElement.Handler?.DisconnectHandler();
         StrongReferenceMessenger.Default.Unregister<SeekToPositionMessage>(this);
+    }
+
+    /// <summary>
+    /// Gets the bounds of the media within the MediaElement.
+    /// </summary>
+    /// <returns></returns>
+    public Rect GetMediaBounds()
+    {
+        if (MediaWidth == 0 || MediaHeight == 0)
+        {
+            return Rect.Zero;
+        }
+
+        var mediaAspectRatio = (double)MediaWidth / MediaHeight;
+        var controlAspectRatio = MauiMediaElement.Width / MauiMediaElement.Height;
+
+        double displayedMediaWidth,
+            displayedMediaHeight;
+
+        if (mediaAspectRatio > controlAspectRatio)
+        {
+            // Media is wider than the control, so it will be letterboxed on the top and bottom
+            displayedMediaWidth = MauiMediaElement.Width;
+            displayedMediaHeight = MauiMediaElement.Width / mediaAspectRatio;
+        }
+        else
+        {
+            // Media is taller than the control, so it will be letterboxed on the left and right
+            displayedMediaHeight = MauiMediaElement.Height;
+            displayedMediaWidth = MauiMediaElement.Height * mediaAspectRatio;
+        }
+
+        var x = (MauiMediaElement.Width - displayedMediaWidth) / 2;
+        var y = (MauiMediaElement.Height - displayedMediaHeight) / 2;
+
+        return new Rect(x, y, displayedMediaWidth, displayedMediaHeight);
+    }
+
+    public void Transform(Transformation transformation)
+    {
+        Scale = transformation.Scale;
+        TranslationX = transformation.TranslateX;
+        TranslationY = transformation.TranslateY;
+    }
+
+    public void ResetTransformations()
+    {
+        Scale = 1;
+        TranslationX = 0;
+        TranslationY = 0;
     }
 
     #endregion

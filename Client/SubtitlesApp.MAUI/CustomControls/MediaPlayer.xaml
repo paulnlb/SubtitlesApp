@@ -6,12 +6,13 @@
              x:Class="SubtitlesApp.CustomControls.MediaPlayer"
              x:Name="this">
     <ContentView.Resources>
-        <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
-        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
+        <converters:SecondsToStringConverter x:Key="SecondsToStringConverter"/>
+        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter"/>
+        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter"/>
     </ContentView.Resources>
 
-    <Grid BindingContext="{x:Reference this}">
+    <Grid BindingContext="{x:Reference this}"
+          SafeAreaEdges="None">
         <toolkit:MediaElement x:Name="MauiMediaElement"
                               Aspect="AspectFit"
                               Source="{Binding MediaPath}"
@@ -22,10 +23,10 @@
             <toolkit:MediaElement.Behaviors>
                 <toolkit:EventToCommandBehavior EventName="PositionChanged"
                                                 Command="{Binding PositionChangedCommand}"
-                                                CommandParameter="{Binding PositionChangedCommandParameter}" />
+                                                CommandParameter="{Binding PositionChangedCommandParameter}"/>
                 <toolkit:EventToCommandBehavior EventName="SeekCompleted"
                                                 Command="{Binding SeekCompletedCommand}"
-                                                CommandParameter="{Binding SeekCompletedCommandParameter}" />
+                                                CommandParameter="{Binding SeekCompletedCommandParameter}"/>
             </toolkit:MediaElement.Behaviors>
         </toolkit:MediaElement>
 
@@ -44,7 +45,7 @@
                    LineBreakMode="TailTruncation"
                    VerticalOptions="Center"
                    HorizontalOptions="Start"
-                   FontSize="16" />
+                   FontSize="16"/>
 
             <!--Second Row 
              Button for Rewind, Play/Pause, and Forward-->
@@ -55,7 +56,7 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Center"
                     BackgroundColor="#33FFFFFF"
-                    Clicked="OnRewindTapped" />
+                    Clicked="OnRewindTapped"/>
 
             <Button ImageSource="play_icon.png"
                     HeightRequest="50"
@@ -70,19 +71,19 @@
                                  Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
                                  Value="Paused">
                         <Setter Property="ImageSource"
-                                Value="play_icon.png" />
+                                Value="play_icon.png"/>
                     </DataTrigger>
                     <DataTrigger TargetType="Button"
                                  Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
                                  Value="Playing">
                         <Setter Property="ImageSource"
-                                Value="pause_icon.png" />
+                                Value="pause_icon.png"/>
                     </DataTrigger>
                     <DataTrigger TargetType="Button"
                                  Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
                                  Value="Buffering">
                         <Setter Property="IsVisible"
-                                Value="False" />
+                                Value="False"/>
                     </DataTrigger>
                 </Button.Triggers>
             </Button>
@@ -96,7 +97,7 @@
                                  Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
                                  Value="Buffering">
                         <Setter Property="IsRunning"
-                                Value="True" />
+                                Value="True"/>
                     </DataTrigger>
                 </ActivityIndicator.Triggers>
             </ActivityIndicator>
@@ -108,7 +109,7 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Center"
                     BackgroundColor="#33FFFFFF"
-                    Clicked="OnFastForwardTapped" />
+                    Clicked="OnFastForwardTapped"/>
 
             <!--Third Row 
              Time display-->
@@ -122,10 +123,10 @@
                     <MultiBinding StringFormat="{}{0}/{1}">
                         <Binding Path="Value"
                                  Source="{x:Reference PositionSlider}"
-                                 Converter="{StaticResource SecondsToStringConverter}" />
+                                 Converter="{StaticResource SecondsToStringConverter}"/>
                         <Binding Path="Maximum"
                                  Source="{x:Reference PositionSlider}"
-                                 Converter="{StaticResource SecondsToStringConverter}" />
+                                 Converter="{StaticResource SecondsToStringConverter}"/>
                     </MultiBinding>
                 </Label.Text>
             </Label>
@@ -138,7 +139,7 @@
                     VerticalOptions="Center"
                     MaximumTrackColor="White"
                     DragStarted="OnDragStarted"
-                    DragCompleted="OnDragCompleted" />
+                    DragCompleted="OnDragCompleted"/>
         </Grid>
     </Grid>
 </ContentView>

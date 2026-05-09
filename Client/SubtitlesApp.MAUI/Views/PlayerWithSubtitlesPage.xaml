@@ -24,7 +24,10 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <layouts:AdaptiveLayout SafeAreaEdges="None">
+    <layouts:AdaptiveLayout
+        Margin="0,48,0,0"
+        x:Name="adaptiveLayout"
+        SafeAreaEdges="None">
         <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
@@ -33,11 +36,7 @@
                                     Duration="{Binding MediaDuration, Mode=OneWayToSource}"
                                     PlayerControlsVisible="{Binding PlayerControlsVisible}"
                                     PositionChangedCommand="{Binding PositionChangedCommand}"
-                                    PositionChangedCommandParameter="{Binding Source={x:RelativeSource Self}, Path=Position}"
-                                    MediaHeight="{Binding LayoutSettings.VideoHeightPx, Mode=OneWayToSource}"
-                                    MediaWidth="{Binding LayoutSettings.VideoWidthPx, Mode=OneWayToSource}"
-                                    layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.PlayerRelativeHorizontalLength}"
-                                    layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.PlayerRelativeVerticalLength}">
+                                    PositionChangedCommandParameter="{Binding Source={x:RelativeSource Self}, Path=Position}">
 
             <customControls:MediaPlayer.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}"/>
@@ -47,11 +46,11 @@
 
         <!--Subtitles section-->
         <Grid x:Name="subtitlesCollection"
+              SafeAreaEdges="None"
               RowDefinitions="50, *"
               ColumnDefinitions="11*, Auto, Auto"
               Padding="5, 0"
-              layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding LayoutSettings.SubtitlesRelativeHorizontalLength}"
-              layouts:AdaptiveLayout.RelativeVerticalLength="{Binding LayoutSettings.SubtitlesRelativeVerticalLength}">
+              BackgroundColor="#1f1e1e">
 
             <Grid.GestureRecognizers>
                 <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated"/>

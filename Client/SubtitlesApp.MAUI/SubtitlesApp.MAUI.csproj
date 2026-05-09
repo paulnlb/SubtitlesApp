@@ -28,18 +28,10 @@
     <ApplicationDisplayVersion>0.4.6</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'"
-      >21.0</SupportedOSPlatformVersion
-    >
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'"
-      >10.0.17763.0</SupportedOSPlatformVersion
-    >
-    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'"
-      >10.0.17763.0</TargetPlatformMinVersion
-    >
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'"
-      >13.0</SupportedOSPlatformVersion
-    >
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
@@ -155,5 +147,9 @@
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavformat.so" />
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavutil.so" />
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libswresample.so" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Helpers/" />
   </ItemGroup>
 </Project>
