@@ -11,8 +11,7 @@
         <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter"/>
     </ContentView.Resources>
 
-    <Grid BindingContext="{x:Reference this}"
-          SafeAreaEdges="None">
+    <Grid BindingContext="{x:Reference this}">
         <toolkit:MediaElement x:Name="MauiMediaElement"
                               Aspect="AspectFit"
                               Source="{Binding MediaPath}"

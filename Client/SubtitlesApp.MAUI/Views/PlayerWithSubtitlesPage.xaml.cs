@@ -27,6 +27,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         BindingContext = viewModel;
 
+        SafeAreaHelper.DisableSafeAreas(this);
+
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
 
         viewModel.SubsScrollRequested += OnSubScrollRequested;
@@ -82,8 +84,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void PanGestureRecognizer_PanUpdated(object sender, PanUpdatedEventArgs e)
     {
-        var vm = (PlayerWithSubtitlesViewModel)BindingContext;
-        vm.PlayerControlsVisible = false;
+        if (e.StatusType == GestureStatus.Started && BindingContext is PlayerWithSubtitlesViewModel vm)
+        {
+            vm.PlayerControlsVisible = false;
+        }
 
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
         {
@@ -177,8 +181,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 totalY = 0;
                 if (playerOriginalHeight == 0)
                 {
-                    playerOriginalHeight =
-                        AdaptiveLayout.GetRelativeVerticalLength(mediaPlayer)!.Value * adaptiveLayout.Height;
+                    playerOriginalHeight = mediaPlayer.Height;
                 }
                 break;
             case GestureStatus.Running:

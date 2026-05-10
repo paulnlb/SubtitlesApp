@@ -14,7 +14,8 @@
              Shell.NavBarIsVisible="false"
              x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
              x:DataType="viewModels:PlayerWithSubtitlesViewModel"
-             x:Name="playerSubtitlesPage">
+             x:Name="playerSubtitlesPage"
+             Padding="0,48,0,0">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -25,9 +26,7 @@
     </ContentPage.Resources>
 
     <layouts:AdaptiveLayout
-        Margin="0,48,0,0"
-        x:Name="adaptiveLayout"
-        SafeAreaEdges="None">
+        x:Name="adaptiveLayout">
         <!--Media player-->
         <customControls:MediaPlayer x:Name="mediaPlayer"
                                     MediaPath="{Binding MediaPath}"
@@ -46,7 +45,6 @@
 
         <!--Subtitles section-->
         <Grid x:Name="subtitlesCollection"
-              SafeAreaEdges="None"
               RowDefinitions="50, *"
               ColumnDefinitions="11*, Auto, Auto"
               Padding="5, 0"
@@ -127,20 +125,10 @@
                                                    IsVisible="{Binding IsBusy}"/>
                             </customControls:ExdendedVirtualList.GlobalFooter>
                             <customControls:ExdendedVirtualList.EmptyView>
-                                <VerticalStackLayout>
-                                    <Label Text="To see subtitles here, click the transcription button."
-                                           Style="{StaticResource Headline}"
-                                           HorizontalOptions="Center"
-                                           FontSize="20"
-                                           Margin="10, 10"
-                                           IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}"/>
-                                    <Label Text="Generating subtitles, wait a little bit..."
-                                           Style="{StaticResource Headline}"
-                                           HorizontalOptions="Center"
-                                           FontSize="20"
-                                           Margin="10, 10"
-                                           IsVisible="{Binding IsBusy}"/>
-                                </VerticalStackLayout>
+                                <Label Text="To see subtitles here, click the transcription button."
+                                       Style="{StaticResource Headline}"
+                                       FontSize="20"
+                                       Padding="10, 40"/>
                             </customControls:ExdendedVirtualList.EmptyView>
                         </customControls:ExdendedVirtualList>
                     </material:TabItem.Content>
@@ -168,20 +156,12 @@
                                                    IsVisible="{Binding IsBusy}"/>
                             </customControls:ExdendedVirtualList.GlobalFooter>
                             <customControls:ExdendedVirtualList.EmptyView>
-                                <VerticalStackLayout>
-                                    <Label Text="To see translations here, click the translation button."
-                                           Style="{StaticResource Headline}"
-                                           HorizontalOptions="Center"
-                                           FontSize="20"
-                                           Margin="10, 10"
-                                           IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}"/>
-                                    <Label Text="Generating subtitles, wait a little bit..."
-                                           Style="{StaticResource Headline}"
-                                           HorizontalOptions="Center"
-                                           FontSize="20"
-                                           Margin="10, 10"
-                                           IsVisible="{Binding IsBusy}"/>
-                                </VerticalStackLayout>
+                                <Label Text="To see translations here, click the translation button."
+                                       Style="{StaticResource Headline}"
+                                       HorizontalOptions="Center"
+                                       FontSize="20"
+                                       Padding="10, 40"
+                                       IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}"/>
                             </customControls:ExdendedVirtualList.EmptyView>
                         </customControls:ExdendedVirtualList>
                     </material:TabItem.Content>
