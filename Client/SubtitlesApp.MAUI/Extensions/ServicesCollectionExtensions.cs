@@ -7,6 +7,7 @@ using SubtitlesApp.CustomControls.Popups;
 using SubtitlesApp.Infrastructure.HttpClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.Interfaces.Settings;
 using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
@@ -55,6 +56,9 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
         services.AddSingleton<ISettingsService, SettingsService>();
+
+        // Use transient because layout settings have to be reset to defaults after the page is reopened
+        services.AddTransient<ILayoutSettings, LayoutSettings>();
 
         #endregion
 

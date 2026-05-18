@@ -1,7 +1,7 @@
-﻿using SubtitlesApp.Interfaces;
-using SubtitlesApp.Interfaces.Socket;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using SubtitlesApp.Interfaces.Settings;
+using SubtitlesApp.Interfaces.Socket;
 using Socket = System.Net.Sockets.Socket;
 
 namespace SubtitlesApp.Services.Sockets;
@@ -17,7 +17,8 @@ public class UnixSocketListener : ISocketListener
     {
         _endpoint = settings.UnixSocketPath;
 
-        if (File.Exists(_endpoint)) File.Delete(_endpoint);
+        if (File.Exists(_endpoint))
+            File.Delete(_endpoint);
 
         _udSocket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
     }
@@ -41,7 +42,10 @@ public class UnixSocketListener : ISocketListener
         _isListening = true;
     }
 
-    public async IAsyncEnumerable<byte[]> ReceiveAsync(int chunkSize, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<byte[]> ReceiveAsync(
+        int chunkSize,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         if (!_isListening)
         {
@@ -56,18 +60,21 @@ public class UnixSocketListener : ISocketListener
 
         try
         {
-            while ((bytesRead =
-                await acceptedSocket.ReceiveAsync(
-                    new ArraySegment<byte>(buffer),
-                    SocketFlags.None,
-                    cancellationToken)) > 0)
+            while (
+                (
+                    bytesRead = await acceptedSocket.ReceiveAsync(
+                        new ArraySegment<byte>(buffer),
+                        SocketFlags.None,
+                        cancellationToken
+                    )
+                ) > 0
+            )
             {
                 byte[] chunk = new byte[bytesRead];
                 Array.Copy(buffer, chunk, bytesRead);
                 yield return chunk;
             }
         }
-
         finally
         {
             acceptedSocket.Shutdown(SocketShutdown.Both);

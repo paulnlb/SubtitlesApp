@@ -1,6 +1,6 @@
-﻿using SubtitlesApp.Interfaces;
+﻿using System.Net.Sockets;
+using SubtitlesApp.Interfaces.Settings;
 using SubtitlesApp.Interfaces.Socket;
-using System.Net.Sockets;
 
 namespace SubtitlesApp.Services.Sockets;
 
@@ -90,7 +90,8 @@ public class UnixSocketSender : ISocketSender
             bytesSent += await _udSocket.SendAsync(
                 new ArraySegment<byte>(bytes, bytesSent, bytes.Length - bytesSent),
                 SocketFlags.None,
-                cancellationToken);
+                cancellationToken
+            );
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.Messaging;
-using SubtitlesApp.Helpers;
 using SubtitlesApp.Messages;
 
 namespace SubtitlesApp.CustomControls;
@@ -221,20 +220,6 @@ public partial class MediaPlayer : ContentView
         var y = (MauiMediaElement.Height - displayedMediaHeight) / 2;
 
         return new Rect(x, y, displayedMediaWidth, displayedMediaHeight);
-    }
-
-    public void Transform(Transformation transformation)
-    {
-        Scale = transformation.Scale;
-        TranslationX = transformation.TranslateX;
-        TranslationY = transformation.TranslateY;
-    }
-
-    public void ResetTransformations()
-    {
-        Scale = 1;
-        TranslationX = 0;
-        TranslationY = 0;
     }
 
     #endregion
