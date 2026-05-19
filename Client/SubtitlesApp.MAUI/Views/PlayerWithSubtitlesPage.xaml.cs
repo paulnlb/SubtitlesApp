@@ -246,18 +246,15 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void AnimateBounceBackVertical()
     {
-        var animation = new Animation(VerticalVirtualResize, subtitlesCollection.TranslationY, 0);
-
-        animation.Commit(mediaPlayer, "BounceBackVertical", easing: Easing.Linear);
+        NativeAnimation.Animate(subtitlesCollection.TranslationY, 0, VerticalVirtualResize, easing: Easing.Linear);
     }
 
     private void AnimateExitFullScreenVertical()
     {
-        var animation = new Animation(VerticalVirtualResize, subtitlesCollection.TranslationY, -subtitlesCollection.Height);
-
-        animation.Commit(
-            mediaPlayer,
-            "ExitFullScreenVertical",
+        NativeAnimation.Animate(
+            subtitlesCollection.TranslationY,
+            -subtitlesCollection.Height,
+            VerticalVirtualResize,
             easing: Easing.Linear,
             finished: (_, _) =>
             {
@@ -274,11 +271,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void AnimateFullScreenVertical()
     {
-        var animation = new Animation(VerticalVirtualResize, subtitlesCollection.TranslationY, subtitlesCollection.Height);
-
-        animation.Commit(
-            mediaPlayer,
-            "FullScreenVertical",
+        NativeAnimation.Animate(
+            subtitlesCollection.TranslationY,
+            subtitlesCollection.Height,
+            VerticalVirtualResize,
             easing: Easing.Linear,
             finished: (_, _) =>
             {
@@ -372,18 +368,15 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void AnimateBounceBackHorizontal()
     {
-        var animation = new Animation(HorizontalVirtualResize, subtitlesCollection.TranslationX, 0);
-
-        animation.Commit(mediaPlayer, "BounceBackHorizontal", easing: Easing.Linear);
+        NativeAnimation.Animate(subtitlesCollection.TranslationX, 0, HorizontalVirtualResize, easing: Easing.Linear);
     }
 
     private void AnimateExitFullScreenHorizontal()
     {
-        var animation = new Animation(HorizontalVirtualResize, subtitlesCollection.TranslationX, -subtitlesCollection.Width);
-
-        animation.Commit(
-            mediaPlayer,
-            "ExitFullScreenHorizontal",
+        NativeAnimation.Animate(
+            subtitlesCollection.TranslationX,
+            -subtitlesCollection.Width,
+            HorizontalVirtualResize,
             easing: Easing.Linear,
             finished: (_, _) =>
             {
@@ -397,11 +390,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void AnimateFullScreenHorizontal()
     {
-        var animation = new Animation(HorizontalVirtualResize, subtitlesCollection.TranslationX, subtitlesCollection.Width);
-
-        animation.Commit(
-            mediaPlayer,
-            "FullScreenHorizontal",
+        NativeAnimation.Animate(
+            subtitlesCollection.TranslationX,
+            subtitlesCollection.Width,
+            HorizontalVirtualResize,
             easing: Easing.Linear,
             finished: (_, _) =>
             {

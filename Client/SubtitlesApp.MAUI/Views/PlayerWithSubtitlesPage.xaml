@@ -79,16 +79,6 @@
         Margin="5,0,0,0"
         Command="{Binding TranscribeCommand}"
       />
-      <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
-      <BoxView
-        HeightRequest="30"
-        WidthRequest="30"
-        Margin="5,0,0,0"
-        Grid.Row="0"
-        Grid.Column="1"
-        CornerRadius="5"
-        BackgroundColor="#33FFFFFF"
-      ></BoxView>
 
       <!--Translate button-->
       <ImageButton
@@ -101,16 +91,6 @@
         Margin="5,0,0,0"
         Command="{Binding TranslateCommand}"
       />
-      <!--Ugly workaround for CornerRadius not working with Padding in ImageButton. Ref: https://github.com/dotnet/maui/issues/11874-->
-      <BoxView
-        HeightRequest="30"
-        WidthRequest="30"
-        Margin="5,0,0,0"
-        Grid.Row="0"
-        Grid.Column="2"
-        CornerRadius="5"
-        BackgroundColor="#33FFFFFF"
-      ></BoxView>
 
       <material:TabView
         Grid.Row="1"

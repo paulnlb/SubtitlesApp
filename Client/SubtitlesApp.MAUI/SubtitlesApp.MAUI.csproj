@@ -148,8 +148,4 @@
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavutil.so" />
     <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libswresample.so" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Helpers/" />
-  </ItemGroup>
 </Project>
