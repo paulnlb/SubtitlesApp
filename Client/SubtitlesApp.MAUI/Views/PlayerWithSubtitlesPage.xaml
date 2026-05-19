@@ -42,7 +42,7 @@
     >
       <customControls:MediaPlayer.GestureRecognizers>
         <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-        <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
+        <PanGestureRecognizer x:Name="playerGestureRecognizer" />
       </customControls:MediaPlayer.GestureRecognizers>
     </customControls:MediaPlayer>
 
@@ -55,7 +55,7 @@
       BackgroundColor="#1f1e1e"
     >
       <Grid.GestureRecognizers>
-        <PanGestureRecognizer PanUpdated="PanGestureRecognizer_PanUpdated" />
+        <PanGestureRecognizer x:Name="subtitlesGestureRecognizer" />
       </Grid.GestureRecognizers>
 
       <Label

@@ -12,11 +12,10 @@ namespace SubtitlesApp.Views;
 public partial class PlayerWithSubtitlesPage : ContentPage
 {
     private double totalY = 0;
-
-    private double playerOriginalWidth = 0;
-    private double playerLastWidth = 0;
-    private double subtitlesLastTranslateX = 0;
     private double totalX = 0;
+
+    private bool isHorizontalFullScreen;
+    private bool isVerticalFullScreen;
 
     private const double PanThreshold = 100;
     private const double PlaceholderHeight = 48;
@@ -36,21 +35,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         viewModel.SubsScrollRequested += OnSubScrollRequested;
         viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
         mediaPlayer.PropertyChanged += OnMediaPlayerPropertyChanged;
-
-        layoutSettings.PlaceholderVerticalLength = PlaceholderHeight / Shell.Current.CurrentPage.Height;
-        layoutSettings.PlaceholderHorizontalLength = 0;
-
-        AdaptiveLayout.SetRelativeVerticalLength(placeholderView, layoutSettings.PlaceholderVerticalLength);
-        AdaptiveLayout.SetRelativeVerticalLength(mediaPlayer, layoutSettings.PlayerVerticalLength);
-        AdaptiveLayout.SetRelativeVerticalLength(
-            subtitlesCollection,
-            layoutSettings.SubtitlesVerticalLength - layoutSettings.PlaceholderVerticalLength
-        );
-        AdaptiveLayout.SetRelativeHorizontalLength(placeholderView, layoutSettings.PlaceholderHorizontalLength);
-        AdaptiveLayout.SetRelativeHorizontalLength(mediaPlayer, layoutSettings.PlayerHorizontalLength);
-        AdaptiveLayout.SetRelativeHorizontalLength(subtitlesCollection, layoutSettings.SubtitlesHoritzontalLength);
+        SubscribeToGestures();
 
         _layoutSettings = layoutSettings;
+
+        ConfigureLayout();
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -65,6 +54,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         vm.SubsScrollRequested += OnSubScrollRequested;
         vm.TranslationsScrollRequested += OnTranslationScrollRequested;
         mediaPlayer.PropertyChanged -= OnMediaPlayerPropertyChanged;
+        playerGestureRecognizer.PanUpdated -= HandlePanGestureHorizontal;
+        playerGestureRecognizer.PanUpdated -= HandlePanGestureVertical;
+        subtitlesGestureRecognizer.PanUpdated -= HandlePanGestureHorizontal;
+        subtitlesGestureRecognizer.PanUpdated -= HandlePanGestureVertical;
 
         base.OnNavigatedFrom(args);
     }
@@ -81,32 +74,15 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
-        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        SubscribeToGestures();
+
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait && !isVerticalFullScreen)
         {
             Controls.RestoreScreen();
         }
         else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
         {
             Controls.FullScreen();
-        }
-    }
-
-    // TODO: Instead of using this handler, subscribe the HandlePanGestureVertical or HandlePanGestureHorizontal
-    // handlers directly depending on the current device orientation
-    private void PanGestureRecognizer_PanUpdated(object sender, PanUpdatedEventArgs e)
-    {
-        if (e.StatusType == GestureStatus.Started && BindingContext is PlayerWithSubtitlesViewModel vm)
-        {
-            vm.PlayerControlsVisible = false;
-        }
-
-        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
-        {
-            HandlePanGestureVertical(sender, e);
-        }
-        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
-        {
-            HandlePanGestureHorizontal(sender, e);
         }
     }
 
@@ -184,20 +160,61 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         AdaptiveLayout.SetRelativeVerticalLength(subtitlesCollection, _layoutSettings.SubtitlesVerticalLength);
     }
 
+    private void ConfigureLayout()
+    {
+        _layoutSettings.PlaceholderVerticalLength = PlaceholderHeight / Shell.Current.CurrentPage.Height;
+        _layoutSettings.PlaceholderHorizontalLength = 0;
+
+        AdaptiveLayout.SetRelativeVerticalLength(placeholderView, _layoutSettings.PlaceholderVerticalLength);
+        AdaptiveLayout.SetRelativeVerticalLength(mediaPlayer, _layoutSettings.PlayerVerticalLength);
+        AdaptiveLayout.SetRelativeVerticalLength(
+            subtitlesCollection,
+            _layoutSettings.SubtitlesVerticalLength - _layoutSettings.PlaceholderVerticalLength
+        );
+        AdaptiveLayout.SetRelativeHorizontalLength(placeholderView, _layoutSettings.PlaceholderHorizontalLength);
+        AdaptiveLayout.SetRelativeHorizontalLength(mediaPlayer, _layoutSettings.PlayerHorizontalLength);
+        AdaptiveLayout.SetRelativeHorizontalLength(subtitlesCollection, _layoutSettings.SubtitlesHoritzontalLength);
+    }
+
+    private void SubscribeToGestures()
+    {
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        {
+            playerGestureRecognizer.PanUpdated -= HandlePanGestureHorizontal;
+            playerGestureRecognizer.PanUpdated += HandlePanGestureVertical;
+
+            subtitlesGestureRecognizer.PanUpdated -= HandlePanGestureHorizontal;
+            subtitlesGestureRecognizer.PanUpdated += HandlePanGestureVertical;
+        }
+        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
+        {
+            playerGestureRecognizer.PanUpdated -= HandlePanGestureVertical;
+            playerGestureRecognizer.PanUpdated += HandlePanGestureHorizontal;
+
+            subtitlesGestureRecognizer.PanUpdated -= HandlePanGestureVertical;
+            subtitlesGestureRecognizer.PanUpdated += HandlePanGestureHorizontal;
+        }
+    }
+
     #region handle vertical pan gesture
 
-    private void HandlePanGestureVertical(object sender, PanUpdatedEventArgs e)
+    private void HandlePanGestureVertical(object? sender, PanUpdatedEventArgs e)
     {
         switch (e.StatusType)
         {
             case GestureStatus.Started:
                 totalY = 0;
 
+                if (BindingContext is PlayerWithSubtitlesViewModel vm)
+                {
+                    vm.PlayerControlsVisible = false;
+                }
+
                 break;
             case GestureStatus.Running:
                 totalY = e.TotalY;
 
-                TransformLayoutVirtually(totalY);
+                VerticalVirtualResize(totalY);
 
                 break;
             case GestureStatus.Completed:
@@ -217,11 +234,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void ChangeFullScreenStatusVertical()
     {
-        if (!Controls.IsFullScreen && totalY > 0)
+        if (!isVerticalFullScreen && totalY > 0)
         {
             AnimateFullScreenVertical();
         }
-        else if (Controls.IsFullScreen && totalY < 0)
+        else if (isVerticalFullScreen && totalY < 0)
         {
             AnimateExitFullScreenVertical();
         }
@@ -229,18 +246,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void AnimateBounceBackVertical()
     {
-        var animation = new Animation(TransformLayoutVirtually, subtitlesCollection.TranslationY, 0);
+        var animation = new Animation(VerticalVirtualResize, subtitlesCollection.TranslationY, 0);
 
         animation.Commit(mediaPlayer, "BounceBackVertical", easing: Easing.Linear);
     }
 
     private void AnimateExitFullScreenVertical()
     {
-        var animation = new Animation(
-            TransformLayoutVirtually,
-            subtitlesCollection.TranslationY,
-            -subtitlesCollection.Height
-        );
+        var animation = new Animation(VerticalVirtualResize, subtitlesCollection.TranslationY, -subtitlesCollection.Height);
 
         animation.Commit(
             mediaPlayer,
@@ -254,17 +267,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 subtitlesCollection.ResetTransformations();
                 placeholderView.ResetTransformations();
                 Controls.RestoreScreen();
+                isVerticalFullScreen = false;
             }
         );
     }
 
     private void AnimateFullScreenVertical()
     {
-        var animation = new Animation(
-            TransformLayoutVirtually,
-            subtitlesCollection.TranslationY,
-            subtitlesCollection.Height
-        );
+        var animation = new Animation(VerticalVirtualResize, subtitlesCollection.TranslationY, subtitlesCollection.Height);
 
         animation.Commit(
             mediaPlayer,
@@ -278,13 +288,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 mediaPlayer.ResetTransformations();
                 subtitlesCollection.ResetTransformations();
                 placeholderView.ResetTransformations();
+                isVerticalFullScreen = true;
             }
         );
     }
 
-    private void TransformLayoutVirtually(double totalDeltaY)
+    private void VerticalVirtualResize(double totalDeltaY)
     {
-        if (Controls.IsFullScreen)
+        if (isVerticalFullScreen)
         {
             subtitlesCollection.TranslationY = Math.Clamp(totalDeltaY, -subtitlesCollection.Height, 0);
         }
@@ -314,34 +325,23 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     #region handle horizontal pan gesture
 
-    private void HandlePanGestureHorizontal(object sender, PanUpdatedEventArgs e)
+    private void HandlePanGestureHorizontal(object? sender, PanUpdatedEventArgs e)
     {
         switch (e.StatusType)
         {
             case GestureStatus.Started:
-                playerLastWidth = mediaPlayer.Width;
-                subtitlesLastTranslateX = subtitlesCollection.TranslationX;
                 totalX = 0;
-                if (playerOriginalWidth == 0)
+
+                if (BindingContext is PlayerWithSubtitlesViewModel vm)
                 {
-                    playerOriginalWidth =
-                        AdaptiveLayout.GetRelativeHorizontalLength(mediaPlayer)!.Value * Shell.Current.CurrentPage.Width;
+                    vm.PlayerControlsVisible = false;
                 }
+
                 break;
             case GestureStatus.Running:
-
                 totalX = e.TotalX;
 
-                subtitlesCollection.TranslationX = Math.Clamp(
-                    subtitlesLastTranslateX + totalX,
-                    0,
-                    subtitlesCollection.Width
-                );
-                mediaPlayer.WidthRequest = Math.Clamp(
-                    playerLastWidth + totalX,
-                    playerOriginalWidth,
-                    Shell.Current.CurrentPage.Width
-                );
+                HorizontalVirtualResize(totalX);
                 break;
             case GestureStatus.Completed:
 
@@ -358,61 +358,78 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
-    private void AnimateBounceBackHorizontal()
-    {
-        var animation = new Animation(
-            v =>
-            {
-                subtitlesCollection.TranslationX = v;
-                mediaPlayer.WidthRequest = playerOriginalWidth + v;
-            },
-            subtitlesCollection.TranslationX,
-            subtitlesLastTranslateX
-        );
-
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
-    }
-
     private void ChangeFullScreenStatusHorizontal()
     {
-        if (subtitlesLastTranslateX == 0 && totalX > 0)
+        if (!isHorizontalFullScreen && totalX > 0)
         {
             AnimateFullScreenHorizontal();
         }
-        else if (subtitlesLastTranslateX != 0 && totalX < 0)
+        else if (isHorizontalFullScreen && totalX < 0)
         {
             AnimateExitFullScreenHorizontal();
         }
     }
 
+    private void AnimateBounceBackHorizontal()
+    {
+        var animation = new Animation(HorizontalVirtualResize, subtitlesCollection.TranslationX, 0);
+
+        animation.Commit(mediaPlayer, "BounceBackHorizontal", easing: Easing.Linear);
+    }
+
     private void AnimateExitFullScreenHorizontal()
     {
-        var animation = new Animation(
-            v =>
-            {
-                subtitlesCollection.TranslationX = v;
-                mediaPlayer.WidthRequest = playerOriginalWidth + v;
-            },
-            subtitlesCollection.TranslationX,
-            0
-        );
+        var animation = new Animation(HorizontalVirtualResize, subtitlesCollection.TranslationX, -subtitlesCollection.Width);
 
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear);
+        animation.Commit(
+            mediaPlayer,
+            "ExitFullScreenHorizontal",
+            easing: Easing.Linear,
+            finished: (_, _) =>
+            {
+                AdaptiveLayout.SetRelativeHorizontalLength(mediaPlayer, _layoutSettings.PlayerHorizontalLength);
+                mediaPlayer.ResetTransformations();
+                subtitlesCollection.ResetTransformations();
+                isHorizontalFullScreen = false;
+            }
+        );
     }
 
     private void AnimateFullScreenHorizontal()
     {
-        var animation = new Animation(
-            v =>
+        var animation = new Animation(HorizontalVirtualResize, subtitlesCollection.TranslationX, subtitlesCollection.Width);
+
+        animation.Commit(
+            mediaPlayer,
+            "FullScreenHorizontal",
+            easing: Easing.Linear,
+            finished: (_, _) =>
             {
-                subtitlesCollection.TranslationX = v;
-                mediaPlayer.WidthRequest = playerOriginalWidth + v;
-            },
-            subtitlesCollection.TranslationX,
-            subtitlesCollection.Width
+                AdaptiveLayout.SetRelativeHorizontalLength(mediaPlayer, 1);
+                mediaPlayer.ResetTransformations();
+                subtitlesCollection.ResetTransformations();
+                isHorizontalFullScreen = true;
+            }
+        );
+    }
+
+    private void HorizontalVirtualResize(double totalDeltaX)
+    {
+        if (isHorizontalFullScreen)
+        {
+            subtitlesCollection.TranslationX = Math.Clamp(totalDeltaX, -subtitlesCollection.Width, 0);
+        }
+        else
+        {
+            subtitlesCollection.TranslationX = Math.Clamp(totalDeltaX, 0, subtitlesCollection.Width);
+        }
+
+        var transformation = ViewTransformHelper.CalculateTransformation(
+            mediaPlayer.GetMediaBounds(),
+            new Rect(0, 0, mediaPlayer.Width + subtitlesCollection.TranslationX, adaptiveLayout.Height)
         );
 
-        animation.Commit(mediaPlayer, "FullScreen", easing: Easing.Linear, finished: (_, _) => Controls.FullScreen());
+        mediaPlayer.Transform(transformation);
     }
     #endregion
 }
