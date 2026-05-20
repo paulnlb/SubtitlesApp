@@ -67,8 +67,8 @@ public partial class FfmpegNativeService : IAudioExtractor
         var ffmpegTask = Task.Run(() =>
         {
             var exitCode = FfmpegNativeWrapper.extract_audio(
-                (int)startTime.TotalSeconds,
-                (int)endTime.TotalSeconds,
+                startTime.TotalSeconds,
+                endTime.TotalSeconds,
                 sourcePath,
                 16000,
                 AudioFormats.Wave,
