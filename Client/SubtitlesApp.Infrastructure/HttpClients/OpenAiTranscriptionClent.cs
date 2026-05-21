@@ -14,12 +14,11 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
     private readonly Task<AudioClient> _audioClientTask = InitClient(settings);
 
     public async Task<ListResult<SubtitleDto>> GetSubsAsync(
-        byte[] audioBytes,
+        Stream audio,
         string languageCode,
         CancellationToken cancellationToken = default
     )
     {
-        using var stream = new MemoryStream(audioBytes);
         var transcriptionOptions = new AudioTranscriptionOptions()
         {
             ResponseFormat = AudioTranscriptionFormat.Verbose,
@@ -36,7 +35,7 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
         try
         {
             var audioClient = await _audioClientTask;
-            apiResult = await audioClient.TranscribeAudioAsync(stream, "audio.wav", transcriptionOptions);
+            apiResult = await audioClient.TranscribeAudioAsync(audio, "audio.wav", transcriptionOptions);
         }
         catch (Exception ex)
         {

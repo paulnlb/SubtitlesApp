@@ -8,11 +8,11 @@ public interface ITranscriptionApiClient
     /// <summary>
     /// Send media to the server and receive subtitles
     /// </summary>
-    /// <param name="audioBytes">Audio file in bytes</param>
+    /// <param name="audio">Audio stream</param>
     /// <param name="languageCode">Language of the subtitles</param>\
     /// <param name="cancellationToken">Cancellation token</param>
     Task<ListResult<SubtitleDto>> GetSubsAsync(
-        byte[] audioBytes,
+        Stream audio,
         string languageCode,
         CancellationToken cancellationToken = default
     );

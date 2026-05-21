@@ -14,29 +14,6 @@ public class TranscriptionService(
     ITranscriptionSettings settings
 ) : ITranscriptionService
 {
-    private bool _disposed;
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            audioExtractor.Dispose();
-        }
-
-        _disposed = true;
-    }
-
     public async IAsyncEnumerable<Result<SubtitleDto>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeInterval,
@@ -143,5 +120,5 @@ public class TranscriptionService(
     }
 
     private TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime) =>
-        maxEndTime >= startTime + settings.SubIntervalSize ? maxEndTime : startTime + settings.SubIntervalSize;
+        maxEndTime <= startTime + settings.SubIntervalSize ? maxEndTime : startTime + settings.SubIntervalSize;
 }

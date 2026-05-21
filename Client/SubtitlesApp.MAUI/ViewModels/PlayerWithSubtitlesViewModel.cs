@@ -299,7 +299,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     public void Clean()
     {
-        _transcriptionService.Dispose();
         SubsScrollRequested = null;
         TranslationsScrollRequested = null;
     }

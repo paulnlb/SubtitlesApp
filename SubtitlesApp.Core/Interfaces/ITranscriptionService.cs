@@ -4,7 +4,7 @@ using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Core.Interfaces;
 
-public interface ITranscriptionService : IDisposable
+public interface ITranscriptionService
 {
     /// <summary>
     ///     Extracts a part within given time interval from given media and transcribes it (generates subtitles)

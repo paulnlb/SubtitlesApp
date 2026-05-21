@@ -8,10 +8,8 @@ using SubtitlesApp.Infrastructure.HttpClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Settings;
-using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
-using SubtitlesApp.Services.Sockets;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
@@ -26,8 +24,6 @@ public static class ServicesCollectionExtensions
     {
         #region transient
         services.AddTransient<IVideoPicker, VideoPicker>();
-        services.AddTransient<ISocketListener, UnixSocketListener>();
-        services.AddTransient<ISocketSender, UnixSocketSender>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
 
@@ -55,7 +51,6 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
-        services.AddSingleton<ISettingsService, SettingsService>();
 
         // Use transient because layout settings have to be reset to defaults after the page is reopened
         services.AddTransient<ILayoutSettings, LayoutSettings>();

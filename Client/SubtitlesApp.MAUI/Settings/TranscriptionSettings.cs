@@ -4,7 +4,7 @@ namespace SubtitlesApp.Settings;
 
 public class TranscriptionSettings : ITranscriptionSettings
 {
-    public TimeSpan SubIntervalSize => TimeSpan.FromSeconds(30);
+    public TimeSpan SubIntervalSize => TimeSpan.FromSeconds(60);
 
     public TimeSpan OverlapSize => TimeSpan.FromSeconds(2);
 
