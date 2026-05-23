@@ -222,6 +222,42 @@ public partial class MediaPlayer : ContentView
         return new Rect(x, y, displayedMediaWidth, displayedMediaHeight);
     }
 
+    /// <summary>
+    /// Gets the bounds of the media within the MediaElement.
+    /// </summary>
+    /// <returns></returns>
+    public static Rect GetMediaBounds(double mediaWidth, double mediaHeight, Rect mediaContainerBounds)
+    {
+        if (mediaWidth == 0 || mediaHeight == 0)
+        {
+            return Rect.Zero;
+        }
+
+        var mediaAspectRatio = (double)mediaWidth / mediaHeight;
+        var controlAspectRatio = mediaContainerBounds.Width / mediaContainerBounds.Height;
+
+        double displayedMediaWidth,
+            displayedMediaHeight;
+
+        if (mediaAspectRatio > controlAspectRatio)
+        {
+            // Media is wider than the control, so it will be letterboxed on the top and bottom
+            displayedMediaWidth = mediaContainerBounds.Width;
+            displayedMediaHeight = mediaContainerBounds.Width / mediaAspectRatio;
+        }
+        else
+        {
+            // Media is taller than the control, so it will be letterboxed on the left and right
+            displayedMediaHeight = mediaContainerBounds.Height;
+            displayedMediaWidth = mediaContainerBounds.Height * mediaAspectRatio;
+        }
+
+        var x = (mediaContainerBounds.Width - displayedMediaWidth) / 2;
+        var y = (mediaContainerBounds.Height - displayedMediaHeight) / 2;
+
+        return new Rect(x, y, displayedMediaWidth, displayedMediaHeight);
+    }
+
     #endregion
 
     #region private event handlers

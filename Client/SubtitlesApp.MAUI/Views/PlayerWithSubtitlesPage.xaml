@@ -17,6 +17,7 @@
   x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
   x:DataType="viewModels:PlayerWithSubtitlesViewModel"
   x:Name="playerSubtitlesPage"
+  SafeAreaEdges="Container"
 >
   <ContentPage.Resources>
     <ResourceDictionary>
@@ -27,8 +28,6 @@
   </ContentPage.Resources>
 
   <layouts:AdaptiveLayout x:Name="adaptiveLayout">
-    <!--Placeholder view-->
-    <Rectangle x:Name="placeholderView" Fill="Transparent" HorizontalOptions="Fill" VerticalOptions="Fill" />
     <!--Media player-->
     <customControls:MediaPlayer
       x:Name="mediaPlayer"
@@ -39,6 +38,7 @@
       PlayerControlsVisible="{Binding PlayerControlsVisible}"
       PositionChangedCommand="{Binding PositionChangedCommand}"
       PositionChangedCommandParameter="{Binding Source={x:RelativeSource Self}, Path=Position}"
+      SafeAreaEdges="Container"
     >
       <customControls:MediaPlayer.GestureRecognizers>
         <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
@@ -48,7 +48,7 @@
 
     <!--Subtitles section-->
     <Grid
-      x:Name="subtitlesCollection"
+      x:Name="subtitlesView"
       RowDefinitions="50, *"
       ColumnDefinitions="11*, Auto, Auto"
       Padding="5, 0"

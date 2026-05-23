@@ -71,11 +71,11 @@
     <PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
     <PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="9.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="FullScreenStatus.Maui" Version="1.0.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.60" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.60" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-    <PackageReference Include="PageFullScreen.Maui" Version="1.0.0" />
     <PackageReference Include="Redth.Maui.VirtualListView" Version="0.4.0" />
     <PackageReference Include="Riok.Mapperly" Version="4.1.1" />
     <PackageReference Include="UraniumUI.Dialogs.CommunityToolkit" Version="2.8.1" />

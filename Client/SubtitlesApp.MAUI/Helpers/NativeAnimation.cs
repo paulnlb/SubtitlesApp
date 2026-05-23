@@ -42,6 +42,21 @@ namespace SubtitlesApp.Helpers;
 
 public static class NativeAnimation
 {
+    public static Task AnimateAsync(
+        double start,
+        double end,
+        Action<double> callback,
+        uint length = 250,
+        Easing? easing = null
+    )
+    {
+        var tcs = new TaskCompletionSource();
+
+        Animate(start, end, callback, length, easing, (_, _) => tcs.SetResult(), null);
+
+        return tcs.Task;
+    }
+
     public static IDisposable Animate(
         double start,
         double end,

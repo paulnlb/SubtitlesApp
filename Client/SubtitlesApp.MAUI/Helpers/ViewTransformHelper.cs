@@ -1,10 +1,24 @@
 namespace SubtitlesApp.Helpers;
 
-public readonly struct Transformation(double scale, double translateX, double translateY)
+public readonly struct Transformation(double scale = 1, double translateX = 0, double translateY = 0)
+    : IEquatable<Transformation>
 {
     public double Scale { get; } = scale;
     public double TranslateX { get; } = translateX;
     public double TranslateY { get; } = translateY;
+
+    public bool Equals(Transformation other)
+    {
+        return Scale == other.Scale && TranslateX == other.TranslateX && TranslateY == other.TranslateY;
+    }
+
+    public override bool Equals(object? obj) => obj is Transformation other && Equals(other);
+
+    public override int GetHashCode() => (TranslateX, TranslateY, Scale).GetHashCode();
+
+    public static bool operator ==(Transformation left, Transformation right) => left.Equals(right);
+
+    public static bool operator !=(Transformation left, Transformation right) => !left.Equals(right);
 }
 
 public static class ViewTransformHelper

@@ -4,14 +4,14 @@ namespace SubtitlesApp.Extensions;
 
 public static class ViewExtensions
 {
-    public static void Transform(this View view, Transformation transformation)
+    public static void Transform(this VisualElement view, Transformation transformation)
     {
         view.Scale = transformation.Scale;
         view.TranslationX = transformation.TranslateX;
         view.TranslationY = transformation.TranslateY;
     }
 
-    public static void ResetTransformations(this View view)
+    public static void ResetTransformations(this VisualElement view)
     {
         view.Scale = 1;
         view.TranslationX = 0;

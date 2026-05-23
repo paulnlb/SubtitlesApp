@@ -12,7 +12,11 @@ public interface ILayoutSettings
 
     double MaxPlayerRelativeVerticalLength { get; }
 
-    double PlaceholderVerticalLength { get; set; }
+    double StatusBarVerticalLength { get; set; }
 
-    double PlaceholderHorizontalLength { get; set; }
+    double StatusBarHorizontalLength { get; set; }
+
+    double NavBarVerticalLength { get; set; }
+
+    double NavBarHorizontalLength { get; set; }
 }

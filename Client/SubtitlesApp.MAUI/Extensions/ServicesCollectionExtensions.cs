@@ -8,6 +8,7 @@ using SubtitlesApp.Infrastructure.HttpClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Settings;
+using SubtitlesApp.Layouts;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
 using SubtitlesApp.Settings;
@@ -26,13 +27,11 @@ public static class ServicesCollectionExtensions
         services.AddTransient<IVideoPicker, VideoPicker>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
-
         services.AddTransient<ITranscriptionService, TranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
         services.AddTransient<ILlmClient, OpenAiLlmClient>();
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
-        services.AddTransient<HttpsClientHandlerService>();
         #endregion
 
         #region singleton

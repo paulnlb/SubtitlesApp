@@ -48,6 +48,58 @@ public class AdaptiveLayout : Layout
         view.SetValue(RelativeVerticalLengthProperty, value);
     }
 
+    public AdaptiveLayoutState MakeSnapshot()
+    {
+        var childrenStates = new List<ChildState>();
+
+        foreach (var child in Children)
+        {
+            if (child is not VisualElement childElement)
+            {
+                continue;
+            }
+
+            childrenStates.Add(
+                new ChildState
+                {
+                    HorizontalLength = GetRelativeHorizontalLength(childElement) ?? 0,
+                    VerticalLength = GetRelativeVerticalLength(childElement) ?? 0,
+                    Y = childElement.Y,
+                    X = childElement.X,
+                    Width = childElement.Width,
+                    Height = childElement.Height,
+                    TranslationX = childElement.TranslationX,
+                    TranslationY = childElement.TranslationY,
+                    Scale = childElement.Scale,
+                }
+            );
+        }
+
+        return new AdaptiveLayoutState(childrenStates, Bounds);
+    }
+
+    public void Restore(AdaptiveLayoutState layoutState)
+    {
+        if (layoutState.ChildrenStates.Count != Children.Count)
+        {
+            throw new ArgumentException(
+                $"Layout state contains {layoutState.ChildrenStates.Count} children states, but layout has {Children.Count} children."
+            );
+        }
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            var childState = layoutState.ChildrenStates[i];
+            var childView = (VisualElement)Children[i];
+
+            SetRelativeVerticalLength(childView, childState.VerticalLength);
+            SetRelativeHorizontalLength(childView, childState.HorizontalLength);
+            childView.TranslationX = childState.TranslationX;
+            childView.TranslationY = childState.TranslationY;
+            childView.Scale = childState.Scale;
+        }
+    }
+
     protected override void OnSizeAllocated(double width, double height)
     {
         base.OnSizeAllocated(width, height);
@@ -59,7 +111,7 @@ public class AdaptiveLayout : Layout
 
     protected override ILayoutManager CreateLayoutManager()
     {
-        return new DualViewLayoutManager(this);
+        return new AdaptiveLayoutManager(this);
     }
 
     protected override void InvalidateMeasure()
@@ -101,8 +153,52 @@ public class AdaptiveLayout : Layout
     }
 }
 
-public class DualViewLayoutManager(AdaptiveLayout layout) : ILayoutManager
+public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 {
+    public List<Rect> CalculateChildrenSizes(Rect bounds)
+    {
+        var result = new List<Rect>();
+
+        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
+        {
+            double y = bounds.Y;
+
+            var childrenHeights = GetChildrenHeights(bounds.Height);
+
+            for (int i = 0; i < layout.Count; i++)
+            {
+                if (layout[i].Visibility == Visibility.Collapsed)
+                {
+                    continue;
+                }
+
+                result.Add(new Rect(bounds.X, y, bounds.Width, childrenHeights[i]));
+
+                y += childrenHeights[i];
+            }
+        }
+        else
+        {
+            double x = bounds.X;
+
+            var childrenWidths = GetChildrenWidths(bounds.Width);
+
+            for (int i = 0; i < layout.Count; i++)
+            {
+                if (layout[i].Visibility == Visibility.Collapsed)
+                {
+                    continue;
+                }
+
+                result.Add(new Rect(x, bounds.Y, childrenWidths[i], bounds.Height));
+
+                x += childrenWidths[i];
+            }
+        }
+
+        return result;
+    }
+
     public Size ArrangeChildren(Rect bounds)
     {
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
