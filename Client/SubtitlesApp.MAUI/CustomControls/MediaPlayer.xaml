@@ -1,144 +1,201 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:converters="clr-namespace:SubtitlesApp.Converters"
-             x:Class="SubtitlesApp.CustomControls.MediaPlayer"
-             x:Name="this">
-    <ContentView.Resources>
-        <converters:SecondsToStringConverter x:Key="SecondsToStringConverter"/>
-        <converters:PathToFileNameConverter x:Key="PathToFileNameConverter"/>
-        <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter"/>
-    </ContentView.Resources>
+<ContentView
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
+  x:Class="SubtitlesApp.CustomControls.MediaPlayer"
+  x:Name="this"
+>
+  <ContentView.Resources>
+    <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+    <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
+    <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
+  </ContentView.Resources>
 
-    <Grid BindingContext="{x:Reference this}">
-        <toolkit:MediaElement x:Name="MauiMediaElement"
-                              Aspect="AspectFit"
-                              Source="{Binding MediaPath}"
-                              ShouldAutoPlay="False"
-                              ShouldShowPlaybackControls="False"
-                              ZIndex="0">
+  <Grid BindingContext="{x:Reference this}">
+    <toolkit:MediaElement
+      x:Name="MauiMediaElement"
+      Aspect="AspectFit"
+      Source="{Binding MediaPath}"
+      ShouldAutoPlay="False"
+      ShouldShowPlaybackControls="False"
+      ZIndex="0"
+    >
+      <toolkit:MediaElement.Behaviors>
+        <toolkit:EventToCommandBehavior
+          EventName="PositionChanged"
+          Command="{Binding PositionChangedCommand}"
+          CommandParameter="{Binding PositionChangedCommandParameter}"
+        />
+        <toolkit:EventToCommandBehavior
+          EventName="SeekCompleted"
+          Command="{Binding SeekCompletedCommand}"
+          CommandParameter="{Binding SeekCompletedCommandParameter}"
+        />
+      </toolkit:MediaElement.Behaviors>
+    </toolkit:MediaElement>
 
-            <toolkit:MediaElement.Behaviors>
-                <toolkit:EventToCommandBehavior EventName="PositionChanged"
-                                                Command="{Binding PositionChangedCommand}"
-                                                CommandParameter="{Binding PositionChangedCommandParameter}"/>
-                <toolkit:EventToCommandBehavior EventName="SeekCompleted"
-                                                Command="{Binding SeekCompletedCommand}"
-                                                CommandParameter="{Binding SeekCompletedCommandParameter}"/>
-            </toolkit:MediaElement.Behaviors>
-        </toolkit:MediaElement>
+    <Grid
+      x:Name="PlayerControls"
+      Padding="10"
+      BackgroundColor="#80000000"
+      IsVisible="{Binding PlayerControlsVisible}"
+      RowDefinitions="3*, 10*, 2*, *"
+      ColumnDefinitions="*, *, *"
+      ZIndex="1"
+    >
+      <Label
+        Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
+        TextColor="White"
+        Grid.Row="0"
+        Grid.ColumnSpan="2"
+        LineBreakMode="TailTruncation"
+        VerticalOptions="Center"
+        HorizontalOptions="Start"
+        FontSize="16"
+      />
 
-        <Grid x:Name="PlayerControls"
-              Padding="10"
-              BackgroundColor="#80000000"
-              IsVisible="{Binding PlayerControlsVisible}"
-              RowDefinitions="3*, 10*, 2*, *"
-              ColumnDefinitions="*, *, *"
-              ZIndex="1">
+      <customControls:StateIconButton
+        x:Name="immersiveBtn"
+        State1Icon="expand_content.png"
+        State2Icon="collapse_content.png"
+        Clicked="OnImmersiveClicked"
+        Grid.Row="0"
+        Grid.Column="3"
+        VerticalOptions="Center"
+        HorizontalOptions="End"
+        Padding="2"
+        BackgroundColor="Transparent"
+        WidthRequest="30"
+        HeightRequest="30"
+      />
 
-            <Label Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
-                   TextColor="White"
-                   Grid.Row="0"
-                   Grid.ColumnSpan="2"
-                   LineBreakMode="TailTruncation"
-                   VerticalOptions="Center"
-                   HorizontalOptions="Start"
-                   FontSize="16"/>
-
-            <!--Second Row 
+      <!--Second Row 
              Button for Rewind, Play/Pause, and Forward-->
-            <Button ImageSource="fast_rewind_icon.png"
-                    HeightRequest="50"
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#33FFFFFF"
-                    Clicked="OnRewindTapped"/>
+      <Button
+        ImageSource="fast_rewind_icon.png"
+        HeightRequest="50"
+        Grid.Row="1"
+        Grid.Column="0"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        BackgroundColor="#33FFFFFF"
+        Clicked="OnRewindTapped"
+      />
 
-            <Button ImageSource="play_icon.png"
-                    HeightRequest="50"
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#33FFFFFF"
-                    Clicked="OnPlayPauseTapped">
-                <Button.Triggers>
-                    <DataTrigger TargetType="Button"
-                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-                                 Value="Paused">
-                        <Setter Property="ImageSource"
-                                Value="play_icon.png"/>
-                    </DataTrigger>
-                    <DataTrigger TargetType="Button"
-                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-                                 Value="Playing">
-                        <Setter Property="ImageSource"
-                                Value="pause_icon.png"/>
-                    </DataTrigger>
-                    <DataTrigger TargetType="Button"
-                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-                                 Value="Buffering">
-                        <Setter Property="IsVisible"
-                                Value="False"/>
-                    </DataTrigger>
-                </Button.Triggers>
-            </Button>
+      <Button
+        ImageSource="play_icon.png"
+        HeightRequest="50"
+        Grid.Row="1"
+        Grid.Column="1"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        BackgroundColor="#33FFFFFF"
+        Clicked="OnPlayPauseTapped"
+      >
+        <Button.Triggers>
+          <DataTrigger
+            TargetType="Button"
+            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+            Value="Paused"
+          >
+            <Setter Property="ImageSource" Value="play_icon.png" />
+          </DataTrigger>
+          <DataTrigger
+            TargetType="Button"
+            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+            Value="Playing"
+          >
+            <Setter Property="ImageSource" Value="pause_icon.png" />
+          </DataTrigger>
 
-            <ActivityIndicator HeightRequest="50"
-                               Grid.Row="1"
-                               Grid.Column="1"
-                               IsRunning="False">
-                <ActivityIndicator.Triggers>
-                    <DataTrigger TargetType="ActivityIndicator"
-                                 Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-                                 Value="Buffering">
-                        <Setter Property="IsRunning"
-                                Value="True"/>
-                    </DataTrigger>
-                </ActivityIndicator.Triggers>
-            </ActivityIndicator>
+          <DataTrigger
+            TargetType="Button"
+            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+            Value="Stopped"
+          >
+            <Setter Property="ImageSource" Value="restart.png" />
+          </DataTrigger>
+          <DataTrigger
+            TargetType="Button"
+            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+            Value="Buffering"
+          >
+            <Setter Property="IsVisible" Value="False" />
+          </DataTrigger>
+        </Button.Triggers>
+      </Button>
 
-            <Button ImageSource="fast_forward_icon.png"
-                    HeightRequest="50"
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Center"
-                    BackgroundColor="#33FFFFFF"
-                    Clicked="OnFastForwardTapped"/>
+      <ActivityIndicator HeightRequest="50" Grid.Row="1" Grid.Column="1" IsRunning="False">
+        <ActivityIndicator.Triggers>
+          <DataTrigger
+            TargetType="ActivityIndicator"
+            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
+            Value="Buffering"
+          >
+            <Setter Property="IsRunning" Value="True" />
+          </DataTrigger>
+        </ActivityIndicator.Triggers>
+      </ActivityIndicator>
 
-            <!--Third Row 
+      <Button
+        ImageSource="fast_forward_icon.png"
+        HeightRequest="50"
+        Grid.Row="1"
+        Grid.Column="2"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        BackgroundColor="#33FFFFFF"
+        Clicked="OnFastForwardTapped"
+      />
+
+      <!--Third Row 
              Time display-->
-            <Label TextColor="White"
-                   Grid.Row="2"
-                   Grid.Column="0"
-                   VerticalOptions="Center"
-                   HorizontalOptions="Start"
-                   Grid.ColumnSpan="3">
-                <Label.Text>
-                    <MultiBinding StringFormat="{}{0}/{1}">
-                        <Binding Path="Value"
-                                 Source="{x:Reference PositionSlider}"
-                                 Converter="{StaticResource SecondsToStringConverter}"/>
-                        <Binding Path="Maximum"
-                                 Source="{x:Reference PositionSlider}"
-                                 Converter="{StaticResource SecondsToStringConverter}"/>
-                    </MultiBinding>
-                </Label.Text>
-            </Label>
+      <Label TextColor="White" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" HorizontalOptions="Start">
+        <Label.Text>
+          <MultiBinding StringFormat="{}{0}/{1}">
+            <Binding
+              Path="Value"
+              Source="{x:Reference PositionSlider}"
+              Converter="{StaticResource SecondsToStringConverter}"
+            />
+            <Binding
+              Path="Maximum"
+              Source="{x:Reference PositionSlider}"
+              Converter="{StaticResource SecondsToStringConverter}"
+            />
+          </MultiBinding>
+        </Label.Text>
+      </Label>
 
-            <!--Fourth Row
+      <customControls:StateIconButton
+        x:Name="fullscreenBtn"
+        State1Icon="fullscreen.png"
+        State2Icon="fullscreen_exit.png"
+        Clicked="OnFullScreenClicked"
+        Grid.Row="2"
+        Grid.Column="2"
+        VerticalOptions="Center"
+        HorizontalOptions="End"
+        Padding="2"
+        BackgroundColor="Transparent"
+        WidthRequest="30"
+        HeightRequest="30"
+      />
+
+      <!--Fourth Row
              Seek bar-->
-            <Slider x:Name="PositionSlider"
-                    Grid.Row="3"
-                    Grid.ColumnSpan="3"
-                    VerticalOptions="Center"
-                    MaximumTrackColor="White"
-                    DragStarted="OnDragStarted"
-                    DragCompleted="OnDragCompleted"/>
-        </Grid>
+      <Slider
+        x:Name="PositionSlider"
+        Grid.Row="3"
+        Grid.ColumnSpan="3"
+        VerticalOptions="Center"
+        MaximumTrackColor="White"
+        DragStarted="OnDragStarted"
+        DragCompleted="OnDragCompleted"
+      />
     </Grid>
+  </Grid>
 </ContentView>

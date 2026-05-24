@@ -27,7 +27,7 @@
     </ResourceDictionary>
   </ContentPage.Resources>
 
-  <layouts:AdaptiveLayout x:Name="adaptiveLayout">
+  <layouts:AdaptiveLayout x:Name="adaptiveLayout" SafeAreaEdges="Container">
     <!--Media player-->
     <customControls:MediaPlayer
       x:Name="mediaPlayer"
@@ -38,7 +38,8 @@
       PlayerControlsVisible="{Binding PlayerControlsVisible}"
       PositionChangedCommand="{Binding PositionChangedCommand}"
       PositionChangedCommandParameter="{Binding Source={x:RelativeSource Self}, Path=Position}"
-      SafeAreaEdges="Container"
+      FullScreenToggled="OnFullScreenToggled"
+      ImmersiveModeToggled="OnImmersiveModeToggled"
     >
       <customControls:MediaPlayer.GestureRecognizers>
         <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />

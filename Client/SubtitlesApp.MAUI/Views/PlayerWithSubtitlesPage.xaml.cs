@@ -13,8 +13,8 @@ namespace SubtitlesApp.Views;
 
 public partial class PlayerWithSubtitlesPage : ContentPage
 {
-    private bool isFullScreen;
-    private bool isImmersiveMode;
+    private bool subtitlesHidden;
+    private bool isPortraitMode;
 
     private Transformation playerBeforeInterpolation;
     private readonly ConcurrentDictionary<int, List<GestureStatus>> gestureStatuses = [];
@@ -35,11 +35,12 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         _layoutStateManager = new PlayerSubtitlesStateManager(adaptiveLayout);
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
+        isPortraitMode = DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait;
 
         viewModel.SubsScrollRequested += OnSubScrollRequested;
         viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
         mediaPlayer.PropertyChanged += OnMediaPlayerPropertyChanged;
-        adaptiveLayout.SizeChanged += OnLayoutSizeChanged;
+        adaptiveLayout.PropertyChanged += OnLayoutHeightChanged;
 
         SubscribeToGestures();
         ConfigureLayout();
@@ -59,31 +60,55 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mediaPlayer.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
-        adaptiveLayout.SizeChanged -= OnLayoutSizeChanged;
+        adaptiveLayout.PropertyChanged -= OnLayoutHeightChanged;
 
         base.OnNavigatedFrom(args);
     }
 
     protected override bool OnBackButtonPressed()
     {
-        FullScreenHelper.RestoreScreen();
+        ScreenStateHelper.RestoreScreen();
 
         return false;
     }
 
-    private void OnLayoutSizeChanged(object? sender, EventArgs e)
+    private void OnLayoutHeightChanged(object? sender, PropertyChangedEventArgs e)
     {
-        RecalculateVerticalLayout(mediaPlayer.MediaHeight, mediaPlayer.MediaWidth);
+        if (e.PropertyName == nameof(adaptiveLayout.Height) && isPortraitMode)
+        {
+            RecalculateVerticalLayout(mediaPlayer.MediaHeight, mediaPlayer.MediaWidth);
+        }
+    }
+
+    private void OnFullScreenToggled(object? sender, StateBtnEventArgs e)
+    {
+        var inLandscape = e.IsToggled;
+        ScreenStateHelper.ChangeOrientation(inLandscape);
+        isPortraitMode = !inLandscape;
+    }
+
+    private void OnImmersiveModeToggled(object? sender, StateBtnEventArgs e)
+    {
+        if (e.IsToggled)
+        {
+            ImmersiveOn();
+        }
+        else
+        {
+            ImmersiveOff();
+        }
     }
 
     private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
         {
+            isPortraitMode = true;
             ImmersiveOff();
         }
         else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
         {
+            isPortraitMode = false;
             ImmersiveOn();
         }
     }
@@ -133,7 +158,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void OnMediaPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(mediaPlayer.MediaHeight) || e.PropertyName == nameof(mediaPlayer.MediaWidth))
+        if (
+            (e.PropertyName == nameof(mediaPlayer.MediaHeight) || e.PropertyName == nameof(mediaPlayer.MediaWidth))
+            && isPortraitMode
+        )
         {
             RecalculateVerticalLayout(mediaPlayer.MediaHeight, mediaPlayer.MediaWidth);
         }
@@ -141,11 +169,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void RecalculateVerticalLayout(double videoHeightPx, double videoWidthPx)
     {
-        if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
-        {
-            return;
-        }
-
         var newRelativeHeight = videoHeightPx * adaptiveLayout.Width / (adaptiveLayout.Height * videoWidthPx);
 
         if (newRelativeHeight == 0 || double.IsNaN(newRelativeHeight))
@@ -158,8 +181,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         _layoutSettings.PlayerVerticalLength = newRelativeHeight;
         _layoutSettings.SubtitlesVerticalLength = 1 - newRelativeHeight;
 
-        AdaptiveLayout.SetRelativeVerticalLength(mediaPlayer, _layoutSettings.PlayerVerticalLength);
-        AdaptiveLayout.SetRelativeVerticalLength(subtitlesView, _layoutSettings.SubtitlesVerticalLength);
+        if (!subtitlesHidden)
+        {
+            AdaptiveLayout.SetRelativeVerticalLength(mediaPlayer, _layoutSettings.PlayerVerticalLength);
+            AdaptiveLayout.SetRelativeVerticalLength(subtitlesView, _layoutSettings.SubtitlesVerticalLength);
+        }
     }
 
     private void ConfigureLayout()
@@ -178,13 +204,13 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void ImmersiveOn()
     {
-        FullScreenHelper.FullScreen();
+        ScreenStateHelper.FullScreen();
         SafeAreaHelper.DisableSafeAreas(this);
     }
 
     private void ImmersiveOff()
     {
-        FullScreenHelper.RestoreScreen();
+        ScreenStateHelper.RestoreScreen();
         SafeAreaHelper.ResetSafeAreas(this);
         SafeAreaEdges = new SafeAreaEdges(SafeAreaRegions.Container);
         adaptiveLayout.SafeAreaEdges = new SafeAreaEdges(SafeAreaRegions.Container);
@@ -269,7 +295,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         AdaptiveLayoutState newState;
         _layoutStateManager.PushCurrentState();
 
-        if (isFullScreen)
+        if (subtitlesHidden)
         {
             RestoreNormalState();
             newState = _layoutStateManager.PreCalcState();
@@ -336,7 +362,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             subtitlesScale
         );
 
-        isFullScreen = !isFullScreen;
+        subtitlesHidden = !subtitlesHidden;
     }
 
     private async Task RevertTransition()

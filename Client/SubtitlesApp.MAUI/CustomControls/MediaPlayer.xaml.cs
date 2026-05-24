@@ -158,6 +158,10 @@ public partial class MediaPlayer : ContentView
         set => SetValue(PositionProperty, value);
     }
 
+    public event EventHandler<StateBtnEventArgs>? FullScreenToggled;
+
+    public event EventHandler<StateBtnEventArgs>? ImmersiveModeToggled;
+
     #region public methods
     public void Play()
     {
@@ -280,7 +284,12 @@ public partial class MediaPlayer : ContentView
         {
             MauiMediaElement.Pause();
         }
-        else
+        else if (MauiMediaElement.CurrentState == MediaElementState.Stopped)
+        {
+            MauiMediaElement.SeekTo(TimeSpan.Zero);
+            MauiMediaElement.Play();
+        }
+        else if (MauiMediaElement.CurrentState == MediaElementState.Paused)
         {
             MauiMediaElement.Play();
         }
@@ -323,5 +332,25 @@ public partial class MediaPlayer : ContentView
             PositionSlider.Maximum = MauiMediaElement.Duration.TotalSeconds;
         }
     }
+
+    private void OnFullScreenClicked(object? sender, EventArgs e)
+    {
+        fullscreenBtn.IsToggled = !fullscreenBtn.IsToggled;
+        immersiveBtn.IsToggled = fullscreenBtn.IsToggled;
+
+        FullScreenToggled?.Invoke(this, new StateBtnEventArgs { IsToggled = fullscreenBtn.IsToggled });
+        ImmersiveModeToggled?.Invoke(this, new StateBtnEventArgs { IsToggled = immersiveBtn.IsToggled });
+    }
+
+    private void OnImmersiveClicked(object? sender, EventArgs e)
+    {
+        immersiveBtn.IsToggled = !immersiveBtn.IsToggled;
+        ImmersiveModeToggled?.Invoke(this, new StateBtnEventArgs { IsToggled = immersiveBtn.IsToggled });
+    }
     #endregion
+}
+
+public class StateBtnEventArgs : EventArgs
+{
+    public bool IsToggled { get; set; }
 }

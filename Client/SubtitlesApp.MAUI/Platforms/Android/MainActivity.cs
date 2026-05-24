@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Content.PM;
+using Android.OS;
 
 namespace SubtitlesApp
 {
@@ -15,5 +16,19 @@ namespace SubtitlesApp
             | ConfigChanges.SmallestScreenSize
             | ConfigChanges.Density
     )]
-    public class MainActivity : MauiAppCompatActivity { }
+    public class MainActivity : MauiAppCompatActivity
+    {
+        internal static MainActivity Instance { get; private set; }
+
+        protected override void OnCreate(Bundle? savedInstanceState)
+        {
+            base.OnCreate(savedInstanceState);
+            Instance = this;
+        }
+
+        public void ChangeOrientation(bool toLandscape)
+        {
+            RequestedOrientation = toLandscape ? ScreenOrientation.Landscape : ScreenOrientation.Portrait;
+        }
+    }
 }

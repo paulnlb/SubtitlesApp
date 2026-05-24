@@ -2,7 +2,7 @@
 
 namespace SubtitlesApp.Helpers;
 
-public static class FullScreenHelper
+public static class ScreenStateHelper
 {
     private static bool IsFullScreen { get; set; } = false;
 
@@ -34,5 +34,13 @@ public static class FullScreenHelper
     {
         Controls.RestoreScreen();
         IsFullScreen = false;
+    }
+
+    public static void ChangeOrientation(bool toLandscape)
+    {
+        if (DeviceInfo.Current.Platform == DevicePlatform.Android)
+        {
+            MainActivity.Instance.ChangeOrientation(toLandscape);
+        }
     }
 }
