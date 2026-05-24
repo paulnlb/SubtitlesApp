@@ -8,7 +8,7 @@ public class TranscriptionClientSettings : ITranscriptionClientSettings
     private const string _defaultModel = "whisper-1";
 
     private const string _apiKeyKey = "transcription_api_key";
-    private const string _defaultApiKey = "samplekey";
+    private const string _defaultApiKey = "";
 
     private const string _endpointKey = "transcription_endpoint";
     private const string _defaultEndpoint = "";

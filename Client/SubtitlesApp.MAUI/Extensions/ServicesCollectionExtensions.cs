@@ -8,7 +8,6 @@ using SubtitlesApp.Infrastructure.HttpClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Interfaces.Settings;
-using SubtitlesApp.Layouts;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
 using SubtitlesApp.Settings;

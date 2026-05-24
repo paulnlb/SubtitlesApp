@@ -6,6 +6,7 @@ using SubtitlesApp.Extensions;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Interfaces.Settings;
 using SubtitlesApp.Layouts;
+using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 using UraniumUI.Material.Controls;
 
@@ -239,7 +240,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 Init();
 
-                playerBeforeInterpolation = new(mediaPlayer.Scale, mediaPlayer.TranslationX, mediaPlayer.TranslationY);
+                playerBeforeInterpolation = mediaPlayer.GetTransformation();
 
                 break;
             case GestureStatus.Running:
@@ -269,13 +270,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                     return;
                 }
 
-                var playerAfterInterpolation = new Transformation(
-                    mediaPlayer.Scale,
-                    mediaPlayer.TranslationX,
-                    mediaPlayer.TranslationY
-                );
-
-                var distance = DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait ? totalY : totalX;
+                var playerAfterInterpolation = mediaPlayer.GetTransformation();
+                var distance = isPortraitMode ? totalY : totalX;
 
                 if (playerAfterInterpolation != playerBeforeInterpolation && Math.Abs(distance) >= PanThreshold)
                 {
@@ -315,6 +311,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         AdaptiveLayout.SetRelativeVerticalLength(mediaPlayer, 1);
         AdaptiveLayout.SetRelativeHorizontalLength(mediaPlayer, 1);
+        AdaptiveLayout.SetRelativeVerticalLength(subtitlesView, _layoutSettings.SubtitlesVerticalLength);
+        AdaptiveLayout.SetRelativeHorizontalLength(subtitlesView, _layoutSettings.SubtitlesHoritzontalLength);
         mediaPlayer.ResetTransformations();
         subtitlesView.ResetTransformations();
     }
@@ -323,6 +321,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         AdaptiveLayout.SetRelativeVerticalLength(mediaPlayer, _layoutSettings.PlayerVerticalLength);
         AdaptiveLayout.SetRelativeHorizontalLength(mediaPlayer, _layoutSettings.PlayerHorizontalLength);
+        AdaptiveLayout.SetRelativeVerticalLength(subtitlesView, _layoutSettings.SubtitlesVerticalLength);
+        AdaptiveLayout.SetRelativeHorizontalLength(subtitlesView, _layoutSettings.SubtitlesHoritzontalLength);
         mediaPlayer.ResetTransformations();
         subtitlesView.ResetTransformations();
     }
@@ -370,14 +370,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         var oldState = _layoutStateManager.PeekSnapshot(2);
         var newState = _layoutStateManager.PeekSnapshot(1);
 
-        var mediaBounds = MediaPlayer.GetMediaBounds(
+        var newMediaBounds = MediaPlayer.GetMediaBounds(
             mediaPlayer.MediaWidth,
             mediaPlayer.MediaHeight,
             newState.ChildrenStates[0].GetBounds()
         );
 
         var playerTransform = ViewTransformHelper.CalculateTransformation(
-            mediaBounds,
+            newMediaBounds,
             oldState.ChildrenStates[0].GetBounds()
         );
 

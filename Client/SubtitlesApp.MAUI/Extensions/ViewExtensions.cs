@@ -17,4 +17,9 @@ public static class ViewExtensions
         view.TranslationX = 0;
         view.TranslationY = 0;
     }
+
+    public static Transformation GetTransformation(this VisualElement view)
+    {
+        return new Transformation(view.Scale, view.TranslationX, view.TranslationY);
+    }
 }

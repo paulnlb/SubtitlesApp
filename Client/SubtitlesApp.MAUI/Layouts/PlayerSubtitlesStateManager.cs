@@ -1,18 +1,12 @@
 ﻿namespace SubtitlesApp.Layouts;
 
-public class PlayerSubtitlesStateManager
+public class PlayerSubtitlesStateManager(AdaptiveLayout layout)
 {
-    private readonly AdaptiveLayout layout;
+    private readonly AdaptiveLayout layout = layout;
 
     private const int Capacity = 2;
 
-    public PlayerSubtitlesStateManager(AdaptiveLayout layout)
-    {
-        LayoutStates = [];
-        this.layout = layout;
-    }
-
-    public List<AdaptiveLayoutState> LayoutStates { get; private set; }
+    public List<AdaptiveLayoutState> LayoutStates { get; private set; } = [];
 
     public void PushCurrentState()
     {
@@ -51,7 +45,7 @@ public class PlayerSubtitlesStateManager
         var childrenSizes = manager.CalculateChildrenSizes(new Rect(0, 0, layout.Width, layout.Height));
 
         var mediaPlayerView =
-            layout.Children[1] as BindableObject
+            layout.Children[0] as BindableObject
             ?? throw new InvalidOperationException("Player view is not a BindableObject.");
 
         var subtitlesView =
