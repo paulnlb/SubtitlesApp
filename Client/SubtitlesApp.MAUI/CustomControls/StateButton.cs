@@ -47,11 +47,6 @@ public class StateIconButton : Button
         Loaded += OnLoaded;
     }
 
-    ~StateIconButton()
-    {
-        Loaded -= OnLoaded;
-    }
-
     private void OnLoaded(object? s, EventArgs e)
     {
         UpdateIcon();

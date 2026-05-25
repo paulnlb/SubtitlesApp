@@ -295,16 +295,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     }
     #endregion
 
-    #region public methods
-
-    public void Clean()
-    {
-        SubsScrollRequested = null;
-        TranslationsScrollRequested = null;
-    }
-
-    #endregion
-
     #region private methods
     void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
     {

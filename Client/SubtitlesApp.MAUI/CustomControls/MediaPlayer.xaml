@@ -6,7 +6,8 @@
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   x:Class="SubtitlesApp.CustomControls.MediaPlayer"
-  x:Name="this"
+  x:DataType="customControls:MediaPlayer"
+  x:Name="root"
 >
   <ContentView.Resources>
     <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
@@ -14,7 +15,7 @@
     <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
   </ContentView.Resources>
 
-  <Grid BindingContext="{x:Reference this}">
+  <Grid BindingContext="{x:Reference root}">
     <toolkit:MediaElement
       x:Name="MauiMediaElement"
       Aspect="AspectFit"
@@ -22,20 +23,9 @@
       ShouldAutoPlay="False"
       ShouldShowPlaybackControls="False"
       ZIndex="0"
-    >
-      <toolkit:MediaElement.Behaviors>
-        <toolkit:EventToCommandBehavior
-          EventName="PositionChanged"
-          Command="{Binding PositionChangedCommand}"
-          CommandParameter="{Binding PositionChangedCommandParameter}"
-        />
-        <toolkit:EventToCommandBehavior
-          EventName="SeekCompleted"
-          Command="{Binding SeekCompletedCommand}"
-          CommandParameter="{Binding SeekCompletedCommandParameter}"
-        />
-      </toolkit:MediaElement.Behaviors>
-    </toolkit:MediaElement>
+      PositionChanged="OnPositionChanged"
+      SeekCompleted="OnSeekCompleted"
+    />
 
     <Grid
       x:Name="PlayerControls"

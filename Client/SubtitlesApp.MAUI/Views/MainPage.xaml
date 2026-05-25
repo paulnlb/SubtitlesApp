@@ -1,39 +1,37 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
-             x:Class="SubtitlesApp.Views.MainPage"
-             x:DataType="viewModels:MainPageViewModel">
+<ContentPage
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+  x:Class="SubtitlesApp.Views.MainPage"
+  x:DataType="viewModels:MainPageViewModel"
+>
+  <ContentPage.Resources>
+    <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+  </ContentPage.Resources>
 
-        <ContentPage.Resources>
-                <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
-        </ContentPage.Resources>
+  <ScrollView>
+    <VerticalStackLayout Padding="30,0" Spacing="25">
+      <Image Margin="0, 40, 0, 0" Source="subtitles.png" HeightRequest="175" Aspect="AspectFit" />
 
-        <VerticalStackLayout>
-                <VerticalStackLayout Padding="30,0"
-                                     Spacing="25">
-                        <Image Margin="0, 40, 0, 0"
-                               Source="subtitles.png"
-                               HeightRequest="175"
-                               Aspect="AspectFit"/>
+      <Label Text="Welcome to SubtitlesApp!" Style="{StaticResource Headline}" SemanticProperties.HeadingLevel="Level1" />
 
-                        <Label Text="Welcome to SubtitlesApp!"
-                               Style="{StaticResource Headline}"
-                               SemanticProperties.HeadingLevel="Level1"/>
+      <Button
+        x:Name="CounterBtn"
+        Text="Open a file"
+        SemanticProperties.Hint="Opens a file to view"
+        HorizontalOptions="Fill"
+        Command="{Binding OpenMediaFileCommand}"
+      />
 
-                        <Button x:Name="CounterBtn"
-                                Text="Open a file"
-                                SemanticProperties.Hint="Opens a file to view"
-                                HorizontalOptions="Fill"
-                                Command="{Binding OpenMediaFileCommand}"/>
-
-                        <Button x:Name="SettingsBtn"
-                                Text="App settings"
-                                SemanticProperties.Hint="Opens app settings"
-                                HorizontalOptions="Fill"
-                                Command="{Binding OpenSettingsCommand}"/>
-                </VerticalStackLayout>
-        </VerticalStackLayout>
-
+      <Button
+        x:Name="SettingsBtn"
+        Text="App settings"
+        SemanticProperties.Hint="Opens app settings"
+        HorizontalOptions="Fill"
+        Command="{Binding OpenSettingsCommand}"
+      />
+    </VerticalStackLayout>
+  </ScrollView>
 </ContentPage>

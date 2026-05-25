@@ -52,16 +52,6 @@ public class ExdendedVirtualList : VirtualListView
         OnScrolled += ElementScrolled;
     }
 
-    ~ExdendedVirtualList()
-    {
-        Clean();
-    }
-
-    public void Clean()
-    {
-        OnScrolled -= ElementScrolled;
-    }
-
     private void ElementScrolled(object? sender, ScrolledEventArgs e)
     {
         var visiblePositions = FindVisiblePositions();

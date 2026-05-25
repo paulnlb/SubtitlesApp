@@ -13,11 +13,25 @@ public partial class MediaPlayer : ContentView
     {
         InitializeComponent();
 
-        MauiMediaElement.BindingContext = this;
-        MauiMediaElement.SetBinding(MediaElement.PositionProperty, "Position", BindingMode.OneWayToSource);
-        MauiMediaElement.SetBinding(MediaElement.DurationProperty, "Duration", BindingMode.OneWayToSource);
-        MauiMediaElement.SetBinding(MediaElement.MediaWidthProperty, "MediaWidth", BindingMode.OneWayToSource);
-        MauiMediaElement.SetBinding(MediaElement.MediaHeightProperty, "MediaHeight", BindingMode.OneWayToSource);
+        MauiMediaElement.SetBinding(
+            MediaElement.PositionProperty,
+            new Binding(nameof(Position), BindingMode.OneWayToSource, source: this)
+        );
+
+        MauiMediaElement.SetBinding(
+            MediaElement.DurationProperty,
+            new Binding(nameof(Duration), BindingMode.OneWayToSource, source: this)
+        );
+
+        MauiMediaElement.SetBinding(
+            MediaElement.MediaWidthProperty,
+            new Binding(nameof(MediaWidth), BindingMode.OneWayToSource, source: this)
+        );
+
+        MauiMediaElement.SetBinding(
+            MediaElement.MediaHeightProperty,
+            new Binding(nameof(MediaHeight), BindingMode.OneWayToSource, source: this)
+        );
 
         MauiMediaElement.PropertyChanged += MediaElementPropertyChanged;
         StrongReferenceMessenger.Default.Register<MediaPlayer, SeekToPositionMessage>(
@@ -187,6 +201,7 @@ public partial class MediaPlayer : ContentView
     {
         MauiMediaElement.PropertyChanged -= MediaElementPropertyChanged;
         MauiMediaElement.Handler?.DisconnectHandler();
+        MauiMediaElement.Dispose();
         StrongReferenceMessenger.Default.Unregister<SeekToPositionMessage>(this);
     }
 
@@ -346,6 +361,18 @@ public partial class MediaPlayer : ContentView
     {
         immersiveBtn.IsToggled = !immersiveBtn.IsToggled;
         ImmersiveModeToggled?.Invoke(this, new StateBtnEventArgs { IsToggled = immersiveBtn.IsToggled });
+    }
+
+    private void OnPositionChanged(object? sender, EventArgs e)
+    {
+        if (PositionChangedCommand != null && PositionChangedCommand.CanExecute(PositionChangedCommandParameter))
+            PositionChangedCommand.Execute(PositionChangedCommandParameter);
+    }
+
+    private void OnSeekCompleted(object? sender, EventArgs e)
+    {
+        if (SeekCompletedCommand != null && SeekCompletedCommand.CanExecute(SeekCompletedCommandParameter))
+            SeekCompletedCommand.Execute(SeekCompletedCommandParameter);
     }
     #endregion
 }
