@@ -38,26 +38,22 @@ public class PlayerSubtitlesStateManager(AdaptiveLayout layout)
         LayoutStates.Clear();
     }
 
-    public AdaptiveLayoutState PreCalcState()
+    public AdaptiveLayoutState PreCalcState(List<double?> relativeVerticalLengths, List<double?> relativeHorizontalLengths)
     {
         var manager = new AdaptiveLayoutManager(layout);
 
-        var childrenSizes = manager.CalculateChildrenSizes(new Rect(0, 0, layout.Width, layout.Height));
+        var bounds = new Rect(0, 0, layout.Width, layout.Height);
+        var relHeights = relativeVerticalLengths;
+        var relWidths = relativeHorizontalLengths;
 
-        var mediaPlayerView =
-            layout.Children[0] as BindableObject
-            ?? throw new InvalidOperationException("Player view is not a BindableObject.");
-
-        var subtitlesView =
-            layout.Children[1] as BindableObject
-            ?? throw new InvalidOperationException("Subtitles view is not a BindableObject.");
+        var childrenSizes = manager.CalculateChildrenSizes(bounds, relHeights, relWidths);
 
         var childrenStates = new List<ChildState>()
         {
             new()
             {
-                HorizontalLength = AdaptiveLayout.GetRelativeHorizontalLength(mediaPlayerView) ?? 0,
-                VerticalLength = AdaptiveLayout.GetRelativeVerticalLength(mediaPlayerView) ?? 0,
+                HorizontalLength = relWidths[0]!.Value,
+                VerticalLength = relHeights[0]!.Value,
                 TranslationX = 0,
                 TranslationY = 0,
                 Scale = 1,
@@ -68,8 +64,8 @@ public class PlayerSubtitlesStateManager(AdaptiveLayout layout)
             },
             new()
             {
-                HorizontalLength = AdaptiveLayout.GetRelativeHorizontalLength(subtitlesView) ?? 0,
-                VerticalLength = AdaptiveLayout.GetRelativeVerticalLength(subtitlesView) ?? 0,
+                HorizontalLength = relWidths[1]!.Value,
+                VerticalLength = relHeights[1]!.Value,
                 TranslationX = 0,
                 TranslationY = 0,
                 Scale = 1,

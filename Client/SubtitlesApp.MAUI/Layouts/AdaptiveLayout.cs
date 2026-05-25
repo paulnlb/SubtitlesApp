@@ -155,7 +155,11 @@ public class AdaptiveLayout : Layout
 
 public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 {
-    public List<Rect> CalculateChildrenSizes(Rect bounds)
+    public List<Rect> CalculateChildrenSizes(
+        Rect bounds,
+        List<double?> relativeVerticalLengths,
+        List<double?> relativeHorizontalLengths
+    )
     {
         var result = new List<Rect>();
 
@@ -163,7 +167,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         {
             double y = bounds.Y;
 
-            var childrenHeights = GetChildrenHeights(bounds.Height);
+            var childrenHeights = GetChildrenAbsoluteLengths(bounds.Height, relativeVerticalLengths);
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -181,7 +185,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         {
             double x = bounds.X;
 
-            var childrenWidths = GetChildrenWidths(bounds.Width);
+            var childrenWidths = GetChildrenAbsoluteLengths(bounds.Width, relativeHorizontalLengths);
 
             for (int i = 0; i < layout.Count; i++)
             {

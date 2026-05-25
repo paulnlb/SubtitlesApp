@@ -1,12 +1,10 @@
-using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Diagnostics;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Interfaces.Settings;
 using SubtitlesApp.Layouts;
-using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 using UraniumUI.Material.Controls;
 
@@ -17,11 +15,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private bool subtitlesHidden;
     private bool isPortraitMode;
 
-    private Transformation playerBeforeInterpolation;
-    private readonly ConcurrentDictionary<int, List<GestureStatus>> gestureStatuses = [];
-    private double totalY = 0;
-    private double totalX = 0;
-    private const double PanThreshold = 100;
+    private PanGestureState panGestureState = new();
 
     private readonly ILayoutSettings _layoutSettings;
     private readonly PlayerSubtitlesStateManager _layoutStateManager;
@@ -49,21 +43,20 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
+        base.OnNavigatedFrom(args);
+
         var vm = (PlayerWithSubtitlesViewModel)BindingContext;
-        vm.Clean();
         mediaPlayer.Stop();
         mediaPlayer.DisconnectHandler();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
-        subtitlesList.Clean();
-        translationsList.Clean();
-        vm.SubsScrollRequested += OnSubScrollRequested;
-        vm.TranslationsScrollRequested += OnTranslationScrollRequested;
+        vm.SubsScrollRequested -= OnSubScrollRequested;
+        vm.TranslationsScrollRequested -= OnTranslationScrollRequested;
+        vm.SubtitlesAdapter.Dispose();
+        vm.TranslationsAdapter.Dispose();
         mediaPlayer.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutHeightChanged;
-
-        base.OnNavigatedFrom(args);
     }
 
     protected override bool OnBackButtonPressed()
@@ -221,17 +214,16 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private async void HandlePanGesture(object? sender, PanUpdatedEventArgs e)
     {
-        Debug.WriteLine($"Yesture type: {e.StatusType}, Id: {e.GestureId}, X: {e.TotalY}, Y: {e.TotalY}");
-
-        var currentGestureStatuses = gestureStatuses.GetOrAdd(e.GestureId, []);
+        if (e.GestureId != panGestureState.Id && panGestureState.Locked)
+        {
+            return;
+        }
 
         switch (e.StatusType)
         {
             case GestureStatus.Started:
-                currentGestureStatuses.Add(GestureStatus.Started);
 
-                totalY = 0;
-                totalX = 0;
+                panGestureState = new() { Id = e.GestureId, Locked = true };
 
                 if (BindingContext is PlayerWithSubtitlesViewModel vm)
                 {
@@ -240,47 +232,56 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 Init();
 
-                playerBeforeInterpolation = mediaPlayer.GetTransformation();
+                panGestureState.PlayerBeforeInterpolation = mediaPlayer.GetTransformation();
 
                 break;
             case GestureStatus.Running:
-                currentGestureStatuses.Add(GestureStatus.Running);
 
-                if (!currentGestureStatuses.Contains(GestureStatus.Started))
+                if (!(panGestureState.Id == e.GestureId && panGestureState.Locked))
                 {
                     return;
                 }
 
-                totalY = e.TotalY;
-                totalX = e.TotalX;
+                panGestureState.TotalY = e.TotalY;
+                panGestureState.TotalX = e.TotalX;
 
-                InterpolateState(totalY, totalX);
+                InterpolateState(panGestureState.TotalY, panGestureState.TotalX);
 
                 break;
             case GestureStatus.Completed:
 
-                var isValid =
-                    currentGestureStatuses.Contains(GestureStatus.Running)
-                    && currentGestureStatuses.Contains(GestureStatus.Started);
-
-                gestureStatuses.Remove(e.GestureId, out var _);
-
-                if (!isValid)
+                if (!(panGestureState.Id == e.GestureId && panGestureState.Locked))
                 {
                     return;
                 }
 
                 var playerAfterInterpolation = mediaPlayer.GetTransformation();
-                var distance = isPortraitMode ? totalY : totalX;
+                var distance = isPortraitMode ? panGestureState.TotalY : panGestureState.TotalX;
 
-                if (playerAfterInterpolation != playerBeforeInterpolation && Math.Abs(distance) >= PanThreshold)
+                if (
+                    playerAfterInterpolation != panGestureState.PlayerBeforeInterpolation
+                    && Math.Abs(distance) >= panGestureState.PanThreshold
+                )
                 {
                     await CompleteTransition();
+
+                    if (subtitlesHidden)
+                    {
+                        RestoreNormalState();
+                    }
+                    else
+                    {
+                        SetFullscreenState();
+                    }
+
+                    subtitlesHidden = !subtitlesHidden;
                 }
                 else
                 {
                     await RevertTransition();
                 }
+
+                panGestureState = new();
 
                 break;
         }
@@ -293,18 +294,20 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         if (subtitlesHidden)
         {
-            RestoreNormalState();
-            newState = _layoutStateManager.PreCalcState();
+            newState = _layoutStateManager.PreCalcState(
+                [_layoutSettings.PlayerVerticalLength, _layoutSettings.SubtitlesVerticalLength],
+                [_layoutSettings.PlayerHorizontalLength, _layoutSettings.SubtitlesHoritzontalLength]
+            );
         }
         else
         {
-            SetFullscreenState();
-            newState = _layoutStateManager.PreCalcState();
+            newState = _layoutStateManager.PreCalcState(
+                [1, _layoutSettings.SubtitlesVerticalLength],
+                [1, _layoutSettings.SubtitlesHoritzontalLength]
+            );
         }
 
         _layoutStateManager.AddSnapshot(newState);
-
-        VirtualResizeToOld();
     }
 
     private void SetFullscreenState()
@@ -327,7 +330,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         subtitlesView.ResetTransformations();
     }
 
-    private async Task CompleteTransition()
+    private async Task RevertTransition()
     {
         var playerTranslateX = NativeAnimation.AnimateAsync(
             mediaPlayer.TranslationX,
@@ -361,32 +364,30 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             subtitlesTranslateY,
             subtitlesScale
         );
-
-        subtitlesHidden = !subtitlesHidden;
     }
 
-    private async Task RevertTransition()
+    private async Task CompleteTransition()
     {
         var oldState = _layoutStateManager.PeekSnapshot(2);
         var newState = _layoutStateManager.PeekSnapshot(1);
 
-        var newMediaBounds = MediaPlayer.GetMediaBounds(
+        var oldMediaBounds = MediaPlayer.GetMediaBounds(
             mediaPlayer.MediaWidth,
             mediaPlayer.MediaHeight,
-            newState.ChildrenStates[0].GetBounds()
+            oldState.ChildrenStates[0].GetBounds()
         );
 
         var playerTransform = ViewTransformHelper.CalculateTransformation(
-            newMediaBounds,
-            oldState.ChildrenStates[0].GetBounds()
+            oldMediaBounds,
+            newState.ChildrenStates[0].GetBounds()
         );
 
         var oldSubtitlesBounds = oldState.ChildrenStates[1].GetBounds();
         var newSubtitlesBounds = newState.ChildrenStates[1].GetBounds();
 
         var subtitlesTransform = ViewTransformHelper.CalculateTransformation(
-            newSubtitlesBounds,
-            new Rect(oldSubtitlesBounds.X, oldSubtitlesBounds.Y, newSubtitlesBounds.Width, newSubtitlesBounds.Height)
+            oldSubtitlesBounds,
+            new Rect(newSubtitlesBounds.X, newSubtitlesBounds.Y, oldSubtitlesBounds.Width, oldSubtitlesBounds.Height)
         );
 
         var playerTranslateX = NativeAnimation.AnimateAsync(
@@ -429,35 +430,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             subtitlesTranslateY,
             subtitlesScale
         );
-
-        _layoutStateManager.RestoreFrom(2);
-        _layoutStateManager.AddSnapshot(_layoutStateManager.PeekSnapshot(2));
-    }
-
-    private void VirtualResizeToOld()
-    {
-        var oldState = _layoutStateManager.PeekSnapshot(2);
-        var newState = _layoutStateManager.PeekSnapshot(1);
-
-        var playerTransform = ViewTransformHelper.CalculateTransformation(
-            MediaPlayer.GetMediaBounds(
-                mediaPlayer.MediaWidth,
-                mediaPlayer.MediaHeight,
-                newState.ChildrenStates[0].GetBounds()
-            ),
-            oldState.ChildrenStates[0].GetBounds()
-        );
-
-        var oldSubtitlesBounds = oldState.ChildrenStates[1].GetBounds();
-        var newSubtitlesBounds = newState.ChildrenStates[1].GetBounds();
-
-        var subtitlesTransform = ViewTransformHelper.CalculateTransformation(
-            newSubtitlesBounds,
-            new Rect(oldSubtitlesBounds.X, oldSubtitlesBounds.Y, newSubtitlesBounds.Width, newSubtitlesBounds.Height)
-        );
-
-        mediaPlayer.Transform(playerTransform);
-        subtitlesView.Transform(subtitlesTransform);
     }
 
     private void InterpolateState(double totalDeltaY, double totalDeltaX)
@@ -509,8 +481,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         var intermediateSubtitlesBounds = new Rect(
             oldSubtitlesBounds.X + totalDeltaX,
             oldSubtitlesBounds.Y + totalDeltaY,
-            newSubtitlesBounds.Width,
-            newSubtitlesBounds.Height
+            oldSubtitlesBounds.Width,
+            oldSubtitlesBounds.Height
         );
 
         intermediateSubtitlesBounds.X = Math.Clamp(
@@ -525,14 +497,30 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             Math.Max(newSubtitlesBounds.Y, oldSubtitlesBounds.Y)
         );
 
-        var mediaBounds = MediaPlayer.GetMediaBounds(mediaPlayer.MediaWidth, mediaPlayer.MediaHeight, newPlayerBounds);
+        Transformation playerTransform;
+        Transformation subtitlesTransform;
 
-        var playerTransform = ViewTransformHelper.CalculateTransformation(mediaBounds, intermediatePlayerBounds);
+        if (oldPlayerBounds == intermediatePlayerBounds)
+        {
+            playerTransform = new Transformation(1, 0, 0);
+        }
+        else
+        {
+            var mediaBounds = MediaPlayer.GetMediaBounds(mediaPlayer.MediaWidth, mediaPlayer.MediaHeight, oldPlayerBounds);
+            playerTransform = ViewTransformHelper.CalculateTransformation(mediaBounds, intermediatePlayerBounds);
+        }
 
-        var subtitlesTransform = ViewTransformHelper.CalculateTransformation(
-            newSubtitlesBounds,
-            intermediateSubtitlesBounds
-        );
+        if (oldSubtitlesBounds == intermediateSubtitlesBounds)
+        {
+            subtitlesTransform = new Transformation(1, 0, 0);
+        }
+        else
+        {
+            subtitlesTransform = ViewTransformHelper.CalculateTransformation(
+                oldSubtitlesBounds,
+                intermediateSubtitlesBounds
+            );
+        }
 
         mediaPlayer.Transform(playerTransform);
         subtitlesView.Transform(subtitlesTransform);
