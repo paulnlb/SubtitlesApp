@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
@@ -232,8 +233,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 Init();
 
-                panGestureState.PlayerBeforeInterpolation = mediaPlayer.GetTransformation();
-
                 break;
             case GestureStatus.Running:
 
@@ -242,10 +241,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                     return;
                 }
 
-                panGestureState.TotalY = e.TotalY;
-                panGestureState.TotalX = e.TotalX;
+                panGestureState.RelativeProgress = Normalize(e.TotalX, e.TotalY);
 
-                InterpolateState(panGestureState.TotalY, panGestureState.TotalX);
+                InterpolateLayout(panGestureState.RelativeProgress);
 
                 break;
             case GestureStatus.Completed:
@@ -255,13 +253,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                     return;
                 }
 
-                var playerAfterInterpolation = mediaPlayer.GetTransformation();
-                var distance = isPortraitMode ? panGestureState.TotalY : panGestureState.TotalX;
-
-                if (
-                    playerAfterInterpolation != panGestureState.PlayerBeforeInterpolation
-                    && Math.Abs(distance) >= panGestureState.PanThreshold
-                )
+                if (panGestureState.RelativeProgress >= panGestureState.PanThreshold)
                 {
                     await CompleteTransition();
 
@@ -432,70 +424,25 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         );
     }
 
-    private void InterpolateState(double totalDeltaY, double totalDeltaX)
+    private void InterpolateLayout(double relativeProgress)
     {
+        if (relativeProgress < 0 || relativeProgress > 1)
+        {
+            throw new ArgumentException("Progress must be between 0 and 1");
+        }
+
         var oldState = _layoutStateManager.PeekSnapshot(2);
         var newState = _layoutStateManager.PeekSnapshot(1);
 
         var oldPlayerBounds = oldState.ChildrenStates[0].GetBounds();
         var newPlayerBounds = newState.ChildrenStates[0].GetBounds();
 
-        var intermediatePlayerBounds = new Rect(
-            0,
-            0,
-            oldPlayerBounds.Width + totalDeltaX,
-            oldPlayerBounds.Height + totalDeltaY
-        );
-
-        if (oldPlayerBounds.Contains(newPlayerBounds))
-        {
-            intermediatePlayerBounds.Width = Math.Clamp(
-                intermediatePlayerBounds.Width,
-                newPlayerBounds.Width,
-                oldPlayerBounds.Width
-            );
-            intermediatePlayerBounds.Height = Math.Clamp(
-                intermediatePlayerBounds.Height,
-                newPlayerBounds.Height,
-                oldPlayerBounds.Height
-            );
-        }
-
-        if (newPlayerBounds.Contains(oldPlayerBounds))
-        {
-            intermediatePlayerBounds.Width = Math.Clamp(
-                intermediatePlayerBounds.Width,
-                oldPlayerBounds.Width,
-                newPlayerBounds.Width
-            );
-            intermediatePlayerBounds.Height = Math.Clamp(
-                intermediatePlayerBounds.Height,
-                oldPlayerBounds.Height,
-                newPlayerBounds.Height
-            );
-        }
+        var intermediatePlayerBounds = Lerp(relativeProgress, oldPlayerBounds, newPlayerBounds);
 
         var oldSubtitlesBounds = oldState.ChildrenStates[1].GetBounds();
         var newSubtitlesBounds = newState.ChildrenStates[1].GetBounds();
 
-        var intermediateSubtitlesBounds = new Rect(
-            oldSubtitlesBounds.X + totalDeltaX,
-            oldSubtitlesBounds.Y + totalDeltaY,
-            oldSubtitlesBounds.Width,
-            oldSubtitlesBounds.Height
-        );
-
-        intermediateSubtitlesBounds.X = Math.Clamp(
-            intermediateSubtitlesBounds.X,
-            Math.Min(newSubtitlesBounds.X, oldSubtitlesBounds.X),
-            Math.Max(newSubtitlesBounds.X, oldSubtitlesBounds.X)
-        );
-
-        intermediateSubtitlesBounds.Y = Math.Clamp(
-            intermediateSubtitlesBounds.Y,
-            Math.Min(newSubtitlesBounds.Y, oldSubtitlesBounds.Y),
-            Math.Max(newSubtitlesBounds.Y, oldSubtitlesBounds.Y)
-        );
+        var intermediateSubtitlesBounds = Lerp(relativeProgress, oldSubtitlesBounds, newSubtitlesBounds);
 
         Transformation playerTransform;
         Transformation subtitlesTransform;
@@ -524,6 +471,31 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         mediaPlayer.Transform(playerTransform);
         subtitlesView.Transform(subtitlesTransform);
+    }
+
+    private static Rect Lerp(double progress, Rect oldRect, Rect newRect)
+    {
+        var x = oldRect.X + (newRect.X - oldRect.X) * progress;
+        var y = oldRect.Y + (newRect.Y - oldRect.Y) * progress;
+        var width = oldRect.Width + (newRect.Width - oldRect.Width) * progress;
+        var height = oldRect.Height + (newRect.Height - oldRect.Height) * progress;
+
+        return new Rect(x, y, width, height);
+    }
+
+    private double Normalize(double totalX, double totalY)
+    {
+        var coefficient = subtitlesHidden ? -1d : 1d;
+
+        var absoluteProgress = isPortraitMode ? totalY : totalX;
+
+        Debug.WriteLine($"Absolute progress: {absoluteProgress}");
+
+        var progress = coefficient * absoluteProgress / subtitlesView.Height;
+
+        Debug.WriteLine($"Relative progress unclamped: {progress}");
+
+        return Math.Clamp(progress, 0, 1);
     }
 
     #endregion
