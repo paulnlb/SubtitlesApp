@@ -88,8 +88,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="CustomControls\MediaPlayer.xaml.cs">
-      <DependentUpon>MediaPlayer.xaml</DependentUpon>
+    <Compile Update="CustomControls\PlayerControls.xaml.cs">
+      <DependentUpon>PlayerControls.xaml</DependentUpon>
     </Compile>
     <Compile Update="CustomControls\SubtitleView.xaml.cs">
       <DependentUpon>SubtitleView.xaml</DependentUpon>
@@ -109,7 +109,7 @@
     <MauiXaml Update="CustomControls\Popups\LoadingPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\MediaPlayer.xaml">
+    <MauiXaml Update="CustomControls\PlayerControls.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\SubtitleView.xaml">

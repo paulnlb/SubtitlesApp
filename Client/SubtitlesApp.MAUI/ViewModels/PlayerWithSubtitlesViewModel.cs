@@ -56,6 +56,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [ObservableProperty]
     private TimeSpan _mediaDuration;
 
+    [ObservableProperty]
+    private double _playerRelativeVerticalLength;
+
+    [ObservableProperty]
+    private double _playerRelativeHorizontalLength;
+
     #endregion
 
     #region services

@@ -7,127 +7,62 @@ using SubtitlesApp.Messages;
 
 namespace SubtitlesApp.CustomControls;
 
-public partial class MediaPlayer : ContentView
+public partial class PlayerControls : ContentView, IDisposable
 {
-    public MediaPlayer()
+    private bool _disposed = false;
+
+    public PlayerControls()
     {
         InitializeComponent();
-
-        MauiMediaElement.SetBinding(
-            MediaElement.PositionProperty,
-            new Binding(nameof(Position), BindingMode.OneWayToSource, source: this)
-        );
-
-        MauiMediaElement.SetBinding(
-            MediaElement.DurationProperty,
-            new Binding(nameof(Duration), BindingMode.OneWayToSource, source: this)
-        );
-
-        MauiMediaElement.SetBinding(
-            MediaElement.MediaWidthProperty,
-            new Binding(nameof(MediaWidth), BindingMode.OneWayToSource, source: this)
-        );
-
-        MauiMediaElement.SetBinding(
-            MediaElement.MediaHeightProperty,
-            new Binding(nameof(MediaHeight), BindingMode.OneWayToSource, source: this)
-        );
-
-        MauiMediaElement.PropertyChanged += MediaElementPropertyChanged;
-        StrongReferenceMessenger.Default.Register<MediaPlayer, SeekToPositionMessage>(
-            this,
-            (recipient, message) => MauiMediaElement.SeekTo(message.Value)
-        );
     }
 
-    public static readonly BindableProperty MediaPathProperty = BindableProperty.Create(
-        nameof(MediaPath),
-        typeof(string),
-        typeof(MediaPlayer),
-        string.Empty
+    public static readonly BindableProperty MauiMediaElementProperty = BindableProperty.Create(
+        nameof(MauiMediaElement),
+        typeof(MediaElement),
+        typeof(PlayerControls),
+        null,
+        propertyChanged: OnMauiMediaElementPropertyChanged
     );
 
     public static readonly BindableProperty PlayerControlsVisibleProperty = BindableProperty.Create(
         nameof(PlayerControlsVisible),
         typeof(bool),
-        typeof(MediaPlayer),
+        typeof(PlayerControls),
         true
     );
 
     public static readonly BindableProperty PositionChangedCommandProperty = BindableProperty.Create(
         nameof(PositionChangedCommand),
         typeof(ICommand),
-        typeof(MediaPlayer),
+        typeof(PlayerControls),
         null
     );
 
     public static readonly BindableProperty PositionChangedCommandParameterProperty = BindableProperty.Create(
         nameof(PositionChangedCommandParameter),
         typeof(object),
-        typeof(MediaPlayer),
+        typeof(PlayerControls),
         null
     );
 
     public static readonly BindableProperty SeekCompletedCommandProperty = BindableProperty.Create(
         nameof(SeekCompletedCommand),
         typeof(ICommand),
-        typeof(MediaPlayer),
+        typeof(PlayerControls),
         null
     );
 
     public static readonly BindableProperty SeekCompletedCommandParameterProperty = BindableProperty.Create(
         nameof(SeekCompletedCommandParameter),
         typeof(object),
-        typeof(MediaPlayer),
+        typeof(PlayerControls),
         null
     );
 
-    public static readonly BindableProperty DurationProperty = BindableProperty.Create(
-        nameof(Duration),
-        typeof(TimeSpan),
-        typeof(MediaPlayer),
-        TimeSpan.Zero,
-        BindingMode.OneWayToSource
-    );
-
-    public static readonly BindableProperty PositionProperty = BindableProperty.Create(
-        nameof(Position),
-        typeof(TimeSpan),
-        typeof(MediaPlayer),
-        TimeSpan.Zero,
-        BindingMode.OneWayToSource
-    );
-
-    public static readonly BindableProperty MediaWidthProperty = BindableProperty.Create(
-        nameof(MediaWidth),
-        typeof(int),
-        typeof(MediaPlayer),
-        0
-    );
-
-    public static readonly BindableProperty MediaHeightProperty = BindableProperty.Create(
-        nameof(MediaHeight),
-        typeof(int),
-        typeof(MediaPlayer),
-        0
-    );
-
-    public string MediaPath
+    public MediaElement MauiMediaElement
     {
-        get => (string)GetValue(MediaPathProperty);
-        set => SetValue(MediaPathProperty, value);
-    }
-
-    public int MediaWidth
-    {
-        get => (int)GetValue(MediaWidthProperty);
-        set => SetValue(MediaWidthProperty, value);
-    }
-
-    public int MediaHeight
-    {
-        get => (int)GetValue(MediaHeightProperty);
-        set => SetValue(MediaHeightProperty, value);
+        get => (MediaElement)GetValue(MauiMediaElementProperty);
+        set => SetValue(MauiMediaElementProperty, value);
     }
 
     public ICommand PositionChangedCommand
@@ -160,23 +95,39 @@ public partial class MediaPlayer : ContentView
         set => SetValue(PlayerControlsVisibleProperty, value);
     }
 
-    public TimeSpan Duration
-    {
-        get => (TimeSpan)GetValue(DurationProperty);
-        set => SetValue(DurationProperty, value);
-    }
-
-    public TimeSpan Position
-    {
-        get => (TimeSpan)GetValue(PositionProperty);
-        set => SetValue(PositionProperty, value);
-    }
-
     public event EventHandler<StateBtnEventArgs>? FullScreenToggled;
 
     public event EventHandler<StateBtnEventArgs>? ImmersiveModeToggled;
 
+    #region implementation of IDisposable
+
+    public void Dispose()
+    {
+        Dispose(true);
+
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            MauiMediaElement.PropertyChanged -= MediaElementPropertyChanged;
+            StrongReferenceMessenger.Default.Unregister<SeekToPositionMessage>(this);
+        }
+
+        _disposed = true;
+    }
+
+    #endregion
+
     #region public methods
+
     public void Play()
     {
         MauiMediaElement.Play();
@@ -197,89 +148,29 @@ public partial class MediaPlayer : ContentView
         await MauiMediaElement.SeekTo(position, cancellationToken);
     }
 
-    public void DisconnectHandler()
-    {
-        MauiMediaElement.PropertyChanged -= MediaElementPropertyChanged;
-        MauiMediaElement.Handler?.DisconnectHandler();
-        MauiMediaElement.Dispose();
-        StrongReferenceMessenger.Default.Unregister<SeekToPositionMessage>(this);
-    }
-
-    /// <summary>
-    /// Gets the bounds of the media within the MediaElement.
-    /// </summary>
-    /// <returns></returns>
-    public Rect GetMediaBounds()
-    {
-        if (MediaWidth == 0 || MediaHeight == 0)
-        {
-            return Rect.Zero;
-        }
-
-        var mediaAspectRatio = (double)MediaWidth / MediaHeight;
-        var controlAspectRatio = MauiMediaElement.Width / MauiMediaElement.Height;
-
-        double displayedMediaWidth,
-            displayedMediaHeight;
-
-        if (mediaAspectRatio > controlAspectRatio)
-        {
-            // Media is wider than the control, so it will be letterboxed on the top and bottom
-            displayedMediaWidth = MauiMediaElement.Width;
-            displayedMediaHeight = MauiMediaElement.Width / mediaAspectRatio;
-        }
-        else
-        {
-            // Media is taller than the control, so it will be letterboxed on the left and right
-            displayedMediaHeight = MauiMediaElement.Height;
-            displayedMediaWidth = MauiMediaElement.Height * mediaAspectRatio;
-        }
-
-        var x = (MauiMediaElement.Width - displayedMediaWidth) / 2;
-        var y = (MauiMediaElement.Height - displayedMediaHeight) / 2;
-
-        return new Rect(x, y, displayedMediaWidth, displayedMediaHeight);
-    }
-
-    /// <summary>
-    /// Gets the bounds of the media within the MediaElement.
-    /// </summary>
-    /// <returns></returns>
-    public static Rect GetMediaBounds(double mediaWidth, double mediaHeight, Rect mediaContainerBounds)
-    {
-        if (mediaWidth == 0 || mediaHeight == 0)
-        {
-            return Rect.Zero;
-        }
-
-        var mediaAspectRatio = (double)mediaWidth / mediaHeight;
-        var controlAspectRatio = mediaContainerBounds.Width / mediaContainerBounds.Height;
-
-        double displayedMediaWidth,
-            displayedMediaHeight;
-
-        if (mediaAspectRatio > controlAspectRatio)
-        {
-            // Media is wider than the control, so it will be letterboxed on the top and bottom
-            displayedMediaWidth = mediaContainerBounds.Width;
-            displayedMediaHeight = mediaContainerBounds.Width / mediaAspectRatio;
-        }
-        else
-        {
-            // Media is taller than the control, so it will be letterboxed on the left and right
-            displayedMediaHeight = mediaContainerBounds.Height;
-            displayedMediaWidth = mediaContainerBounds.Height * mediaAspectRatio;
-        }
-
-        var x = (mediaContainerBounds.Width - displayedMediaWidth) / 2;
-        var y = (mediaContainerBounds.Height - displayedMediaHeight) / 2;
-
-        return new Rect(x, y, displayedMediaWidth, displayedMediaHeight);
-    }
-
     #endregion
 
     #region private event handlers
+
+    private static void OnMauiMediaElementPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        var root = ((PlayerControls)bindable);
+        if (oldValue is MediaElement oldMediaElement)
+        {
+            oldMediaElement.PropertyChanged -= root.MediaElementPropertyChanged;
+            oldMediaElement.Handler?.DisconnectHandler();
+            oldMediaElement.Dispose();
+            StrongReferenceMessenger.Default.Unregister<SeekToPositionMessage>(root);
+        }
+        if (newValue is MediaElement newMediaElement)
+        {
+            newMediaElement.PropertyChanged += root.MediaElementPropertyChanged;
+            StrongReferenceMessenger.Default.Register<PlayerControls, SeekToPositionMessage>(
+                root,
+                (recipient, message) => newMediaElement.SeekTo(message.Value)
+            );
+        }
+    }
 
     private async void OnRewindTapped(object sender, EventArgs e)
     {

@@ -5,8 +5,8 @@
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
-  x:Class="SubtitlesApp.CustomControls.MediaPlayer"
-  x:DataType="customControls:MediaPlayer"
+  x:Class="SubtitlesApp.CustomControls.PlayerControls"
+  x:DataType="customControls:PlayerControls"
   x:Name="root"
 >
   <ContentView.Resources>
@@ -16,28 +16,16 @@
   </ContentView.Resources>
 
   <Grid BindingContext="{x:Reference root}">
-    <toolkit:MediaElement
-      x:Name="MauiMediaElement"
-      Aspect="AspectFit"
-      Source="{Binding MediaPath}"
-      ShouldAutoPlay="False"
-      ShouldShowPlaybackControls="False"
-      ZIndex="0"
-      PositionChanged="OnPositionChanged"
-      SeekCompleted="OnSeekCompleted"
-    />
-
     <Grid
-      x:Name="PlayerControls"
+      x:Name="controls"
       Padding="10"
       BackgroundColor="#80000000"
       IsVisible="{Binding PlayerControlsVisible}"
       RowDefinitions="3*, 10*, 2*, *"
       ColumnDefinitions="*, *, *"
-      ZIndex="1"
     >
       <Label
-        Text="{Binding MediaPath, Converter={x:StaticResource PathToFileNameConverter}}"
+        Text="{Binding MauiMediaElement.Source, Converter={x:StaticResource PathToFileNameConverter}}"
         TextColor="White"
         Grid.Row="0"
         Grid.ColumnSpan="2"
@@ -86,33 +74,17 @@
         Clicked="OnPlayPauseTapped"
       >
         <Button.Triggers>
-          <DataTrigger
-            TargetType="Button"
-            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-            Value="Paused"
-          >
+          <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Paused">
             <Setter Property="ImageSource" Value="play_icon.png" />
           </DataTrigger>
-          <DataTrigger
-            TargetType="Button"
-            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-            Value="Playing"
-          >
+          <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Playing">
             <Setter Property="ImageSource" Value="pause_icon.png" />
           </DataTrigger>
 
-          <DataTrigger
-            TargetType="Button"
-            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-            Value="Stopped"
-          >
+          <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Stopped">
             <Setter Property="ImageSource" Value="restart.png" />
           </DataTrigger>
-          <DataTrigger
-            TargetType="Button"
-            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-            Value="Buffering"
-          >
+          <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Buffering">
             <Setter Property="IsVisible" Value="False" />
           </DataTrigger>
         </Button.Triggers>
@@ -120,11 +92,7 @@
 
       <ActivityIndicator HeightRequest="50" Grid.Row="1" Grid.Column="1" IsRunning="False">
         <ActivityIndicator.Triggers>
-          <DataTrigger
-            TargetType="ActivityIndicator"
-            Binding="{Binding Source={x:Reference MauiMediaElement}, Path=CurrentState}"
-            Value="Buffering"
-          >
+          <DataTrigger TargetType="ActivityIndicator" Binding="{Binding MauiMediaElement.CurrentState}" Value="Buffering">
             <Setter Property="IsRunning" Value="True" />
           </DataTrigger>
         </ActivityIndicator.Triggers>

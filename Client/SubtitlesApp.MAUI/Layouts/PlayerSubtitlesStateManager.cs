@@ -46,6 +46,7 @@ public class PlayerSubtitlesStateManager(AdaptiveLayout layout)
         var relHeights = relativeVerticalLengths;
         var relWidths = relativeHorizontalLengths;
 
+        manager.MeasureChildren(new Size(layout.Width, layout.Height), relHeights, relWidths);
         var childrenSizes = manager.CalculateChildrenSizes(bounds, relHeights, relWidths);
 
         var childrenStates = new List<ChildState>()
