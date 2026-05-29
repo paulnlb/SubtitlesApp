@@ -28,7 +28,7 @@
     </ResourceDictionary>
   </ContentPage.Resources>
 
-  <AbsoluteLayout>
+  <AbsoluteLayout x:Name="absoluteLayout">
     <!--Player controls overlay-->
     <customControls:PlayerControls
       x:Name="playerControls"

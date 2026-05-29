@@ -39,7 +39,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         SubscribeToGestures();
         ConfigureLayout();
-        //ConfigurePlayerControls();
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -229,8 +228,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         ScreenStateHelper.RestoreScreen();
         SafeAreaHelper.ResetSafeAreas(this);
-        SafeAreaEdges = new SafeAreaEdges(SafeAreaRegions.Container);
-        adaptiveLayout.SafeAreaEdges = new SafeAreaEdges(SafeAreaRegions.Container);
+        absoluteLayout.SafeAreaEdges =
+            adaptiveLayout.SafeAreaEdges =
+            this.SafeAreaEdges =
+                new SafeAreaEdges(SafeAreaRegions.Container);
     }
 
     #region handle pan gesture
@@ -253,7 +254,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                     vm.PlayerControlsVisible = false;
                 }
 
-                Init();
+                UpdateLayoutStates();
 
                 break;
             case GestureStatus.Running:
@@ -263,9 +264,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                     return;
                 }
 
-                panGestureState.RelativeProgress = Normalize(e.TotalX, e.TotalY);
+                panGestureState.RelativeProgress = NormalizeProgress(e.TotalX, e.TotalY);
 
-                InterpolateLayout(panGestureState.RelativeProgress);
+                _layoutStateManager.InterpolateLayout(panGestureState.RelativeProgress);
 
                 break;
             case GestureStatus.Completed:
@@ -277,22 +278,15 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 if (panGestureState.RelativeProgress >= panGestureState.PanThreshold)
                 {
-                    await CompleteTransition();
+                    await _layoutStateManager.AnimateToNextState();
 
-                    if (subtitlesHidden)
-                    {
-                        RestoreNormalState();
-                    }
-                    else
-                    {
-                        SetFullscreenState();
-                    }
+                    SwitchLayoutState();
 
                     subtitlesHidden = !subtitlesHidden;
                 }
                 else
                 {
-                    await RevertTransition();
+                    await _layoutStateManager.AnimateToCurrentState();
                 }
 
                 panGestureState = new();
@@ -301,30 +295,39 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
-    private void Init()
+    private void UpdateLayoutStates()
     {
-        AdaptiveLayoutState newState;
-        _layoutStateManager.PushCurrentState();
+        _layoutStateManager.SaveCurrentState();
 
         if (subtitlesHidden)
         {
-            newState = _layoutStateManager.PreCalcState(
+            _layoutStateManager.SetNextState(
                 [_layoutSettings.PlayerVerticalLength, _layoutSettings.SubtitlesVerticalLength],
                 [_layoutSettings.PlayerHorizontalLength, _layoutSettings.SubtitlesHoritzontalLength]
             );
         }
         else
         {
-            newState = _layoutStateManager.PreCalcState(
+            _layoutStateManager.SetNextState(
                 [1, _layoutSettings.SubtitlesVerticalLength],
                 [1, _layoutSettings.SubtitlesHoritzontalLength]
             );
         }
-
-        _layoutStateManager.AddSnapshot(newState);
     }
 
-    private void SetFullscreenState()
+    private void SwitchLayoutState()
+    {
+        if (subtitlesHidden)
+        {
+            RestoreNormalLayout();
+        }
+        else
+        {
+            SetFullscreenLayout();
+        }
+    }
+
+    private void SetFullscreenLayout()
     {
         AdaptiveLayout.SetRelativeVerticalLength(mauiMediaElement, 1);
         AdaptiveLayout.SetRelativeHorizontalLength(mauiMediaElement, 1);
@@ -334,7 +337,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         subtitlesView.ResetTransformations();
     }
 
-    private void RestoreNormalState()
+    private void RestoreNormalLayout()
     {
         AdaptiveLayout.SetRelativeVerticalLength(mauiMediaElement, _layoutSettings.PlayerVerticalLength);
         AdaptiveLayout.SetRelativeHorizontalLength(mauiMediaElement, _layoutSettings.PlayerHorizontalLength);
@@ -344,128 +347,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         subtitlesView.ResetTransformations();
     }
 
-    private async Task RevertTransition()
-    {
-        var tasksList = new List<Task>();
-
-        foreach (var child in adaptiveLayout.Children)
-        {
-            if (child is not VisualElement visualElement)
-            {
-                throw new InvalidOperationException($"Child is not a VisualElement");
-            }
-
-            var translateX = NativeAnimation.AnimateAsync(
-                visualElement.TranslationX,
-                0,
-                (v) => visualElement.TranslationX = v
-            );
-            var translateY = NativeAnimation.AnimateAsync(
-                visualElement.TranslationY,
-                0,
-                (v) => visualElement.TranslationY = v
-            );
-            var scale = NativeAnimation.AnimateAsync(visualElement.Scale, 1, (v) => visualElement.Scale = v);
-
-            tasksList.Add(translateX);
-            tasksList.Add(translateY);
-            tasksList.Add(scale);
-        }
-
-        await Task.WhenAll(tasksList);
-    }
-
-    private async Task CompleteTransition()
-    {
-        var oldState = _layoutStateManager.PeekSnapshot(2);
-        var newState = _layoutStateManager.PeekSnapshot(1);
-
-        var tasksList = new List<Task>();
-
-        for (int i = 0; i < adaptiveLayout.Children.Count; i++)
-        {
-            if (adaptiveLayout.Children[i] is not VisualElement visualElement)
-            {
-                throw new InvalidOperationException($"Child is not a VisualElement");
-            }
-
-            var transformation = ViewTransformHelper.CalculateTransformation(
-                oldState.ChildrenStates[i].GetBounds(),
-                newState.ChildrenStates[i].GetBounds()
-            );
-
-            var translateX = NativeAnimation.AnimateAsync(
-                visualElement.TranslationX,
-                transformation.TranslateX,
-                (v) => visualElement.TranslationX = v
-            );
-            var translateY = NativeAnimation.AnimateAsync(
-                visualElement.TranslationY,
-                transformation.TranslateY,
-                (v) => visualElement.TranslationY = v
-            );
-            var scale = NativeAnimation.AnimateAsync(
-                visualElement.Scale,
-                transformation.Scale,
-                (v) => visualElement.Scale = v
-            );
-
-            tasksList.Add(translateX);
-            tasksList.Add(translateY);
-            tasksList.Add(scale);
-        }
-
-        await Task.WhenAll(tasksList);
-    }
-
-    private void InterpolateLayout(double relativeProgress)
-    {
-        if (relativeProgress < 0 || relativeProgress > 1)
-        {
-            throw new ArgumentException("Progress must be between 0 and 1");
-        }
-
-        var oldState = _layoutStateManager.PeekSnapshot(2);
-        var newState = _layoutStateManager.PeekSnapshot(1);
-
-        for (int i = 0; i < adaptiveLayout.Children.Count; i++)
-        {
-            var oldBounds = oldState.ChildrenStates[i].GetBounds();
-            var newBounds = newState.ChildrenStates[i].GetBounds();
-
-            if (adaptiveLayout.Children[i] is not VisualElement child)
-            {
-                throw new InvalidOperationException($"Child {i} is not a VisualElement");
-            }
-
-            var intermediateBounds = Lerp(relativeProgress, oldBounds, newBounds);
-
-            Transformation transformation;
-
-            if (oldBounds == intermediateBounds)
-            {
-                transformation = new Transformation(1, 0, 0);
-            }
-            else
-            {
-                transformation = ViewTransformHelper.CalculateTransformation(oldBounds, intermediateBounds);
-            }
-
-            child.Transform(transformation);
-        }
-    }
-
-    private static Rect Lerp(double progress, Rect oldRect, Rect newRect)
-    {
-        var x = oldRect.X + (newRect.X - oldRect.X) * progress;
-        var y = oldRect.Y + (newRect.Y - oldRect.Y) * progress;
-        var width = oldRect.Width + (newRect.Width - oldRect.Width) * progress;
-        var height = oldRect.Height + (newRect.Height - oldRect.Height) * progress;
-
-        return new Rect(x, y, width, height);
-    }
-
-    private double Normalize(double totalX, double totalY)
+    private double NormalizeProgress(double totalX, double totalY)
     {
         var coefficient = subtitlesHidden ? -1d : 1d;
 
