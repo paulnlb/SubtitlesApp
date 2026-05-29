@@ -2,16 +2,15 @@
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.EventArgs;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
-using SubtitlesApp.Messages;
 using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
@@ -62,6 +61,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [ObservableProperty]
     private double _playerRelativeHorizontalLength;
 
+    [ObservableProperty]
+    private bool _isImmersiveOn;
+
+    [ObservableProperty]
+    private bool _isFullScreenOn;
+
     #endregion
 
     #region services
@@ -85,6 +90,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #region events
     public event EventHandler? SubsScrollRequested;
     public event EventHandler? TranslationsScrollRequested;
+    public event EventHandler<SeekEventArgs>? SeekRequested;
 
     #endregion
 
@@ -177,7 +183,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public void SubtitleTapped(VisualSubtitle subtitle)
     {
-        StrongReferenceMessenger.Default.Send(new SeekToPositionMessage(subtitle.TimeInterval.StartTime));
+        SeekRequested?.Invoke(this, new SeekEventArgs { Time = subtitle.TimeInterval.StartTime });
     }
 
     [RelayCommand]

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
-using SubtitlesApp.CustomControls;
+using SubtitlesApp.ClientModels.EventArgs;
 using SubtitlesApp.Extensions;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Interfaces.Settings;
@@ -21,6 +21,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private readonly ILayoutSettings _layoutSettings;
     private readonly AdaptiveLayoutStateManager _layoutStateManager;
 
+    private PlayerWithSubtitlesViewModel Vm => (PlayerWithSubtitlesViewModel)BindingContext;
+
     public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel viewModel, ILayoutSettings layoutSettings)
     {
         InitializeComponent();
@@ -35,12 +37,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         viewModel.SubsScrollRequested += OnSubScrollRequested;
         viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
+        viewModel.SeekRequested += OnSeekRequested;
+        viewModel.PropertyChanged += OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
         adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
 
         mauiMediaElement.SetBinding(
             MediaElement.DurationProperty,
-            new Binding("MediaDuration", BindingMode.OneWayToSource, source: viewModel)
+            new Binding(nameof(viewModel.MediaDuration), BindingMode.OneWayToSource, source: viewModel)
         );
 
         SubscribeToGestures();
@@ -51,16 +55,17 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         base.OnNavigatedFrom(args);
 
-        var vm = (PlayerWithSubtitlesViewModel)BindingContext;
         mauiMediaElement.Stop();
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
         playerControls.Dispose();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
-        vm.SubsScrollRequested -= OnSubScrollRequested;
-        vm.TranslationsScrollRequested -= OnTranslationScrollRequested;
-        vm.SubtitlesAdapter.Dispose();
-        vm.TranslationsAdapter.Dispose();
+        Vm.SubsScrollRequested -= OnSubScrollRequested;
+        Vm.TranslationsScrollRequested -= OnTranslationScrollRequested;
+        Vm.SeekRequested -= OnSeekRequested;
+        Vm.PropertyChanged -= OnVmPropertyChanged;
+        Vm.SubtitlesAdapter.Dispose();
+        Vm.TranslationsAdapter.Dispose();
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerGestureRecognizer.PanUpdated -= HandlePanGesture;
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
@@ -83,55 +88,18 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
-    private void OnFullScreenToggled(object? sender, StateBtnEventArgs e)
-    {
-        var isLandscape = e.IsToggled;
-        ScreenStateHelper.ChangeOrientation(isLandscape);
-        isPortraitMode = !isLandscape;
-
-        if (isPortraitMode)
-        {
-            adaptiveLayout.Orientation = StackOrientation.Vertical;
-        }
-        else
-        {
-            adaptiveLayout.Orientation = StackOrientation.Horizontal;
-        }
-    }
-
-    private void OnImmersiveModeToggled(object? sender, StateBtnEventArgs e)
-    {
-        if (e.IsToggled)
-        {
-            ImmersiveOn();
-        }
-        else
-        {
-            ImmersiveOff();
-        }
-    }
-
     private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
         if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
         {
             isPortraitMode = true;
-            ImmersiveOff();
         }
         else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
         {
             isPortraitMode = false;
-            ImmersiveOn();
         }
 
-        if (isPortraitMode)
-        {
-            adaptiveLayout.Orientation = StackOrientation.Vertical;
-        }
-        else
-        {
-            adaptiveLayout.Orientation = StackOrientation.Horizontal;
-        }
+        ReactToOrientationChange();
     }
 
     private void OnSelectedTabChanged(object? sender, TabItem e)
@@ -188,6 +156,42 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
+    private void OnPositionChanged(object? sender, EventArgs e)
+    {
+        if (Vm.PositionChangedCommand != null && Vm.PositionChangedCommand.CanExecute(mauiMediaElement.Position))
+            Vm.PositionChangedCommand.Execute(mauiMediaElement.Position);
+    }
+
+    private void OnSeekRequested(object? sender, SeekEventArgs e)
+    {
+        mauiMediaElement.SeekTo(e.Time);
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Vm.IsImmersiveOn))
+        {
+            if (Vm.IsImmersiveOn)
+            {
+                ImmersiveOn();
+            }
+            else
+            {
+                ImmersiveOff();
+            }
+        }
+        else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
+        {
+            var isLandscape = Vm.IsFullScreenOn;
+            ScreenStateHelper.ChangeOrientation(isLandscape);
+            isPortraitMode = !isLandscape;
+
+            ReactToOrientationChange();
+        }
+    }
+
+    #region helper methods
+
     private void RecalculateVerticalLayout(double videoHeightPx, double videoWidthPx)
     {
         var newRelativeHeight = videoHeightPx * adaptiveLayout.Width / (adaptiveLayout.Height * videoWidthPx);
@@ -239,6 +243,21 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             this.SafeAreaEdges =
                 new SafeAreaEdges(SafeAreaRegions.Container);
     }
+
+    private void ReactToOrientationChange()
+    {
+        if (isPortraitMode)
+        {
+            adaptiveLayout.Orientation = StackOrientation.Vertical;
+        }
+        else
+        {
+            adaptiveLayout.Orientation = StackOrientation.Horizontal;
+        }
+
+        Vm.IsImmersiveOn = !isPortraitMode;
+    }
+    #endregion
 
     #region handle pan gesture
 

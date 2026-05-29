@@ -48,6 +48,7 @@
         BackgroundColor="Transparent"
         WidthRequest="30"
         HeightRequest="30"
+        IsToggled="{Binding IsImmersiveOn, Mode=TwoWay}"
       />
 
       <!--Second Row 
@@ -141,6 +142,7 @@
         BackgroundColor="Transparent"
         WidthRequest="30"
         HeightRequest="30"
+        IsToggled="{Binding IsFullScreenOn, Mode=TwoWay}"
       />
 
       <!--Fourth Row

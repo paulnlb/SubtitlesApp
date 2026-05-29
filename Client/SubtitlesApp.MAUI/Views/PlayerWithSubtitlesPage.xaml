@@ -34,10 +34,8 @@
       x:Name="playerControls"
       MauiMediaElement="{x:Reference mauiMediaElement}"
       PlayerControlsVisible="{Binding PlayerControlsVisible}"
-      PositionChangedCommand="{Binding PositionChangedCommand}"
-      PositionChangedCommandParameter="{Binding Source={x:Reference mauiMediaElement}, Path=Position}"
-      FullScreenToggled="OnFullScreenToggled"
-      ImmersiveModeToggled="OnImmersiveModeToggled"
+      IsFullScreenOn="{Binding IsFullScreenOn, Mode=TwoWay}"
+      IsImmersiveOn="{Binding IsImmersiveOn, Mode=TwoWay}"
       ZIndex="1"
       AbsoluteLayout.LayoutFlags="SizeProportional"
     >
@@ -69,6 +67,7 @@
         ShouldShowPlaybackControls="False"
         VerticalOptions="Center"
         HorizontalOptions="Center"
+        PositionChanged="OnPositionChanged"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding PlayerRelativeVerticalLength, Mode=OneWayToSource}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding PlayerRelativeHorizontalLength, Mode=OneWayToSource}"
       >

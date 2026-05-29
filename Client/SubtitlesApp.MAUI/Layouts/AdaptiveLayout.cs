@@ -240,7 +240,8 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
     }
 
     public void MeasureChildren(
-        Size constraints,
+        double widthConstraint,
+        double heightConstraint,
         IEnumerable<double?> relativeVerticalLengths,
         IEnumerable<double?> relativeHorizontalLengths
     )
@@ -249,22 +250,22 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
         if (layout.Orientation == StackOrientation.Vertical)
         {
-            var childrenHeights = GetChildrenAbsoluteLengths(constraints.Height, relativeVerticalLengths.ToList());
+            var childrenHeights = GetChildrenAbsoluteLengths(heightConstraint, relativeVerticalLengths.ToList());
 
             for (int i = 0; i < layout.Count; i++)
             {
-                var childSize = layout[i].Measure(constraints.Width, childrenHeights[i]);
+                var childSize = layout[i].Measure(widthConstraint, childrenHeights[i]);
 
                 _chidrenMeasurements.Add(childSize);
             }
         }
         else
         {
-            var childrenWidths = GetChildrenAbsoluteLengths(constraints.Width, relativeHorizontalLengths.ToList());
+            var childrenWidths = GetChildrenAbsoluteLengths(widthConstraint, relativeHorizontalLengths.ToList());
 
             for (int i = 0; i < layout.Count; i++)
             {
-                var childSize = layout[i].Measure(childrenWidths[i], constraints.Height);
+                var childSize = layout[i].Measure(childrenWidths[i], heightConstraint);
 
                 _chidrenMeasurements.Add(childSize);
             }
@@ -299,7 +300,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
         var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
 
-        MeasureChildren(new Size(widthConstraint, heightConstraint), relVerticalLengths, relHorizontalLengths);
+        MeasureChildren(widthConstraint, heightConstraint, relVerticalLengths, relHorizontalLengths);
 
         if (layout.Orientation == StackOrientation.Vertical)
         {
