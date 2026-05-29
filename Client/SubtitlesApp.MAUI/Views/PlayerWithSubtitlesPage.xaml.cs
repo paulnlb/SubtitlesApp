@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
@@ -18,7 +19,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private PanGestureState panGestureState = new();
 
     private readonly ILayoutSettings _layoutSettings;
-    private readonly PlayerSubtitlesStateManager _layoutStateManager;
+    private readonly AdaptiveLayoutStateManager _layoutStateManager;
 
     public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel viewModel, ILayoutSettings layoutSettings)
     {
@@ -27,7 +28,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         BindingContext = viewModel;
 
         _layoutSettings = layoutSettings;
-        _layoutStateManager = new PlayerSubtitlesStateManager(adaptiveLayout);
+        _layoutStateManager = new AdaptiveLayoutStateManager(adaptiveLayout);
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
         isPortraitMode = DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait;
@@ -36,6 +37,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
         adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
+
+        mauiMediaElement.SetBinding(
+            MediaElement.DurationProperty,
+            new Binding("MediaDuration", BindingMode.OneWayToSource, source: viewModel)
+        );
 
         SubscribeToGestures();
         ConfigureLayout();
@@ -254,7 +260,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                     vm.PlayerControlsVisible = false;
                 }
 
-                UpdateLayoutStates();
+                RefreshLayoutStates();
 
                 break;
             case GestureStatus.Running:
@@ -295,7 +301,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
-    private void UpdateLayoutStates()
+    private void RefreshLayoutStates()
     {
         _layoutStateManager.SaveCurrentState();
 

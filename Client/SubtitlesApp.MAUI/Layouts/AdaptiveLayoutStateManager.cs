@@ -3,7 +3,7 @@ using SubtitlesApp.Helpers;
 
 namespace SubtitlesApp.Layouts;
 
-public class PlayerSubtitlesStateManager(AdaptiveLayout layout)
+public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
 {
     private AdaptiveLayoutState? _currentState = null;
     private AdaptiveLayoutState? _nextState = null;

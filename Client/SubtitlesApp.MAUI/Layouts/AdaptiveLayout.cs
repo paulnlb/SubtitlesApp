@@ -187,8 +187,8 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
     public List<Rect> CalculateChildrenSizes(
         Rect bounds,
-        List<double?> relativeVerticalLengths,
-        List<double?> relativeHorizontalLengths
+        IEnumerable<double?> relativeVerticalLengths,
+        IEnumerable<double?> relativeHorizontalLengths
     )
     {
         var result = new List<Rect>();
@@ -197,7 +197,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         {
             double y = bounds.Y;
 
-            var childrenHeights = GetChildrenAbsoluteLengths(bounds.Height, relativeVerticalLengths);
+            var childrenHeights = GetChildrenAbsoluteLengths(bounds.Height, relativeVerticalLengths.ToList());
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -218,7 +218,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         {
             double x = bounds.X;
 
-            var childrenWidths = GetChildrenAbsoluteLengths(bounds.Width, relativeHorizontalLengths);
+            var childrenWidths = GetChildrenAbsoluteLengths(bounds.Width, relativeHorizontalLengths.ToList());
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -241,15 +241,15 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
     public void MeasureChildren(
         Size constraints,
-        List<double?> relativeVerticalLengths,
-        List<double?> relativeHorizontalLengths
+        IEnumerable<double?> relativeVerticalLengths,
+        IEnumerable<double?> relativeHorizontalLengths
     )
     {
         _chidrenMeasurements.Clear();
 
         if (layout.Orientation == StackOrientation.Vertical)
         {
-            var childrenHeights = GetChildrenAbsoluteLengths(constraints.Height, relativeVerticalLengths);
+            var childrenHeights = GetChildrenAbsoluteLengths(constraints.Height, relativeVerticalLengths.ToList());
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -260,7 +260,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         }
         else
         {
-            var childrenWidths = GetChildrenAbsoluteLengths(constraints.Width, relativeHorizontalLengths);
+            var childrenWidths = GetChildrenAbsoluteLengths(constraints.Width, relativeHorizontalLengths.ToList());
 
             for (int i = 0; i < layout.Count; i++)
             {
@@ -273,13 +273,8 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
     public Size ArrangeChildren(Rect bounds)
     {
-        var relVerticalLengths = layout
-            .Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child))
-            .ToList();
-
-        var relHorizontalLengths = layout
-            .Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child))
-            .ToList();
+        var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
+        var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
 
         var boundsList = CalculateChildrenSizes(bounds, relVerticalLengths, relHorizontalLengths);
 
@@ -301,52 +296,33 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         double width = 0;
         double height = 0;
 
-        _chidrenMeasurements.Clear();
+        var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
+        var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
+
+        MeasureChildren(new Size(widthConstraint, heightConstraint), relVerticalLengths, relHorizontalLengths);
 
         if (layout.Orientation == StackOrientation.Vertical)
         {
-            var childrenHeights = GetChildrenHeights(heightConstraint);
-
             for (int i = 0; i < layout.Count; i++)
             {
-                var childSize = layout[i].Measure(widthConstraint, childrenHeights[i]);
+                var childSize = _chidrenMeasurements[i];
 
-                _chidrenMeasurements.Add(childSize);
                 width = Math.Max(width, childSize.Width);
                 height += childSize.Height;
             }
         }
         else
         {
-            var childrenWidths = GetChildrenWidths(widthConstraint);
-
             for (int i = 0; i < layout.Count; i++)
             {
-                var childSize = layout[i].Measure(childrenWidths[i], heightConstraint);
+                var childSize = _chidrenMeasurements[i];
 
-                _chidrenMeasurements.Add(childSize);
                 width += childSize.Width;
                 height = Math.Max(height, childSize.Height);
             }
         }
 
         return new Size(width, height);
-    }
-
-    private List<double> GetChildrenHeights(double totalHeight)
-    {
-        var relativeLengths = layout
-            .Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child))
-            .ToList();
-        return GetChildrenAbsoluteLengths(totalHeight, relativeLengths);
-    }
-
-    private List<double> GetChildrenWidths(double totalWidth)
-    {
-        var relativeLengths = layout
-            .Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child))
-            .ToList();
-        return GetChildrenAbsoluteLengths(totalWidth, relativeLengths);
     }
 
     private static List<double> GetChildrenAbsoluteLengths(double totalAbsoluteLength, List<double?> relativeLengths)
