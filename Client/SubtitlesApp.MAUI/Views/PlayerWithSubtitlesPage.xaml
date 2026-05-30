@@ -12,7 +12,6 @@
   xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
-  xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
   Shell.NavBarIsVisible="false"
   x:Class="SubtitlesApp.Views.PlayerWithSubtitlesPage"
   x:DataType="viewModels:PlayerWithSubtitlesViewModel"
@@ -76,175 +75,11 @@
         </customControls:ExtendedMediaElement.GestureRecognizers>
       </customControls:ExtendedMediaElement>
 
-      <!--Subtitles section-->
-      <Grid
-        x:Name="subtitlesView"
-        RowDefinitions="50, *"
-        ColumnDefinitions="11*, Auto, Auto"
-        Padding="5, 0"
-        BackgroundColor="#1f1e1e"
-      >
-        <Grid.GestureRecognizers>
-          <PanGestureRecognizer x:Name="subtitlesGestureRecognizer" />
-        </Grid.GestureRecognizers>
-
-        <Label
-          Grid.Row="0"
-          Grid.Column="0"
-          Text="Subtitles"
-          VerticalOptions="Center"
-          FontAttributes="Bold"
-          FontSize="20"
-          Margin="5"
-        />
-
-        <!--!Transcribe button-->
-        <ImageButton
-          Grid.Row="0"
-          Grid.Column="1"
-          Source="{AppThemeBinding Dark=subtitles_light.png, Light=subtitles_dark.png}"
-          Padding="2"
-          HeightRequest="30"
-          WidthRequest="30"
-          Margin="5,0,0,0"
-          Command="{Binding TranscribeCommand}"
-        />
-
-        <!--Translate button-->
-        <ImageButton
-          Grid.Row="0"
-          Grid.Column="2"
-          Source="{AppThemeBinding Dark=translate_light.png, Light=translate_dark.png}"
-          Padding="2"
-          HeightRequest="30"
-          WidthRequest="30"
-          Margin="5,0,0,0"
-          Command="{Binding TranslateCommand}"
-        />
-
-        <material:TabView
-          Grid.Row="1"
-          Grid.ColumnSpan="3"
-          SelectedTabChanged="OnSelectedTabChanged"
-          CachingStrategy="CacheOnLayout"
-        >
-          <material:TabItem Title="Subtitles">
-            <material:TabItem.Content>
-              <!--Subtitles list-->
-              <customControls:ExdendedVirtualList
-                x:Name="subtitlesList"
-                Adapter="{Binding SubtitlesAdapter}"
-                FirstVisibleItemIndex="{Binding SubtitlesCollectionState.FirstVisibleSubtitleIndex}"
-                LastVisibleItemIndex="{Binding SubtitlesCollectionState.LastVisibleSubtitleIndex}"
-                ScrolledCommandDerived="{Binding SubsScrolledCommand}"
-              >
-                <customControls:ExdendedVirtualList.ItemTemplate>
-                  <DataTemplate x:DataType="clientModels:VisualSubtitle">
-                    <customControls:SubtitleView
-                      SubtitleSource="{Binding .}"
-                      TappedCommand="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext.SubtitleTappedCommand}"
-                      TappedCommandParameter="{Binding .}"
-                    />
-                  </DataTemplate>
-                </customControls:ExdendedVirtualList.ItemTemplate>
-                <customControls:ExdendedVirtualList.GlobalFooter>
-                  <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-                </customControls:ExdendedVirtualList.GlobalFooter>
-                <customControls:ExdendedVirtualList.EmptyView>
-                  <Label
-                    Text="To see subtitles here, click the transcription button."
-                    Style="{StaticResource Headline}"
-                    FontSize="20"
-                    Padding="10, 40"
-                  />
-                </customControls:ExdendedVirtualList.EmptyView>
-              </customControls:ExdendedVirtualList>
-            </material:TabItem.Content>
-          </material:TabItem>
-
-          <material:TabItem Title="Translations">
-            <material:TabItem.Content>
-              <!-- Translations list -->
-              <customControls:ExdendedVirtualList
-                x:Name="translationsList"
-                Adapter="{Binding TranslationsAdapter}"
-                FirstVisibleItemIndex="{Binding TranslationsCollectionState.FirstVisibleSubtitleIndex}"
-                LastVisibleItemIndex="{Binding TranslationsCollectionState.LastVisibleSubtitleIndex}"
-                ScrolledCommandDerived="{Binding TranslationsScrolledCommand}"
-              >
-                <customControls:ExdendedVirtualList.ItemTemplate>
-                  <DataTemplate x:DataType="clientModels:VisualSubtitle">
-                    <customControls:SubtitleView
-                      SubtitleSource="{Binding .}"
-                      TappedCommand="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext.SubtitleTappedCommand}"
-                      TappedCommandParameter="{Binding .}"
-                    />
-                  </DataTemplate>
-                </customControls:ExdendedVirtualList.ItemTemplate>
-                <customControls:ExdendedVirtualList.GlobalFooter>
-                  <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-                </customControls:ExdendedVirtualList.GlobalFooter>
-                <customControls:ExdendedVirtualList.EmptyView>
-                  <Label
-                    Text="To see translations here, click the translation button."
-                    Style="{StaticResource Headline}"
-                    HorizontalOptions="Center"
-                    FontSize="20"
-                    Padding="10, 40"
-                    IsVisible="{Binding IsBusy, Converter={x:StaticResource InvertedBoolConverter}}"
-                  />
-                </customControls:ExdendedVirtualList.EmptyView>
-              </customControls:ExdendedVirtualList>
-            </material:TabItem.Content>
-          </material:TabItem>
-        </material:TabView>
-
-        <!--"Scroll to current subtitle" button-->
-        <Button
-          x:Name="scrollToCurrentButtonSubtitle"
-          Grid.Row="1"
-          Grid.ColumnSpan="3"
-          Text="Scroll to current subtitle"
-          Command="{Binding ScrollToCurentSubCommand}"
-          VerticalOptions="End"
-          HorizontalOptions="Center"
-          HeightRequest="40"
-          Margin="0, 0, 0, 10"
-        >
-          <Button.IsVisible>
-            <MultiBinding Converter="{StaticResource AllTrueConverter}">
-              <Binding
-                Path="SubtitlesCollectionState.AutoScrollEnabled"
-                Converter="{StaticResource InvertedBoolConverter}"
-              />
-              <Binding Path="IsSubtitlesSelected" />
-            </MultiBinding>
-          </Button.IsVisible>
-        </Button>
-
-        <!--"Scroll to current translation" button-->
-        <Button
-          x:Name="scrollToCurrentButtonTranslation"
-          Grid.Row="1"
-          Grid.ColumnSpan="3"
-          Text="Scroll to current translation"
-          Command="{Binding ScrollToCurentTranslationCommand}"
-          VerticalOptions="End"
-          HorizontalOptions="Center"
-          HeightRequest="40"
-          Margin="0, 0, 0, 10"
-        >
-          <Button.IsVisible>
-            <MultiBinding Converter="{StaticResource AllTrueConverter}">
-              <Binding
-                Path="TranslationsCollectionState.AutoScrollEnabled"
-                Converter="{StaticResource InvertedBoolConverter}"
-              />
-              <Binding Path="IsTranslationsSelected" />
-            </MultiBinding>
-          </Button.IsVisible>
-        </Button>
-      </Grid>
+      <views:CaptionsView x:Name="captionsView" BindingContext="{Binding CaptionsVm}">
+        <views:CaptionsView.GestureRecognizers>
+          <PanGestureRecognizer x:Name="captionsGestureRecognizer" />
+        </views:CaptionsView.GestureRecognizers>
+      </views:CaptionsView>
     </layouts:AdaptiveLayout>
   </AbsoluteLayout>
 </ContentPage>

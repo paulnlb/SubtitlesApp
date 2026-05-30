@@ -115,6 +115,9 @@
     <MauiXaml Update="CustomControls\SubtitleView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\CaptionsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\PlayerWithSubtitlesPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
