@@ -15,7 +15,8 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
 
     public void SetNextState(List<double?> relativeVerticalLengths, List<double?> relativeHorizontalLengths)
     {
-        _nextState = ComputeState(relativeVerticalLengths, relativeHorizontalLengths);
+        var manager = new AdaptiveLayoutManager(layout);
+        _nextState = manager.ComputeState(relativeVerticalLengths, relativeHorizontalLengths);
     }
 
     public async Task AnimateToCurrentState()
@@ -49,7 +50,7 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
         await Task.WhenAll(tasksList);
     }
 
-    public async Task AnimateToNextState()
+    public async Task SwitchToNextState()
     {
         var oldState = _currentState ?? throw new InvalidOperationException("Current state is not set");
         var newState = _nextState ?? throw new InvalidOperationException("Next state is not set");
@@ -90,6 +91,8 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
         }
 
         await Task.WhenAll(tasksList);
+
+        layout.Restore(newState);
     }
 
     public void InterpolateLayout(double relativeProgress)
@@ -127,48 +130,6 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
 
             child.Transform(transformation);
         }
-    }
-
-    private AdaptiveLayoutState ComputeState(List<double?> relativeVerticalLengths, List<double?> relativeHorizontalLengths)
-    {
-        var manager = new AdaptiveLayoutManager(layout);
-
-        var bounds = new Rect(0, 0, layout.Width, layout.Height);
-        var relHeights = relativeVerticalLengths;
-        var relWidths = relativeHorizontalLengths;
-
-        manager.MeasureChildren(layout.Width, layout.Height, relHeights, relWidths);
-        var childrenSizes = manager.CalculateChildrenSizes(bounds, relHeights, relWidths);
-
-        var childrenStates = new List<ChildState>()
-        {
-            new()
-            {
-                HorizontalLength = relWidths[0]!.Value,
-                VerticalLength = relHeights[0]!.Value,
-                TranslationX = 0,
-                TranslationY = 0,
-                Scale = 1,
-                X = childrenSizes[0].X,
-                Y = childrenSizes[0].Y,
-                Width = childrenSizes[0].Width,
-                Height = childrenSizes[0].Height,
-            },
-            new()
-            {
-                HorizontalLength = relWidths[1]!.Value,
-                VerticalLength = relHeights[1]!.Value,
-                TranslationX = 0,
-                TranslationY = 0,
-                Scale = 1,
-                X = childrenSizes[1].X,
-                Y = childrenSizes[1].Y,
-                Width = childrenSizes[1].Width,
-                Height = childrenSizes[1].Height,
-            },
-        };
-
-        return new AdaptiveLayoutState(childrenStates, layout.Bounds);
     }
 
     private static Rect Lerp(double progress, Rect oldRect, Rect newRect)

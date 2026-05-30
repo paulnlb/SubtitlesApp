@@ -5,10 +5,8 @@
   xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
   xmlns:views="clr-namespace:SubtitlesApp.Views"
-  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
-  xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
   xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
@@ -20,9 +18,6 @@
 >
   <ContentPage.Resources>
     <ResourceDictionary>
-      <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-      <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
-      <converters:AllTrueMultiConverter x:Key="AllTrueConverter" />
       <converters:SizeAndOrientationConverter x:Key="SizeAndOrientationConverter" />
     </ResourceDictionary>
   </ContentPage.Resources>
@@ -44,8 +39,8 @@
       </customControls:PlayerControls.GestureRecognizers>
       <AbsoluteLayout.LayoutBounds>
         <MultiBinding Converter="{StaticResource SizeAndOrientationConverter}">
-          <Binding Path="PlayerRelativeHorizontalLength" />
-          <Binding Path="PlayerRelativeVerticalLength" />
+          <Binding Source="{x:Reference playerSubtitlesPage}" Path="CurrentLayoutSettings.PlayerHorizontalLength" />
+          <Binding Source="{x:Reference playerSubtitlesPage}" Path="CurrentLayoutSettings.PlayerVerticalLength" />
           <Binding Source="{x:Reference adaptiveLayout}" Path="Orientation" />
         </MultiBinding>
       </AbsoluteLayout.LayoutBounds>
@@ -67,15 +62,20 @@
         VerticalOptions="Center"
         HorizontalOptions="Center"
         PositionChanged="OnPositionChanged"
-        layouts:AdaptiveLayout.RelativeVerticalLength="{Binding PlayerRelativeVerticalLength, Mode=OneWayToSource}"
-        layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding PlayerRelativeHorizontalLength, Mode=OneWayToSource}"
+        layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerVerticalLength, Mode=TwoWay}"
+        layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerHorizontalLength, Mode=TwoWay}"
       >
         <customControls:ExtendedMediaElement.GestureRecognizers>
           <PanGestureRecognizer x:Name="playerGestureRecognizer" />
         </customControls:ExtendedMediaElement.GestureRecognizers>
       </customControls:ExtendedMediaElement>
 
-      <views:CaptionsView x:Name="captionsView" BindingContext="{Binding CaptionsVm}">
+      <views:CaptionsView
+        x:Name="captionsView"
+        BindingContext="{Binding CaptionsVm}"
+        layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesVerticalLength, Mode=TwoWay}"
+        layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesHoritzontalLength, Mode=TwoWay}"
+      >
         <views:CaptionsView.GestureRecognizers>
           <PanGestureRecognizer x:Name="captionsGestureRecognizer" />
         </views:CaptionsView.GestureRecognizers>

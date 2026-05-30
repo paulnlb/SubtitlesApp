@@ -2,49 +2,49 @@ using System.ComponentModel;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.EventArgs;
-using SubtitlesApp.Extensions;
 using SubtitlesApp.Helpers;
-using SubtitlesApp.Interfaces.Settings;
 using SubtitlesApp.Layouts;
+using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
 
 public partial class PlayerWithSubtitlesPage : ContentPage
 {
-    private bool subtitlesHidden;
+    private bool _subtitlesHidden;
     private DisplayOrientation currentOrientation = DeviceDisplay.MainDisplayInfo.Orientation;
-
-    private bool IsVerticalLayout
-    {
-        get => adaptiveLayout.Orientation == StackOrientation.Vertical;
-        set
-        {
-            if (value)
-            {
-                adaptiveLayout.Orientation = StackOrientation.Vertical;
-            }
-            else
-            {
-                adaptiveLayout.Orientation = StackOrientation.Horizontal;
-            }
-        }
-    }
-
+    private bool IsVerticalLayout => adaptiveLayout.Orientation == StackOrientation.Vertical;
     private PanGestureState panGestureState = new();
-
-    private readonly ILayoutSettings _layoutSettings;
     private readonly AdaptiveLayoutStateManager _layoutStateManager;
+    private readonly LayoutSettings _normalLayoutSettings;
+    private readonly LayoutSettings _expandedLayoutSettings;
 
     private PlayerWithSubtitlesViewModel Vm => (PlayerWithSubtitlesViewModel)BindingContext;
 
-    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm, ILayoutSettings layoutSettings)
+    private static readonly BindableProperty LayoutSettingsProperty = BindableProperty.Create(
+        nameof(CurrentLayoutSettings),
+        typeof(LayoutSettings),
+        typeof(PlayerWithSubtitlesPage),
+        null
+    );
+
+    public LayoutSettings CurrentLayoutSettings
+    {
+        get => (LayoutSettings)GetValue(LayoutSettingsProperty);
+        set => SetValue(LayoutSettingsProperty, value);
+    }
+
+    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm)
     {
         InitializeComponent();
 
+        _normalLayoutSettings = new(false);
+        _expandedLayoutSettings = new(true);
+
+        CurrentLayoutSettings = new(false);
+
         BindingContext = vm;
 
-        _layoutSettings = layoutSettings;
         _layoutStateManager = new AdaptiveLayoutStateManager(adaptiveLayout);
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
@@ -60,7 +60,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         );
 
         SubscribeToGestures();
-        ConfigureLayout();
     }
 
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -100,7 +99,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
         currentOrientation = DeviceDisplay.MainDisplayInfo.Orientation;
-        IsVerticalLayout = currentOrientation == DisplayOrientation.Portrait;
+
+        adaptiveLayout.Orientation =
+            currentOrientation == DisplayOrientation.Portrait ? StackOrientation.Vertical : StackOrientation.Horizontal;
     }
 
     private void OnMediaPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -144,15 +145,17 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
         {
             ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
-            Vm.IsImmersiveOn = Vm.IsFullScreenOn;
 
             if (Vm.IsFullScreenOn)
             {
-                IsVerticalLayout = false;
+                adaptiveLayout.Orientation = StackOrientation.Horizontal;
             }
             else
             {
-                IsVerticalLayout = currentOrientation == DisplayOrientation.Portrait;
+                adaptiveLayout.Orientation =
+                    currentOrientation == DisplayOrientation.Portrait
+                        ? StackOrientation.Vertical
+                        : StackOrientation.Horizontal;
             }
         }
     }
@@ -168,24 +171,20 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             return;
         }
 
-        newRelativeHeight = Math.Min(_layoutSettings.MaxPlayerRelativeVerticalLength, newRelativeHeight);
+        newRelativeHeight = Math.Min(_normalLayoutSettings.MaxPlayerRelativeVerticalLength, newRelativeHeight);
 
-        _layoutSettings.PlayerVerticalLength = newRelativeHeight;
-        _layoutSettings.SubtitlesVerticalLength = 1 - newRelativeHeight;
+        _normalLayoutSettings.PlayerVerticalLength = newRelativeHeight;
+        _normalLayoutSettings.SubtitlesVerticalLength = 1 - newRelativeHeight;
+        _expandedLayoutSettings.SubtitlesVerticalLength = 1 - newRelativeHeight;
 
-        if (!subtitlesHidden)
+        if (!_subtitlesHidden)
         {
-            AdaptiveLayout.SetRelativeVerticalLength(mauiMediaElement, _layoutSettings.PlayerVerticalLength);
-            AdaptiveLayout.SetRelativeVerticalLength(captionsView, _layoutSettings.SubtitlesVerticalLength);
+            CurrentLayoutSettings.CopyFrom(_normalLayoutSettings);
         }
-    }
-
-    private void ConfigureLayout()
-    {
-        AdaptiveLayout.SetRelativeHorizontalLength(mauiMediaElement, _layoutSettings.PlayerHorizontalLength);
-        AdaptiveLayout.SetRelativeVerticalLength(mauiMediaElement, _layoutSettings.PlayerVerticalLength);
-        AdaptiveLayout.SetRelativeHorizontalLength(captionsView, _layoutSettings.SubtitlesHoritzontalLength);
-        AdaptiveLayout.SetRelativeVerticalLength(captionsView, _layoutSettings.SubtitlesVerticalLength);
+        else
+        {
+            CurrentLayoutSettings.CopyFrom(_expandedLayoutSettings);
+        }
     }
 
     private void SubscribeToGestures()
@@ -257,11 +256,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 if (panGestureState.RelativeProgress >= panGestureState.PanThreshold)
                 {
-                    await _layoutStateManager.AnimateToNextState();
+                    await _layoutStateManager.SwitchToNextState();
 
-                    SwitchLayoutState();
-
-                    subtitlesHidden = !subtitlesHidden;
+                    _subtitlesHidden = !_subtitlesHidden;
                 }
                 else
                 {
@@ -278,57 +275,25 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         _layoutStateManager.SaveCurrentState();
 
-        if (subtitlesHidden)
+        if (_subtitlesHidden)
         {
             _layoutStateManager.SetNextState(
-                [_layoutSettings.PlayerVerticalLength, _layoutSettings.SubtitlesVerticalLength],
-                [_layoutSettings.PlayerHorizontalLength, _layoutSettings.SubtitlesHoritzontalLength]
+                [_normalLayoutSettings.PlayerVerticalLength, _normalLayoutSettings.SubtitlesVerticalLength],
+                [_normalLayoutSettings.PlayerHorizontalLength, _normalLayoutSettings.SubtitlesHoritzontalLength]
             );
         }
         else
         {
             _layoutStateManager.SetNextState(
-                [1, _layoutSettings.SubtitlesVerticalLength],
-                [1, _layoutSettings.SubtitlesHoritzontalLength]
+                [_expandedLayoutSettings.PlayerVerticalLength, _expandedLayoutSettings.SubtitlesVerticalLength],
+                [_expandedLayoutSettings.PlayerHorizontalLength, _expandedLayoutSettings.SubtitlesHoritzontalLength]
             );
         }
-    }
-
-    private void SwitchLayoutState()
-    {
-        if (subtitlesHidden)
-        {
-            RestoreNormalLayout();
-        }
-        else
-        {
-            SetFullscreenLayout();
-        }
-    }
-
-    private void SetFullscreenLayout()
-    {
-        AdaptiveLayout.SetRelativeVerticalLength(mauiMediaElement, 1);
-        AdaptiveLayout.SetRelativeHorizontalLength(mauiMediaElement, 1);
-        AdaptiveLayout.SetRelativeVerticalLength(captionsView, _layoutSettings.SubtitlesVerticalLength);
-        AdaptiveLayout.SetRelativeHorizontalLength(captionsView, _layoutSettings.SubtitlesHoritzontalLength);
-        mauiMediaElement.ResetTransformations();
-        captionsView.ResetTransformations();
-    }
-
-    private void RestoreNormalLayout()
-    {
-        AdaptiveLayout.SetRelativeVerticalLength(mauiMediaElement, _layoutSettings.PlayerVerticalLength);
-        AdaptiveLayout.SetRelativeHorizontalLength(mauiMediaElement, _layoutSettings.PlayerHorizontalLength);
-        AdaptiveLayout.SetRelativeVerticalLength(captionsView, _layoutSettings.SubtitlesVerticalLength);
-        AdaptiveLayout.SetRelativeHorizontalLength(captionsView, _layoutSettings.SubtitlesHoritzontalLength);
-        mauiMediaElement.ResetTransformations();
-        captionsView.ResetTransformations();
     }
 
     private double NormalizeProgress(double totalX, double totalY)
     {
-        var coefficient = subtitlesHidden ? -1d : 1d;
+        var coefficient = _subtitlesHidden ? -1d : 1d;
 
         var absoluteProgress = IsVerticalLayout ? totalY : totalX;
 

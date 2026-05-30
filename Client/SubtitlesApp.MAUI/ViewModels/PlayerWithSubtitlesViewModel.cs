@@ -14,12 +14,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private bool _playerControlsVisible;
 
     [ObservableProperty]
-    private double _playerRelativeVerticalLength;
-
-    [ObservableProperty]
-    private double _playerRelativeHorizontalLength;
-
-    [ObservableProperty]
     private bool _isImmersiveOn;
 
     [ObservableProperty]
@@ -43,7 +37,11 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = !PlayerControlsVisible;
     }
 
-    #region private methods
+    partial void OnIsFullScreenOnChanged(bool value)
+    {
+        IsImmersiveOn = value;
+    }
+
     void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("open", out object? value))
@@ -52,6 +50,4 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             CaptionsVm.MediaPath = value.ToString();
         }
     }
-
-    #endregion
 }

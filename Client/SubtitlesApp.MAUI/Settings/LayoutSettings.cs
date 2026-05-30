@@ -1,16 +1,43 @@
-﻿using SubtitlesApp.Interfaces.Settings;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SubtitlesApp.Settings;
 
-public class LayoutSettings : ILayoutSettings
+public partial class LayoutSettings : ObservableObject
 {
-    public double PlayerVerticalLength { get; set; } = 0.3;
-    public double SubtitlesVerticalLength { get; set; } = 0.7;
-    public double PlayerHorizontalLength { get; set; } = 0.6;
-    public double SubtitlesHoritzontalLength { get; set; } = 0.4;
+    [ObservableProperty]
+    private double _playerVerticalLength;
+
+    [ObservableProperty]
+    private double _subtitlesVerticalLength;
+
+    [ObservableProperty]
+    private double _playerHorizontalLength;
+
+    [ObservableProperty]
+    private double _subtitlesHoritzontalLength;
     public double MaxPlayerRelativeVerticalLength => 0.5;
-    public double StatusBarVerticalLength { get; set; }
-    public double StatusBarHorizontalLength { get; set; }
-    public double NavBarVerticalLength { get; set; }
-    public double NavBarHorizontalLength { get; set; }
+
+    public LayoutSettings(bool isExpanded)
+    {
+        if (isExpanded)
+        {
+            _playerVerticalLength = _playerHorizontalLength = 1;
+        }
+        else
+        {
+            _playerVerticalLength = 0.3;
+            _playerHorizontalLength = 0.6;
+        }
+
+        _subtitlesVerticalLength = 0.6;
+        _subtitlesHoritzontalLength = 0.4;
+    }
+
+    public void CopyFrom(LayoutSettings settinsToCopy)
+    {
+        PlayerVerticalLength = settinsToCopy.PlayerVerticalLength;
+        PlayerHorizontalLength = settinsToCopy.PlayerHorizontalLength;
+        SubtitlesVerticalLength = settinsToCopy.SubtitlesVerticalLength;
+        SubtitlesHoritzontalLength = settinsToCopy.SubtitlesHoritzontalLength;
+    }
 }
