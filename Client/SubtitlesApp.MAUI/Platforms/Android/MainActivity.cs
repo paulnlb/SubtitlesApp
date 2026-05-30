@@ -28,7 +28,7 @@ namespace SubtitlesApp
 
         public void ChangeOrientation(bool toLandscape)
         {
-            RequestedOrientation = toLandscape ? ScreenOrientation.Landscape : ScreenOrientation.Unspecified;
+            RequestedOrientation = toLandscape ? ScreenOrientation.SensorLandscape : ScreenOrientation.Unspecified;
         }
     }
 }

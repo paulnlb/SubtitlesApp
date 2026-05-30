@@ -14,7 +14,23 @@ namespace SubtitlesApp.Views;
 public partial class PlayerWithSubtitlesPage : ContentPage
 {
     private bool subtitlesHidden;
-    private bool isPortraitMode;
+    private DisplayOrientation currentOrientation = DeviceDisplay.MainDisplayInfo.Orientation;
+
+    private bool IsVerticalLayout
+    {
+        get => adaptiveLayout.Orientation == StackOrientation.Vertical;
+        set
+        {
+            if (value)
+            {
+                adaptiveLayout.Orientation = StackOrientation.Vertical;
+            }
+            else
+            {
+                adaptiveLayout.Orientation = StackOrientation.Horizontal;
+            }
+        }
+    }
 
     private PanGestureState panGestureState = new();
 
@@ -33,7 +49,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         _layoutStateManager = new AdaptiveLayoutStateManager(adaptiveLayout);
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
-        isPortraitMode = DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait;
 
         viewModel.SubsScrollRequested += OnSubScrollRequested;
         viewModel.TranslationsScrollRequested += OnTranslationScrollRequested;
@@ -82,7 +97,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void OnLayoutPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(adaptiveLayout.Height) && isPortraitMode)
+        if (e.PropertyName == nameof(adaptiveLayout.Height) && IsVerticalLayout)
         {
             RecalculateVerticalLayout(mauiMediaElement.MediaHeight, mauiMediaElement.MediaWidth);
         }
@@ -90,16 +105,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
     {
-        if (DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait)
-        {
-            isPortraitMode = true;
-        }
-        else if (DeviceDisplay.MainDisplayInfo.Orientation != DisplayOrientation.Portrait)
-        {
-            isPortraitMode = false;
-        }
-
-        ReactToOrientationChange();
+        currentOrientation = DeviceDisplay.MainDisplayInfo.Orientation;
+        IsVerticalLayout = currentOrientation == DisplayOrientation.Portrait;
     }
 
     private void OnSelectedTabChanged(object? sender, TabItem e)
@@ -149,7 +156,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         if (
             (e.PropertyName == nameof(mauiMediaElement.MediaHeight) || e.PropertyName == nameof(mauiMediaElement.MediaWidth))
-            && isPortraitMode
+            && IsVerticalLayout
         )
         {
             RecalculateVerticalLayout(mauiMediaElement.MediaHeight, mauiMediaElement.MediaWidth);
@@ -182,11 +189,17 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
         else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
         {
-            var isLandscape = Vm.IsFullScreenOn;
-            ScreenStateHelper.ChangeOrientation(isLandscape);
-            isPortraitMode = !isLandscape;
+            ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
+            Vm.IsImmersiveOn = Vm.IsFullScreenOn;
 
-            ReactToOrientationChange();
+            if (Vm.IsFullScreenOn)
+            {
+                IsVerticalLayout = false;
+            }
+            else
+            {
+                IsVerticalLayout = currentOrientation == DisplayOrientation.Portrait;
+            }
         }
     }
 
@@ -244,19 +257,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
                 new SafeAreaEdges(SafeAreaRegions.Container);
     }
 
-    private void ReactToOrientationChange()
-    {
-        if (isPortraitMode)
-        {
-            adaptiveLayout.Orientation = StackOrientation.Vertical;
-        }
-        else
-        {
-            adaptiveLayout.Orientation = StackOrientation.Horizontal;
-        }
-
-        Vm.IsImmersiveOn = !isPortraitMode;
-    }
     #endregion
 
     #region handle pan gesture
@@ -376,7 +376,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         var coefficient = subtitlesHidden ? -1d : 1d;
 
-        var absoluteProgress = isPortraitMode ? totalY : totalX;
+        var absoluteProgress = IsVerticalLayout ? totalY : totalX;
 
         var progress = coefficient * absoluteProgress / subtitlesView.Height;
 
