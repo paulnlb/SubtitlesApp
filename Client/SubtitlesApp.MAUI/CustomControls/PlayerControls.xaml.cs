@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
+using SubtitlesApp.ClientModels.EventArgs;
 
 namespace SubtitlesApp.CustomControls;
 
@@ -42,6 +44,18 @@ public partial class PlayerControls : ContentView, IDisposable
         false
     );
 
+    public static readonly BindableProperty FullScreenToggledCommandProperty = BindableProperty.Create(
+        nameof(FullScreenToggledCommand),
+        typeof(ICommand),
+        typeof(PlayerControls)
+    );
+
+    public static readonly BindableProperty ImmersiveModeToggledCommandProperty = BindableProperty.Create(
+        nameof(ImmersiveModeToggledCommand),
+        typeof(ICommand),
+        typeof(PlayerControls)
+    );
+
     public MediaElement MauiMediaElement
     {
         get => (MediaElement)GetValue(MauiMediaElementProperty);
@@ -67,8 +81,18 @@ public partial class PlayerControls : ContentView, IDisposable
     }
 
     public event EventHandler<StateBtnEventArgs>? FullScreenToggled;
-
     public event EventHandler<StateBtnEventArgs>? ImmersiveModeToggled;
+
+    public ICommand? FullScreenToggledCommand
+    {
+        get => (ICommand)GetValue(FullScreenToggledCommandProperty);
+        set => SetValue(FullScreenToggledCommandProperty, value);
+    }
+    public ICommand? ImmersiveModeToggledCommand
+    {
+        get => (ICommand)GetValue(ImmersiveModeToggledCommandProperty);
+        set => SetValue(ImmersiveModeToggledCommandProperty, value);
+    }
 
     #region implementation of IDisposable
 
@@ -182,18 +206,23 @@ public partial class PlayerControls : ContentView, IDisposable
     {
         IsFullScreenOn = !IsFullScreenOn;
         FullScreenToggled?.Invoke(this, new StateBtnEventArgs { IsToggled = IsFullScreenOn });
+
+        if (FullScreenToggledCommand is not null && FullScreenToggledCommand.CanExecute(null))
+        {
+            FullScreenToggledCommand.Execute(null);
+        }
     }
 
     private void OnImmersiveClicked(object? sender, EventArgs e)
     {
         IsImmersiveOn = !IsImmersiveOn;
         ImmersiveModeToggled?.Invoke(this, new StateBtnEventArgs { IsToggled = IsImmersiveOn });
+
+        if (ImmersiveModeToggledCommand is not null && ImmersiveModeToggledCommand.CanExecute(null))
+        {
+            ImmersiveModeToggledCommand.Execute(null);
+        }
     }
 
     #endregion
-}
-
-public class StateBtnEventArgs : EventArgs
-{
-    public bool IsToggled { get; set; }
 }

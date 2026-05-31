@@ -40,6 +40,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     partial void OnIsFullScreenOnChanged(bool value)
     {
         IsImmersiveOn = value;
+        PlayerControlsVisible = false;
     }
 
     void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
