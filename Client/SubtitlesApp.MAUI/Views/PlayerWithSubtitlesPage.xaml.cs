@@ -46,7 +46,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         _layoutStateManager = new AdaptiveLayoutStateManager(adaptiveLayout);
 
-        subtitlesView.SeekRequested += OnSeekRequested;
         vm.PropertyChanged += OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
         adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
@@ -67,7 +66,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
         playerControls.Dispose();
-        subtitlesView.SeekRequested -= OnSeekRequested;
         Vm.PropertyChanged -= OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerGestureRecognizer.PanUpdated -= HandlePanGesture;

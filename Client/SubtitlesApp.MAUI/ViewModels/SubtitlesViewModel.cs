@@ -27,10 +27,10 @@ public partial class SubtitlesViewModel : ObservableObject
     private string? _mediaPath;
 
     [ObservableProperty]
-    private int _currentSubtitleIndex;
+    private int _currentSubtitleIndex = -1;
 
     [ObservableProperty]
-    private int _currentTranslationIndex;
+    private int _currentTranslationIndex = -1;
 
     [ObservableProperty]
     private TimeSpan _mediaDuration;
@@ -198,7 +198,14 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         if (subtitles is null or { Count: 0 })
         {
-            return 0;
+            return -1;
+        }
+
+        if (currIndex == -1)
+        {
+            var (_, i) = subtitles.BinarySearch(currPosition);
+
+            return i;
         }
 
         var currSub = subtitles[currIndex];
@@ -211,29 +218,21 @@ public partial class SubtitlesViewModel : ObservableObject
         VisualSubtitle? prevSub = currIndex > 0 ? subtitles[currIndex - 1] : null;
         VisualSubtitle? nextSub = currIndex < subtitles.Count - 1 ? subtitles[currIndex + 1] : null;
 
-        VisualSubtitle? newSub;
         int newIndex;
 
         if (prevSub is not null && prevSub.TimeInterval.ContainsTime(currPosition))
         {
-            newSub = prevSub;
             newIndex = currIndex - 1;
         }
         else if (nextSub is not null && nextSub.TimeInterval.ContainsTime(currPosition))
         {
-            newSub = nextSub;
             newIndex = currIndex + 1;
         }
         else
         {
-            (newSub, newIndex) = subtitles.BinarySearch(currPosition);
+            (_, newIndex) = subtitles.BinarySearch(currPosition);
         }
 
-        if (newSub != null)
-        {
-            return newIndex;
-        }
-
-        return currIndex;
+        return newIndex;
     }
 }

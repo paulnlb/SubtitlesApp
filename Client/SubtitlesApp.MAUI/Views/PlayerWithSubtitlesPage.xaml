@@ -80,6 +80,7 @@
       <views:SubtitlesView
         x:Name="subtitlesView"
         BindingContext="{Binding SubtitlesVm}"
+        SeekRequested="OnSeekRequested"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesHoritzontalLength, Mode=TwoWay}"
       >

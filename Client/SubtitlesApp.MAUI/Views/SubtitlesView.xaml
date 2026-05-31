@@ -10,7 +10,6 @@
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   x:Class="SubtitlesApp.Views.SubtitlesView"
   x:DataType="viewModels:SubtitlesViewModel"
-  BindingContextChanged="OnBindingContextChanged"
 >
   <ContentView.Resources>
     <ResourceDictionary>

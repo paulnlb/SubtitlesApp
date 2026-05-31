@@ -19,7 +19,7 @@ public partial class SubtitleCollection : ContentView, IDisposable
         nameof(CurrentSubtitleIndex),
         typeof(int),
         typeof(SubtitleCollection),
-        0,
+        -1,
         propertyChanged: OnCurrentIndexChanged
     );
 
@@ -149,9 +149,18 @@ public partial class SubtitleCollection : ContentView, IDisposable
     {
         if (bindable is SubtitleCollection subsCollection && oldValue is int oldIndex && newValue is int newIndex)
         {
-            var currSub = subsCollection.Subtitles[oldIndex];
+            if (oldIndex != -1)
+            {
+                var oldSub = subsCollection.Subtitles[oldIndex];
+                oldSub.IsHighlighted = false;
+            }
+
+            if (newIndex == -1)
+            {
+                return;
+            }
+
             var newSub = subsCollection.Subtitles[newIndex];
-            currSub.IsHighlighted = false;
             newSub.IsHighlighted = true;
 
             if (subsCollection.AutoScrollEnabled)
@@ -163,7 +172,7 @@ public partial class SubtitleCollection : ContentView, IDisposable
 
     private void OnScrollToCurentClicked(object? sender, EventArgs e)
     {
-        if (!IsCurrentSubVisible)
+        if (!IsCurrentSubVisible && CurrentSubtitleIndex != -1)
         {
             subtitlesList.ScrollToIndex(CurrentSubtitleIndex);
         }
@@ -178,6 +187,6 @@ public partial class SubtitleCollection : ContentView, IDisposable
 
     private void OnSubsScrolled(object? sender, ScrolledEventArgs e)
     {
-        AutoScrollEnabled = IsCurrentSubVisible;
+        AutoScrollEnabled = IsCurrentSubVisible || CurrentSubtitleIndex == -1;
     }
 }

@@ -33,7 +33,7 @@ app.MapPost(
         {
             latinWordsCache ??= await TextHelper.ReadWordsAsync(@"Assets/lorem_ipsum.txt");
 
-            return new TranscriptionResponse() { Segments = SeedHelper.MakeSegments(latinWordsCache, 15, 10).ToList() };
+            return new TranscriptionResponse() { Segments = SeedHelper.MakeSegments(latinWordsCache, 5, 10).ToList() };
         }
     )
     .WithName("Transcription");
@@ -44,7 +44,7 @@ app.MapPost(
         {
             ukrWordsCache ??= await TextHelper.ReadWordsAsync(@"Assets/ukr_text.txt");
 
-            var translations = SeedHelper.MakeTranslations(ukrWordsCache, 10, 10).ToList();
+            var translations = SeedHelper.MakeTranslations(ukrWordsCache, 5, 10).ToList();
             var response = new LlmSubtitleListDto() { Items = translations };
 
             return new OpenAIResponse
