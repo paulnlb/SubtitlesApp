@@ -7,10 +7,10 @@ namespace SubtitlesApp.ViewModels;
 public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscriptionClientSettings transcriptionSettings)
     : ObservableObject
 {
-    private const string SampleApiKey = "sample super long value";
+    private const string NonFetchedKeyPlaceholder = "Forget-Want6-While-Shore-Stage";
 
     [ObservableProperty]
-    private string _transcriptionApiKey = SampleApiKey;
+    private string _transcriptionApiKey = NonFetchedKeyPlaceholder;
 
     [ObservableProperty]
     private string _transcriptionEndpoint = transcriptionSettings.Endpoint ?? string.Empty;
@@ -19,7 +19,7 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     private string _transcriptionModel = transcriptionSettings.Model;
 
     [ObservableProperty]
-    private string _openAiApiKey = SampleApiKey;
+    private string _openAiApiKey = NonFetchedKeyPlaceholder;
 
     [ObservableProperty]
     private string _openAiEndpoint = openAiSettings.Endpoint ?? string.Empty;
@@ -39,7 +39,7 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     [RelayCommand]
     public async Task Save()
     {
-        if (OpenAiApiKey != SampleApiKey)
+        if (OpenAiApiKey != NonFetchedKeyPlaceholder)
         {
             await openAiSettings.SetApiKey(OpenAiApiKey);
         }
@@ -47,7 +47,7 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
         openAiSettings.Endpoint = OpenAiEndpoint;
         openAiSettings.Model = OpenAiModel;
 
-        if (TranscriptionApiKey != SampleApiKey)
+        if (TranscriptionApiKey != NonFetchedKeyPlaceholder)
         {
             await transcriptionSettings.SetApiKey(TranscriptionApiKey);
         }
@@ -59,7 +59,7 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     [RelayCommand]
     public async Task ShowLlmKey()
     {
-        if (!IsOpenAiKeyShown && OpenAiApiKey == SampleApiKey)
+        if (!IsOpenAiKeyShown && OpenAiApiKey == NonFetchedKeyPlaceholder)
         {
             OpenAiApiKey = await openAiSettings.GetApiKey();
         }
@@ -69,7 +69,7 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     [RelayCommand]
     public async Task ShowTranscriptionKey()
     {
-        if (!IsTranscriptionKeyShown && TranscriptionApiKey == SampleApiKey)
+        if (!IsTranscriptionKeyShown && TranscriptionApiKey == NonFetchedKeyPlaceholder)
         {
             TranscriptionApiKey = await transcriptionSettings.GetApiKey();
         }
@@ -78,7 +78,13 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
 
     partial void OnOpenAiApiKeyChanged(string? oldValue, string newValue)
     {
-        if (oldValue != SampleApiKey)
+        if (string.IsNullOrEmpty(newValue))
+        {
+            IsDirty = false;
+            return;
+        }
+
+        if (oldValue != NonFetchedKeyPlaceholder)
         {
             IsDirty = true;
         }
@@ -86,7 +92,13 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
 
     partial void OnTranscriptionApiKeyChanged(string? oldValue, string newValue)
     {
-        if (oldValue != SampleApiKey)
+        if (string.IsNullOrEmpty(newValue))
+        {
+            IsDirty = false;
+            return;
+        }
+
+        if (oldValue != NonFetchedKeyPlaceholder)
         {
             IsDirty = true;
         }

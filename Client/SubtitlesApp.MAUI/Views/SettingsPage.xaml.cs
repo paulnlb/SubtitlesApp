@@ -17,7 +17,7 @@ public partial class SettingsPage : ContentPage
         {
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                bool discard = await DisplayAlert(
+                bool discard = await DisplayAlertAsync(
                     "Unsaved Changes",
                     "You have unsaved changes. Do you want to discard them and leave the page?",
                     "Leave",

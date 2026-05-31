@@ -8,7 +8,7 @@ public class OpenAiSettings : IOpenAiSettings
     private const string _defaultModel = "gpt-5.4-nano";
 
     private const string _apiKeyKey = "openai_api_key";
-    private const string _defaultApiKey = "";
+    private const string _defaultApiKey = " ";
 
     private const string _endpointKey = "openai_endpoint";
     private const string _defaultEndpoint = "";
