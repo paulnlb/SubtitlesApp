@@ -1,5 +1,4 @@
 using SubtitlesApp.ViewModels;
-using UraniumUI.Material.Controls;
 
 namespace SubtitlesApp.Views;
 
@@ -26,29 +25,6 @@ public partial class SubtitlesView : ContentView
     {
         Vm.SubsScrollRequested += OnSubScrollRequested;
         Vm.TranslationsScrollRequested += OnTranslationScrollRequested;
-    }
-
-    private void OnSelectedTabChanged(object? sender, TabItem e)
-    {
-        if (BindingContext is not SubtitlesViewModel vm)
-        {
-            return;
-        }
-
-        if (e is null)
-        {
-            return;
-        }
-        else if (e.Title == "Subtitles")
-        {
-            vm.IsSubtitlesSelected = true;
-            vm.IsTranslationsSelected = false;
-        }
-        else if (e.Title == "Translations")
-        {
-            vm.IsSubtitlesSelected = false;
-            vm.IsTranslationsSelected = true;
-        }
     }
 
     private void OnSubScrollRequested(object? sender, EventArgs e)

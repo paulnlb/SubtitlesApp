@@ -124,6 +124,21 @@ public partial class SubtitlesViewModel : ObservableObject
     #region commands
 
     [RelayCommand]
+    public void ContentSelected(string name)
+    {
+        if (name == "Subtitles")
+        {
+            IsSubtitlesSelected = true;
+            IsTranslationsSelected = false;
+        }
+        else if (name == "Translations")
+        {
+            IsSubtitlesSelected = false;
+            IsTranslationsSelected = true;
+        }
+    }
+
+    [RelayCommand]
     public void PositionChanged(TimeSpan currentPosition)
     {
         var isSubUpdated = UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);

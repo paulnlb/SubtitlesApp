@@ -59,12 +59,14 @@
       Command="{Binding TranslateCommand}"
     />
 
-    <material:TabView
-      Grid.Row="1"
-      Grid.ColumnSpan="3"
-      SelectedTabChanged="OnSelectedTabChanged"
-      CachingStrategy="CacheOnLayout"
-    >
+    <material:TabView x:Name="tabView" Grid.Row="1" Grid.ColumnSpan="3" CachingStrategy="CacheOnLayout">
+      <material:TabView.Behaviors>
+        <toolkit:EventToCommandBehavior
+          EventName="SelectedTabChanged"
+          Command="{Binding ContentSelectedCommand}"
+          CommandParameter="{Binding Source={x:Reference tabView}, Path=SelectedTab.Title}"
+        />
+      </material:TabView.Behaviors>
       <material:TabItem Title="Subtitles">
         <material:TabItem.Content>
           <!--Subtitles list-->

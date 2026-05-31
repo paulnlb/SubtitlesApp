@@ -114,15 +114,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
-    private void OnPositionChanged(object? sender, EventArgs e)
-    {
-        if (
-            Vm.SubtitlesVm.PositionChangedCommand != null
-            && Vm.SubtitlesVm.PositionChangedCommand.CanExecute(mauiMediaElement.Position)
-        )
-            Vm.SubtitlesVm.PositionChangedCommand.Execute(mauiMediaElement.Position);
-    }
-
     private void OnSeekRequested(object? sender, SeekEventArgs e)
     {
         mauiMediaElement.SeekTo(e.Time);
