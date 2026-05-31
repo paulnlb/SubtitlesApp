@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  x:Class="SubtitlesApp.CustomControls.SubtitleCollection"
+  x:DataType="customControls:SubtitleCollection"
+  x:Name="root"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
+  xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+  xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+>
+  <ContentView.Resources>
+    <ResourceDictionary>
+      <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ResourceDictionary>
+  </ContentView.Resources>
+
+  <AbsoluteLayout BindingContext="{Binding Source={x:Reference root}}">
+    <customControls:ExdendedVirtualList
+      x:Name="subtitlesList"
+      Adapter="{Binding SubtitlesAdapter}"
+      FirstVisibleItemIndex="{Binding FirstVisibleSubtitleIndex}"
+      LastVisibleItemIndex="{Binding LastVisibleSubtitleIndex}"
+      OnScrolled="OnSubsScrolled"
+      AbsoluteLayout.LayoutFlags="SizeProportional"
+      AbsoluteLayout.LayoutBounds="0,0,1,1"
+    >
+      <customControls:ExdendedVirtualList.ItemTemplate>
+        <DataTemplate x:DataType="clientModels:VisualSubtitle">
+          <Label Text="{Binding Text}" FontSize="16" VerticalTextAlignment="Center" Padding="5">
+            <Label.GestureRecognizers>
+              <TapGestureRecognizer NumberOfTapsRequired="2" CommandParameter="{Binding .}" Tapped="OnSubtitleTapped" />
+            </Label.GestureRecognizers>
+            <Label.Triggers>
+              <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="True">
+                <Setter Property="BackgroundColor" Value="{AppThemeBinding Dark=Gray, Light=LightGray}" />
+              </DataTrigger>
+              <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="False">
+                <Setter Property="BackgroundColor" Value="Transparent" />
+              </DataTrigger>
+            </Label.Triggers>
+          </Label>
+        </DataTemplate>
+      </customControls:ExdendedVirtualList.ItemTemplate>
+      <customControls:ExdendedVirtualList.EmptyView>
+        <Label Text="{Binding EmptyText}" Style="{StaticResource Headline}" FontSize="20" Padding="10, 40" />
+      </customControls:ExdendedVirtualList.EmptyView>
+    </customControls:ExdendedVirtualList>
+    <Button
+      x:Name="scrollToCurrentButtonSubtitle"
+      Text="Scroll to current"
+      Clicked="OnScrollToCurentClicked"
+      Margin="0, 0, 0, 10"
+      AbsoluteLayout.LayoutFlags="PositionProportional"
+      AbsoluteLayout.LayoutBounds="0.5,1,AutoSize,AutoSize"
+      IsVisible="{Binding AutoScrollEnabled, Converter={StaticResource InvertedBoolConverter}}"
+    />
+  </AbsoluteLayout>
+</ContentView>

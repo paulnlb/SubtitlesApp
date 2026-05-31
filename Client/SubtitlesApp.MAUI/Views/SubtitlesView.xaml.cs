@@ -1,12 +1,11 @@
-using SubtitlesApp.ViewModels;
+using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.EventArgs;
 
 namespace SubtitlesApp.Views;
 
 public partial class SubtitlesView : ContentView
 {
-    private SubtitlesViewModel Vm =>
-        BindingContext as SubtitlesViewModel
-        ?? throw new InvalidOperationException($"BindingContext must be of type {nameof(SubtitlesViewModel)}");
+    public event EventHandler<SeekEventArgs>? SeekRequested;
 
     public SubtitlesView()
     {
@@ -15,25 +14,17 @@ public partial class SubtitlesView : ContentView
 
     public void Cleanup()
     {
-        Vm.SubsScrollRequested -= OnSubScrollRequested;
-        Vm.TranslationsScrollRequested -= OnTranslationScrollRequested;
-        Vm.SubtitlesAdapter.Dispose();
-        Vm.TranslationsAdapter.Dispose();
+        subtitleCollection.Dispose();
+        translationCollection.Dispose();
     }
 
-    private void OnBindingContextChanged(object? sender, EventArgs e)
+    private void OnSubtitleTapped(object? sender, TappedEventArgs e)
     {
-        Vm.SubsScrollRequested += OnSubScrollRequested;
-        Vm.TranslationsScrollRequested += OnTranslationScrollRequested;
-    }
+        if (e.Parameter is not VisualSubtitle subtitle)
+        {
+            return;
+        }
 
-    private void OnSubScrollRequested(object? sender, EventArgs e)
-    {
-        subtitlesList.ScrollToIndex(Vm.SubtitlesCollectionState.CurrentSubtitleIndex);
-    }
-
-    private void OnTranslationScrollRequested(object? sender, EventArgs e)
-    {
-        translationsList.ScrollToIndex(Vm.TranslationsCollectionState.CurrentSubtitleIndex);
+        SeekRequested?.Invoke(this, new SeekEventArgs { Time = subtitle.TimeInterval.StartTime });
     }
 }

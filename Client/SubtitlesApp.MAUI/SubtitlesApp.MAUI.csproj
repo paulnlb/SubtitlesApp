@@ -91,9 +91,6 @@
     <Compile Update="CustomControls\PlayerControls.xaml.cs">
       <DependentUpon>PlayerControls.xaml</DependentUpon>
     </Compile>
-    <Compile Update="CustomControls\SubtitleView.xaml.cs">
-      <DependentUpon>SubtitleView.xaml</DependentUpon>
-    </Compile>
     <Compile Update="Views\SubtitlesView.xaml.cs">
       <DependentUpon>SubtitlesView.xaml</DependentUpon>
     </Compile>
@@ -115,7 +112,7 @@
     <MauiXaml Update="CustomControls\PlayerControls.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\SubtitleView.xaml">
+    <MauiXaml Update="CustomControls\SubtitleCollection.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\SubtitlesView.xaml">

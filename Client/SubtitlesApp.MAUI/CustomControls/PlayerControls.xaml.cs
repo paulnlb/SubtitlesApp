@@ -186,7 +186,6 @@ public partial class PlayerControls : ContentView, IDisposable
         var seekToTime = TimeSpan.FromSeconds(PositionSlider.Value);
 
         await MauiMediaElement.SeekTo(seekToTime, CancellationToken.None);
-        MauiMediaElement.Play();
     }
 
     // This event handler exists because of https://github.com/dotnet/maui/issues/12285

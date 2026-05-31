@@ -2,9 +2,7 @@
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
-using SubtitlesApp.ClientModels.EventArgs;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
@@ -23,28 +21,16 @@ public partial class SubtitlesViewModel : ObservableObject
     private ObservableCollection<VisualSubtitle> _subtitles;
 
     [ObservableProperty]
-    private ObservableCollectionAdapter<VisualSubtitle> _subtitlesAdapter;
-
-    [ObservableProperty]
     private ObservableCollection<VisualSubtitle> _translations;
-
-    [ObservableProperty]
-    private ObservableCollectionAdapter<VisualSubtitle> _translationsAdapter;
 
     [ObservableProperty]
     private string? _mediaPath;
 
     [ObservableProperty]
-    private SubtitlesCollectionState _subtitlesCollectionState;
+    private int _currentSubtitleIndex;
 
     [ObservableProperty]
-    private SubtitlesCollectionState _translationsCollectionState;
-
-    [ObservableProperty]
-    private bool _isSubtitlesSelected;
-
-    [ObservableProperty]
-    private bool _isTranslationsSelected;
+    private int _currentTranslationIndex;
 
     [ObservableProperty]
     private TimeSpan _mediaDuration;
@@ -69,26 +55,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #endregion
 
-    #region events
-
-    public event EventHandler? SubsScrollRequested;
-    public event EventHandler? TranslationsScrollRequested;
-    public event EventHandler<SeekEventArgs>? SeekRequested;
-
-    #endregion
-
-    #region private properties
-
-    private bool IsCurrentSubVisible =>
-        SubtitlesCollectionState.CurrentSubtitleIndex <= SubtitlesCollectionState.LastVisibleSubtitleIndex
-        && SubtitlesCollectionState.CurrentSubtitleIndex >= SubtitlesCollectionState.FirstVisibleSubtitleIndex;
-
-    private bool IsCurrentTranslationVisible =>
-        TranslationsCollectionState.CurrentSubtitleIndex <= TranslationsCollectionState.LastVisibleSubtitleIndex
-        && TranslationsCollectionState.CurrentSubtitleIndex >= TranslationsCollectionState.FirstVisibleSubtitleIndex;
-
-    #endregion
-
     public SubtitlesViewModel(
         ITranslationService translationService,
         LanguageService languageService,
@@ -103,12 +69,6 @@ public partial class SubtitlesViewModel : ObservableObject
         MediaPath = null;
         Subtitles = [];
         Translations = [];
-        SubtitlesAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_subtitles);
-        TranslationsAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_translations);
-        SubtitlesCollectionState = new SubtitlesCollectionState { AutoScrollEnabled = true };
-        TranslationsCollectionState = new SubtitlesCollectionState { AutoScrollEnabled = true };
-        IsSubtitlesSelected = true;
-        IsTranslationsSelected = false;
 
         #endregion
 
@@ -124,75 +84,10 @@ public partial class SubtitlesViewModel : ObservableObject
     #region commands
 
     [RelayCommand]
-    public void ContentSelected(string name)
-    {
-        if (name == "Subtitles")
-        {
-            IsSubtitlesSelected = true;
-            IsTranslationsSelected = false;
-        }
-        else if (name == "Translations")
-        {
-            IsSubtitlesSelected = false;
-            IsTranslationsSelected = true;
-        }
-    }
-
-    [RelayCommand]
     public void PositionChanged(TimeSpan currentPosition)
     {
-        var isSubUpdated = UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
-
-        var isTranslationUpdated = UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
-
-        if (isTranslationUpdated && TranslationsCollectionState.AutoScrollEnabled)
-        {
-            TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
-        }
-        if (isSubUpdated && SubtitlesCollectionState.AutoScrollEnabled)
-        {
-            SubsScrollRequested?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    [RelayCommand]
-    public void ScrollToCurentSub()
-    {
-        if (!IsCurrentSubVisible)
-        {
-            SubsScrollRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        SubtitlesCollectionState.AutoScrollEnabled = true;
-    }
-
-    [RelayCommand]
-    public void ScrollToCurentTranslation()
-    {
-        if (!IsCurrentTranslationVisible)
-        {
-            TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        TranslationsCollectionState.AutoScrollEnabled = true;
-    }
-
-    [RelayCommand]
-    public void SubtitleTapped(VisualSubtitle subtitle)
-    {
-        SeekRequested?.Invoke(this, new SeekEventArgs { Time = subtitle.TimeInterval.StartTime });
-    }
-
-    [RelayCommand]
-    public void SubsScrolled()
-    {
-        SubtitlesCollectionState.AutoScrollEnabled = IsCurrentSubVisible;
-    }
-
-    [RelayCommand]
-    public void TranslationsScrolled()
-    {
-        TranslationsCollectionState.AutoScrollEnabled = IsCurrentTranslationVisible;
+        CurrentSubtitleIndex = FindNewIndex(currentPosition, Subtitles, CurrentSubtitleIndex);
+        CurrentTranslationIndex = FindNewIndex(currentPosition, Translations, CurrentTranslationIndex);
     }
 
     [RelayCommand]
@@ -299,25 +194,18 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #endregion
 
-    private static bool UpdateCurrentSubtitleIndex(
-        TimeSpan currPosition,
-        ObservableCollection<VisualSubtitle> subtitles,
-        SubtitlesCollectionState collectionState
-    )
+    private static int FindNewIndex(TimeSpan currPosition, ObservableCollection<VisualSubtitle> subtitles, int currIndex)
     {
         if (subtitles is null or { Count: 0 })
         {
-            return false;
+            return 0;
         }
 
-        var currIndex = collectionState.CurrentSubtitleIndex;
         var currSub = subtitles[currIndex];
 
         if (currSub.TimeInterval.ContainsTime(currPosition))
         {
-            currSub.IsHighlighted = true;
-
-            return false;
+            return currIndex;
         }
 
         VisualSubtitle? prevSub = currIndex > 0 ? subtitles[currIndex - 1] : null;
@@ -343,13 +231,9 @@ public partial class SubtitlesViewModel : ObservableObject
 
         if (newSub != null)
         {
-            currSub.IsHighlighted = false;
-            collectionState.CurrentSubtitleIndex = newIndex;
-            newSub.IsHighlighted = true;
-
-            return true;
+            return newIndex;
         }
 
-        return false;
+        return currIndex;
     }
 }
