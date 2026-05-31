@@ -35,6 +35,12 @@ public partial class SubtitlesViewModel : ObservableObject
     [ObservableProperty]
     private TimeSpan _mediaDuration;
 
+    [ObservableProperty]
+    private bool _isTranscriptionLoading;
+
+    [ObservableProperty]
+    private bool _isTranslationLoading;
+
     #endregion
 
     #region services
@@ -121,6 +127,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
         _transcriptionSettings = newSettings;
 
+        IsTranscriptionLoading = true;
+
         var results = _transcriptionService.TranscribeAsync(
             MediaPath,
             new TimeInterval(newSettings.FromTime, newSettings.ToTime),
@@ -134,11 +142,15 @@ public partial class SubtitlesViewModel : ObservableObject
             {
                 await _builtInDialogService.DisplayError(result.Error);
 
+                IsTranscriptionLoading = false;
+
                 return;
             }
 
             Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
         }
+
+        IsTranscriptionLoading = false;
     }
 
     [RelayCommand]
@@ -177,6 +189,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
         var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
 
+        IsTranslationLoading = true;
+
         var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, default);
 
         await foreach (var result in results)
@@ -185,11 +199,15 @@ public partial class SubtitlesViewModel : ObservableObject
             {
                 await _builtInDialogService.DisplayError(result.Error);
 
+                IsTranslationLoading = false;
+
                 return;
             }
 
             Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
         }
+
+        IsTranslationLoading = false;
     }
 
     #endregion

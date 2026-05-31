@@ -103,6 +103,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="CustomControls\LoadingButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="CustomControls\Popups\InputPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

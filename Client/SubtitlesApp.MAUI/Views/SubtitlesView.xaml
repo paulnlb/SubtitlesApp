@@ -16,14 +16,18 @@
       <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
       <converters:AllTrueMultiConverter x:Key="AllTrueConverter" />
     </ResourceDictionary>
+    <Style x:Key="ButtonStyle" TargetType="Button">
+      <Setter Property="BackgroundColor" Value="#33FFFFFF" />
+      <Setter Property="Padding" Value="2" />
+    </Style>
+    <Style x:Key="ButtonContainerStyle" TargetType="customControls:LoadingButton">
+      <Setter Property="WidthRequest" Value="40" />
+      <Setter Property="HeightRequest" Value="40" />
+      <Setter Property="Margin" Value="5,0,0,0" />
+      <Setter Property="SpinnerColor" Value="{AppThemeBinding Dark=#FFFFFF, Light=#000000}" />
+    </Style>
   </ContentView.Resources>
-  <Grid
-    x:Name="mainGrid"
-    RowDefinitions="50, *"
-    ColumnDefinitions="11*, Auto, Auto"
-    Padding="5, 0"
-    BackgroundColor="#1f1e1e"
-  >
+  <Grid x:Name="mainGrid" RowDefinitions="60, *" ColumnDefinitions="11*, Auto, Auto" Padding="5, 0">
     <Label
       Grid.Row="0"
       Grid.Column="0"
@@ -35,27 +39,27 @@
     />
 
     <!--!Transcribe button-->
-    <ImageButton
+    <customControls:LoadingButton
       Grid.Row="0"
       Grid.Column="1"
-      Source="{AppThemeBinding Dark=subtitles_light.png, Light=subtitles_dark.png}"
-      Padding="2"
-      HeightRequest="30"
-      WidthRequest="30"
-      Margin="5,0,0,0"
+      Style="{StaticResource ButtonContainerStyle}"
+      IsLoading="{Binding IsTranscriptionLoading}"
+      ImageSource="{AppThemeBinding Dark=subtitles_light.png, Light=subtitles_dark.png}"
+      ButtonStyle="{StaticResource ButtonStyle}"
       Command="{Binding TranscribeCommand}"
+      IsEnabled="{Binding IsTranslationLoading, Converter={x:StaticResource InvertedBoolConverter}}"
     />
 
     <!--Translate button-->
-    <ImageButton
+    <customControls:LoadingButton
       Grid.Row="0"
       Grid.Column="2"
-      Source="{AppThemeBinding Dark=translate_light.png, Light=translate_dark.png}"
-      Padding="2"
-      HeightRequest="30"
-      WidthRequest="30"
-      Margin="5,0,0,0"
+      Style="{StaticResource ButtonContainerStyle}"
+      IsLoading="{Binding IsTranslationLoading}"
+      ImageSource="{AppThemeBinding Dark=translate_light.png, Light=translate_dark.png}"
+      ButtonStyle="{StaticResource ButtonStyle}"
       Command="{Binding TranslateCommand}"
+      IsEnabled="{Binding IsTranscriptionLoading, Converter={x:StaticResource InvertedBoolConverter}}"
     />
 
     <material:TabView x:Name="tabView" Grid.Row="1" Grid.ColumnSpan="3" CachingStrategy="CacheOnLayout">
