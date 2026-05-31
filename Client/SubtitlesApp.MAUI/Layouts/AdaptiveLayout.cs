@@ -37,13 +37,14 @@ public class AdaptiveLayout : Layout
         propertyChanged: Invalidate_OnOrientationRequestChanged
     );
 
-    public static readonly BindableProperty ActualOrientationProperty = BindableProperty.Create(
-        nameof(ActualOrientation),
+    internal static readonly BindablePropertyKey OrientationPropertyKey = BindableProperty.CreateReadOnly(
+        nameof(Orientation),
         typeof(AdaptiveLayoutOrientation),
         typeof(AdaptiveLayout),
-        AdaptiveLayoutOrientation.Adaptive,
-        propertyChanged: OnActualOrientationChanged
+        AdaptiveLayoutOrientation.Unknown
     );
+
+    public static readonly BindableProperty OrientationProperty = OrientationPropertyKey.BindableProperty;
 
     public static double? GetRelativeHorizontalLength(BindableObject view)
     {
@@ -71,24 +72,10 @@ public class AdaptiveLayout : Layout
         set => SetValue(OrientationRequestProperty, value);
     }
 
-    public AdaptiveLayoutOrientation ActualOrientation
+    public AdaptiveLayoutOrientation Orientation
     {
-        get
-        {
-            if (OrientationRequest != AdaptiveLayoutOrientation.Adaptive)
-            {
-                return OrientationRequest;
-            }
-
-            if (Width > Height)
-            {
-                return AdaptiveLayoutOrientation.Horizontal;
-            }
-            else
-            {
-                return AdaptiveLayoutOrientation.Vertical;
-            }
-        }
+        get => (AdaptiveLayoutOrientation)GetValue(OrientationProperty);
+        private set => SetValue(OrientationPropertyKey, value);
     }
 
     public AdaptiveLayoutState MakeSnapshot()
@@ -150,8 +137,6 @@ public class AdaptiveLayout : Layout
         Clip = new RectangleGeometry(new Rect(0, 0, Width, Height));
 
         InvalidateMeasure();
-
-        OnPropertyChanged(nameof(ActualOrientation));
     }
 
     protected override ILayoutManager CreateLayoutManager()
@@ -177,7 +162,7 @@ public class AdaptiveLayout : Layout
         }
 
         // Do not invalidate if orientation is vertical and any of width factors changed
-        if (parentLayout.ActualOrientation == AdaptiveLayoutOrientation.Vertical)
+        if (parentLayout.Orientation == AdaptiveLayoutOrientation.Vertical)
         {
             return;
         }
@@ -193,7 +178,7 @@ public class AdaptiveLayout : Layout
         }
 
         // Do not invalidate if orientation is horizontal and any of height factors changed
-        if (parentLayout.ActualOrientation == AdaptiveLayoutOrientation.Horizontal)
+        if (parentLayout.Orientation == AdaptiveLayoutOrientation.Horizontal)
         {
             return;
         }
@@ -208,24 +193,23 @@ public class AdaptiveLayout : Layout
             layout.InvalidateMeasure();
         }
     }
-
-    private static void OnActualOrientationChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        ((AdaptiveLayout)bindable).OnPropertyChanged(nameof(ActualOrientation));
-    }
 }
 
 public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 {
-    private readonly List<Size> _chidrenMeasurements = [];
-    private AdaptiveLayoutOrientation _layoutOrientation;
+    private List<Size> _chidrenMeasurements = [];
 
     public Size ArrangeChildren(Rect bounds)
     {
         var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
         var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
 
-        var boundsList = CalculateChildrenSizes(bounds, relVerticalLengths, relHorizontalLengths);
+        layout.SetValue(
+            AdaptiveLayout.OrientationPropertyKey,
+            CalculateEffectiveOrientation(layout.OrientationRequest, bounds.Width, bounds.Height)
+        );
+
+        var childrenBounds = CalculateChildrenSizes(bounds, relVerticalLengths, relHorizontalLengths, layout.Orientation);
 
         for (int i = 0; i < layout.Count; i++)
         {
@@ -234,7 +218,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 continue;
             }
 
-            layout[i].Arrange(boundsList[i]);
+            layout[i].Arrange(childrenBounds[i]);
         }
 
         return bounds.Size.AdjustForFill(bounds, layout);
@@ -248,9 +232,21 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
         var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
 
-        MeasureChildren(widthConstraint, heightConstraint, relVerticalLengths, relHorizontalLengths);
+        var effectiveOrientation = CalculateEffectiveOrientation(
+            layout.OrientationRequest,
+            widthConstraint,
+            heightConstraint
+        );
 
-        if (_layoutOrientation == AdaptiveLayoutOrientation.Vertical)
+        _chidrenMeasurements = MeasureChildren(
+            widthConstraint,
+            heightConstraint,
+            relVerticalLengths,
+            relHorizontalLengths,
+            effectiveOrientation
+        );
+
+        if (effectiveOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             for (int i = 0; i < layout.Count; i++)
             {
@@ -260,7 +256,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 height += childSize.Height;
             }
         }
-        else if (_layoutOrientation == AdaptiveLayoutOrientation.Horizontal)
+        else if (effectiveOrientation == AdaptiveLayoutOrientation.Horizontal)
         {
             for (int i = 0; i < layout.Count; i++)
             {
@@ -272,7 +268,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         }
         else
         {
-            throw new InvalidOperationException($"Unsupported layout orientation: {_layoutOrientation}");
+            throw new InvalidOperationException($"Unsupported layout orientation: {effectiveOrientation}");
         }
 
         return new Size(width, height);
@@ -282,8 +278,8 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
     {
         var bounds = new Rect(0, 0, layout.Width, layout.Height);
 
-        MeasureChildren(layout.Width, layout.Height, relHeights, relWidths);
-        var childrenSizes = CalculateChildrenSizes(bounds, relHeights, relWidths);
+        _chidrenMeasurements = MeasureChildren(layout.Width, layout.Height, relHeights, relWidths, layout.Orientation);
+        var childrenSizes = CalculateChildrenSizes(bounds, relHeights, relWidths, layout.Orientation);
 
         var childrenStates = new List<ChildState>();
 
@@ -311,12 +307,13 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
     private List<Rect> CalculateChildrenSizes(
         Rect bounds,
         IEnumerable<double?> relativeVerticalLengths,
-        IEnumerable<double?> relativeHorizontalLengths
+        IEnumerable<double?> relativeHorizontalLengths,
+        AdaptiveLayoutOrientation layoutOrientation
     )
     {
         var result = new List<Rect>();
 
-        if (_layoutOrientation == AdaptiveLayoutOrientation.Vertical)
+        if (layoutOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             double y = bounds.Y;
 
@@ -337,7 +334,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 y += childrenHeights[i];
             }
         }
-        else if (_layoutOrientation == AdaptiveLayoutOrientation.Horizontal)
+        else if (layoutOrientation == AdaptiveLayoutOrientation.Horizontal)
         {
             double x = bounds.X;
 
@@ -360,23 +357,23 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         }
         else
         {
-            throw new InvalidOperationException($"Unsupported layout orientation: {_layoutOrientation}");
+            throw new InvalidOperationException($"Unsupported layout orientation: {layoutOrientation}");
         }
 
         return result;
     }
 
-    private void MeasureChildren(
+    private List<Size> MeasureChildren(
         double widthConstraint,
         double heightConstraint,
         IEnumerable<double?> relativeVerticalLengths,
-        IEnumerable<double?> relativeHorizontalLengths
+        IEnumerable<double?> relativeHorizontalLengths,
+        AdaptiveLayoutOrientation layoutOrientation
     )
     {
-        _chidrenMeasurements.Clear();
-        _layoutOrientation = layout.ActualOrientation;
+        var measurements = new List<Size>();
 
-        if (_layoutOrientation == AdaptiveLayoutOrientation.Vertical)
+        if (layoutOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             var childrenHeights = GetChildrenAbsoluteLengths(heightConstraint, relativeVerticalLengths.ToList());
 
@@ -384,7 +381,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
             {
                 var childSize = layout[i].Measure(widthConstraint, childrenHeights[i]);
 
-                _chidrenMeasurements.Add(childSize);
+                measurements.Add(childSize);
             }
         }
         else
@@ -395,9 +392,26 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
             {
                 var childSize = layout[i].Measure(childrenWidths[i], heightConstraint);
 
-                _chidrenMeasurements.Add(childSize);
+                measurements.Add(childSize);
             }
         }
+
+        return measurements;
+    }
+
+    private static AdaptiveLayoutOrientation CalculateEffectiveOrientation(
+        AdaptiveLayoutOrientation requested,
+        double width,
+        double height
+    )
+    {
+        return requested switch
+        {
+            AdaptiveLayoutOrientation.Horizontal => requested,
+            AdaptiveLayoutOrientation.Vertical => requested,
+            _ when height > width => AdaptiveLayoutOrientation.Vertical,
+            _ => AdaptiveLayoutOrientation.Horizontal,
+        };
     }
 
     private static List<double> GetChildrenAbsoluteLengths(double totalAbsoluteLength, List<double?> relativeLengths)

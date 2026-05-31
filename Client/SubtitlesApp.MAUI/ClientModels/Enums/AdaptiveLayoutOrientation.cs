@@ -5,4 +5,5 @@ public enum AdaptiveLayoutOrientation
     Adaptive,
     Vertical,
     Horizontal,
+    Unknown,
 }

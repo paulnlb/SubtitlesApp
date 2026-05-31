@@ -13,7 +13,7 @@ namespace SubtitlesApp.Views;
 public partial class PlayerWithSubtitlesPage : ContentPage
 {
     private bool _subtitlesHidden;
-    private bool IsVerticalLayout => adaptiveLayout.ActualOrientation == AdaptiveLayoutOrientation.Vertical;
+    private bool IsVerticalLayout => adaptiveLayout.Orientation == AdaptiveLayoutOrientation.Vertical;
     private PanGestureState panGestureState = new();
     private readonly AdaptiveLayoutStateManager _layoutStateManager;
     private readonly LayoutSettings _normalLayoutSettings;
@@ -66,13 +66,13 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
         playerControls.Dispose();
+        subtitlesView.Dispose();
         Vm.PropertyChanged -= OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerGestureRecognizer.PanUpdated -= HandlePanGesture;
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
-        subtitlesView.Cleanup();
     }
 
     protected override bool OnBackButtonPressed()

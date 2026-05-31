@@ -3,8 +3,9 @@ using SubtitlesApp.ClientModels.EventArgs;
 
 namespace SubtitlesApp.Views;
 
-public partial class SubtitlesView : ContentView
+public partial class SubtitlesView : ContentView, IDisposable
 {
+    private bool _disposed = false;
     public event EventHandler<SeekEventArgs>? SeekRequested;
 
     public SubtitlesView()
@@ -12,11 +13,32 @@ public partial class SubtitlesView : ContentView
         InitializeComponent();
     }
 
-    public void Cleanup()
+    #region implementation of IDisposable
+
+    public void Dispose()
     {
-        subtitleCollection.Dispose();
-        translationCollection.Dispose();
+        Dispose(true);
+
+        GC.SuppressFinalize(this);
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            subtitleCollection.Dispose();
+            translationCollection.Dispose();
+        }
+
+        _disposed = true;
+    }
+
+    #endregion
 
     private void OnSubtitleTapped(object? sender, TappedEventArgs e)
     {

@@ -9,6 +9,7 @@ namespace SubtitlesApp.CustomControls;
 public partial class PlayerControls : ContentView, IDisposable
 {
     private bool _disposed = false;
+    private MediaElementState? _stateBeforeRewind;
 
     public PlayerControls()
     {
@@ -178,6 +179,7 @@ public partial class PlayerControls : ContentView, IDisposable
 
     private void OnDragStarted(object sender, EventArgs e)
     {
+        _stateBeforeRewind = MauiMediaElement.CurrentState;
         MauiMediaElement.Pause();
     }
 
@@ -186,6 +188,11 @@ public partial class PlayerControls : ContentView, IDisposable
         var seekToTime = TimeSpan.FromSeconds(PositionSlider.Value);
 
         await MauiMediaElement.SeekTo(seekToTime, CancellationToken.None);
+
+        if (_stateBeforeRewind == MediaElementState.Playing)
+        {
+            MauiMediaElement.Play();
+        }
     }
 
     // This event handler exists because of https://github.com/dotnet/maui/issues/12285
