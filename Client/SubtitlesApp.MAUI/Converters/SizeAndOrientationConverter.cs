@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using SubtitlesApp.ClientModels.Enums;
 
 namespace SubtitlesApp.Converters;
 
@@ -11,9 +12,9 @@ public class SizeAndOrientationConverter : IMultiValueConverter
 
         var relWidth = System.Convert.ToDouble(values[0]);
         var relHeight = System.Convert.ToDouble(values[1]);
-        var orientation = (StackOrientation)values[2];
+        var orientation = (AdaptiveLayoutOrientation)values[2];
 
-        if (orientation == StackOrientation.Vertical)
+        if (orientation == AdaptiveLayoutOrientation.Vertical)
         {
             return new Rect(0, 0, 1, relHeight);
         }

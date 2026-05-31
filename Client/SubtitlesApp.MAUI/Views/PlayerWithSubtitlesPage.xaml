@@ -42,7 +42,7 @@
         <MultiBinding Converter="{StaticResource SizeAndOrientationConverter}">
           <Binding Source="{x:Reference playerSubtitlesPage}" Path="CurrentLayoutSettings.PlayerHorizontalLength" />
           <Binding Source="{x:Reference playerSubtitlesPage}" Path="CurrentLayoutSettings.PlayerVerticalLength" />
-          <Binding Source="{x:Reference adaptiveLayout}" Path="Orientation" />
+          <Binding Source="{x:Reference adaptiveLayout}" Path="ActualOrientation" />
         </MultiBinding>
       </AbsoluteLayout.LayoutBounds>
     </customControls:PlayerControls>

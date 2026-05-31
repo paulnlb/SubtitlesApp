@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.ClientModels.EventArgs;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Layouts;
@@ -12,8 +13,7 @@ namespace SubtitlesApp.Views;
 public partial class PlayerWithSubtitlesPage : ContentPage
 {
     private bool _subtitlesHidden;
-    private DisplayOrientation currentOrientation = DeviceDisplay.MainDisplayInfo.Orientation;
-    private bool IsVerticalLayout => adaptiveLayout.Orientation == StackOrientation.Vertical;
+    private bool IsVerticalLayout => adaptiveLayout.ActualOrientation == AdaptiveLayoutOrientation.Vertical;
     private PanGestureState panGestureState = new();
     private readonly AdaptiveLayoutStateManager _layoutStateManager;
     private readonly LayoutSettings _normalLayoutSettings;
@@ -46,8 +46,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         _layoutStateManager = new AdaptiveLayoutStateManager(adaptiveLayout);
 
-        DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
-
         vm.SubtitlesVm.SeekRequested += OnSeekRequested;
         vm.PropertyChanged += OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
@@ -69,7 +67,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
         playerControls.Dispose();
-        DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
         Vm.SubtitlesVm.SeekRequested -= OnSeekRequested;
         Vm.PropertyChanged -= OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
@@ -93,14 +90,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         {
             RecalculateVerticalLayout(mauiMediaElement.MediaHeight, mauiMediaElement.MediaWidth);
         }
-    }
-
-    private void OnMainDisplayInfoChanged(object? sender, DisplayInfoChangedEventArgs e)
-    {
-        currentOrientation = DeviceDisplay.MainDisplayInfo.Orientation;
-
-        adaptiveLayout.Orientation =
-            currentOrientation == DisplayOrientation.Portrait ? StackOrientation.Vertical : StackOrientation.Horizontal;
     }
 
     private void OnMediaPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -135,18 +124,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
         {
             ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
-
-            if (Vm.IsFullScreenOn)
-            {
-                adaptiveLayout.Orientation = StackOrientation.Horizontal;
-            }
-            else
-            {
-                adaptiveLayout.Orientation =
-                    currentOrientation == DisplayOrientation.Portrait
-                        ? StackOrientation.Vertical
-                        : StackOrientation.Horizontal;
-            }
         }
     }
 

@@ -1,12 +1,13 @@
 ﻿using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Layouts;
+using SubtitlesApp.ClientModels.Enums;
 
 namespace SubtitlesApp.Layouts;
 
 /// <summary>
 ///     Custom layout that arranges views in one column (in portrait mode) or row (otherwise).
 ///     <para/>
-///     Layout orientation is calculated dynamically during runtime, based on device orientation.
+///     Layout orientation can be set manually or calculated dynamically at runtime, based on the parent's aspect ratio.
 ///     <para/>
 ///     Also this layout allows to specify its items' length relative to parent length.
 /// </summary>
@@ -28,14 +29,20 @@ public class AdaptiveLayout : Layout
         propertyChanged: Invalidate_OnRelativeVerticalLengthChanged
     );
 
-    public static readonly BindableProperty OrientationProperty = BindableProperty.Create(
-        nameof(Orientation),
-        typeof(StackOrientation),
+    public static readonly BindableProperty OrientationRequestProperty = BindableProperty.Create(
+        nameof(OrientationRequest),
+        typeof(AdaptiveLayoutOrientation),
         typeof(AdaptiveLayout),
-        DeviceDisplay.MainDisplayInfo.Orientation == DisplayOrientation.Portrait
-            ? StackOrientation.Vertical
-            : StackOrientation.Horizontal,
-        propertyChanged: Invalidate_OnOrientationChanged
+        AdaptiveLayoutOrientation.Adaptive,
+        propertyChanged: Invalidate_OnOrientationRequestChanged
+    );
+
+    public static readonly BindableProperty ActualOrientationProperty = BindableProperty.Create(
+        nameof(ActualOrientation),
+        typeof(AdaptiveLayoutOrientation),
+        typeof(AdaptiveLayout),
+        AdaptiveLayoutOrientation.Adaptive,
+        propertyChanged: OnActualOrientationChanged
     );
 
     public static double? GetRelativeHorizontalLength(BindableObject view)
@@ -58,10 +65,30 @@ public class AdaptiveLayout : Layout
         view.SetValue(RelativeVerticalLengthProperty, value);
     }
 
-    public StackOrientation Orientation
+    public AdaptiveLayoutOrientation OrientationRequest
     {
-        get => (StackOrientation)GetValue(OrientationProperty);
-        set => SetValue(OrientationProperty, value);
+        get => (AdaptiveLayoutOrientation)GetValue(OrientationRequestProperty);
+        set => SetValue(OrientationRequestProperty, value);
+    }
+
+    public AdaptiveLayoutOrientation ActualOrientation
+    {
+        get
+        {
+            if (OrientationRequest != AdaptiveLayoutOrientation.Adaptive)
+            {
+                return OrientationRequest;
+            }
+
+            if (Width > Height)
+            {
+                return AdaptiveLayoutOrientation.Horizontal;
+            }
+            else
+            {
+                return AdaptiveLayoutOrientation.Vertical;
+            }
+        }
     }
 
     public AdaptiveLayoutState MakeSnapshot()
@@ -123,6 +150,8 @@ public class AdaptiveLayout : Layout
         Clip = new RectangleGeometry(new Rect(0, 0, Width, Height));
 
         InvalidateMeasure();
+
+        OnPropertyChanged(nameof(ActualOrientation));
     }
 
     protected override ILayoutManager CreateLayoutManager()
@@ -148,7 +177,7 @@ public class AdaptiveLayout : Layout
         }
 
         // Do not invalidate if orientation is vertical and any of width factors changed
-        if (parentLayout.Orientation == StackOrientation.Vertical)
+        if (parentLayout.ActualOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             return;
         }
@@ -163,8 +192,8 @@ public class AdaptiveLayout : Layout
             return;
         }
 
-        // Do not invalidate if orientation is not vertical and any of height factors changed
-        if (parentLayout.Orientation != StackOrientation.Vertical)
+        // Do not invalidate if orientation is horizontal and any of height factors changed
+        if (parentLayout.ActualOrientation == AdaptiveLayoutOrientation.Horizontal)
         {
             return;
         }
@@ -172,18 +201,24 @@ public class AdaptiveLayout : Layout
         parentLayout.InvalidateMeasure();
     }
 
-    private static void Invalidate_OnOrientationChanged(BindableObject bindable, object oldValue, object newValue)
+    private static void Invalidate_OnOrientationRequestChanged(BindableObject bindable, object oldValue, object newValue)
     {
         if (bindable is AdaptiveLayout layout)
         {
             layout.InvalidateMeasure();
         }
     }
+
+    private static void OnActualOrientationChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        ((AdaptiveLayout)bindable).OnPropertyChanged(nameof(ActualOrientation));
+    }
 }
 
 public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 {
     private readonly List<Size> _chidrenMeasurements = [];
+    private AdaptiveLayoutOrientation _layoutOrientation;
 
     public Size ArrangeChildren(Rect bounds)
     {
@@ -215,7 +250,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
 
         MeasureChildren(widthConstraint, heightConstraint, relVerticalLengths, relHorizontalLengths);
 
-        if (layout.Orientation == StackOrientation.Vertical)
+        if (_layoutOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             for (int i = 0; i < layout.Count; i++)
             {
@@ -225,7 +260,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 height += childSize.Height;
             }
         }
-        else
+        else if (_layoutOrientation == AdaptiveLayoutOrientation.Horizontal)
         {
             for (int i = 0; i < layout.Count; i++)
             {
@@ -235,15 +270,17 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 height = Math.Max(height, childSize.Height);
             }
         }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported layout orientation: {_layoutOrientation}");
+        }
 
         return new Size(width, height);
     }
 
-    public AdaptiveLayoutState ComputeState(List<double?> relativeVerticalLengths, List<double?> relativeHorizontalLengths)
+    public AdaptiveLayoutState ComputeState(List<double?> relHeights, List<double?> relWidths)
     {
         var bounds = new Rect(0, 0, layout.Width, layout.Height);
-        var relHeights = relativeVerticalLengths;
-        var relWidths = relativeHorizontalLengths;
 
         MeasureChildren(layout.Width, layout.Height, relHeights, relWidths);
         var childrenSizes = CalculateChildrenSizes(bounds, relHeights, relWidths);
@@ -279,7 +316,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
     {
         var result = new List<Rect>();
 
-        if (layout.Orientation == StackOrientation.Vertical)
+        if (_layoutOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             double y = bounds.Y;
 
@@ -300,7 +337,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 y += childrenHeights[i];
             }
         }
-        else
+        else if (_layoutOrientation == AdaptiveLayoutOrientation.Horizontal)
         {
             double x = bounds.X;
 
@@ -321,6 +358,10 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
                 x += childrenWidths[i];
             }
         }
+        else
+        {
+            throw new InvalidOperationException($"Unsupported layout orientation: {_layoutOrientation}");
+        }
 
         return result;
     }
@@ -333,8 +374,9 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
     )
     {
         _chidrenMeasurements.Clear();
+        _layoutOrientation = layout.ActualOrientation;
 
-        if (layout.Orientation == StackOrientation.Vertical)
+        if (_layoutOrientation == AdaptiveLayoutOrientation.Vertical)
         {
             var childrenHeights = GetChildrenAbsoluteLengths(heightConstraint, relativeVerticalLengths.ToList());
 
