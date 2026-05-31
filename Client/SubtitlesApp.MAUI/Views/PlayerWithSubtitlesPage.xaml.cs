@@ -40,7 +40,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         _normalLayoutSettings = new(false);
         _expandedLayoutSettings = new(true);
-
         CurrentLayoutSettings = new(false);
 
         BindingContext = vm;
@@ -49,14 +48,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         DeviceDisplay.MainDisplayInfoChanged += OnMainDisplayInfoChanged;
 
-        vm.CaptionsVm.SeekRequested += OnSeekRequested;
+        vm.SubtitlesVm.SeekRequested += OnSeekRequested;
         vm.PropertyChanged += OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
         adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
 
         mauiMediaElement.SetBinding(
             MediaElement.DurationProperty,
-            new Binding(nameof(vm.CaptionsVm.MediaDuration), BindingMode.OneWayToSource, source: vm.CaptionsVm)
+            new Binding(nameof(vm.SubtitlesVm.MediaDuration), BindingMode.OneWayToSource, source: vm.SubtitlesVm)
         );
 
         SubscribeToGestures();
@@ -71,14 +70,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.Dispose();
         playerControls.Dispose();
         DeviceDisplay.MainDisplayInfoChanged -= OnMainDisplayInfoChanged;
-        Vm.CaptionsVm.SeekRequested -= OnSeekRequested;
+        Vm.SubtitlesVm.SeekRequested -= OnSeekRequested;
         Vm.PropertyChanged -= OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerGestureRecognizer.PanUpdated -= HandlePanGesture;
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
-        captionsGestureRecognizer.PanUpdated -= HandlePanGesture;
+        subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
-        captionsView.Cleanup();
+        subtitlesView.Cleanup();
     }
 
     protected override bool OnBackButtonPressed()
@@ -118,10 +117,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private void OnPositionChanged(object? sender, EventArgs e)
     {
         if (
-            Vm.CaptionsVm.PositionChangedCommand != null
-            && Vm.CaptionsVm.PositionChangedCommand.CanExecute(mauiMediaElement.Position)
+            Vm.SubtitlesVm.PositionChangedCommand != null
+            && Vm.SubtitlesVm.PositionChangedCommand.CanExecute(mauiMediaElement.Position)
         )
-            Vm.CaptionsVm.PositionChangedCommand.Execute(mauiMediaElement.Position);
+            Vm.SubtitlesVm.PositionChangedCommand.Execute(mauiMediaElement.Position);
     }
 
     private void OnSeekRequested(object? sender, SeekEventArgs e)
@@ -190,7 +189,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private void SubscribeToGestures()
     {
         playerGestureRecognizer.PanUpdated += HandlePanGesture;
-        captionsGestureRecognizer.PanUpdated += HandlePanGesture;
+        subtitlesGestureRecognizer.PanUpdated += HandlePanGesture;
         playerControlsGestureRecognizer.PanUpdated += HandlePanGesture;
     }
 
@@ -297,7 +296,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         var absoluteProgress = IsVerticalLayout ? totalY : totalX;
 
-        var progress = coefficient * absoluteProgress / captionsView.Height;
+        var progress = coefficient * absoluteProgress / subtitlesView.Height;
 
         return Math.Clamp(progress, 0, 1);
     }

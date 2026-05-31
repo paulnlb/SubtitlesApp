@@ -70,16 +70,16 @@
         </customControls:ExtendedMediaElement.GestureRecognizers>
       </customControls:ExtendedMediaElement>
 
-      <views:CaptionsView
-        x:Name="captionsView"
-        BindingContext="{Binding CaptionsVm}"
+      <views:SubtitlesView
+        x:Name="subtitlesView"
+        BindingContext="{Binding SubtitlesVm}"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesHoritzontalLength, Mode=TwoWay}"
       >
-        <views:CaptionsView.GestureRecognizers>
-          <PanGestureRecognizer x:Name="captionsGestureRecognizer" />
-        </views:CaptionsView.GestureRecognizers>
-      </views:CaptionsView>
+        <views:SubtitlesView.GestureRecognizers>
+          <PanGestureRecognizer x:Name="subtitlesGestureRecognizer" />
+        </views:SubtitlesView.GestureRecognizers>
+      </views:SubtitlesView>
     </layouts:AdaptiveLayout>
   </AbsoluteLayout>
 </ContentPage>

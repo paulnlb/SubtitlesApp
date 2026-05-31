@@ -30,7 +30,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ILlmClient, OpenAiLlmClient>();
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
-        services.AddTransient<CaptionsViewModel>();
+        services.AddTransient<SubtitlesViewModel>();
         #endregion
 
         #region singleton

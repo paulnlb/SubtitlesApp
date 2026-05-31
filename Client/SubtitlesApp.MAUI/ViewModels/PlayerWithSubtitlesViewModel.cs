@@ -20,15 +20,15 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private bool _isFullScreenOn;
 
     [ObservableProperty]
-    CaptionsViewModel _captionsVm;
+    SubtitlesViewModel _subtitlesVm;
 
     #endregion
 
-    public PlayerWithSubtitlesViewModel(CaptionsViewModel captionsViewModel)
+    public PlayerWithSubtitlesViewModel(SubtitlesViewModel captionsViewModel)
     {
         PlayerControlsVisible = true;
         MediaPath = null;
-        CaptionsVm = captionsViewModel;
+        SubtitlesVm = captionsViewModel;
     }
 
     [RelayCommand]
@@ -47,7 +47,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         if (query.TryGetValue("open", out object? value))
         {
             MediaPath = value.ToString();
-            CaptionsVm.MediaPath = value.ToString();
+            SubtitlesVm.MediaPath = value.ToString();
         }
     }
 }

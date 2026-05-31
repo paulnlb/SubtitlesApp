@@ -15,7 +15,7 @@ using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
 
-public partial class CaptionsViewModel : ObservableObject
+public partial class SubtitlesViewModel : ObservableObject
 {
     #region observable properties
 
@@ -89,7 +89,7 @@ public partial class CaptionsViewModel : ObservableObject
 
     #endregion
 
-    public CaptionsViewModel(
+    public SubtitlesViewModel(
         ITranslationService translationService,
         LanguageService languageService,
         IPopupService popupService,

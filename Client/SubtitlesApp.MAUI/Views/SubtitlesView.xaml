@@ -8,8 +8,8 @@
   xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
-  x:Class="SubtitlesApp.Views.CaptionsView"
-  x:DataType="viewModels:CaptionsViewModel"
+  x:Class="SubtitlesApp.Views.SubtitlesView"
+  x:DataType="viewModels:SubtitlesViewModel"
   BindingContextChanged="OnBindingContextChanged"
 >
   <ContentView.Resources>

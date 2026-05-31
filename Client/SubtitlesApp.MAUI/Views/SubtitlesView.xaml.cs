@@ -3,13 +3,13 @@ using UraniumUI.Material.Controls;
 
 namespace SubtitlesApp.Views;
 
-public partial class CaptionsView : ContentView
+public partial class SubtitlesView : ContentView
 {
-    private CaptionsViewModel Vm =>
-        BindingContext as CaptionsViewModel
-        ?? throw new InvalidOperationException("BindingContext must be of type CaptionsViewModel");
+    private SubtitlesViewModel Vm =>
+        BindingContext as SubtitlesViewModel
+        ?? throw new InvalidOperationException($"BindingContext must be of type {nameof(SubtitlesViewModel)}");
 
-    public CaptionsView()
+    public SubtitlesView()
     {
         InitializeComponent();
     }
@@ -30,7 +30,7 @@ public partial class CaptionsView : ContentView
 
     private void OnSelectedTabChanged(object? sender, TabItem e)
     {
-        if (BindingContext is not PlayerWithSubtitlesViewModel vm)
+        if (BindingContext is not SubtitlesViewModel vm)
         {
             return;
         }
@@ -41,13 +41,13 @@ public partial class CaptionsView : ContentView
         }
         else if (e.Title == "Subtitles")
         {
-            vm.CaptionsVm.IsSubtitlesSelected = true;
-            vm.CaptionsVm.IsTranslationsSelected = false;
+            vm.IsSubtitlesSelected = true;
+            vm.IsTranslationsSelected = false;
         }
         else if (e.Title == "Translations")
         {
-            vm.CaptionsVm.IsSubtitlesSelected = false;
-            vm.CaptionsVm.IsTranslationsSelected = true;
+            vm.IsSubtitlesSelected = false;
+            vm.IsTranslationsSelected = true;
         }
     }
 
