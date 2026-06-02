@@ -13,13 +13,12 @@ using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Mapper;
 
-namespace SubtitlesApp.Infrastructure.HttpClients;
+namespace SubtitlesApp.Infrastructure.ExternalClients;
 
 #pragma warning disable OPENAI001
-public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
+public class OpenAiLlmClient(ILlmClientSettings settings) : ILlmClient
 {
     private readonly Task<ResponsesClient> _responsesClientTask = InitClient(settings);
-    private readonly IOpenAiSettings _settings = settings;
     private readonly JsonSerializerOptions _schemaGenerationOptions = new(JsonSerializerOptions.Default)
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
@@ -29,12 +28,12 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
     public async Task<Result<string>> SendChatAsync(
         List<LlmMessageDto> chatHistory,
         string userPrompt,
-        JsonNode? responseFormat = null
+        JsonNode responseFormat
     )
     {
         CreateResponseOptions options = new()
         {
-            Model = _settings.Model,
+            Model = settings.OpenAiModel,
             ReasoningOptions = new() { ReasoningEffortLevel = ResponseReasoningEffortLevel.None },
         };
 
@@ -61,7 +60,7 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
         catch (Exception ex)
         {
             return Result<string>.Failure(
-                new Error(ErrorCode.InternalClientError, $"LLM response failed with error: {ex.Message}")
+                new Error(ErrorCode.FailedServerResponse, $"LLM response failed with error: {ex.Message}")
             );
         }
 
@@ -121,16 +120,16 @@ public class OpenAiLlmClient(IOpenAiSettings settings) : ILlmClient
         return Result<T>.Success(deserialized);
     }
 
-    private static async Task<ResponsesClient> InitClient(IOpenAiSettings settings)
+    private static async Task<ResponsesClient> InitClient(ILlmClientSettings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.Endpoint))
+        if (!string.IsNullOrWhiteSpace(settings.OpenAiEndpoint))
         {
             return new(
-                new ApiKeyCredential(await settings.GetApiKey()),
-                new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
+                new ApiKeyCredential(await settings.GetOpenAiApiKey()),
+                new OpenAIClientOptions { Endpoint = new Uri(settings.OpenAiEndpoint!) }
             );
         }
 
-        return new(await settings.GetApiKey());
+        return new(await settings.GetOpenAiApiKey());
     }
 }

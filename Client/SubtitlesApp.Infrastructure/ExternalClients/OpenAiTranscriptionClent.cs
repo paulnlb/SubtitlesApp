@@ -7,7 +7,7 @@ using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
-namespace SubtitlesApp.Infrastructure.HttpClients;
+namespace SubtitlesApp.Infrastructure.ExternalClients;
 
 public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : ITranscriptionApiClient
 {

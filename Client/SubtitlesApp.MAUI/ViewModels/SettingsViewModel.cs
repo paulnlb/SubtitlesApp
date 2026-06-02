@@ -1,11 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Kotlin.Properties;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.ViewModels;
 
-public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscriptionClientSettings transcriptionSettings)
-    : ObservableObject
+public partial class SettingsViewModel(
+    ILlmClientSettings llmClientSettings,
+    ITranscriptionClientSettings transcriptionSettings
+) : ObservableObject
 {
     private const string NonFetchedKeyPlaceholder = "Forget-Want6-While-Shore-Stage";
 
@@ -22,10 +25,16 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     private string _openAiApiKey = NonFetchedKeyPlaceholder;
 
     [ObservableProperty]
-    private string _openAiEndpoint = openAiSettings.Endpoint ?? string.Empty;
+    private string _openAiEndpoint = llmClientSettings.OpenAiEndpoint ?? string.Empty;
 
     [ObservableProperty]
-    private string _openAiModel = openAiSettings.Model;
+    private string _openAiModel = llmClientSettings.OpenAiModel;
+
+    [ObservableProperty]
+    private string _geminiApiKey = NonFetchedKeyPlaceholder;
+
+    [ObservableProperty]
+    private string _geminiModel = llmClientSettings.GeminiModel;
 
     [ObservableProperty]
     private bool _isOpenAiKeyShown;
@@ -34,18 +43,33 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     private bool _isTranscriptionKeyShown;
 
     [ObservableProperty]
+    private bool _isGeminiKeyShown;
+
+    [ObservableProperty]
     private bool _isDirty;
+
+    [ObservableProperty]
+    private string _llmProvider = llmClientSettings.LlmProvider;
 
     [RelayCommand]
     public async Task Save()
     {
         if (OpenAiApiKey != NonFetchedKeyPlaceholder)
         {
-            await openAiSettings.SetApiKey(OpenAiApiKey);
+            await llmClientSettings.SetOpenAiApiKey(OpenAiApiKey);
         }
 
-        openAiSettings.Endpoint = OpenAiEndpoint;
-        openAiSettings.Model = OpenAiModel;
+        if (GeminiApiKey != NonFetchedKeyPlaceholder)
+        {
+            await llmClientSettings.SetGeminiApiKey(GeminiApiKey);
+        }
+
+        llmClientSettings.OpenAiEndpoint = OpenAiEndpoint;
+        llmClientSettings.OpenAiModel = OpenAiModel;
+
+        llmClientSettings.GeminiModel = GeminiModel;
+
+        llmClientSettings.LlmProvider = LlmProvider;
 
         if (TranscriptionApiKey != NonFetchedKeyPlaceholder)
         {
@@ -53,17 +77,34 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
         }
         transcriptionSettings.Endpoint = TranscriptionEndpoint;
         transcriptionSettings.Model = TranscriptionModel;
+
         IsDirty = false;
     }
 
     [RelayCommand]
-    public async Task ShowLlmKey()
+    public void LlmProviderChanged(string llmProviderName)
+    {
+        LlmProvider = llmProviderName;
+    }
+
+    [RelayCommand]
+    public async Task ShowOpenAiLlmKey()
     {
         if (!IsOpenAiKeyShown && OpenAiApiKey == NonFetchedKeyPlaceholder)
         {
-            OpenAiApiKey = await openAiSettings.GetApiKey();
+            OpenAiApiKey = await llmClientSettings.GetOpenAiApiKey();
         }
         IsOpenAiKeyShown = !IsOpenAiKeyShown;
+    }
+
+    [RelayCommand]
+    public async Task ShowGeminiLlmKey()
+    {
+        if (!IsGeminiKeyShown && GeminiApiKey == NonFetchedKeyPlaceholder)
+        {
+            GeminiApiKey = await llmClientSettings.GetGeminiApiKey();
+        }
+        IsGeminiKeyShown = !IsGeminiKeyShown;
     }
 
     [RelayCommand]
@@ -77,6 +118,20 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
     }
 
     partial void OnOpenAiApiKeyChanged(string? oldValue, string newValue)
+    {
+        if (string.IsNullOrEmpty(newValue))
+        {
+            IsDirty = false;
+            return;
+        }
+
+        if (oldValue != NonFetchedKeyPlaceholder)
+        {
+            IsDirty = true;
+        }
+    }
+
+    partial void OnGeminiApiKeyChanged(string? oldValue, string newValue)
     {
         if (string.IsNullOrEmpty(newValue))
         {
@@ -119,7 +174,17 @@ public partial class SettingsViewModel(IOpenAiSettings openAiSettings, ITranscri
         IsDirty = true;
     }
 
+    partial void OnGeminiModelChanged(string? oldValue, string newValue)
+    {
+        IsDirty = true;
+    }
+
     partial void OnTranscriptionModelChanged(string? oldValue, string newValue)
+    {
+        IsDirty = true;
+    }
+
+    partial void OnLlmProviderChanged(string? oldValue, string newValue)
     {
         IsDirty = true;
     }

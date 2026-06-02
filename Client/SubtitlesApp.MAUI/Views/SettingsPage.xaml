@@ -5,6 +5,7 @@
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
+  xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
   x:Class="SubtitlesApp.Views.SettingsPage"
   x:DataType="viewModels:SettingsViewModel"
   Title="Settings"
@@ -61,31 +62,79 @@
     </Grid>
 
     <!-- LLM -->
+
     <Label Text="LLM Translation" FontAttributes="Bold" />
 
-    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-      <Label Grid.Row="0" Text="Model" />
-      <Entry Grid.Row="0" Grid.Column="1" Text="{Binding OpenAiModel}" />
-
-      <Label Grid.Row="1" Text="Endpoint (optional)" />
-      <Entry Grid.Row="1" Grid.Column="1" Text="{Binding OpenAiEndpoint}" />
-
-      <Label Grid.Row="2" Text="API key" />
-      <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
-        <Entry
-          Grid.Column="0"
-          IsPassword="{Binding IsOpenAiKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
-          Text="{Binding OpenAiApiKey}"
-          IsEnabled="{Binding IsOpenAiKeyShown}"
+    <material:TabView x:Name="tabView" CachingStrategy="CacheOnLayout">
+      <material:TabView.Behaviors>
+        <toolkit:EventToCommandBehavior
+          EventName="SelectedTabChanged"
+          Command="{Binding LlmProviderChangedCommand}"
+          CommandParameter="{Binding Source={x:Reference tabView}, Path=SelectedTab.Title}"
         />
-        <customControls:StateIconButton
-          Grid.Column="1"
-          Style="{StaticResource ShowButtonStyle}"
-          IsToggled="{Binding IsOpenAiKeyShown}"
-          Command="{Binding ShowLlmKeyCommand}"
-        />
-      </Grid>
-    </Grid>
+      </material:TabView.Behaviors>
+      <material:TabView.TabHeaderItemTemplate>
+        <DataTemplate x:DataType="material:TabItem">
+          <material:CheckBox
+            Text="{Binding Title}"
+            IsChecked="{Binding IsSelected}"
+            CheckChangedCommand="{Binding Command, Mode=OneWayToSource}"
+          />
+        </DataTemplate>
+      </material:TabView.TabHeaderItemTemplate>
+      <material:TabItem Title="OpenAi">
+        <material:TabItem.Content>
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+            <Label Grid.Row="0" Text="Model" />
+            <Entry Grid.Row="0" Grid.Column="1" Text="{Binding OpenAiModel}" />
+
+            <Label Grid.Row="1" Text="Endpoint (optional)" />
+            <Entry Grid.Row="1" Grid.Column="1" Text="{Binding OpenAiEndpoint}" />
+
+            <Label Grid.Row="2" Text="API key" />
+            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
+              <Entry
+                Grid.Column="0"
+                IsPassword="{Binding IsOpenAiKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
+                Text="{Binding OpenAiApiKey}"
+                IsEnabled="{Binding IsOpenAiKeyShown}"
+              />
+              <customControls:StateIconButton
+                Grid.Column="1"
+                Style="{StaticResource ShowButtonStyle}"
+                IsToggled="{Binding IsOpenAiKeyShown}"
+                Command="{Binding ShowOpenAiLlmKeyCommand}"
+              />
+            </Grid>
+          </Grid>
+        </material:TabItem.Content>
+      </material:TabItem>
+
+      <material:TabItem Title="Gemini">
+        <material:TabItem.Content>
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+            <Label Grid.Row="0" Text="Model" />
+            <Entry Grid.Row="0" Grid.Column="1" Text="{Binding GeminiModel}" />
+
+            <Label Grid.Row="2" Text="API key" />
+            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
+              <Entry
+                Grid.Column="0"
+                IsPassword="{Binding IsGeminiKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
+                Text="{Binding GeminiApiKey}"
+                IsEnabled="{Binding IsGeminiKeyShown}"
+              />
+              <customControls:StateIconButton
+                Grid.Column="1"
+                Style="{StaticResource ShowButtonStyle}"
+                IsToggled="{Binding IsGeminiKeyShown}"
+                Command="{Binding ShowGeminiLlmKeyCommand}"
+              />
+            </Grid>
+          </Grid>
+        </material:TabItem.Content>
+      </material:TabItem>
+    </material:TabView>
 
     <Button Text="Save" Margin="0,10,0,0" Command="{Binding SaveCommand}" IsEnabled="{Binding IsDirty}" />
   </VerticalStackLayout>

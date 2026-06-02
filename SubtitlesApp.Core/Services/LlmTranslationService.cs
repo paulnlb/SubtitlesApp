@@ -1,10 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Unicode;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Interfaces.Settings;
@@ -64,58 +62,41 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
     {
         List<LlmMessageDto> chatHistory = [new(LlmRoleConstants.System, settings.DefaultSystemPrompt)];
 
-        var retryCounter = 0;
-
-        while (retryCounter <= settings.RetryCount)
+        if (cancellationToken.IsCancellationRequested)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
-            }
-
-            var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles);
-            Result<LlmSubtitleListDto> llmResult;
-
-            try
-            {
-                llmResult = await llmClient.SendChatAsync<LlmSubtitleListDto>(chatHistory, userPrompt);
-            }
-            catch (Exception ex)
-            {
-                llmResult = Result<LlmSubtitleListDto>.Failure(
-                    new Error(ErrorCode.InternalClientError, $"LLM translation failed with error: {ex.Message}")
-                );
-            }
-
-            if (llmResult.IsFailure && retryCounter <= settings.RetryCount)
-            {
-                retryCounter++;
-                continue;
-            }
-            else if (llmResult.IsFailure)
-            {
-                return ListResult<SubtitleDto>.Failure(llmResult.Error);
-            }
-
-            var llmSubtitles = llmResult.Value.Items;
-            var isTranlationValid = llmSubtitles.Count == sourceSubtitles.Count && IsTranlsationValid(llmSubtitles);
-
-            if (!isTranlationValid && retryCounter <= settings.RetryCount)
-            {
-                retryCounter++;
-                continue;
-            }
-            else if (!isTranlationValid)
-            {
-                return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.InvalidLlmTranslation));
-            }
-
-            var translatedSubs = MapTranslationsToSubs(targetLanguage.Code, llmSubtitles, sourceSubtitles);
-
-            return ListResult<SubtitleDto>.Success(translatedSubs);
+            return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
         }
 
-        return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.RetryLimitExceeded));
+        var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles);
+        Result<LlmSubtitleListDto> llmResult;
+
+        try
+        {
+            llmResult = await llmClient.SendChatAsync<LlmSubtitleListDto>(chatHistory, userPrompt);
+        }
+        catch (Exception ex)
+        {
+            llmResult = Result<LlmSubtitleListDto>.Failure(
+                new Error(ErrorCode.InternalClientError, $"LLM translation failed with error: {ex.Message}")
+            );
+        }
+
+        if (llmResult.IsFailure)
+        {
+            return ListResult<SubtitleDto>.Failure(llmResult.Error);
+        }
+
+        var llmSubtitles = llmResult.Value.Items;
+        var isTranlationValid = llmSubtitles.Count == sourceSubtitles.Count && IsTranlsationValid(llmSubtitles);
+
+        if (!isTranlationValid)
+        {
+            return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.InvalidLlmTranslation));
+        }
+
+        var translatedSubs = MapTranslationsToSubs(targetLanguage.Code, llmSubtitles, sourceSubtitles);
+
+        return ListResult<SubtitleDto>.Success(translatedSubs);
     }
 
     private static string FormUserPrompt(string targetLang, List<SubtitleDto> sourceSubs)

@@ -13,7 +13,7 @@ public interface ILlmClient
     /// <param name="userPrompt"></param>
     /// <param name="responseFormat"></param>
     /// <returns></returns>
-    Task<Result<string>> SendChatAsync(List<LlmMessageDto> chatHistory, string userPrompt, JsonNode? responseFormat = null);
+    Task<Result<string>> SendChatAsync(List<LlmMessageDto> chatHistory, string userPrompt, JsonNode responseFormat);
 
     /// <summary>
     /// General method for sending chat messages to the LLM and parsing the response into a specified type.

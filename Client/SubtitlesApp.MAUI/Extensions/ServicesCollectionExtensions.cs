@@ -4,7 +4,8 @@ using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.CustomControls.Popups;
-using SubtitlesApp.Infrastructure.HttpClients;
+using SubtitlesApp.Infrastructure.Constants;
+using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
@@ -27,7 +28,6 @@ public static class ServicesCollectionExtensions
         services.AddTransient<SubtitlesMapper>();
         services.AddTransient<ITranscriptionService, TranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
-        services.AddTransient<ILlmClient, OpenAiLlmClient>();
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
@@ -35,6 +35,9 @@ public static class ServicesCollectionExtensions
 
         #region singleton
         services.AddSingleton<LanguageService>();
+        services.AddSingleton<ILlmClient, GenericLlmClient>();
+        services.AddKeyedSingleton<ILlmClient, GeminiLlmClient>(LlmProviderConstants.Gemini);
+        services.AddKeyedSingleton<ILlmClient, OpenAiLlmClient>(LlmProviderConstants.OpenAi);
         #endregion
 
         #region pages
@@ -45,7 +48,7 @@ public static class ServicesCollectionExtensions
 
         #region preferences
         services.AddSingleton(Preferences.Default);
-        services.AddSingleton<IOpenAiSettings, OpenAiSettings>();
+        services.AddSingleton<ILlmClientSettings, LlmClientSettings>();
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();

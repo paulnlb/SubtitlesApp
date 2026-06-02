@@ -18,4 +18,5 @@ public enum ErrorCode
     FailedServerResponse,
     RetryLimitExceeded,
     InvalidLlmTranslation,
+    InvalidInput,
 }

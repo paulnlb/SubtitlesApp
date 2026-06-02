@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using SubtitlesApp.ViewModels;
 
 namespace SubtitlesApp.Views;
@@ -9,6 +10,8 @@ public partial class SettingsPage : ContentPage
         InitializeComponent();
 
         BindingContext = vm;
+
+        tabView.SelectedTab = tabView.Items.Single(x => x.Title == vm.LlmProvider);
     }
 
     protected override bool OnBackButtonPressed()
