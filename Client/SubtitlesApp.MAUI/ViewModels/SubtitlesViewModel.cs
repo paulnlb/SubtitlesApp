@@ -147,7 +147,13 @@ public partial class SubtitlesViewModel : ObservableObject
                 return;
             }
 
-            Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
+            var subtitleDto = result.Value;
+
+            // Workaround that reduces the precision of the timemtapms in order to roughly match seeking precision
+            subtitleDto.StartTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.StartTime.TotalMilliseconds));
+            subtitleDto.EndTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.EndTime.TotalMilliseconds));
+
+            Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto));
         }
 
         IsTranscriptionLoading = false;

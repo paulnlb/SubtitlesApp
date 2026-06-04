@@ -45,18 +45,21 @@ public class TranscriptionService(
                 yield break;
             }
 
-            subIntervalStart = subIntervalEnd;
-            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
-
             var subtitles = subtitlesResult.Value;
 
-            // implement overlapping by expanding the sub-interval start time backwards by one subtitle
+            // implement overlapping by expanding the sub-interval start time back by one subtitle
             // not applicable if there is 0 or 1 subtitle in the sub-interval
             // also not applicable if the current sub-interval is the last one
             if (subtitles.Count > 1 && subIntervalEnd < timeInterval.EndTime)
             {
                 subIntervalStart = subtitles.Last().StartTime;
             }
+            else
+            {
+                subIntervalStart = subIntervalEnd;
+            }
+
+            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
 
             foreach (var subtitle in subtitles)
             {

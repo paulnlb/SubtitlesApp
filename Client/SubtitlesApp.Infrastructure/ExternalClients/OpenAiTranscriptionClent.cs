@@ -53,10 +53,8 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
                 {
                     LanguageCode = apiResult.Language,
                     Text = segment.Text.TrimStart(),
-                    // Workaround that reduces the precision of the timemtapms in order to roughly match seeking precision
-                    StartTime = TimeSpan.FromMilliseconds(Math.Round(segment.StartTime.TotalMilliseconds)),
-                    // Workaround that reduces the precision of the timemtapms in order to roughly match seeking precision
-                    EndTime = TimeSpan.FromMilliseconds(Math.Round(segment.EndTime.TotalMilliseconds)),
+                    StartTime = segment.StartTime,
+                    EndTime = segment.EndTime,
                 }
             );
         }
