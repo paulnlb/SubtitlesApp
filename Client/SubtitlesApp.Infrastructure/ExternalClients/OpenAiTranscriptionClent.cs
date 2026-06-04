@@ -68,11 +68,11 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
         {
             return new(
                 settings.Model,
-                new ApiKeyCredential(await settings.GetApiKey()),
+                new ApiKeyCredential(await settings.GetSecret()),
                 new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
             );
         }
 
-        return new(settings.Model, await settings.GetApiKey());
+        return new(settings.Model, await settings.GetSecret());
     }
 }

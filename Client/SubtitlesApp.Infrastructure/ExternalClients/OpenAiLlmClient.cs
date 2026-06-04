@@ -16,7 +16,7 @@ using SubtitlesApp.Infrastructure.Mapper;
 namespace SubtitlesApp.Infrastructure.ExternalClients;
 
 #pragma warning disable OPENAI001
-public class OpenAiLlmClient(ILlmClientSettings settings) : ILlmClient
+public class OpenAiLlmClient(IOpenAiClientSettings settings) : ILlmClient
 {
     private readonly Task<ResponsesClient> _responsesClientTask = InitClient(settings);
     private readonly JsonSerializerOptions _schemaGenerationOptions = new(JsonSerializerOptions.Default)
@@ -33,7 +33,7 @@ public class OpenAiLlmClient(ILlmClientSettings settings) : ILlmClient
     {
         CreateResponseOptions options = new()
         {
-            Model = settings.OpenAiModel,
+            Model = settings.Model,
             ReasoningOptions = new() { ReasoningEffortLevel = ResponseReasoningEffortLevel.None },
         };
 
@@ -120,16 +120,16 @@ public class OpenAiLlmClient(ILlmClientSettings settings) : ILlmClient
         return Result<T>.Success(deserialized);
     }
 
-    private static async Task<ResponsesClient> InitClient(ILlmClientSettings settings)
+    private static async Task<ResponsesClient> InitClient(IOpenAiClientSettings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.OpenAiEndpoint))
+        if (!string.IsNullOrWhiteSpace(settings.Endpoint))
         {
             return new(
-                new ApiKeyCredential(await settings.GetOpenAiApiKey()),
-                new OpenAIClientOptions { Endpoint = new Uri(settings.OpenAiEndpoint!) }
+                new ApiKeyCredential(await settings.GetSecret()),
+                new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
             );
         }
 
-        return new(await settings.GetOpenAiApiKey());
+        return new(await settings.GetSecret());
     }
 }

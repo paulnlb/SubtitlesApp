@@ -14,7 +14,7 @@ using SubtitlesApp.Infrastructure.Mapper;
 
 namespace SubtitlesApp.Infrastructure.ExternalClients;
 
-public class GeminiLlmClient(ILlmClientSettings settings) : ILlmClient
+public class GeminiLlmClient(IGeminiClientSettings settings) : ILlmClient
 {
     private readonly Task<Client> _clientTask = InitClient(settings);
     private readonly JsonSchemaExporterOptions _schemaExporterOptions = new() { TreatNullObliviousAsNonNullable = true };
@@ -53,7 +53,7 @@ public class GeminiLlmClient(ILlmClientSettings settings) : ILlmClient
         try
         {
             var client = await _clientTask;
-            response = await client.Models.GenerateContentAsync(settings.GeminiModel, contentList, config);
+            response = await client.Models.GenerateContentAsync(settings.Model, contentList, config);
         }
         catch (Exception ex)
         {
@@ -102,8 +102,8 @@ public class GeminiLlmClient(ILlmClientSettings settings) : ILlmClient
         return Result<T>.Success(deserialized);
     }
 
-    private static async Task<Client> InitClient(ILlmClientSettings settings)
+    private static async Task<Client> InitClient(IGeminiClientSettings settings)
     {
-        return new Client(apiKey: await settings.GetGeminiApiKey());
+        return new Client(apiKey: await settings.GetSecret());
     }
 }

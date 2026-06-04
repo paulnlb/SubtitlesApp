@@ -6,136 +6,27 @@
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
+  xmlns:settingsItems="clr-namespace:SubtitlesApp.ClientModels.SettingsItems"
   x:Class="SubtitlesApp.Views.SettingsPage"
-  x:DataType="viewModels:SettingsViewModel"
+  x:DataType="viewModels:SettingsViewModelNew"
   Title="Settings"
 >
-  <ContentPage.Resources>
-    <ResourceDictionary>
-      <Style TargetType="Entry">
-        <Setter Property="Margin" Value="0, 0, 0, 20" />
-      </Style>
-      <Style TargetType="Label">
-        <Setter Property="VerticalOptions" Value="Center" />
-      </Style>
-      <Style x:Key="ShowButtonStyle" TargetType="customControls:StateIconButton">
-        <Setter Property="Padding" Value="2" />
-        <Setter Property="HeightRequest" Value="35" />
-        <Setter Property="WidthRequest" Value="35" />
-        <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="State1Icon" Value="{AppThemeBinding Dark=visibility_light.png, Light=visibility_dark.png}" />
-        <Setter
-          Property="State2Icon"
-          Value="{AppThemeBinding Dark=visibility_off_light.png, Light=visibility_off_dark.png}"
-        />
-      </Style>
-    </ResourceDictionary>
-    <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-  </ContentPage.Resources>
-
-  <VerticalStackLayout Margin="20,30" Spacing="16">
-    <!-- Transcription -->
-    <Label Text="Transcription" FontAttributes="Bold" />
-
-    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-      <Label Grid.Row="0" Text="Model" />
-      <Entry Grid.Row="0" Grid.Column="1" Text="{Binding TranscriptionModel}" />
-
-      <Label Grid.Row="1" Text="Endpoint (optional)" />
-      <Entry Grid.Row="1" Grid.Column="1" Text="{Binding TranscriptionEndpoint}" />
-
-      <Label Grid.Row="2" Text="API key" />
-      <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
-        <Entry
-          Grid.Column="0"
-          IsPassword="{Binding IsTranscriptionKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
-          Text="{Binding TranscriptionApiKey}"
-          IsEnabled="{Binding IsTranscriptionKeyShown}"
-        />
-        <customControls:StateIconButton
-          Grid.Column="1"
-          Style="{StaticResource ShowButtonStyle}"
-          IsToggled="{Binding IsTranscriptionKeyShown}"
-          Command="{Binding ShowTranscriptionKeyCommand}"
-        />
-      </Grid>
-    </Grid>
-
-    <!-- LLM -->
-
-    <Label Text="LLM Translation" FontAttributes="Bold" />
-
-    <material:TabView x:Name="tabView" CachingStrategy="CacheOnLayout">
-      <material:TabView.Behaviors>
-        <toolkit:EventToCommandBehavior
-          EventName="SelectedTabChanged"
-          Command="{Binding LlmProviderChangedCommand}"
-          CommandParameter="{Binding Source={x:Reference tabView}, Path=SelectedTab.Title}"
-        />
-      </material:TabView.Behaviors>
-      <material:TabView.TabHeaderItemTemplate>
-        <DataTemplate x:DataType="material:TabItem">
-          <material:CheckBox
-            Text="{Binding Title}"
-            IsChecked="{Binding IsSelected}"
-            CheckChangedCommand="{Binding Command, Mode=OneWayToSource}"
-          />
-        </DataTemplate>
-      </material:TabView.TabHeaderItemTemplate>
-      <material:TabItem Title="OpenAi">
-        <material:TabItem.Content>
-          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-            <Label Grid.Row="0" Text="Model" />
-            <Entry Grid.Row="0" Grid.Column="1" Text="{Binding OpenAiModel}" />
-
-            <Label Grid.Row="1" Text="Endpoint (optional)" />
-            <Entry Grid.Row="1" Grid.Column="1" Text="{Binding OpenAiEndpoint}" />
-
-            <Label Grid.Row="2" Text="API key" />
-            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
-              <Entry
-                Grid.Column="0"
-                IsPassword="{Binding IsOpenAiKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
-                Text="{Binding OpenAiApiKey}"
-                IsEnabled="{Binding IsOpenAiKeyShown}"
-              />
-              <customControls:StateIconButton
-                Grid.Column="1"
-                Style="{StaticResource ShowButtonStyle}"
-                IsToggled="{Binding IsOpenAiKeyShown}"
-                Command="{Binding ShowOpenAiLlmKeyCommand}"
-              />
-            </Grid>
-          </Grid>
-        </material:TabItem.Content>
-      </material:TabItem>
-
-      <material:TabItem Title="Gemini">
-        <material:TabItem.Content>
-          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-            <Label Grid.Row="0" Text="Model" />
-            <Entry Grid.Row="0" Grid.Column="1" Text="{Binding GeminiModel}" />
-
-            <Label Grid.Row="2" Text="API key" />
-            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
-              <Entry
-                Grid.Column="0"
-                IsPassword="{Binding IsGeminiKeyShown, Converter={x:StaticResource InvertedBoolConverter}}"
-                Text="{Binding GeminiApiKey}"
-                IsEnabled="{Binding IsGeminiKeyShown}"
-              />
-              <customControls:StateIconButton
-                Grid.Column="1"
-                Style="{StaticResource ShowButtonStyle}"
-                IsToggled="{Binding IsGeminiKeyShown}"
-                Command="{Binding ShowGeminiLlmKeyCommand}"
-              />
-            </Grid>
-          </Grid>
-        </material:TabItem.Content>
-      </material:TabItem>
-    </material:TabView>
-
-    <Button Text="Save" Margin="0,10,0,0" Command="{Binding SaveCommand}" IsEnabled="{Binding IsDirty}" />
-  </VerticalStackLayout>
+  <CollectionView ItemsSource="{Binding SettingsItems}" SelectionMode="None" IsGrouped="true">
+    <CollectionView.GroupHeaderTemplate>
+      <DataTemplate x:DataType="settingsItems:SettingsItemsGroup">
+        <Label Text="{Binding Name}" Padding="5" FontSize="18" FontAttributes="Bold" />
+      </DataTemplate>
+    </CollectionView.GroupHeaderTemplate>
+    <CollectionView.ItemTemplate>
+      <DataTemplate x:DataType="settingsItems:SettingsItem">
+        <VerticalStackLayout Margin="0, 5" Padding="5">
+          <VerticalStackLayout.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding EditValueCommand}" CommandParameter="{Binding .}" />
+          </VerticalStackLayout.GestureRecognizers>
+          <Label Text="{Binding Title}" />
+          <Label Text="{Binding SecondaryText}" />
+        </VerticalStackLayout>
+      </DataTemplate>
+    </CollectionView.ItemTemplate>
+  </CollectionView>
 </ContentPage>

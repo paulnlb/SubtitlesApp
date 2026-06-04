@@ -24,12 +24,12 @@ public class TranscriptionClientSettings : ITranscriptionClientSettings
         set => Preferences.Set(_endpointKey, value ?? _defaultEndpoint);
     }
 
-    public async Task<string> GetApiKey()
+    public async Task<string> GetSecret()
     {
         return await SecureStorage.Default.GetAsync(_apiKeyKey) ?? _defaultApiKey;
     }
 
-    public Task SetApiKey(string value)
+    public Task SetSecret(string value)
     {
         return SecureStorage.Default.SetAsync(_apiKeyKey, value);
     }

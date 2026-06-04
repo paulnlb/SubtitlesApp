@@ -7,7 +7,7 @@ using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.Infrastructure.ExternalClients;
 
-public class GenericLlmClient(ILlmClientSettings settings, IServiceProvider serviceProvider) : ILlmClient
+public class GenericLlmClient(ILlmSettings settings, IServiceProvider serviceProvider) : ILlmClient
 {
     public Task<Result<string>> SendChatAsync(List<LlmMessageDto> chatHistory, string userPrompt, JsonNode responseFormat)
     {

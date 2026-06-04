@@ -4,11 +4,13 @@ namespace SubtitlesApp.Interfaces;
 
 public interface IBuiltInDialogService
 {
-    Task<string> DisplayActionSheet(string title, string cancel, string destruction, params string[] buttons);
+    Task<string> DisplayActionSheet(string title, string cancel, string? destruction, params string[] buttons);
 
     Task DisplayAlert(string title, string message, string cancel);
 
     Task DisplayAlert(string title, string message, string accept, string cancel);
 
     Task DisplayError(Error error);
+
+    Task<string> DisplayPrompt(string title, string message, string initialValue = "");
 }

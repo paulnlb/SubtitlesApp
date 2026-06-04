@@ -43,12 +43,14 @@ public static class ServicesCollectionExtensions
         #region pages
         services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
         services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
-        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
+        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModelNew>("settings");
         #endregion
 
         #region preferences
         services.AddSingleton(Preferences.Default);
-        services.AddSingleton<ILlmClientSettings, LlmClientSettings>();
+        services.AddSingleton<ILlmSettings, LlmSettings>();
+        services.AddSingleton<IOpenAiClientSettings, OpenAiClientSettings>();
+        services.AddSingleton<IGeminiClientSettings, GeminiClientSettings>();
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
