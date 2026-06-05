@@ -47,6 +47,7 @@ public partial class SettingsViewModelNew : ObservableObject
         {
             Title = "LLM Provider",
             AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
+            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         SettingsItems.Add(new SettingsItemsGroup("LLM Translation", [llmProviderSettings]));
@@ -100,6 +101,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Model",
+            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
@@ -135,6 +137,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Model",
+            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
@@ -172,6 +175,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Model",
+            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(

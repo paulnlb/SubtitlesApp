@@ -2,8 +2,8 @@
 
 public enum SecondaryTextMode
 {
+    None,
     Value,
     Description,
     ValueMasked,
-    None,
 }

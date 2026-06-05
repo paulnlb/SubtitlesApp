@@ -6,7 +6,7 @@ public class EntrySettingsItem(
     IBuiltInDialogService dialogService,
     Func<string>? getter = null,
     Action<string>? setter = null
-) : SettingsItem(getter, setter)
+) : VirtualSettingsItem(getter, setter)
 {
     public override async Task EditValueAsync()
     {

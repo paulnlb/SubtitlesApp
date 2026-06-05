@@ -6,7 +6,7 @@ public class AsyncEntrySettingsItem(
     IBuiltInDialogService dialogService,
     Func<Task<string>>? asyncGetter = null,
     Func<string, Task>? asyncSetter = null
-) : SettingsItem(asyncGetter: asyncGetter, asyncSetter: asyncSetter)
+) : AsyncVirtualSettingsItem(asyncGetter, asyncSetter)
 {
     public override async Task EditValueAsync()
     {
