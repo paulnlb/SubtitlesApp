@@ -2,7 +2,11 @@
 
 namespace SubtitlesApp.ClientModels.SettingsItems;
 
-public partial class PickerSettingsItem(IBuiltInDialogService dialogService) : SettingsItem
+public partial class PickerSettingsItem(
+    IBuiltInDialogService dialogService,
+    Func<string>? getter = null,
+    Action<string>? setter = null
+) : SettingsItem(getter, setter)
 {
     public required string[] AllValues { get; set; }
 
@@ -12,7 +16,7 @@ public partial class PickerSettingsItem(IBuiltInDialogService dialogService) : S
 
         if (result != "Cancel")
         {
-            Value = result;
+            SetValue(result);
         }
     }
 }

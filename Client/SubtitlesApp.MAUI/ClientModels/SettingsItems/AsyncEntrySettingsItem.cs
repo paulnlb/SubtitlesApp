@@ -2,20 +2,20 @@
 
 namespace SubtitlesApp.ClientModels.SettingsItems;
 
-public class EntrySettingsItem(
+public class AsyncEntrySettingsItem(
     IBuiltInDialogService dialogService,
-    Func<string>? getter = null,
-    Action<string>? setter = null
-) : SettingsItem(getter, setter)
+    Func<Task<string>>? asyncGetter = null,
+    Func<string, Task>? asyncSetter = null
+) : SettingsItem(asyncGetter: asyncGetter, asyncSetter: asyncSetter)
 {
     public override async Task EditValueAsync()
     {
-        var value = GetValue();
+        var value = await GetValueAsync();
         var result = await dialogService.DisplayPrompt(Title, "", value);
 
         if (result is not null && result != value)
         {
-            SetValue(result);
+            await SetValueAsync(result);
         }
     }
 }

@@ -1,5 +1,5 @@
 using SubtitlesApp.ClientModels;
-using SubtitlesApp.ClientModels.EventArgs;
+using SubtitlesApp.ClientModels.CustomEventArgs;
 
 namespace SubtitlesApp.Views;
 

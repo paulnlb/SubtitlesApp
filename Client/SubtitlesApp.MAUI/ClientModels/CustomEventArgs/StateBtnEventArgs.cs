@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.ClientModels.EventArgs;
+﻿namespace SubtitlesApp.ClientModels.CustomEventArgs;
 
 public class StateBtnEventArgs : System.EventArgs
 {

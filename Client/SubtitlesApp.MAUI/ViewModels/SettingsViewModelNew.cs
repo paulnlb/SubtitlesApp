@@ -39,13 +39,15 @@ public partial class SettingsViewModelNew : ObservableObject
         AddOpenAiSettings();
         AddGeminiSettings();
 
-        var llmProviderSettings = new PickerSettingsItem(dialogService)
+        var llmProviderSettings = new PickerSettingsItem(
+            dialogService,
+            () => llmClientSettings.LlmProvider,
+            UpdateLlmProvider
+        )
         {
             Title = "LLM Provider",
             AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
-            Value = llmClientSettings.LlmProvider,
         };
-        llmProviderSettings.ValueChanged += OnLlmProviderChanged;
 
         SettingsItems.Add(new SettingsItemsGroup("LLM Translation", [llmProviderSettings]));
 
@@ -59,24 +61,23 @@ public partial class SettingsViewModelNew : ObservableObject
         }
     }
 
-    private void OnLlmProviderChanged(object? sender, EventArgs e)
+    private void UpdateLlmProvider(string? newValue)
     {
-        var llmProviderSettings = SettingsItems
-            .Single(x => x.Name == "LLM Translation")
-            .Single(x => x.Title == "LLM Provider");
-
         var llmClientSettings = SettingsItems.Single(x => x.Name == "LLM Translation Client");
-        llmClientSettings.Clear();
 
-        if (llmProviderSettings.Value == LlmProviderConstants.OpenAi)
+        if (newValue == LlmProviderConstants.OpenAi)
         {
+            llmClientSettings.Clear();
+
             foreach (var settignsItem in _openAiSettings)
             {
                 llmClientSettings.Add(settignsItem);
             }
         }
-        else if (llmProviderSettings.Value == LlmProviderConstants.Gemini)
+        else if (newValue == LlmProviderConstants.Gemini)
         {
+            llmClientSettings.Clear();
+
             foreach (var settignsItem in _geminiSettings)
             {
                 llmClientSettings.Add(settignsItem);
@@ -84,56 +85,78 @@ public partial class SettingsViewModelNew : ObservableObject
         }
         else
         {
-            throw new ArgumentException("Invalid LLM provider", llmProviderSettings.Value);
+            throw new ArgumentException("Invalid LLM provider", newValue);
         }
 
-        _llmClientSettings.LlmProvider = llmProviderSettings.Value;
+        _llmClientSettings.LlmProvider = newValue;
     }
 
     private void AddTranscriptionSettings()
     {
-        var modelSettings = new EntrySettingsItem(_dialogService) { Title = "Model", Value = _transcriptionSettings.Model };
-        modelSettings.ValueChanged += (s, e) => _transcriptionSettings.Model = modelSettings.Value;
+        var modelSettings = new EntrySettingsItem(
+            _dialogService,
+            () => _transcriptionSettings.Model,
+            (value) => _transcriptionSettings.Model = value
+        )
+        {
+            Title = "Model",
+        };
 
-        var apiKeySettings = new SecureSettingsItem(_dialogService, _transcriptionSettings)
+        var apiKeySettings = new AsyncEntrySettingsItem(
+            _dialogService,
+            _transcriptionSettings.GetSecret,
+            _transcriptionSettings.SetSecret
+        )
         {
             Title = "Api Key",
-            IsValueSetAsync = true,
             SecondaryTextMode = SecondaryTextMode.ValueMasked,
         };
 
-        var endpointSettings = new EntrySettingsItem(_dialogService)
+        var endpointSettings = new EntrySettingsItem(
+            _dialogService,
+            () => _transcriptionSettings.Endpoint ?? string.Empty,
+            (value) => _transcriptionSettings.Endpoint = value
+        )
         {
             Title = "Endpoint",
-            Value = _transcriptionSettings.Endpoint,
             Description = "Edit this field only when using self hosted whisper models",
             SecondaryTextMode = SecondaryTextMode.Description,
         };
-        endpointSettings.ValueChanged += (s, e) => _transcriptionSettings.Endpoint = endpointSettings.Value;
 
         SettingsItems.Add(new SettingsItemsGroup("Transcription", [modelSettings, apiKeySettings, endpointSettings]));
     }
 
     private void AddOpenAiSettings()
     {
-        var modelSettings = new EntrySettingsItem(_dialogService) { Title = "Model", Value = _openAiClientSettings.Model };
-        modelSettings.ValueChanged += (s, e) => _openAiClientSettings.Model = modelSettings.Value;
+        var modelSettings = new EntrySettingsItem(
+            _dialogService,
+            () => _openAiClientSettings.Model,
+            (value) => _openAiClientSettings.Model = value
+        )
+        {
+            Title = "Model",
+        };
 
-        var apiKeySettings = new SecureSettingsItem(_dialogService, _openAiClientSettings)
+        var apiKeySettings = new AsyncEntrySettingsItem(
+            _dialogService,
+            _openAiClientSettings.GetSecret,
+            _openAiClientSettings.SetSecret
+        )
         {
             Title = "Api Key",
-            IsValueSetAsync = true,
             SecondaryTextMode = SecondaryTextMode.ValueMasked,
         };
 
-        var endpointSettings = new EntrySettingsItem(_dialogService)
+        var endpointSettings = new EntrySettingsItem(
+            _dialogService,
+            () => _openAiClientSettings.Endpoint ?? string.Empty,
+            (value) => _openAiClientSettings.Endpoint = value
+        )
         {
             Title = "Endpoint",
             Description = "Edit this field only when using self hosted OpeAi-compatible APIs",
             SecondaryTextMode = SecondaryTextMode.Description,
-            Value = _openAiClientSettings.Endpoint,
         };
-        endpointSettings.ValueChanged += (s, e) => _openAiClientSettings.Endpoint = endpointSettings.Value;
 
         _openAiSettings.Add(modelSettings);
         _openAiSettings.Add(apiKeySettings);
@@ -142,13 +165,22 @@ public partial class SettingsViewModelNew : ObservableObject
 
     private void AddGeminiSettings()
     {
-        var modelSettings = new EntrySettingsItem(_dialogService) { Title = "Model", Value = _geminiClientSettings.Model };
-        modelSettings.ValueChanged += (s, e) => _geminiClientSettings.Model = modelSettings.Value;
+        var modelSettings = new EntrySettingsItem(
+            _dialogService,
+            () => _geminiClientSettings.Model,
+            (value) => _geminiClientSettings.Model = value
+        )
+        {
+            Title = "Model",
+        };
 
-        var apiKeySettings = new SecureSettingsItem(_dialogService, _geminiClientSettings)
+        var apiKeySettings = new AsyncEntrySettingsItem(
+            _dialogService,
+            _geminiClientSettings.GetSecret,
+            _geminiClientSettings.SetSecret
+        )
         {
             Title = "Api Key",
-            IsValueSetAsync = true,
             SecondaryTextMode = SecondaryTextMode.ValueMasked,
         };
 

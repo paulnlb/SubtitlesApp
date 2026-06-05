@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.ClientModels.Enums;
-using SubtitlesApp.ClientModels.EventArgs;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.Settings;

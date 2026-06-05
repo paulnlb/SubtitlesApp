@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
-using SubtitlesApp.ClientModels.EventArgs;
+using SubtitlesApp.ClientModels.CustomEventArgs;
 
 namespace SubtitlesApp.CustomControls;
 
