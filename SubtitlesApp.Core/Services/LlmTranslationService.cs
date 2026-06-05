@@ -25,6 +25,8 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         [EnumeratorCancellation] CancellationToken cancellationToken
     )
     {
+        var context = new List<SubtitleDto>();
+
         foreach (var chunk in sourceSubtitles.Chunk(settings.ChunkSize))
         {
             if (cancellationToken.IsCancellationRequested)
@@ -32,13 +34,15 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
                 yield break;
             }
 
-            var translatedSubs = await TranslateAsyncInternal([.. chunk], targetLanguage, cancellationToken);
+            var translatedSubs = await TranslateAsyncInternal(chunk, context, targetLanguage, cancellationToken);
 
             if (translatedSubs.IsFailure)
             {
                 yield return Result<SubtitleDto>.Failure(translatedSubs.Error);
                 yield break;
             }
+
+            UpdateContext(context, chunk);
 
             foreach (var subtitle in translatedSubs.Value)
             {
@@ -55,7 +59,8 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
     #region Private Methods
 
     private async Task<ListResult<SubtitleDto>> TranslateAsyncInternal(
-        List<SubtitleDto> sourceSubtitles,
+        SubtitleDto[] sourceSubtitles,
+        List<SubtitleDto> context,
         Language targetLanguage,
         CancellationToken cancellationToken
     )
@@ -67,7 +72,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
             return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
         }
 
-        var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles);
+        var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles, context);
         Result<LlmSubtitleListDto> llmResult;
 
         try
@@ -87,7 +92,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         }
 
         var llmSubtitles = llmResult.Value.Items;
-        var isTranlationValid = llmSubtitles.Count == sourceSubtitles.Count && IsTranlsationValid(llmSubtitles);
+        var isTranlationValid = llmSubtitles.Count == sourceSubtitles.Length && IsTranlsationValid(llmSubtitles);
 
         if (!isTranlationValid)
         {
@@ -99,7 +104,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         return ListResult<SubtitleDto>.Success(translatedSubs);
     }
 
-    private static string FormUserPrompt(string targetLang, List<SubtitleDto> sourceSubs)
+    private static string FormUserPrompt(string targetLang, SubtitleDto[] sourceSubs, List<SubtitleDto> context)
     {
         int id = 1;
         var llmSubsList = new LlmSubtitleListDto { Items = [] };
@@ -112,13 +117,28 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
 
         var serializedSubs = JsonSerializer.Serialize(llmSubsList, _writeOptions);
 
-        return string.Format("Translate to {0}.\n\n{1}.", targetLang, serializedSubs);
+        if (context.Count > 0)
+        {
+            var mappedContext = context.Select(x => new { x.Text });
+            var serializedContext = JsonSerializer.Serialize(mappedContext, _writeOptions);
+
+            return string.Format(
+                "Translate to {0}.\n\nContext:\n{1}\n\nSource items:\n{2}",
+                targetLang,
+                serializedContext,
+                serializedSubs
+            );
+        }
+        else
+        {
+            return string.Format("Translate to {0}.\n\nSource items:\n{1}", targetLang, serializedSubs);
+        }
     }
 
     private static List<SubtitleDto> MapTranslationsToSubs(
         string targetLangCode,
         List<LlmSubtitleDto> llmSubtitles,
-        List<SubtitleDto> sourceSubs
+        SubtitleDto[] sourceSubs
     )
     {
         List<SubtitleDto> results = [];
@@ -150,6 +170,25 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         }
 
         return true;
+    }
+
+    private static void UpdateContext(List<SubtitleDto> context, SubtitleDto[] sourceSubtitles)
+    {
+        context.Clear();
+
+        if (sourceSubtitles.Length == 0)
+        {
+            return;
+        }
+        else if (sourceSubtitles.Length == 1)
+        {
+            context.Add(sourceSubtitles[0]);
+        }
+        else
+        {
+            context.Add(sourceSubtitles[^2]);
+            context.Add(sourceSubtitles[^1]);
+        }
     }
 
     #endregion
