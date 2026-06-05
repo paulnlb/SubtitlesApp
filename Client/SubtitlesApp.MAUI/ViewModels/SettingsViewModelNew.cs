@@ -41,13 +41,13 @@ public partial class SettingsViewModelNew : ObservableObject
 
         var llmProviderSettings = new PickerSettingsItem(
             dialogService,
+            SecondaryTextMode.Value,
             () => llmClientSettings.LlmProvider,
             UpdateLlmProvider
         )
         {
             Title = "LLM Provider",
             AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
-            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         SettingsItems.Add(new SettingsItemsGroup("LLM Translation", [llmProviderSettings]));
@@ -96,33 +96,33 @@ public partial class SettingsViewModelNew : ObservableObject
     {
         var modelSettings = new EntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.Value,
             () => _transcriptionSettings.Model,
             (value) => _transcriptionSettings.Model = value
         )
         {
             Title = "Model",
-            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.ValueMasked,
             _transcriptionSettings.GetSecret,
             _transcriptionSettings.SetSecret
         )
         {
             Title = "Api Key",
-            SecondaryTextMode = SecondaryTextMode.ValueMasked,
         };
 
         var endpointSettings = new EntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.Description,
             () => _transcriptionSettings.Endpoint ?? string.Empty,
             (value) => _transcriptionSettings.Endpoint = value
         )
         {
             Title = "Endpoint",
             Description = "Edit this field only when using self hosted whisper models",
-            SecondaryTextMode = SecondaryTextMode.Description,
         };
 
         SettingsItems.Add(new SettingsItemsGroup("Transcription", [modelSettings, apiKeySettings, endpointSettings]));
@@ -132,33 +132,33 @@ public partial class SettingsViewModelNew : ObservableObject
     {
         var modelSettings = new EntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.Value,
             () => _openAiClientSettings.Model,
             (value) => _openAiClientSettings.Model = value
         )
         {
             Title = "Model",
-            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.ValueMasked,
             _openAiClientSettings.GetSecret,
             _openAiClientSettings.SetSecret
         )
         {
             Title = "Api Key",
-            SecondaryTextMode = SecondaryTextMode.ValueMasked,
         };
 
         var endpointSettings = new EntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.Description,
             () => _openAiClientSettings.Endpoint ?? string.Empty,
             (value) => _openAiClientSettings.Endpoint = value
         )
         {
             Title = "Endpoint",
             Description = "Edit this field only when using self hosted OpeAi-compatible APIs",
-            SecondaryTextMode = SecondaryTextMode.Description,
         };
 
         _openAiSettings.Add(modelSettings);
@@ -170,22 +170,22 @@ public partial class SettingsViewModelNew : ObservableObject
     {
         var modelSettings = new EntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.Value,
             () => _geminiClientSettings.Model,
             (value) => _geminiClientSettings.Model = value
         )
         {
             Title = "Model",
-            SecondaryTextMode = SecondaryTextMode.Value,
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
             _dialogService,
+            SecondaryTextMode.ValueMasked,
             _geminiClientSettings.GetSecret,
             _geminiClientSettings.SetSecret
         )
         {
             Title = "Api Key",
-            SecondaryTextMode = SecondaryTextMode.ValueMasked,
         };
 
         _geminiSettings.Add(modelSettings);

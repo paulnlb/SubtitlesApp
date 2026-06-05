@@ -8,15 +8,13 @@ public abstract partial class SettingsItem : ObservableObject
 {
     protected const string ValueMask = "*******";
     private string? _secondaryText;
+    protected SecondaryTextMode SecondaryTextMode;
 
     [ObservableProperty]
     public string _title = string.Empty;
 
     [ObservableProperty]
     private string? _description;
-
-    [ObservableProperty]
-    private SecondaryTextMode _secondaryTextMode;
 
     public string? SecondaryText
     {
@@ -31,10 +29,21 @@ public abstract partial class SettingsItem : ObservableObject
         }
     }
 
+    public SettingsItem(SecondaryTextMode secondaryTextMode)
+    {
+        SecondaryTextMode = secondaryTextMode;
+        SecondaryText = secondaryTextMode switch
+        {
+            SecondaryTextMode.Description => Description,
+            SecondaryTextMode.ValueMasked => ValueMask,
+            SecondaryTextMode.None => null,
+            SecondaryTextMode.Value => null,
+            _ => "Error: unknown secondary text mode",
+        };
+    }
+
     [RelayCommand]
     public abstract Task EditValueAsync();
-
-    protected abstract void SecondaryTextModeChangeHanlder(SecondaryTextMode value);
 
     partial void OnDescriptionChanged(string? value)
     {
@@ -42,10 +51,5 @@ public abstract partial class SettingsItem : ObservableObject
         {
             SecondaryText = value;
         }
-    }
-
-    partial void OnSecondaryTextModeChanged(SecondaryTextMode value)
-    {
-        SecondaryTextModeChangeHanlder(value);
     }
 }

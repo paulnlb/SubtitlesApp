@@ -2,34 +2,41 @@
 
 namespace SubtitlesApp.ClientModels.SettingsItems;
 
-public abstract partial class VirtualSettingsItem(Func<string>? getter = null, Action<string>? setter = null) : SettingsItem
+public abstract partial class VirtualSettingsItem : SettingsItem
 {
-    protected string? GetValue() => getter?.Invoke();
+    private readonly Func<string>? _getter;
+    private readonly Action<string>? _setter;
+
+    public VirtualSettingsItem(
+        SecondaryTextMode secondaryTextMode,
+        Func<string>? getter = null,
+        Action<string>? setter = null
+    )
+        : base(secondaryTextMode)
+    {
+        _getter = getter;
+        _setter = setter;
+
+        if (secondaryTextMode == SecondaryTextMode.Value && getter is not null)
+        {
+            SecondaryText = getter.Invoke();
+        }
+    }
+
+    protected string? GetValue() => _getter?.Invoke();
 
     protected void SetValue(string value)
     {
-        if (setter is null || value == GetValue())
+        if (_setter is null || value == GetValue())
         {
             return;
         }
 
-        setter.Invoke(value);
+        _setter.Invoke(value);
 
         if (SecondaryTextMode == SecondaryTextMode.Value)
         {
             SecondaryText = value;
         }
-    }
-
-    protected override void SecondaryTextModeChangeHanlder(SecondaryTextMode value)
-    {
-        SecondaryText = value switch
-        {
-            SecondaryTextMode.Description when Description is not null => Description,
-            SecondaryTextMode.ValueMasked => ValueMask,
-            SecondaryTextMode.None => string.Empty,
-            SecondaryTextMode.Value => GetValue(),
-            _ => "Error: unknown secondary text mode",
-        };
     }
 }

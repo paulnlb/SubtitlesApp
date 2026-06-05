@@ -1,12 +1,14 @@
-﻿using SubtitlesApp.Interfaces;
+﻿using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ClientModels.SettingsItems;
 
 public class EntrySettingsItem(
     IBuiltInDialogService dialogService,
+    SecondaryTextMode secondaryTextMode,
     Func<string>? getter = null,
     Action<string>? setter = null
-) : VirtualSettingsItem(getter, setter)
+) : VirtualSettingsItem(secondaryTextMode, getter, setter)
 {
     public override async Task EditValueAsync()
     {
