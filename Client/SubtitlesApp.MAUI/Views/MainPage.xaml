@@ -12,12 +12,18 @@
   </ContentPage.Resources>
 
   <ScrollView>
-    <VerticalStackLayout Padding="30,0" Spacing="25">
-      <Image Margin="0, 40, 0, 0" Source="subtitles.png" HeightRequest="175" Aspect="AspectFit" />
-
-      <Label Text="Welcome to SubtitlesApp!" Style="{StaticResource Headline}" SemanticProperties.HeadingLevel="Level1" />
+    <Grid Padding="30,0" RowSpacing="10" RowDefinitions="*, Auto, Auto, *" ColumnDefinitions="*">
+      <Label
+        Grid.Row="0"
+        Text="Transcribe and translate any video"
+        Style="{StaticResource Headline}"
+        SemanticProperties.HeadingLevel="Level1"
+        VerticalOptions="Center"
+        HorizontalOptions="Fill"
+      />
 
       <Button
+        Grid.Row="1"
         x:Name="CounterBtn"
         Text="Open a file"
         SemanticProperties.Hint="Opens a file to view"
@@ -26,12 +32,13 @@
       />
 
       <Button
+        Grid.Row="2"
         x:Name="SettingsBtn"
         Text="App settings"
         SemanticProperties.Hint="Opens app settings"
         HorizontalOptions="Fill"
         Command="{Binding OpenSettingsCommand}"
       />
-    </VerticalStackLayout>
+    </Grid>
   </ScrollView>
 </ContentPage>

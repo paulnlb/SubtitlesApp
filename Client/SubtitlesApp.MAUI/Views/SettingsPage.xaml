@@ -9,7 +9,7 @@
   x:Class="SubtitlesApp.Views.SettingsPage"
   x:DataType="viewModels:SettingsViewModelNew"
   Title="Settings"
-  BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+  BackgroundColor="{AppThemeBinding Light={StaticResource OffWhite}, Dark={StaticResource DarkBackground}}"
 >
   <ContentPage.Resources>
     <Style TargetType="Label">
@@ -29,11 +29,11 @@
           />
 
           <Border
-            BackgroundColor="{AppThemeBinding Light={StaticResource OffWhite}, Dark={StaticResource CardBackground}}"
+            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource CardBackground}}"
             StrokeThickness="0"
           >
             <Border.StrokeShape>
-              <RoundRectangle CornerRadius="12" />
+              <RoundRectangle CornerRadius="8" />
             </Border.StrokeShape>
             <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="0" Padding="15">
               <BindableLayout.ItemTemplate>

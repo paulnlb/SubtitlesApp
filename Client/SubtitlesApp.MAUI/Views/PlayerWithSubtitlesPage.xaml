@@ -49,6 +49,7 @@
 
     <!--Main layout-->
     <layouts:AdaptiveLayout
+      BackgroundColor="{StaticResource Black}"
       x:Name="adaptiveLayout"
       SafeAreaEdges="Container"
       ZIndex="0"
@@ -83,6 +84,7 @@
         SeekRequested="OnSeekRequested"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.SubtitlesHoritzontalLength, Mode=TwoWay}"
+        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
       >
         <views:SubtitlesView.GestureRecognizers>
           <PanGestureRecognizer x:Name="subtitlesGestureRecognizer" />
