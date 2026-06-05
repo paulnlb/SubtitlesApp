@@ -16,9 +16,8 @@
       <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
       <converters:AllTrueMultiConverter x:Key="AllTrueConverter" />
     </ResourceDictionary>
-    <Style x:Key="ButtonStyle" TargetType="Button">
-      <Setter Property="BackgroundColor" Value="#33FFFFFF" />
-      <Setter Property="Padding" Value="2" />
+    <Style x:Key="ButtonStyle" TargetType="Button" BasedOn="{StaticResource TranslucentButton}">
+      <Setter Property="Padding" Value="3" />
     </Style>
     <Style x:Key="ButtonContainerStyle" TargetType="customControls:LoadingButton">
       <Setter Property="WidthRequest" Value="40" />
