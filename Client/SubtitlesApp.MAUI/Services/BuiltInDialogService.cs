@@ -38,7 +38,7 @@ public class BuiltInDialogService : IBuiltInDialogService
         return CurrentPage.DisplayAlertAsync("Error", errorText.ToString(), "OK");
     }
 
-    public Task<string> DisplayPrompt(string title, string message, string initialValue = "")
+    public Task<string> DisplayPrompt(string title, string? message, string initialValue = "")
     {
         return CurrentPage.DisplayPromptAsync(title, message, initialValue: initialValue);
     }

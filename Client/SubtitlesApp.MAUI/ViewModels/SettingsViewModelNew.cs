@@ -68,20 +68,20 @@ public partial class SettingsViewModelNew : ObservableObject
 
         if (newValue == LlmProviderConstants.OpenAi)
         {
-            llmClientSettings.Clear();
+            llmClientSettings.Items.Clear();
 
             foreach (var settignsItem in _openAiSettings)
             {
-                llmClientSettings.Add(settignsItem);
+                llmClientSettings.Items.Add(settignsItem);
             }
         }
         else if (newValue == LlmProviderConstants.Gemini)
         {
-            llmClientSettings.Clear();
+            llmClientSettings.Items.Clear();
 
             foreach (var settignsItem in _geminiSettings)
             {
-                llmClientSettings.Add(settignsItem);
+                llmClientSettings.Items.Add(settignsItem);
             }
         }
         else

@@ -5,26 +5,64 @@
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
-  xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
   xmlns:settingsItems="clr-namespace:SubtitlesApp.ClientModels.SettingsItems"
   x:Class="SubtitlesApp.Views.SettingsPage"
   x:DataType="viewModels:SettingsViewModelNew"
   Title="Settings"
+  BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
 >
-  <CollectionView ItemsSource="{Binding SettingsItems}" SelectionMode="None" IsGrouped="true">
-    <CollectionView.GroupHeaderTemplate>
-      <DataTemplate x:DataType="settingsItems:SettingsItemsGroup">
-        <Label Text="{Binding Name}" Padding="5" FontSize="18" FontAttributes="Bold" />
-      </DataTemplate>
-    </CollectionView.GroupHeaderTemplate>
+  <ContentPage.Resources>
+    <Style TargetType="Label">
+      <Setter Property="FontAttributes" Value="None" />
+    </Style>
+  </ContentPage.Resources>
+
+  <CollectionView ItemsSource="{Binding SettingsItems}" SelectionMode="None" Margin="15, 0, 15, 10">
     <CollectionView.ItemTemplate>
-      <DataTemplate x:DataType="settingsItems:SettingsItem">
-        <VerticalStackLayout Margin="0, 5" Padding="5">
-          <VerticalStackLayout.GestureRecognizers>
-            <TapGestureRecognizer Command="{Binding EditValueCommand}" CommandParameter="{Binding .}" />
-          </VerticalStackLayout.GestureRecognizers>
-          <Label Text="{Binding Title}" />
-          <Label Text="{Binding SecondaryText}" />
+      <DataTemplate x:DataType="settingsItems:SettingsItemsGroup">
+        <VerticalStackLayout Spacing="0" Margin="0, 0, 0, 10">
+          <Label
+            Text="{Binding Name}"
+            Padding="0, 10, 0, 10"
+            FontSize="16"
+            TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource LightTextPrimary}}"
+          />
+
+          <Border
+            BackgroundColor="{AppThemeBinding Light={StaticResource OffWhite}, Dark={StaticResource CardBackground}}"
+            StrokeThickness="0"
+          >
+            <Border.StrokeShape>
+              <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="0" Padding="15">
+              <BindableLayout.ItemTemplate>
+                <DataTemplate x:DataType="settingsItems:SettingsItem">
+                  <Grid Padding="0, 10" x:Name="ItemContainer">
+                    <Grid.GestureRecognizers>
+                      <TapGestureRecognizer Command="{Binding EditValueCommand}" CommandParameter="{Binding .}" />
+                    </Grid.GestureRecognizers>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <VerticalStackLayout Grid.Column="0">
+                      <Label
+                        Text="{Binding Title}"
+                        FontSize="15"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource LightTextPrimary}}"
+                      />
+                      <Label
+                        Text="{Binding SecondaryText}"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray}, Dark={StaticResource LightTextSecondary}}"
+                        FontSize="13"
+                      />
+                    </VerticalStackLayout>
+                  </Grid>
+                </DataTemplate>
+              </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+          </Border>
         </VerticalStackLayout>
       </DataTemplate>
     </CollectionView.ItemTemplate>

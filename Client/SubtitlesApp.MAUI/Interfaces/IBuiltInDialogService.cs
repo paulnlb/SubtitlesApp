@@ -12,5 +12,5 @@ public interface IBuiltInDialogService
 
     Task DisplayError(Error error);
 
-    Task<string> DisplayPrompt(string title, string message, string initialValue = "");
+    Task<string> DisplayPrompt(string title, string? message, string initialValue = "");
 }

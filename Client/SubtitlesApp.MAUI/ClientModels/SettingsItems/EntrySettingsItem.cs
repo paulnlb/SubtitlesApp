@@ -13,7 +13,7 @@ public class EntrySettingsItem(
     public override async Task EditValueAsync()
     {
         var value = GetValue();
-        var result = await dialogService.DisplayPrompt(Title, "", value);
+        var result = await dialogService.DisplayPrompt(Title, null, value);
 
         if (result is not null && result != value)
         {
