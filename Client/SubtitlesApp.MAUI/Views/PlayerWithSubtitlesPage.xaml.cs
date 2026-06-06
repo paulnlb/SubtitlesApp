@@ -134,6 +134,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void RecalculateVerticalLayout(double videoHeightPx, double videoWidthPx)
     {
+        if (videoHeightPx == 0 || videoWidthPx == 0)
+        {
+            return;
+        }
+
         var newRelativeHeight = videoHeightPx * adaptiveLayout.Width / (adaptiveLayout.Height * videoWidthPx);
 
         if (newRelativeHeight == 0 || double.IsNaN(newRelativeHeight))

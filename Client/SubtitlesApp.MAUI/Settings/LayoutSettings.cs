@@ -25,11 +25,11 @@ public partial class LayoutSettings : ObservableObject
         }
         else
         {
-            _playerVerticalLength = 0.3;
+            _playerVerticalLength = 0.35;
             _playerHorizontalLength = 0.6;
         }
 
-        _subtitlesVerticalLength = 0.6;
+        _subtitlesVerticalLength = 0.65;
         _subtitlesHoritzontalLength = 0.4;
     }
 
