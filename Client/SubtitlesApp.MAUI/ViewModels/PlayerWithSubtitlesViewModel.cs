@@ -43,6 +43,11 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = false;
     }
 
+    partial void OnIsImmersiveOnChanged(bool value)
+    {
+        PlayerControlsVisible = false;
+    }
+
     void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("open", out object? value))
