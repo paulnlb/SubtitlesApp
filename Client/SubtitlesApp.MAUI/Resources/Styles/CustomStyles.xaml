@@ -45,4 +45,6 @@
       </VisualStateGroupList>
     </Setter>
   </Style>
+
+  <x:Double x:Key="MaxLayoutWidth">600</x:Double>
 </ResourceDictionary>

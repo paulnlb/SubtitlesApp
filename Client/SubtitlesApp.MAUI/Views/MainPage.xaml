@@ -12,7 +12,13 @@
   </ContentPage.Resources>
 
   <ScrollView>
-    <Grid Padding="30,0" RowSpacing="15" RowDefinitions="*, Auto, Auto, *" ColumnDefinitions="*">
+    <Grid
+      Padding="30,0"
+      RowSpacing="15"
+      RowDefinitions="*, Auto, Auto, *"
+      ColumnDefinitions="*"
+      MaximumWidthRequest="{StaticResource MaxLayoutWidth}"
+    >
       <Label
         Grid.Row="0"
         Text="Transcribe and translate any video"
@@ -25,8 +31,8 @@
       <Button
         Grid.Row="1"
         x:Name="CounterBtn"
-        Text="Open a file"
-        SemanticProperties.Hint="Opens a file to view"
+        Text="Open Video"
+        SemanticProperties.Hint="Opens a video"
         HorizontalOptions="Fill"
         Command="{Binding OpenMediaFileCommand}"
       />
@@ -34,7 +40,7 @@
       <Button
         Grid.Row="2"
         x:Name="SettingsBtn"
-        Text="App settings"
+        Text="App Settings"
         SemanticProperties.Hint="Opens app settings"
         HorizontalOptions="Fill"
         Command="{Binding OpenSettingsCommand}"

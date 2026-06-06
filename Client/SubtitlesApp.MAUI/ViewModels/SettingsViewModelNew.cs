@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.ClientModels.SettingsItems;
+using SubtitlesApp.Constants;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
@@ -50,38 +51,38 @@ public partial class SettingsViewModelNew : ObservableObject
             AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
         };
 
-        SettingsItems.Add(new SettingsItemsGroup("LLM Translation", [llmProviderSettings]));
+        SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.LlmTranslationGroup, [llmProviderSettings]));
 
         if (llmClientSettings.LlmProvider == LlmProviderConstants.OpenAi)
         {
-            SettingsItems.Add(new SettingsItemsGroup("LLM Translation Client", _openAiSettings));
+            SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.OnlineLlmTranslationGroup, [.. _openAiSettings]));
         }
         else if (llmClientSettings.LlmProvider == LlmProviderConstants.Gemini)
         {
-            SettingsItems.Add(new SettingsItemsGroup("LLM Translation Client", _geminiSettings));
+            SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.OnlineLlmTranslationGroup, [.. _geminiSettings]));
         }
     }
 
     private void UpdateLlmProvider(string? newValue)
     {
-        var llmClientSettings = SettingsItems.Single(x => x.Name == "LLM Translation Client");
+        var group = SettingsItems.Single(x => x.Name == AppSettingsConstants.OnlineLlmTranslationGroup);
 
         if (newValue == LlmProviderConstants.OpenAi)
         {
-            llmClientSettings.Items.Clear();
+            group.Items.Clear();
 
             foreach (var settignsItem in _openAiSettings)
             {
-                llmClientSettings.Items.Add(settignsItem);
+                group.Items.Add(settignsItem);
             }
         }
         else if (newValue == LlmProviderConstants.Gemini)
         {
-            llmClientSettings.Items.Clear();
+            group.Items.Clear();
 
             foreach (var settignsItem in _geminiSettings)
             {
-                llmClientSettings.Items.Add(settignsItem);
+                group.Items.Add(settignsItem);
             }
         }
         else
@@ -122,10 +123,15 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Endpoint",
-            Description = "Edit this field only when using self hosted whisper models",
+            Description = "Set endpoint to use third-party/self-hosted whisper models",
         };
 
-        SettingsItems.Add(new SettingsItemsGroup("Transcription", [modelSettings, apiKeySettings, endpointSettings]));
+        SettingsItems.Add(
+            new SettingsItemsGroup(
+                AppSettingsConstants.OnlineTranscriptionGroup,
+                [modelSettings, apiKeySettings, endpointSettings]
+            )
+        );
     }
 
     private void AddOpenAiSettings()
@@ -158,7 +164,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Endpoint",
-            Description = "Edit this field only when using self hosted OpeAi-compatible APIs",
+            Description = "Set endpoint to use third-party/self-hosted OpeAi-compatible APIs",
         };
 
         _openAiSettings.Add(modelSettings);

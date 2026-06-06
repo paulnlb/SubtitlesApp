@@ -27,16 +27,6 @@
     </Style>
   </ContentView.Resources>
   <Grid x:Name="mainGrid" RowDefinitions="60, *" ColumnDefinitions="11*, Auto, Auto" Padding="5, 0">
-    <Label
-      Grid.Row="0"
-      Grid.Column="0"
-      Text="Subtitles"
-      VerticalOptions="Center"
-      FontAttributes="Bold"
-      FontSize="20"
-      Margin="5"
-    />
-
     <!--!Transcribe button-->
     <customControls:LoadingButton
       Grid.Row="0"
@@ -68,7 +58,7 @@
             x:Name="subtitleCollection"
             Subtitles="{Binding Subtitles}"
             CurrentSubtitleIndex="{Binding CurrentSubtitleIndex}"
-            EmptyText="To see the transcription here, click the transcribe button."
+            EmptyText="To see the transcription here, click the Transcribe button."
             SubtitleTapped="OnSubtitleTapped"
           />
         </material:TabItem.Content>
@@ -80,7 +70,7 @@
             x:Name="translationCollection"
             Subtitles="{Binding Translations}"
             CurrentSubtitleIndex="{Binding CurrentTranslationIndex}"
-            EmptyText="To see the translations here, click the translate button."
+            EmptyText="To see the translations here, click the Translate button."
             SubtitleTapped="OnSubtitleTapped"
           />
         </material:TabItem.Content>
