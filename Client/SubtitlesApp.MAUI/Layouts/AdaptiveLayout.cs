@@ -13,6 +13,8 @@ namespace SubtitlesApp.Layouts;
 /// </summary>
 public class AdaptiveLayout : Layout
 {
+    private Rect _lastArrangedBounds;
+
     public static readonly BindableProperty RelativeHorizontalLengthProperty = BindableProperty.CreateAttached(
         "RelativeHorizontalLength",
         typeof(double?),
@@ -37,7 +39,7 @@ public class AdaptiveLayout : Layout
         propertyChanged: Invalidate_OnOrientationRequestChanged
     );
 
-    internal static readonly BindablePropertyKey OrientationPropertyKey = BindableProperty.CreateReadOnly(
+    private static readonly BindablePropertyKey OrientationPropertyKey = BindableProperty.CreateReadOnly(
         nameof(Orientation),
         typeof(AdaptiveLayoutOrientation),
         typeof(AdaptiveLayout),
@@ -150,6 +152,17 @@ public class AdaptiveLayout : Layout
         (this as IView).InvalidateMeasure();
     }
 
+    protected override Size ArrangeOverride(Rect bounds)
+    {
+        if (_lastArrangedBounds != bounds)
+        {
+            Orientation = CalculateEffectiveOrientation(OrientationRequest, bounds.Width, bounds.Height);
+            _lastArrangedBounds = bounds;
+        }
+
+        return base.ArrangeOverride(bounds);
+    }
+
     private static void Invalidate_OnRelativeHorizontalLengthChanged(
         BindableObject bindable,
         object oldValue,
@@ -193,6 +206,21 @@ public class AdaptiveLayout : Layout
             layout.InvalidateMeasure();
         }
     }
+
+    public static AdaptiveLayoutOrientation CalculateEffectiveOrientation(
+        AdaptiveLayoutOrientation requested,
+        double width,
+        double height
+    )
+    {
+        return requested switch
+        {
+            AdaptiveLayoutOrientation.Horizontal => requested,
+            AdaptiveLayoutOrientation.Vertical => requested,
+            _ when height > width => AdaptiveLayoutOrientation.Vertical,
+            _ => AdaptiveLayoutOrientation.Horizontal,
+        };
+    }
 }
 
 public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
@@ -203,11 +231,6 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
     {
         var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
         var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
-
-        layout.SetValue(
-            AdaptiveLayout.OrientationPropertyKey,
-            CalculateEffectiveOrientation(layout.OrientationRequest, bounds.Width, bounds.Height)
-        );
 
         var childrenBounds = CalculateChildrenSizes(bounds, relVerticalLengths, relHorizontalLengths, layout.Orientation);
 
@@ -232,7 +255,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
         var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
 
-        var effectiveOrientation = CalculateEffectiveOrientation(
+        var effectiveOrientation = AdaptiveLayout.CalculateEffectiveOrientation(
             layout.OrientationRequest,
             widthConstraint,
             heightConstraint
@@ -397,21 +420,6 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         }
 
         return measurements;
-    }
-
-    private static AdaptiveLayoutOrientation CalculateEffectiveOrientation(
-        AdaptiveLayoutOrientation requested,
-        double width,
-        double height
-    )
-    {
-        return requested switch
-        {
-            AdaptiveLayoutOrientation.Horizontal => requested,
-            AdaptiveLayoutOrientation.Vertical => requested,
-            _ when height > width => AdaptiveLayoutOrientation.Vertical,
-            _ => AdaptiveLayoutOrientation.Horizontal,
-        };
     }
 
     private static List<double> GetChildrenAbsoluteLengths(double totalAbsoluteLength, List<double?> relativeLengths)
