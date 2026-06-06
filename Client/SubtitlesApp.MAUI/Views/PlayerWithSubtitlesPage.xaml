@@ -72,6 +72,7 @@
         <customControls:ExtendedMediaElement.Behaviors>
           <toolkit:EventToCommandBehavior
             EventName="PositionChanged"
+            BindingContext="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext}"
             Command="{Binding SubtitlesVm.PositionChangedCommand}"
             CommandParameter="{Binding Source={x:Reference mauiMediaElement}, Path=Position}"
           />

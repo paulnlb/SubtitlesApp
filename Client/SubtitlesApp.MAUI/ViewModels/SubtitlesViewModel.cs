@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
@@ -99,28 +99,34 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public async Task Transcribe()
     {
-        object? popupResult;
+        Dictionary<string, object> queryAttributes;
 
         if (_transcriptionSettings is null)
         {
-            popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+            queryAttributes = new Dictionary<string, object>
             {
-                vm.MediaDuration = MediaDuration;
-                vm.SubtitlesLanguage = _languageService.GetDefaultLanguage();
-            });
+                [nameof(TranscribePopupViewModel.MediaDuration)] = MediaDuration,
+                [nameof(TranscribePopupViewModel.SubtitlesLanguage)] = _languageService.GetDefaultLanguage(),
+            };
         }
         else
         {
-            popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
+            queryAttributes = new Dictionary<string, object>
             {
-                vm.MediaDuration = MediaDuration;
-                vm.SubtitlesLanguage = _transcriptionSettings.SubtitlesLanguage;
-                vm.FromTime = _transcriptionSettings.FromTime;
-                vm.ToTime = _transcriptionSettings.ToTime;
-            });
+                [nameof(TranscribePopupViewModel.MediaDuration)] = MediaDuration,
+                [nameof(TranscribePopupViewModel.SubtitlesLanguage)] = _transcriptionSettings.SubtitlesLanguage,
+                [nameof(TranscribePopupViewModel.FromTime)] = _transcriptionSettings.FromTime,
+                [nameof(TranscribePopupViewModel.ToTime)] = _transcriptionSettings.ToTime,
+            };
         }
 
-        if (popupResult is not TranscriptionSettings newSettings)
+        var popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel, TranscriptionSettings>(
+            Shell.Current,
+            new PopupOptions { Shape = null, Shadow = null },
+            queryAttributes
+        );
+
+        if (popupResult.Result is not TranscriptionSettings newSettings)
         {
             return;
         }
@@ -162,27 +168,33 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public async Task Translate()
     {
-        object? popupResult;
+        Dictionary<string, object> queryAttributes;
 
         if (_translationSettings is null)
         {
-            popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+            queryAttributes = new Dictionary<string, object>
             {
-                vm.MediaDuration = MediaDuration;
-            });
+                [nameof(TranslatePopupViewModel.MediaDuration)] = MediaDuration,
+            };
         }
         else
         {
-            popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
+            queryAttributes = new Dictionary<string, object>
             {
-                vm.MediaDuration = MediaDuration;
-                vm.TargetLanguage = _translationSettings.TargetLanguage;
-                vm.FromTime = _translationSettings.FromTime;
-                vm.ToTime = _translationSettings.ToTime;
-            });
+                [nameof(TranslatePopupViewModel.MediaDuration)] = MediaDuration,
+                [nameof(TranslatePopupViewModel.TargetLanguage)] = _translationSettings.TargetLanguage,
+                [nameof(TranslatePopupViewModel.FromTime)] = _translationSettings.FromTime,
+                [nameof(TranslatePopupViewModel.ToTime)] = _translationSettings.ToTime,
+            };
         }
 
-        if (popupResult is not TranslationSettings newSettings)
+        var popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel, TranslationSettings>(
+            Shell.Current,
+            new PopupOptions { Shape = null, Shadow = null },
+            queryAttributes
+        );
+
+        if (popupResult.Result is not TranslationSettings newSettings)
         {
             return;
         }

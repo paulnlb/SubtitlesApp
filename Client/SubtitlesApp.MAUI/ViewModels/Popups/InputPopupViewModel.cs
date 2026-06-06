@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Maui.Core;
+﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,12 +12,12 @@ public partial class InputPopupViewModel(IPopupService popupService) : Observabl
     [RelayCommand]
     public Task Ok()
     {
-        return popupService.ClosePopupAsync(Url);
+        return popupService.ClosePopupAsync(Shell.Current, Url);
     }
 
     [RelayCommand]
     public Task Cancel()
     {
-        return popupService.ClosePopupAsync();
+        return popupService.ClosePopupAsync(Shell.Current);
     }
 }

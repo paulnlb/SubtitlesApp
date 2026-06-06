@@ -1,5 +1,4 @@
-﻿using System.Text;
-using CommunityToolkit.Maui;
+﻿using CommunityToolkit.Maui;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.Extensions;

@@ -62,6 +62,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         base.OnNavigatedFrom(args);
 
+        if (args.DestinationPage is not MainPage)
+        {
+            return;
+        }
+
         mauiMediaElement.Stop();
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();

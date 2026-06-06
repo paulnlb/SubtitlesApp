@@ -47,4 +47,21 @@
   </Style>
 
   <x:Double x:Key="MaxLayoutWidth">600</x:Double>
+
+  <Style x:Key="InvalidEntryStyle" TargetType="Entry">
+    <Setter Property="TextColor" Value="Red" />
+  </Style>
+  <Style x:Key="DefaultEntryStyle" TargetType="Entry" />
+
+  <Style Class="PopupBorder" TargetType="Border" ApplyToDerivedTypes="True" CanCascade="True">
+    <Setter Property="StrokeThickness" Value="0" />
+    <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+    <Setter Property="Padding" Value="10" />
+  </Style>
+  <Style Class="PopupView" TargetType="View" ApplyToDerivedTypes="True" CanCascade="True">
+    <Setter
+      Property="BackgroundColor"
+      Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+    />
+  </Style>
 </ResourceDictionary>

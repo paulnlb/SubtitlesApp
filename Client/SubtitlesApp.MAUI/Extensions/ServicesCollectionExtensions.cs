@@ -15,6 +15,8 @@ using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
 using UraniumUI;
+using UraniumUI.Dialogs;
+using static Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.VisualElement;
 
 namespace SubtitlesApp.Extensions;
 
@@ -31,6 +33,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
+        services.AddTransient<ICustomPopupService, PopupService>();
         #endregion
 
         #region singleton
@@ -41,9 +44,11 @@ public static class ServicesCollectionExtensions
         #endregion
 
         #region pages
-        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
-        services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
-        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModelNew>("settings");
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>(
+            nameof(PlayerWithSubtitlesPage)
+        );
+        services.AddTransientWithShellRoute<MainPage, MainPageViewModel>(nameof(MainPage));
+        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModelNew>(nameof(SettingsPage));
         #endregion
 
         #region preferences
@@ -66,6 +71,11 @@ public static class ServicesCollectionExtensions
 
         #region third-party
         services.AddCommunityToolkitDialogs();
+
+        services.Configure<DialogOptions>(options =>
+        {
+            options.Effects.Clear();
+        });
         #endregion
     }
 }

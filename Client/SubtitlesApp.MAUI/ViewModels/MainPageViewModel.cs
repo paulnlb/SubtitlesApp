@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Maui.Core;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.ViewModels.Popups;
+using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -28,7 +30,7 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void OpenSettings() => Shell.Current.GoToAsync($"settings");
+    public void OpenSettings() => Shell.Current.GoToAsync(nameof(SettingsPage));
 
     [RelayCommand]
     public async Task OpenMediaFile()
@@ -44,11 +46,15 @@ public partial class MainPageViewModel : ObservableObject
         switch (result)
         {
             case LoadOnlineVideo:
-                var popupResult = await _popupService.ShowPopupAsync<InputPopupViewModel>();
 
-                if (popupResult is string stringPath && !string.IsNullOrEmpty(stringPath))
+                var stringPathResult = await _popupService.ShowPopupAsync<InputPopupViewModel, string>(
+                    Shell.Current,
+                    new PopupOptions { Shape = null, Shadow = null }
+                );
+
+                if (!string.IsNullOrEmpty(stringPathResult.Result))
                 {
-                    await OpenPlayerWithSubtitlesPage(stringPath);
+                    await OpenPlayerWithSubtitlesPage(stringPathResult.Result);
                 }
 
                 break;
@@ -68,6 +74,6 @@ public partial class MainPageViewModel : ObservableObject
 
     private static Task OpenPlayerWithSubtitlesPage(string path)
     {
-        return Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
+        return Shell.Current.GoToAsync($"{nameof(PlayerWithSubtitlesPage)}?open={path}");
     }
 }

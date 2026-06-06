@@ -1,18 +1,18 @@
-using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
-using UraniumUI.Dialogs;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class TranslatePopupViewModel(
     IPopupService popupService,
     LanguageService languageService,
-    IDialogService dialogService
-) : ObservableObject
+    ICustomPopupService dialogService
+) : ObservableObject, IQueryAttributable
 {
     [ObservableProperty]
     private Language _targetLanguage = default!;
@@ -31,13 +31,38 @@ public partial class TranslatePopupViewModel(
 
     public required string SourceLanguageCode;
 
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        query.TryGetValue(nameof(MediaDuration), out var durationValue);
+        query.TryGetValue(nameof(TargetLanguage), out var targetLangValue);
+        query.TryGetValue(nameof(FromTime), out var fromTimeValue);
+        query.TryGetValue(nameof(ToTime), out var toTimeValue);
+
+        if (durationValue is TimeSpan mediaDuration)
+        {
+            MediaDuration = mediaDuration;
+        }
+        if (targetLangValue is Language targetLanguage)
+        {
+            TargetLanguage = targetLanguage;
+        }
+        if (fromTimeValue is TimeSpan fromTime)
+        {
+            FromTime = fromTime;
+        }
+        if (toTimeValue is TimeSpan toTime)
+        {
+            ToTime = toTime;
+        }
+    }
+
     [RelayCommand]
     public async Task ChooseTargetLanguage()
     {
         var result = await dialogService.DisplayRadioButtonPromptAsync(
             "Choose language of translation",
             languageService.GetLanguages(l => l.Code != SourceLanguageCode && l.Code != "auto"),
-            displayMember: "NativeName"
+            x => x.NativeName
         );
 
         if (result != null)
@@ -56,13 +81,13 @@ public partial class TranslatePopupViewModel(
             ToTime = ToTime,
         };
 
-        await popupService.ClosePopupAsync(translationSettings);
+        await popupService.ClosePopupAsync(Shell.Current, translationSettings);
     }
 
     [RelayCommand]
     public async Task Cancel()
     {
-        await popupService.ClosePopupAsync();
+        await popupService.ClosePopupAsync(Shell.Current);
     }
 
     partial void OnFromTimeChanged(TimeSpan value)

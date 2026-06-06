@@ -3,7 +3,7 @@ using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.CustomControls.Popups;
 
-public partial class InputPopup : Popup
+public partial class InputPopup : Popup<string>
 {
     public InputPopup(InputPopupViewModel vm)
     {
