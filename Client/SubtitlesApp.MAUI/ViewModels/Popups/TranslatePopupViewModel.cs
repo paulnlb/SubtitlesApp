@@ -8,11 +8,9 @@ using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class TranslatePopupViewModel(
-    IPopupService popupService,
-    LanguageService languageService,
-    ICustomPopupService dialogService
-) : ObservableObject, IQueryAttributable
+public partial class TranslatePopupViewModel(IPopupService popupService, LanguageService languageService)
+    : ObservableObject,
+        IQueryAttributable
 {
     [ObservableProperty]
     private Language _targetLanguage = default!;
@@ -61,15 +59,27 @@ public partial class TranslatePopupViewModel(
     [RelayCommand]
     public async Task ChooseTargetLanguage()
     {
-        var result = await dialogService.DisplayRadioButtonPromptAsync(
-            "Choose language of translation",
-            languageService.GetLanguages(l => l.Code != SourceLanguageCode && l.Code != "auto"),
-            x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})"
+        Func<Language, string> displaySelector = x => $"{x.Name} ({x.NativeName})";
+
+        var queryAttributes = new Dictionary<string, object>
+        {
+            [nameof(SelectLanguagePopupVm.Title)] = "Choose language of translation",
+            [nameof(SelectLanguagePopupVm.SourceItems)] = languageService.GetLanguages(l =>
+                l.Code != SourceLanguageCode && l.Code != "auto"
+            ),
+            [nameof(SelectLanguagePopupVm.DisplaySelector)] = displaySelector,
+            [nameof(SelectLanguagePopupVm.SelectedItem)] = TargetLanguage,
+        };
+
+        var popupResult = await popupService.ShowPopupAsync<SelectLanguagePopupVm, Language>(
+            Shell.Current,
+            new PopupOptions { Shape = null, Shadow = null },
+            queryAttributes
         );
 
-        if (result != null)
+        if (popupResult.Result is not null)
         {
-            TargetLanguage = result;
+            TargetLanguage = popupResult.Result;
         }
     }
 

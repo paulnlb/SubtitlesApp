@@ -4,15 +4,12 @@ using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class TranscribePopupViewModel(
-    IPopupService popupService,
-    LanguageService languageService,
-    ICustomPopupService dialogService
-) : ObservableObject, IQueryAttributable
+public partial class TranscribePopupViewModel(IPopupService popupService, LanguageService languageService)
+    : ObservableObject,
+        IQueryAttributable
 {
     [ObservableProperty]
     private Language? _subtitlesLanguage;
@@ -59,16 +56,25 @@ public partial class TranscribePopupViewModel(
     [RelayCommand]
     public async Task ChooseSubtitlesLanguage()
     {
-        var result = await dialogService.DisplayRadioButtonPromptAsync(
-            "Choose language of subtitles",
-            languageService.GetAllLanguages(),
-            x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})",
-            SubtitlesLanguage ?? languageService.GetDefaultLanguage()
+        Func<Language, string> displaySelector = x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})";
+
+        var queryAttributes = new Dictionary<string, object>
+        {
+            [nameof(SelectLanguagePopupVm.Title)] = "Choose language of subtitles",
+            [nameof(SelectLanguagePopupVm.SourceItems)] = languageService.GetAllLanguages(),
+            [nameof(SelectLanguagePopupVm.DisplaySelector)] = displaySelector,
+            [nameof(SelectLanguagePopupVm.SelectedItem)] = SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
+        };
+
+        var popupResult = await popupService.ShowPopupAsync<SelectLanguagePopupVm, Language>(
+            Shell.Current,
+            new PopupOptions { Shape = null, Shadow = null },
+            queryAttributes
         );
 
-        if (result is not null)
+        if (popupResult.Result is not null)
         {
-            SubtitlesLanguage = result;
+            SubtitlesLanguage = popupResult.Result;
         }
     }
 

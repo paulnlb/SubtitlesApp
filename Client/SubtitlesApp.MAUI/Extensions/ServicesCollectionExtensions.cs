@@ -16,7 +16,6 @@ using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
 using UraniumUI;
 using UraniumUI.Dialogs;
-using static Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.VisualElement;
 
 namespace SubtitlesApp.Extensions;
 
@@ -33,7 +32,6 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
-        services.AddTransient<ICustomPopupService, PopupService>();
         #endregion
 
         #region singleton
@@ -64,18 +62,9 @@ public static class ServicesCollectionExtensions
 
         #region popups
         services.AddTransientPopup<InputPopup, InputPopupViewModel>();
-        services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
+        services.AddTransientPopup<SelectLanguagePopup, SelectLanguagePopupVm>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
         services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
-        #endregion
-
-        #region third-party
-        services.AddCommunityToolkitDialogs();
-
-        services.Configure<DialogOptions>(options =>
-        {
-            options.Effects.Clear();
-        });
         #endregion
     }
 }
