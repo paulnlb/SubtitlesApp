@@ -66,9 +66,6 @@
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerHorizontalLength, Mode=TwoWay}"
       >
-        <customControls:ExtendedMediaElement.GestureRecognizers>
-          <PanGestureRecognizer x:Name="playerGestureRecognizer" />
-        </customControls:ExtendedMediaElement.GestureRecognizers>
         <customControls:ExtendedMediaElement.Behaviors>
           <toolkit:EventToCommandBehavior
             EventName="PositionChanged"

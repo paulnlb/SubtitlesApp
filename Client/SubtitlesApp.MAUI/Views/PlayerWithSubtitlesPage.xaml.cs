@@ -74,7 +74,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         subtitlesView.Dispose();
         Vm.PropertyChanged -= OnVmPropertyChanged;
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
-        playerGestureRecognizer.PanUpdated -= HandlePanGesture;
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
@@ -146,7 +145,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             return;
         }
 
-        newRelativeHeight = Math.Min(_normalLayoutSettings.MaxPlayerRelativeVerticalLength, newRelativeHeight);
+        newRelativeHeight = Math.Clamp(
+            newRelativeHeight,
+            _normalLayoutSettings.MinPlayerVerticalLength,
+            _normalLayoutSettings.MaxPlayerVerticalLength
+        );
 
         _normalLayoutSettings.PlayerVerticalLength = newRelativeHeight;
         _normalLayoutSettings.SubtitlesVerticalLength = 1 - newRelativeHeight;
@@ -164,7 +167,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void SubscribeToGestures()
     {
-        playerGestureRecognizer.PanUpdated += HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated += HandlePanGesture;
         playerControlsGestureRecognizer.PanUpdated += HandlePanGesture;
     }

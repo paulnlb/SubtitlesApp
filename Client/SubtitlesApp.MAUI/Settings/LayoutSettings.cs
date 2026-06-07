@@ -15,7 +15,8 @@ public partial class LayoutSettings : ObservableObject
 
     [ObservableProperty]
     private double _subtitlesHoritzontalLength;
-    public double MaxPlayerRelativeVerticalLength => 0.5;
+    public double MaxPlayerVerticalLength => 0.5;
+    public double MinPlayerVerticalLength => 0.25;
 
     public LayoutSettings(bool isExpanded)
     {
@@ -26,11 +27,11 @@ public partial class LayoutSettings : ObservableObject
         else
         {
             _playerVerticalLength = 0.35;
-            _playerHorizontalLength = 0.6;
+            _playerHorizontalLength = 0.65;
         }
 
         _subtitlesVerticalLength = 0.65;
-        _subtitlesHoritzontalLength = 0.4;
+        _subtitlesHoritzontalLength = 0.35;
     }
 
     public void CopyFrom(LayoutSettings settinsToCopy)
