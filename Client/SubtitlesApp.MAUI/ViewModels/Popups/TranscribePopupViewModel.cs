@@ -5,7 +5,6 @@ using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
-using UraniumUI.Dialogs;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
@@ -33,7 +32,7 @@ public partial class TranscribePopupViewModel(
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         query.TryGetValue(nameof(MediaDuration), out var durationValue);
-        query.TryGetValue(nameof(SubtitlesLanguage), out var targetLangValue);
+        query.TryGetValue(nameof(SubtitlesLanguage), out var sourceLangValue);
         query.TryGetValue(nameof(FromTime), out var fromTimeValue);
         query.TryGetValue(nameof(ToTime), out var toTimeValue);
 
@@ -41,7 +40,7 @@ public partial class TranscribePopupViewModel(
         {
             MediaDuration = mediaDuration;
         }
-        if (targetLangValue is Language subtitlesLanguage)
+        if (sourceLangValue is Language subtitlesLanguage)
         {
             SubtitlesLanguage = subtitlesLanguage;
         }
@@ -53,6 +52,8 @@ public partial class TranscribePopupViewModel(
         {
             ToTime = toTime;
         }
+
+        query.Clear();
     }
 
     [RelayCommand]
@@ -61,8 +62,8 @@ public partial class TranscribePopupViewModel(
         var result = await dialogService.DisplayRadioButtonPromptAsync(
             "Choose language of subtitles",
             languageService.GetAllLanguages(),
-            x => x.NativeName,
-            languageService.GetDefaultLanguage()
+            x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})",
+            SubtitlesLanguage ?? languageService.GetDefaultLanguage()
         );
 
         if (result is not null)
@@ -76,7 +77,7 @@ public partial class TranscribePopupViewModel(
     {
         var transcriptionSettings = new TranscriptionSettings
         {
-            SubtitlesLanguage = SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
+            SubtitlesLanguage = this.SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
             FromTime = FromTime,
             ToTime = ToTime,
         };

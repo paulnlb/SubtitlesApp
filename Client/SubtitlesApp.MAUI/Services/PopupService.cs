@@ -1,11 +1,13 @@
-﻿using CommunityToolkit.Maui;
+﻿using System.ComponentModel;
+using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Maui.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.Options;
 using SubtitlesApp.Interfaces;
 using UraniumUI.Dialogs;
 using UraniumUI.Extensions;
-using UraniumUI.Material.Controls;
+using InputKitRadioButton = InputKit.Shared.Controls.RadioButton;
 
 namespace SubtitlesApp.Services;
 
@@ -33,6 +35,27 @@ public class PopupService(IOptions<DialogOptions> dialogOptions) : ICustomPopupS
         var tcs = new TaskCompletionSource<T?>();
         var calculatedSize = CalculateSize(Page);
 
+        RadioButtonViewModel<T>? selectedBtnVm = null;
+        List<RadioButtonViewModel<T>> sourceVms = [];
+
+        foreach (var item in selectionSource)
+        {
+            var vm = new RadioButtonViewModel<T>
+            {
+                Title = displaySelector(item),
+                Value = item,
+                IsChecked = item is not null && item.Equals(selected),
+            };
+
+            if (vm.IsChecked)
+            {
+                selectedBtnVm = vm;
+            }
+
+            vm.PropertyChanged += OnChecked;
+            sourceVms.Add(vm);
+        }
+
         var rootContainer = new Grid() { HeightRequest = calculatedSize.Height };
 
 #if IOS || MACCATALYST
@@ -59,19 +82,26 @@ public class PopupService(IOptions<DialogOptions> dialogOptions) : ICustomPopupS
 
         rootContainer.HeightRequest = calculatedSize.Height;
 
-        var rbGroup = new RadioButtonGroupView()
+        var dataTemplate = new DataTemplate(() =>
+        {
+            var radioButton = new InputKitRadioButton { Margin = 10 };
+
+            radioButton.SetBinding(InputKitRadioButton.TextProperty, "Title");
+            radioButton.SetBinding(InputKitRadioButton.ValueProperty, "Value");
+            radioButton.SetBinding(InputKitRadioButton.IsCheckedProperty, "IsChecked");
+
+            return radioButton;
+        });
+
+        var rbGroup = new CollectionView()
         {
             Margin = 20,
             VerticalOptions = LayoutOptions.Center,
             HorizontalOptions = LayoutOptions.Start,
+            ItemsSource = sourceVms,
+            SelectionMode = Microsoft.Maui.Controls.SelectionMode.None,
+            ItemTemplate = dataTemplate,
         };
-
-        foreach (var item in selectionSource)
-        {
-            rbGroup.Add(new InputKit.Shared.Controls.RadioButton { Text = displaySelector(item), Value = item });
-        }
-
-        rbGroup.SelectedItem = selected;
 
         var footer = GetFooter(
             new Dictionary<string, Command>
@@ -80,7 +110,10 @@ public class PopupService(IOptions<DialogOptions> dialogOptions) : ICustomPopupS
                     accept,
                     new Command(async () =>
                     {
-                        tcs.SetResult((T?)rbGroup.SelectedItem);
+                        sourceVms.ForEach(x => x.PropertyChanged -= OnChecked);
+
+                        T? result = selectedBtnVm is null ? default : selectedBtnVm.Value;
+                        tcs.SetResult(result);
                         await popup.CloseAsync();
                     })
                 },
@@ -100,12 +133,21 @@ public class PopupService(IOptions<DialogOptions> dialogOptions) : ICustomPopupS
         rootContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         rootContainer.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         rootContainer.Add(GetHeader(message));
-        rootContainer.Add(new ScrollView { Content = rbGroup }, row: 1);
+        rootContainer.Add(rbGroup, row: 1);
         rootContainer.Add(GetDivider(), row: 2);
         rootContainer.Add(footer, row: 3);
         Page.ShowPopup(popup, new PopupOptions { Shape = null, Shadow = null });
 
         return tcs.Task;
+
+        void OnChecked(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "IsChecked" && sender is RadioButtonViewModel<T> vm)
+            {
+                selectedBtnVm?.IsChecked = false;
+                selectedBtnVm = vm;
+            }
+        }
     }
 
     protected static View GetFrame(double width, View content)
@@ -222,4 +264,16 @@ public class PopupService(IOptions<DialogOptions> dialogOptions) : ICustomPopupS
 
         return new Size(100, 100);
     }
+}
+
+public partial class RadioButtonViewModel<T> : ObservableObject
+{
+    [ObservableProperty]
+    private string _title;
+
+    [ObservableProperty]
+    private T _value;
+
+    [ObservableProperty]
+    private bool _isChecked;
 }

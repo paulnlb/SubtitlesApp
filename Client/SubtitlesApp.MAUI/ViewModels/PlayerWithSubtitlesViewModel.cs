@@ -55,5 +55,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
             MediaPath = value.ToString();
             SubtitlesVm.MediaPath = value.ToString();
         }
+
+        query.Clear();
     }
 }

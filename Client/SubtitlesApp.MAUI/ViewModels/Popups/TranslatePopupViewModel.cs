@@ -54,6 +54,8 @@ public partial class TranslatePopupViewModel(
         {
             ToTime = toTime;
         }
+
+        query.Clear();
     }
 
     [RelayCommand]
@@ -62,7 +64,7 @@ public partial class TranslatePopupViewModel(
         var result = await dialogService.DisplayRadioButtonPromptAsync(
             "Choose language of translation",
             languageService.GetLanguages(l => l.Code != SourceLanguageCode && l.Code != "auto"),
-            x => x.NativeName
+            x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})"
         );
 
         if (result != null)
