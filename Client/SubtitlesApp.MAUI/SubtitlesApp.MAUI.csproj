@@ -25,7 +25,7 @@
     <ApplicationId>com.companyname.subtitlesapp</ApplicationId>
 
     <!-- Versions -->
-    <ApplicationDisplayVersion>0.4.6</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>alpha-0.5.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>

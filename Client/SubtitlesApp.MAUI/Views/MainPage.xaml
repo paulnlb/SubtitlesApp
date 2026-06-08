@@ -21,7 +21,7 @@
     >
       <Label
         Grid.Row="0"
-        Text="Transcribe and translate any video"
+        Text="{Binding MainLabelText}"
         Style="{StaticResource Headline}"
         SemanticProperties.HeadingLevel="Level1"
         VerticalOptions="Center"
@@ -44,6 +44,14 @@
         SemanticProperties.Hint="Opens app settings"
         HorizontalOptions="Fill"
         Command="{Binding OpenSettingsCommand}"
+      />
+
+      <Label
+        Grid.Row="3"
+        Text="{Binding FooterText}"
+        TextColor="{StaticResource Gray}"
+        HorizontalOptions="Center"
+        VerticalOptions="End"
       />
     </Grid>
   </ScrollView>
