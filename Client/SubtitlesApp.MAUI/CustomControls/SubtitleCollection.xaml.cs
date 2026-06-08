@@ -160,6 +160,13 @@ public partial class SubtitleCollection : ContentView, IDisposable
                 return;
             }
 
+            if (!subsCollection.AutoScrollEnabled)
+            {
+                subsCollection.AutoScrollEnabled =
+                    newIndex <= subsCollection.LastVisibleSubtitleIndex
+                    && newIndex >= subsCollection.FirstVisibleSubtitleIndex;
+            }
+
             var newSub = subsCollection.Subtitles[newIndex];
             newSub.IsHighlighted = true;
 
