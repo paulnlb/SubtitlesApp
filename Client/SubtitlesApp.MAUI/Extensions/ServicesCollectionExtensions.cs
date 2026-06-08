@@ -14,8 +14,6 @@ using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
-using UraniumUI;
-using UraniumUI.Dialogs;
 
 namespace SubtitlesApp.Extensions;
 

@@ -146,17 +146,11 @@ public class AdaptiveLayout : Layout
         return new AdaptiveLayoutManager(this);
     }
 
-    protected override void InvalidateMeasure()
-    {
-        base.InvalidateMeasure();
-        (this as IView).InvalidateMeasure();
-    }
-
     protected override Size ArrangeOverride(Rect bounds)
     {
         if (_lastArrangedBounds != bounds)
         {
-            Orientation = CalculateEffectiveOrientation(OrientationRequest, bounds.Width, bounds.Height);
+            Orientation = GetEffectiveOrientation(OrientationRequest, bounds.Width, bounds.Height);
             _lastArrangedBounds = bounds;
         }
 
@@ -207,7 +201,7 @@ public class AdaptiveLayout : Layout
         }
     }
 
-    public static AdaptiveLayoutOrientation CalculateEffectiveOrientation(
+    public static AdaptiveLayoutOrientation GetEffectiveOrientation(
         AdaptiveLayoutOrientation requested,
         double width,
         double height
@@ -255,7 +249,7 @@ public class AdaptiveLayoutManager(AdaptiveLayout layout) : ILayoutManager
         var relVerticalLengths = layout.Select(child => AdaptiveLayout.GetRelativeVerticalLength((BindableObject)child));
         var relHorizontalLengths = layout.Select(child => AdaptiveLayout.GetRelativeHorizontalLength((BindableObject)child));
 
-        var effectiveOrientation = AdaptiveLayout.CalculateEffectiveOrientation(
+        var effectiveOrientation = AdaptiveLayout.GetEffectiveOrientation(
             layout.OrientationRequest,
             widthConstraint,
             heightConstraint

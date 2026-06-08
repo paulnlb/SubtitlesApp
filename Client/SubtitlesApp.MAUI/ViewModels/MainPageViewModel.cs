@@ -31,7 +31,7 @@ public partial class MainPageViewModel : ObservableObject
     private string _mainLabelText;
 
     [ObservableProperty]
-    private string _footerText = $"v.{AppInfo.Current.VersionString}. The app may crash.";
+    private string _footerText = $"v{AppInfo.Current.VersionString} alpha. The app may crash.";
 
     public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, IPopupService popupService)
     {
