@@ -16,7 +16,7 @@ public partial class PickerSettingsItem(
     {
         var result = await dialogService.DisplayActionSheet(Title, "Cancel", null, AllValues);
 
-        if (result != "Cancel")
+        if (result is not null && result != "Cancel")
         {
             SetValue(result);
         }

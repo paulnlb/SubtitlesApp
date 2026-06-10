@@ -21,6 +21,9 @@ public partial class MainPageViewModel : ObservableObject
         "Nothing special as a service",
         "The app is free and open source. The APIs - not necessarily",
         "Transcribe, translate, swipe in, swipe away, scroll and navigate",
+        "Not just another API wrapper!",
+        "Video transcription is largely solved",
+        "This version is newer than anything we've ever released",
     ];
 
     private readonly IBuiltInDialogService _dialogService;

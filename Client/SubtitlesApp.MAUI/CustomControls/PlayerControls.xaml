@@ -21,7 +21,8 @@
     Padding="10"
     BackgroundColor="#80000000"
     IsVisible="{Binding PlayerControlsVisible}"
-    RowDefinitions="3*, 8*, 2*, *"
+    RowDefinitions="50, *, 30, 20"
+    RowSpacing="3"
     ColumnDefinitions="*, *, *"
   >
     <Label
@@ -112,7 +113,7 @@
 
     <!--Third Row 
              Time display-->
-    <Label TextColor="White" Grid.Row="2" Grid.Column="0" VerticalOptions="End" HorizontalOptions="Start" Margin="0,0,0,5">
+    <Label TextColor="White" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" HorizontalOptions="Start">
       <Label.Text>
         <MultiBinding StringFormat="{}{0}/{1}">
           <Binding
@@ -136,7 +137,7 @@
       Clicked="OnFullScreenClicked"
       Grid.Row="2"
       Grid.Column="2"
-      VerticalOptions="End"
+      VerticalOptions="Center"
       HorizontalOptions="End"
       Padding="2"
       BackgroundColor="Transparent"
