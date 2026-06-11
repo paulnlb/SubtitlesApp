@@ -36,6 +36,7 @@ public class TranscriptionService(
                 subIntervalStart,
                 subIntervalEnd,
                 languageCode,
+                string.Empty,
                 cancellationToken
             );
 
@@ -78,6 +79,7 @@ public class TranscriptionService(
         TimeSpan startTime,
         TimeSpan endTime,
         string languageCode,
+        string context,
         CancellationToken cancellationToken = default
     )
     {
@@ -87,7 +89,7 @@ public class TranscriptionService(
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var transcriptionResult = await subtitlesClient.GetSubsAsync(audio, languageCode, cancellationToken);
+            var transcriptionResult = await subtitlesClient.GetSubsAsync(audio, languageCode, context, cancellationToken);
 
             if (transcriptionResult.IsFailure)
             {

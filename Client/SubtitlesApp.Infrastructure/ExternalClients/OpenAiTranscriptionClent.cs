@@ -16,6 +16,7 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
     public async Task<ListResult<SubtitleDto>> GetSubsAsync(
         Stream audio,
         string languageCode,
+        string context,
         CancellationToken cancellationToken = default
     )
     {
@@ -30,12 +31,17 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : I
             transcriptionOptions.Language = languageCode;
         }
 
+        if (!string.IsNullOrWhiteSpace(context))
+        {
+            transcriptionOptions.Prompt = context;
+        }
+
         AudioTranscription apiResult;
 
         try
         {
             var audioClient = await _audioClientTask;
-            apiResult = await audioClient.TranscribeAudioAsync(audio, "audio.wav", transcriptionOptions);
+            apiResult = await audioClient.TranscribeAudioAsync(audio, "audio.wav", transcriptionOptions, cancellationToken);
         }
         catch (Exception ex)
         {

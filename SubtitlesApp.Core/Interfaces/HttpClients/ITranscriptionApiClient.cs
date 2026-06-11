@@ -14,6 +14,7 @@ public interface ITranscriptionApiClient
     Task<ListResult<SubtitleDto>> GetSubsAsync(
         Stream audio,
         string languageCode,
+        string context,
         CancellationToken cancellationToken = default
     );
 }
