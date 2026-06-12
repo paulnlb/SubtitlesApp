@@ -1,23 +1,44 @@
-﻿using SubtitlesApp.ClientModels.Enums;
-using SubtitlesApp.Interfaces;
+﻿using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ClientModels.SettingsItems;
 
-public class EntrySettingsItem(
-    IBuiltInDialogService dialogService,
-    SecondaryTextMode secondaryTextMode,
-    Func<string>? getter = null,
-    Action<string>? setter = null
-) : VirtualSettingsItem(secondaryTextMode, getter, setter)
+public class EntrySettingsItem : VirtualSettingsItem<string>
 {
+    private bool _valueAsSubtitle;
+    private readonly IBuiltInDialogService _dialogService;
+
+    public EntrySettingsItem(
+        IBuiltInDialogService dialogService,
+        bool valueAsSubTitle = false,
+        Func<string>? getter = null,
+        Action<string>? setter = null
+    )
+        : base(getter, setter)
+    {
+        _dialogService = dialogService;
+        _valueAsSubtitle = valueAsSubTitle;
+
+        if (valueAsSubTitle)
+        {
+            SubTitle = GetValue();
+        }
+    }
+
     public override async Task EditValueAsync()
     {
         var value = GetValue();
-        var result = await dialogService.DisplayPrompt(Title, null, value);
+        var result = await _dialogService.DisplayPrompt(Title, null, value);
 
-        if (result is not null && result != value)
+        if (result is null || result == value)
         {
-            SetValue(result);
+            return;
+        }
+
+        SetValue(result);
+
+        if (_valueAsSubtitle)
+        {
+            SubTitle = result;
         }
     }
 }

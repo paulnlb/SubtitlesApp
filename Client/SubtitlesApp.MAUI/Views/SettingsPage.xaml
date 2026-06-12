@@ -48,7 +48,7 @@
                       TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource LightTextPrimary}}"
                     />
                     <Label
-                      Text="{Binding SecondaryText}"
+                      Text="{Binding SubTitle}"
                       TextColor="{AppThemeBinding Light={StaticResource Gray}, Dark={StaticResource LightTextSecondary}}"
                       FontSize="13"
                     />

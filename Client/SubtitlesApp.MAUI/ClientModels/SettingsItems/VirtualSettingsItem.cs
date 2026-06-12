@@ -1,42 +1,25 @@
-﻿using SubtitlesApp.ClientModels.Enums;
+﻿namespace SubtitlesApp.ClientModels.SettingsItems;
 
-namespace SubtitlesApp.ClientModels.SettingsItems;
-
-public abstract partial class VirtualSettingsItem : SettingsItem
+public abstract partial class VirtualSettingsItem<T> : SettingsItem
 {
-    private readonly Func<string>? _getter;
-    private readonly Action<string>? _setter;
+    private readonly Func<T>? _getter;
+    private readonly Action<T>? _setter;
 
-    public VirtualSettingsItem(
-        SecondaryTextMode secondaryTextMode,
-        Func<string>? getter = null,
-        Action<string>? setter = null
-    )
-        : base(secondaryTextMode)
+    public VirtualSettingsItem(Func<T>? getter = null, Action<T>? setter = null)
     {
         _getter = getter;
         _setter = setter;
-
-        if (secondaryTextMode == SecondaryTextMode.Value && getter is not null)
-        {
-            SecondaryText = getter.Invoke();
-        }
     }
 
-    protected string? GetValue() => _getter?.Invoke();
+    protected T? GetValue() => _getter is null ? default : _getter.Invoke();
 
-    protected void SetValue(string value)
+    protected void SetValue(T value)
     {
-        if (_setter is null || value == GetValue())
+        if (_setter is null || value is not null && value.Equals(GetValue()))
         {
             return;
         }
 
         _setter.Invoke(value);
-
-        if (SecondaryTextMode == SecondaryTextMode.Value)
-        {
-            SecondaryText = value;
-        }
     }
 }

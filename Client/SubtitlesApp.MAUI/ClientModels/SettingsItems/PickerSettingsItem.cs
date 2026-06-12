@@ -1,24 +1,45 @@
-﻿using SubtitlesApp.ClientModels.Enums;
-using SubtitlesApp.Interfaces;
+﻿using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ClientModels.SettingsItems;
 
-public partial class PickerSettingsItem(
-    IBuiltInDialogService dialogService,
-    SecondaryTextMode secondaryTextMode,
-    Func<string>? getter = null,
-    Action<string>? setter = null
-) : VirtualSettingsItem(secondaryTextMode, getter, setter)
+public partial class PickerSettingsItem : VirtualSettingsItem<string>
 {
+    private bool _valueAsSubtitle;
+    private readonly IBuiltInDialogService _dialogService;
+
     public required string[] AllValues { get; set; }
+
+    public PickerSettingsItem(
+        IBuiltInDialogService dialogService,
+        bool valueAsSubTitle = false,
+        Func<string>? getter = null,
+        Action<string>? setter = null
+    )
+        : base(getter, setter)
+    {
+        _dialogService = dialogService;
+        _valueAsSubtitle = valueAsSubTitle;
+
+        if (valueAsSubTitle)
+        {
+            SubTitle = GetValue();
+        }
+    }
 
     public override async Task EditValueAsync()
     {
-        var result = await dialogService.DisplayActionSheet(Title, "Cancel", null, AllValues);
+        var result = await _dialogService.DisplayActionSheet(Title, "Cancel", null, AllValues);
 
-        if (result is not null && result != "Cancel")
+        if (result is null || result == "Cancel")
         {
-            SetValue(result);
+            return;
+        }
+
+        SetValue(result);
+
+        if (_valueAsSubtitle)
+        {
+            SubTitle = result;
         }
     }
 }
