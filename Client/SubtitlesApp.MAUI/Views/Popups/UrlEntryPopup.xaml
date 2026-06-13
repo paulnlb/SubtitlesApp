@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  xmlns:system="clr-namespace:System;assembly=mscorlib"
+  x:DataType="viewModels:UrlEntryPopupViewModel"
+  x:Class="SubtitlesApp.Views.Popups.UrlEntryPopup"
+  x:TypeArguments="system:String"
+  CanBeDismissedByTappingOutsideOfPopup="False"
+  BackgroundColor="Transparent"
+  ControlTemplate="{StaticResource PopupTemplate}"
+  x:Name="root"
+>
+  <Entry x:Name="urlEntry" Placeholder="https://..." Text="{Binding Url}">
+    <Entry.Behaviors>
+      <toolkit:TextValidationBehavior
+        x:Name="validationBehavior"
+        BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
+        InvalidStyle="{StaticResource InvalidEntryStyle}"
+        ValidStyle="{StaticResource DefaultEntryStyle}"
+        Flags="ValidateOnValueChanged"
+        RegexPattern="^(http|https):\/\/\d*\D"
+        IsValid="{Binding IsAcceptEnabled, Mode=OneWayToSource}"
+      />
+    </Entry.Behaviors>
+  </Entry>
+</toolkit:Popup>

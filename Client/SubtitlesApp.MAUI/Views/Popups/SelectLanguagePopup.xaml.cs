@@ -3,7 +3,7 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.ViewModels.Popups;
 using UraniumUI.Extensions;
 
-namespace SubtitlesApp.CustomControls.Popups;
+namespace SubtitlesApp.Views.Popups;
 
 public partial class SelectLanguagePopup : Popup<Language>
 {
@@ -16,8 +16,8 @@ public partial class SelectLanguagePopup : Popup<Language>
 
         var calculatedSize = CalculateSize(Shell.Current.CurrentPage);
 
-        WidthRequest = calculatedSize.Width;
-        HeightRequest = calculatedSize.Height;
+        MaximumWidthRequest = calculatedSize.Width;
+        MaximumHeightRequest = calculatedSize.Height;
     }
 
     private Size CalculateSize(Page page)
@@ -35,7 +35,7 @@ public partial class SelectLanguagePopup : Popup<Language>
                 baseValue = page.Height;
             }
 
-            var edge = (baseValue * .8).Clamp(200, 400);
+            var edge = (baseValue * .8).Clamp(200, 600);
 
             return new Size(edge, edge * .9);
         }

@@ -66,9 +66,16 @@ public partial class MainPageViewModel : ObservableObject
         {
             case LoadOnlineVideo:
 
-                var stringPathResult = await _popupService.ShowPopupAsync<InputPopupViewModel, string>(
+                var queryAttributes = new Dictionary<string, object>
+                {
+                    { nameof(TranscribePopupViewModel.Title), "Enter Url" },
+                    { nameof(TranscribePopupViewModel.AcceptText), "Open" },
+                };
+
+                var stringPathResult = await _popupService.ShowPopupAsync<UrlEntryPopupViewModel, string>(
                     Shell.Current,
-                    new PopupOptions { Shape = null, Shadow = null }
+                    new PopupOptions { Shape = null, Shadow = null },
+                    shellParameters: queryAttributes
                 );
 
                 if (!string.IsNullOrEmpty(stringPathResult.Result))

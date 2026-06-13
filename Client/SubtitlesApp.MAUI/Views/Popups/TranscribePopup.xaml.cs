@@ -2,11 +2,11 @@ using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ViewModels.Popups;
 
-namespace SubtitlesApp.CustomControls.Popups;
+namespace SubtitlesApp.Views.Popups;
 
-public partial class TranslatePopup : Popup<TranslationSettings>
+public partial class TranscribePopup : Popup<TranscriptionSettings>
 {
-    public TranslatePopup(TranslatePopupViewModel vm)
+    public TranscribePopup(TranscribePopupViewModel vm)
     {
         BindingContext = vm;
         InitializeComponent();

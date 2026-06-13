@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:popupVms="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  x:Class="SubtitlesApp.Resources.Styles.ContentTemplates"
+>
+  <ControlTemplate x:Key="PopupTemplate" x:DataType="popupVms:BasePopupVm">
+    <Border Padding="0" StyleClass="PopupBorder, PopupView">
+      <Grid RowDefinitions="Auto, Auto, *, Auto, Auto">
+        <Label x:Name="header" Grid.Row="0" Text="{Binding Title}" Margin="20" />
+        <BoxView StyleClass="Divider" Grid.Row="1" Margin="0" />
+
+        <ContentPresenter Grid.Row="2" Margin="20" VerticalOptions="Center" />
+
+        <BoxView Grid.Row="3" StyleClass="Divider" Margin="0" />
+        <FlexLayout Grid.Row="4" JustifyContent="End" Margin="10">
+          <Button Text="{Binding CancelText}" Command="{Binding CancelCommand}" StyleClass="TextButton, Dialog.Button2" />
+          <Button
+            Text="{Binding AcceptText}"
+            Command="{Binding AcceptCommand}"
+            StyleClass="TextButton, Dialog.Button2"
+            IsEnabled="{Binding IsAcceptEnabled}"
+          />
+        </FlexLayout>
+      </Grid>
+    </Border>
+  </ControlTemplate>
+</ResourceDictionary>

@@ -3,7 +3,6 @@ using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.HttpClients;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.CustomControls.Popups;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
@@ -14,6 +13,7 @@ using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
+using SubtitlesApp.Views.Popups;
 
 namespace SubtitlesApp.Extensions;
 
@@ -59,7 +59,7 @@ public static class ServicesCollectionExtensions
         #endregion
 
         #region popups
-        services.AddTransientPopup<InputPopup, InputPopupViewModel>();
+        services.AddTransientPopup<UrlEntryPopup, UrlEntryPopupViewModel>();
         services.AddTransientPopup<SelectLanguagePopup, SelectLanguagePopupVm>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
         services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();

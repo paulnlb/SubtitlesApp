@@ -91,6 +91,9 @@
     <Compile Update="CustomControls\PlayerControls.xaml.cs">
       <DependentUpon>PlayerControls.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Popups\UrlEntryPopup.xaml.cs">
+      <DependentUpon>UrlEntryPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\SubtitlesView.xaml.cs">
       <DependentUpon>SubtitlesView.xaml</DependentUpon>
     </Compile>
@@ -106,16 +109,16 @@
     <MauiXaml Update="CustomControls\LoadingButton.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\Popups\InputPopup.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </MauiXaml>
-    <MauiXaml Update="CustomControls\Popups\LoadingPopup.xaml">
+    <MauiXaml Update="Views\Popups\UrlEntryPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\PlayerControls.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="CustomControls\SubtitleCollection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Resources\Styles\ContentTemplates.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Resources\Styles\CustomStyles.xaml">

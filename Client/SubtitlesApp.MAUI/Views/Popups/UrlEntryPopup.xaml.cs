@@ -1,11 +1,11 @@
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ViewModels.Popups;
 
-namespace SubtitlesApp.CustomControls.Popups;
+namespace SubtitlesApp.Views.Popups;
 
-public partial class InputPopup : Popup<string>
+public partial class UrlEntryPopup : Popup<string>
 {
-    public InputPopup(InputPopupViewModel vm)
+    public UrlEntryPopup(UrlEntryPopupViewModel vm)
     {
         BindingContext = vm;
         InitializeComponent();

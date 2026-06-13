@@ -13,6 +13,8 @@
                                     Source="Resources/Styles/Styles.xaml" />
                 <ResourceDictionary x:Name="customStyles"
                                     Source="/Resources/Styles/CustomStyles.xaml" />
+                <ResourceDictionary x:Name="controlTemplates"
+                                    Source="/Resources/Styles/ContentTemplates.xaml"/>
 
                 <material:StyleResource ColorsOverride="{x:Reference appColors}"
                                         BasedOn="{x:Reference appStyles}" />

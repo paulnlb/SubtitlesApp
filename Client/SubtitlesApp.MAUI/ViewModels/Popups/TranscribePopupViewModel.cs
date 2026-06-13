@@ -8,7 +8,7 @@ using SubtitlesApp.Core.Services;
 namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class TranscribePopupViewModel(IPopupService popupService, LanguageService languageService)
-    : ObservableObject,
+    : BasePopupVm,
         IQueryAttributable
 {
     [ObservableProperty]
@@ -26,13 +26,34 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
     [ObservableProperty]
     private TimeSpan _mediaDuration;
 
+    [ObservableProperty]
+    private bool _isStartTimeValid;
+
+    [ObservableProperty]
+    private bool _isEndTimeValid;
+
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         query.TryGetValue(nameof(MediaDuration), out var durationValue);
         query.TryGetValue(nameof(SubtitlesLanguage), out var sourceLangValue);
         query.TryGetValue(nameof(FromTime), out var fromTimeValue);
         query.TryGetValue(nameof(ToTime), out var toTimeValue);
+        query.TryGetValue(nameof(Title), out var titleValue);
+        query.TryGetValue(nameof(AcceptText), out var acceptTextValue);
+        query.TryGetValue(nameof(CancelText), out var cancelTextValue);
 
+        if (titleValue is string title)
+        {
+            Title = title;
+        }
+        if (acceptTextValue is string acceptText)
+        {
+            AcceptText = acceptText;
+        }
+        if (cancelTextValue is string cancelText)
+        {
+            CancelText = cancelText;
+        }
         if (durationValue is TimeSpan mediaDuration)
         {
             MediaDuration = mediaDuration;
@@ -78,8 +99,7 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
         }
     }
 
-    [RelayCommand]
-    public async Task Save()
+    public override async Task Accept()
     {
         var transcriptionSettings = new TranscriptionSettings
         {
@@ -91,8 +111,7 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
         await popupService.ClosePopupAsync(Shell.Current, transcriptionSettings);
     }
 
-    [RelayCommand]
-    public async Task Cancel()
+    public override async Task Cancel()
     {
         await popupService.ClosePopupAsync(Shell.Current);
     }
@@ -111,5 +130,20 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
     {
         FromTime = TimeSpan.Zero;
         ToTime = value;
+    }
+
+    partial void OnIsEndTimeValidChanged(bool value)
+    {
+        IsAcceptEnabled = value && IsStartTimeValid && IsTimeRangeValid;
+    }
+
+    partial void OnIsStartTimeValidChanged(bool value)
+    {
+        IsAcceptEnabled = value && IsEndTimeValid && IsTimeRangeValid;
+    }
+
+    partial void OnIsTimeRangeValidChanged(bool value)
+    {
+        IsAcceptEnabled = IsStartTimeValid && IsEndTimeValid && value;
     }
 }

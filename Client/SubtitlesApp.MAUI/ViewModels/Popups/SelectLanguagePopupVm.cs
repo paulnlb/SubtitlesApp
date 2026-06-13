@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,18 +6,9 @@ using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class SelectLanguagePopupVm(IPopupService popupService) : ObservableObject, IQueryAttributable
+public partial class SelectLanguagePopupVm(IPopupService popupService) : BasePopupVm, IQueryAttributable
 {
     private LanguageViewModel? _selectedVm;
-
-    [ObservableProperty]
-    private string _title = string.Empty;
-
-    [ObservableProperty]
-    private string _acceptText = "Save";
-
-    [ObservableProperty]
-    private string _cancelText = "Cancel";
 
     [ObservableProperty]
     private IEnumerable<Language> _sourceItems = [];
@@ -98,15 +88,13 @@ public partial class SelectLanguagePopupVm(IPopupService popupService) : Observa
         _selectedVm = vm;
     }
 
-    [RelayCommand]
-    public async Task Save()
+    public override async Task Accept()
     {
         var result = _selectedVm is null ? default : _selectedVm.Value;
         await popupService.ClosePopupAsync(Shell.Current, result);
     }
 
-    [RelayCommand]
-    public async Task Cancel()
+    public override async Task Cancel()
     {
         await popupService.ClosePopupAsync(Shell.Current);
     }

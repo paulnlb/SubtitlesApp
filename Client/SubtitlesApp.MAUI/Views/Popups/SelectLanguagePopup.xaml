@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:popupVms="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  xmlns:coreModels="clr-namespace:SubtitlesApp.Core.Models;assembly=SubtitlesApp.Core"
+  xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+  x:Class="SubtitlesApp.Views.Popups.SelectLanguagePopup"
+  x:DataType="popupVms:SelectLanguagePopupVm"
+  x:TypeArguments="coreModels:Language"
+  BackgroundColor="Transparent"
+  Padding="0"
+  CanBeDismissedByTappingOutsideOfPopup="False"
+  x:Name="root"
+  ControlTemplate="{StaticResource PopupTemplate}"
+>
+  <toolkit:Popup.Resources>
+    <ResourceDictionary>
+      <converters:AddSpaceBeforeStringConverter x:Key="AddSpaceBeforeStringConverter" />
+    </ResourceDictionary>
+  </toolkit:Popup.Resources>
+
+  <CollectionView ItemsSource="{Binding SourceVms}" SelectionMode="None">
+    <CollectionView.ItemTemplate>
+      <DataTemplate x:DataType="popupVms:LanguageViewModel">
+        <RadioButton
+          x:Name="radioButton"
+          Content="{Binding Title, Converter={StaticResource AddSpaceBeforeStringConverter}, Mode=OneWay}"
+          Margin="0, 5"
+          IsChecked="{Binding IsChecked}"
+          Value="{Binding Value}"
+          CheckedChanged="RadioButton_CheckedChanged"
+        ></RadioButton>
+      </DataTemplate>
+    </CollectionView.ItemTemplate>
+  </CollectionView>
+</toolkit:Popup>

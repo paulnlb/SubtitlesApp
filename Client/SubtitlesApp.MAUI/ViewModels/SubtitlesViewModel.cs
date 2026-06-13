@@ -120,6 +120,9 @@ public partial class SubtitlesViewModel : ObservableObject
             };
         }
 
+        queryAttributes.Add(nameof(TranscribePopupViewModel.Title), "Transcription");
+        queryAttributes.Add(nameof(TranscribePopupViewModel.AcceptText), "Transcribe");
+
         var popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel, TranscriptionSettings>(
             Shell.Current,
             new PopupOptions { Shape = null, Shadow = null },
@@ -187,6 +190,9 @@ public partial class SubtitlesViewModel : ObservableObject
                 [nameof(TranslatePopupViewModel.ToTime)] = _translationSettings.ToTime,
             };
         }
+
+        queryAttributes.Add(nameof(TranscribePopupViewModel.Title), "Translation");
+        queryAttributes.Add(nameof(TranscribePopupViewModel.AcceptText), "Translate");
 
         var popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel, TranslationSettings>(
             Shell.Current,

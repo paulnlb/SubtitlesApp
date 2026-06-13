@@ -4,12 +4,11 @@ using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class TranslatePopupViewModel(IPopupService popupService, LanguageService languageService)
-    : ObservableObject,
+    : BasePopupVm,
         IQueryAttributable
 {
     [ObservableProperty]
@@ -27,6 +26,12 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
     [ObservableProperty]
     private TimeSpan _mediaDuration;
 
+    [ObservableProperty]
+    private bool _isStartTimeValid;
+
+    [ObservableProperty]
+    private bool _isEndTimeValid;
+
     public required string SourceLanguageCode;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -35,7 +40,22 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
         query.TryGetValue(nameof(TargetLanguage), out var targetLangValue);
         query.TryGetValue(nameof(FromTime), out var fromTimeValue);
         query.TryGetValue(nameof(ToTime), out var toTimeValue);
+        query.TryGetValue(nameof(Title), out var titleValue);
+        query.TryGetValue(nameof(AcceptText), out var acceptTextValue);
+        query.TryGetValue(nameof(CancelText), out var cancelTextValue);
 
+        if (titleValue is string title)
+        {
+            Title = title;
+        }
+        if (acceptTextValue is string acceptText)
+        {
+            AcceptText = acceptText;
+        }
+        if (cancelTextValue is string cancelText)
+        {
+            CancelText = cancelText;
+        }
         if (durationValue is TimeSpan mediaDuration)
         {
             MediaDuration = mediaDuration;
@@ -83,8 +103,7 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
         }
     }
 
-    [RelayCommand]
-    public async Task Save()
+    public override async Task Accept()
     {
         var translationSettings = new TranslationSettings
         {
@@ -96,8 +115,7 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
         await popupService.ClosePopupAsync(Shell.Current, translationSettings);
     }
 
-    [RelayCommand]
-    public async Task Cancel()
+    public override async Task Cancel()
     {
         await popupService.ClosePopupAsync(Shell.Current);
     }
@@ -116,5 +134,20 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
     {
         FromTime = TimeSpan.Zero;
         ToTime = value;
+    }
+
+    partial void OnIsEndTimeValidChanged(bool value)
+    {
+        IsAcceptEnabled = value && IsStartTimeValid && IsTimeRangeValid;
+    }
+
+    partial void OnIsStartTimeValidChanged(bool value)
+    {
+        IsAcceptEnabled = value && IsEndTimeValid && IsTimeRangeValid;
+    }
+
+    partial void OnIsTimeRangeValidChanged(bool value)
+    {
+        IsAcceptEnabled = IsStartTimeValid && IsEndTimeValid && value;
     }
 }
