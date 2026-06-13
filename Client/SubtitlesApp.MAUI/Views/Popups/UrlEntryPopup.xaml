@@ -8,7 +8,6 @@
   x:DataType="viewModels:UrlEntryPopupViewModel"
   x:Class="SubtitlesApp.Views.Popups.UrlEntryPopup"
   x:TypeArguments="system:String"
-  CanBeDismissedByTappingOutsideOfPopup="False"
   BackgroundColor="Transparent"
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"

@@ -1,8 +1,6 @@
-﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Interfaces;
-using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
@@ -28,7 +26,7 @@ public partial class MainPageViewModel : ObservableObject
 
     private readonly IBuiltInDialogService _dialogService;
     private readonly IVideoPicker _videoPicker;
-    private readonly IPopupService _popupService;
+    private readonly ICustomPopupService _popupService;
 
     [ObservableProperty]
     private string _mainLabelText;
@@ -36,7 +34,7 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string _footerText = $"v{AppInfo.Current.VersionString} alpha. The app may crash.";
 
-    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, IPopupService popupService)
+    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, ICustomPopupService popupService)
     {
         _dialogService = dialogService;
         _videoPicker = videoPicker;
@@ -66,21 +64,11 @@ public partial class MainPageViewModel : ObservableObject
         {
             case LoadOnlineVideo:
 
-                var queryAttributes = new Dictionary<string, object>
-                {
-                    { nameof(TranscribePopupViewModel.Title), "Enter Url" },
-                    { nameof(TranscribePopupViewModel.AcceptText), "Open" },
-                };
+                var url = await _popupService.ShowUrlEntry();
 
-                var stringPathResult = await _popupService.ShowPopupAsync<UrlEntryPopupViewModel, string>(
-                    Shell.Current,
-                    new PopupOptions { Shape = null, Shadow = null },
-                    shellParameters: queryAttributes
-                );
-
-                if (!string.IsNullOrEmpty(stringPathResult.Result))
+                if (!string.IsNullOrEmpty(url))
                 {
-                    await OpenPlayerWithSubtitlesPage(stringPathResult.Result);
+                    await OpenPlayerWithSubtitlesPage(url);
                 }
 
                 break;

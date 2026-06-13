@@ -1,0 +1,104 @@
+﻿using CommunityToolkit.Maui;
+using Microsoft.Maui.Controls.Shapes;
+using SubtitlesApp.ClientModels;
+using SubtitlesApp.Core.Models;
+using SubtitlesApp.Interfaces;
+using SubtitlesApp.ViewModels.Popups;
+
+namespace SubtitlesApp.Services;
+
+public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopupService
+{
+    private readonly PopupOptions _popupOptions = new()
+    {
+        Shape = null,
+        Shadow = null,
+        CanBeDismissedByTappingOutsideOfPopup = false,
+    };
+
+    public async Task<TranscriptionSettings?> ShowTranscriptionSettings(
+        TimeSpan mediaDuration,
+        Language language,
+        TimeSpan? fromTime,
+        TimeSpan? toTime
+    )
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(TranscribePopupViewModel.MediaDuration), mediaDuration },
+            { nameof(TranscribePopupViewModel.SubtitlesLanguage), language },
+            { nameof(TranscribePopupViewModel.Title), "Transcription" },
+            { nameof(TranscribePopupViewModel.AcceptText), "Transcribe" },
+        };
+
+        if (fromTime is not null)
+        {
+            queryAttributes.Add(nameof(TranscribePopupViewModel.FromTime), fromTime);
+        }
+        if (toTime is not null)
+        {
+            queryAttributes.Add(nameof(TranscribePopupViewModel.ToTime), toTime);
+        }
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<TranscribePopupViewModel, TranscriptionSettings>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+
+    public async Task<TranslationSettings?> ShowTranslationSettings(
+        TimeSpan mediaDuration,
+        Language? targetLanguage,
+        TimeSpan? fromTime,
+        TimeSpan? toTime
+    )
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(TranslatePopupViewModel.MediaDuration), mediaDuration },
+            { nameof(TranslatePopupViewModel.Title), "Translation" },
+            { nameof(TranslatePopupViewModel.AcceptText), "Translate" },
+        };
+
+        if (targetLanguage is not null)
+        {
+            queryAttributes.Add(nameof(TranslatePopupViewModel.TargetLanguage), targetLanguage);
+        }
+        if (fromTime is not null)
+        {
+            queryAttributes.Add(nameof(TranslatePopupViewModel.FromTime), fromTime);
+        }
+        if (toTime is not null)
+        {
+            queryAttributes.Add(nameof(TranslatePopupViewModel.ToTime), toTime);
+        }
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<TranslatePopupViewModel, TranslationSettings>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+
+    public async Task<string?> ShowUrlEntry()
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(UrlEntryPopupViewModel.Title), "Enter Url" },
+            { nameof(UrlEntryPopupViewModel.AcceptText), "Open" },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<UrlEntryPopupViewModel, string>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+}

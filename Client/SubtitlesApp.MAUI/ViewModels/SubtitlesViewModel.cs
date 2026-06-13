@@ -46,7 +46,7 @@ public partial class SubtitlesViewModel : ObservableObject
     #region services
 
     private readonly ITranslationService _translationService;
-    private readonly IPopupService _popupService;
+    private readonly ICustomPopupService _popupService;
     private readonly ITranscriptionService _transcriptionService;
     private readonly IBuiltInDialogService _builtInDialogService;
     private readonly LanguageService _languageService;
@@ -64,7 +64,7 @@ public partial class SubtitlesViewModel : ObservableObject
     public SubtitlesViewModel(
         ITranslationService translationService,
         LanguageService languageService,
-        IPopupService popupService,
+        ICustomPopupService popupService,
         SubtitlesMapper subtitlesMapper,
         ITranscriptionService transcriptionService,
         IBuiltInDialogService builtInDialogService
@@ -99,37 +99,16 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public async Task Transcribe()
     {
-        Dictionary<string, object> queryAttributes;
+        var subtitlesLang = _transcriptionSettings?.SubtitlesLanguage ?? _languageService.GetDefaultLanguage();
 
-        if (_transcriptionSettings is null)
-        {
-            queryAttributes = new Dictionary<string, object>
-            {
-                [nameof(TranscribePopupViewModel.MediaDuration)] = MediaDuration,
-                [nameof(TranscribePopupViewModel.SubtitlesLanguage)] = _languageService.GetDefaultLanguage(),
-            };
-        }
-        else
-        {
-            queryAttributes = new Dictionary<string, object>
-            {
-                [nameof(TranscribePopupViewModel.MediaDuration)] = MediaDuration,
-                [nameof(TranscribePopupViewModel.SubtitlesLanguage)] = _transcriptionSettings.SubtitlesLanguage,
-                [nameof(TranscribePopupViewModel.FromTime)] = _transcriptionSettings.FromTime,
-                [nameof(TranscribePopupViewModel.ToTime)] = _transcriptionSettings.ToTime,
-            };
-        }
-
-        queryAttributes.Add(nameof(TranscribePopupViewModel.Title), "Transcription");
-        queryAttributes.Add(nameof(TranscribePopupViewModel.AcceptText), "Transcribe");
-
-        var popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel, TranscriptionSettings>(
-            Shell.Current,
-            new PopupOptions { Shape = null, Shadow = null },
-            queryAttributes
+        var popupResult = await _popupService.ShowTranscriptionSettings(
+            MediaDuration,
+            subtitlesLang,
+            _transcriptionSettings?.FromTime,
+            _transcriptionSettings?.ToTime
         );
 
-        if (popupResult.Result is not TranscriptionSettings newSettings)
+        if (popupResult is not TranscriptionSettings newSettings)
         {
             return;
         }
@@ -171,36 +150,14 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public async Task Translate()
     {
-        Dictionary<string, object> queryAttributes;
-
-        if (_translationSettings is null)
-        {
-            queryAttributes = new Dictionary<string, object>
-            {
-                [nameof(TranslatePopupViewModel.MediaDuration)] = MediaDuration,
-            };
-        }
-        else
-        {
-            queryAttributes = new Dictionary<string, object>
-            {
-                [nameof(TranslatePopupViewModel.MediaDuration)] = MediaDuration,
-                [nameof(TranslatePopupViewModel.TargetLanguage)] = _translationSettings.TargetLanguage,
-                [nameof(TranslatePopupViewModel.FromTime)] = _translationSettings.FromTime,
-                [nameof(TranslatePopupViewModel.ToTime)] = _translationSettings.ToTime,
-            };
-        }
-
-        queryAttributes.Add(nameof(TranscribePopupViewModel.Title), "Translation");
-        queryAttributes.Add(nameof(TranscribePopupViewModel.AcceptText), "Translate");
-
-        var popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel, TranslationSettings>(
-            Shell.Current,
-            new PopupOptions { Shape = null, Shadow = null },
-            queryAttributes
+        var popupResult = await _popupService.ShowTranslationSettings(
+            MediaDuration,
+            _translationSettings?.TargetLanguage,
+            _translationSettings?.FromTime,
+            _translationSettings?.ToTime
         );
 
-        if (popupResult.Result is not TranslationSettings newSettings)
+        if (popupResult is not TranslationSettings newSettings)
         {
             return;
         }

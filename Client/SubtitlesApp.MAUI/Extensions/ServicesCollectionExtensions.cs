@@ -30,6 +30,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
+        services.AddTransient<ICustomPopupService, CustomPopupService>();
         #endregion
 
         #region singleton

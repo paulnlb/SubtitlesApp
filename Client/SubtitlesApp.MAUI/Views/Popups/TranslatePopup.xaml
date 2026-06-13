@@ -10,7 +10,6 @@
   x:Class="SubtitlesApp.Views.Popups.TranslatePopup"
   x:DataType="viewModels:TranslatePopupViewModel"
   x:TypeArguments="clientmodels:TranslationSettings"
-  CanBeDismissedByTappingOutsideOfPopup="False"
   WidthRequest="300"
   BackgroundColor="Transparent"
   ControlTemplate="{StaticResource PopupTemplate}"
