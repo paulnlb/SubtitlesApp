@@ -1,11 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SubtitlesApp.ClientModels.Enums;
-using SubtitlesApp.ClientModels.SettingsItems;
 using SubtitlesApp.Constants;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.ViewModels.SettingsItems;
 
 namespace SubtitlesApp.ViewModels;
 

@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace SubtitlesApp.ClientModels.SettingsItems;
+namespace SubtitlesApp.ViewModels.SettingsItems;
 
 public abstract partial class SettingsItem : ObservableObject
 {

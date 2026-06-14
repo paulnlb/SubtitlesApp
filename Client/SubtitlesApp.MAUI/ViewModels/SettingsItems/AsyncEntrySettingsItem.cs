@@ -1,6 +1,6 @@
 ﻿using SubtitlesApp.Interfaces;
 
-namespace SubtitlesApp.ClientModels.SettingsItems;
+namespace SubtitlesApp.ViewModels.SettingsItems;
 
 public class AsyncEntrySettingsItem(
     IBuiltInDialogService dialogService,

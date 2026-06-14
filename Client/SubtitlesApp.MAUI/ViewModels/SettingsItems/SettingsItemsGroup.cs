@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace SubtitlesApp.ClientModels.SettingsItems;
+namespace SubtitlesApp.ViewModels.SettingsItems;
 
 public class SettingsItemsGroup(string name, ObservableCollection<SettingsItem> settingsItems)
 {

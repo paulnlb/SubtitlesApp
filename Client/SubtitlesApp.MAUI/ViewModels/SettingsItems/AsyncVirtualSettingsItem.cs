@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.ClientModels.SettingsItems;
+﻿namespace SubtitlesApp.ViewModels.SettingsItems;
 
 public abstract class AsyncVirtualSettingsItem<T> : SettingsItem
 {
