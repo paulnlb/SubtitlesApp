@@ -22,10 +22,6 @@ public partial class RadioButtonPopup<T> : Popup<T>
 
     private void InitializeComponentEquivalent()
     {
-        BackgroundColor = Colors.Transparent;
-        Padding = 0;
-        CanBeDismissedByTappingOutsideOfPopup = false;
-
         ControlTemplate = (ControlTemplate?)Application.Current?.Resources["PopupTemplate"];
         Resources = new ResourceDictionary { { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() } };
 

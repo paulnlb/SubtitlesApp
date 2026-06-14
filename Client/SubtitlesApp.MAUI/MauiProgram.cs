@@ -16,7 +16,10 @@ public static class MauiProgram
             .UseFullScreen()
             .UseUraniumUI()
             .UseUraniumUIMaterial()
-            .UseMauiCommunityToolkit()
+            .UseMauiCommunityToolkit(options =>
+            {
+                options.SetPopupDefaults(new DefaultPopupSettings { BackgroundColor = Colors.Transparent, Padding = 0 });
+            })
             .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: false)
             .UseVirtualListView()
             .ConfigureFonts(fonts =>
