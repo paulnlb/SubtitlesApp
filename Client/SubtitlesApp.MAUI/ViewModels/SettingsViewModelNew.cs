@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Constants;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
@@ -13,11 +12,11 @@ public partial class SettingsViewModelNew : ObservableObject
 {
     private const string ValueMask = "******";
 
-    private readonly IBuiltInDialogService _dialogService;
     private readonly ITranscriptionClientSettings _transcriptionSettings;
     private readonly IGeminiClientSettings _geminiClientSettings;
     private readonly IOpenAiClientSettings _openAiClientSettings;
     private readonly ILlmSettings _llmClientSettings;
+    private readonly ICustomPopupService _popupService;
 
     private readonly ObservableCollection<SettingsItem> _openAiSettings = [];
     private readonly ObservableCollection<SettingsItem> _geminiSettings = [];
@@ -25,25 +24,25 @@ public partial class SettingsViewModelNew : ObservableObject
     public ObservableCollection<SettingsItemsGroup> SettingsItems { get; } = [];
 
     public SettingsViewModelNew(
-        IBuiltInDialogService dialogService,
         ITranscriptionClientSettings transcriptionSettings,
         IGeminiClientSettings geminiClientSettings,
         IOpenAiClientSettings openAiClientSettings,
-        ILlmSettings llmClientSettings
+        ILlmSettings llmClientSettings,
+        ICustomPopupService popupService
     )
     {
-        _dialogService = dialogService;
         _transcriptionSettings = transcriptionSettings;
         _geminiClientSettings = geminiClientSettings;
         _openAiClientSettings = openAiClientSettings;
         _llmClientSettings = llmClientSettings;
+        _popupService = popupService;
 
         AddTranscriptionSettings();
         AddOpenAiSettings();
         AddGeminiSettings();
 
         var llmProviderSettings = new PickerSettingsItem(
-            dialogService,
+            popupService,
             true,
             () => llmClientSettings.LlmProvider,
             UpdateLlmProvider
@@ -98,7 +97,7 @@ public partial class SettingsViewModelNew : ObservableObject
     private void AddTranscriptionSettings()
     {
         var modelSettings = new EntrySettingsItem(
-            _dialogService,
+            _popupService,
             true,
             () => _transcriptionSettings.Model,
             (value) => _transcriptionSettings.Model = value
@@ -108,7 +107,7 @@ public partial class SettingsViewModelNew : ObservableObject
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
-            _dialogService,
+            _popupService,
             _transcriptionSettings.GetSecret,
             _transcriptionSettings.SetSecret
         )
@@ -118,7 +117,7 @@ public partial class SettingsViewModelNew : ObservableObject
         };
 
         var endpointSettings = new EntrySettingsItem(
-            _dialogService,
+            _popupService,
             false,
             () => _transcriptionSettings.Endpoint ?? string.Empty,
             (value) => _transcriptionSettings.Endpoint = value
@@ -139,7 +138,7 @@ public partial class SettingsViewModelNew : ObservableObject
     private void AddOpenAiSettings()
     {
         var modelSettings = new EntrySettingsItem(
-            _dialogService,
+            _popupService,
             true,
             () => _openAiClientSettings.Model,
             (value) => _openAiClientSettings.Model = value
@@ -149,7 +148,7 @@ public partial class SettingsViewModelNew : ObservableObject
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
-            _dialogService,
+            _popupService,
             _openAiClientSettings.GetSecret,
             _openAiClientSettings.SetSecret
         )
@@ -159,7 +158,7 @@ public partial class SettingsViewModelNew : ObservableObject
         };
 
         var endpointSettings = new EntrySettingsItem(
-            _dialogService,
+            _popupService,
             false,
             () => _openAiClientSettings.Endpoint ?? string.Empty,
             (value) => _openAiClientSettings.Endpoint = value
@@ -177,7 +176,7 @@ public partial class SettingsViewModelNew : ObservableObject
     private void AddGeminiSettings()
     {
         var modelSettings = new EntrySettingsItem(
-            _dialogService,
+            _popupService,
             true,
             () => _geminiClientSettings.Model,
             (value) => _geminiClientSettings.Model = value
@@ -187,7 +186,7 @@ public partial class SettingsViewModelNew : ObservableObject
         };
 
         var apiKeySettings = new AsyncEntrySettingsItem(
-            _dialogService,
+            _popupService,
             _geminiClientSettings.GetSecret,
             _geminiClientSettings.SetSecret
         )

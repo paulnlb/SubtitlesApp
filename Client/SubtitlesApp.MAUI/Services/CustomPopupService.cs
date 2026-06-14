@@ -88,11 +88,11 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
     {
         var queryAttributes = new Dictionary<string, object>
         {
-            { nameof(EntryPopupViewModel<>.Title), "Enter Url" },
-            { nameof(EntryPopupViewModel<>.AcceptText), "Open" },
+            { nameof(UrlEntryPopupVm.Title), "Enter Url" },
+            { nameof(UrlEntryPopupVm.AcceptText), "Open" },
         };
 
-        var popupResult = await toolkitPopupService.ShowPopupAsync<EntryPopupViewModel<string>, string>(
+        var popupResult = await toolkitPopupService.ShowPopupAsync<UrlEntryPopupVm, string>(
             Shell.Current,
             _popupOptions,
             queryAttributes
@@ -133,6 +133,24 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
     public async Task<T?> CloseCurrentAsync<T>(T result)
     {
         var popupResult = await toolkitPopupService.ClosePopupAsync(Shell.Current, result);
+
+        return popupResult.Result;
+    }
+
+    public async Task<string?> ShowEntry(string title, string? value)
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(StringEntryPopupVm.Title), title },
+            { nameof(StringEntryPopupVm.AcceptText), "Ok" },
+            { nameof(StringEntryPopupVm.Value), value },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<StringEntryPopupVm, string>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
 
         return popupResult.Result;
     }

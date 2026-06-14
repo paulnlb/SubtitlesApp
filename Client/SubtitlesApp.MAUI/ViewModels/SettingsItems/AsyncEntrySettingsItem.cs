@@ -3,7 +3,7 @@
 namespace SubtitlesApp.ViewModels.SettingsItems;
 
 public class AsyncEntrySettingsItem(
-    IBuiltInDialogService dialogService,
+    ICustomPopupService popupService,
     Func<Task<string>>? asyncGetter = null,
     Func<string, Task>? asyncSetter = null
 ) : AsyncVirtualSettingsItem<string>(asyncGetter, asyncSetter)
@@ -11,7 +11,7 @@ public class AsyncEntrySettingsItem(
     public override async Task EditValueAsync()
     {
         var value = await GetValueAsync();
-        var result = await dialogService.DisplayPrompt(Title, null, value);
+        var result = await popupService.ShowEntry(Title, value);
 
         if (result is not null && result != value)
         {

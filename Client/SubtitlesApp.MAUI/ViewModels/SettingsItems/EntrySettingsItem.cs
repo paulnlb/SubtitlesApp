@@ -5,17 +5,17 @@ namespace SubtitlesApp.ViewModels.SettingsItems;
 public class EntrySettingsItem : VirtualSettingsItem<string>
 {
     private bool _valueAsSubtitle;
-    private readonly IBuiltInDialogService _dialogService;
+    private readonly ICustomPopupService _popupService;
 
     public EntrySettingsItem(
-        IBuiltInDialogService dialogService,
+        ICustomPopupService popupService,
         bool valueAsSubTitle = false,
         Func<string>? getter = null,
         Action<string>? setter = null
     )
         : base(getter, setter)
     {
-        _dialogService = dialogService;
+        _popupService = popupService;
         _valueAsSubtitle = valueAsSubTitle;
 
         if (valueAsSubTitle)
@@ -27,7 +27,7 @@ public class EntrySettingsItem : VirtualSettingsItem<string>
     public override async Task EditValueAsync()
     {
         var value = GetValue();
-        var result = await _dialogService.DisplayPrompt(Title, null, value);
+        var result = await _popupService.ShowEntry(Title, value);
 
         if (result is null || result == value)
         {

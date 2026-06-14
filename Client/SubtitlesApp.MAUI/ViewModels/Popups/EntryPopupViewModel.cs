@@ -13,6 +13,7 @@ public partial class EntryPopupViewModel<T>(ICustomPopupService popupService) : 
         query.TryGetValue(nameof(Title), out var titleValue);
         query.TryGetValue(nameof(AcceptText), out var acceptTextValue);
         query.TryGetValue(nameof(CancelText), out var cancelTextValue);
+        query.TryGetValue(nameof(Value), out var valueObj);
 
         if (titleValue is string title)
         {
@@ -25,6 +26,10 @@ public partial class EntryPopupViewModel<T>(ICustomPopupService popupService) : 
         if (cancelTextValue is string cancelText)
         {
             CancelText = cancelText;
+        }
+        if (valueObj is T value)
+        {
+            Value = value;
         }
 
         query.Clear();

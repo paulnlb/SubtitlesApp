@@ -61,7 +61,7 @@
   <Style Class="PopupView" TargetType="View" ApplyToDerivedTypes="True" CanCascade="True">
     <Setter
       Property="BackgroundColor"
-      Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
+      Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}"
     />
   </Style>
 </ResourceDictionary>

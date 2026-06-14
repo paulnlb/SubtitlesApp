@@ -3,9 +3,9 @@ using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.Views.Popups;
 
-public partial class UrlEntryPopup : Popup<string>
+public partial class EntryPopup : Popup<string>
 {
-    public UrlEntryPopup(UrlEntryPopupVm vm)
+    public EntryPopup(StringEntryPopupVm vm)
     {
         BindingContext = vm;
         InitializeComponent();

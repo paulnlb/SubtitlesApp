@@ -31,4 +31,6 @@ public interface ICustomPopupService
     public Task CloseCurrentAsync();
 
     public Task<T?> CloseCurrentAsync<T>(T result);
+
+    Task<string?> ShowEntry(string title, string? value);
 }
