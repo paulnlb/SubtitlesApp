@@ -5,9 +5,9 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class SelectLanguagePopupVm<T>(IPopupService popupService) : BasePopupVm, IQueryAttributable
+public partial class RadioButtonPopupVm<T>(IPopupService popupService) : BasePopupVm, IQueryAttributable
 {
-    private LanguageViewModel<T>? _selectedVm;
+    private RadioButtonViewModel<T>? _selectedVm;
 
     [ObservableProperty]
     private IEnumerable<T> _sourceItems = [];
@@ -19,7 +19,7 @@ public partial class SelectLanguagePopupVm<T>(IPopupService popupService) : Base
     private T? _selectedItem;
 
     [ObservableProperty]
-    private ObservableCollection<LanguageViewModel<T>> _sourceVms = [];
+    private ObservableCollection<RadioButtonViewModel<T>> _sourceVms = [];
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -59,7 +59,7 @@ public partial class SelectLanguagePopupVm<T>(IPopupService popupService) : Base
 
         foreach (var item in SourceItems)
         {
-            var vm = new LanguageViewModel<T>
+            var vm = new RadioButtonViewModel<T>
             {
                 Title = DisplaySelector(item),
                 Value = item,
@@ -78,7 +78,7 @@ public partial class SelectLanguagePopupVm<T>(IPopupService popupService) : Base
     }
 
     [RelayCommand]
-    public void ItemSelected(LanguageViewModel<T> vm)
+    public void ItemSelected(RadioButtonViewModel<T> vm)
     {
         if (vm == _selectedVm)
         {

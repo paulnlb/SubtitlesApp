@@ -5,11 +5,11 @@ using UraniumUI.Extensions;
 
 namespace SubtitlesApp.Views.Popups;
 
-public partial class SelectLanguagePopup<T> : Popup<T>
+public partial class RadioButtonPopup<T> : Popup<T>
 {
-    private SelectLanguagePopupVm<T> Vm => (SelectLanguagePopupVm<T>)BindingContext;
+    private RadioButtonPopupVm<T> Vm => (RadioButtonPopupVm<T>)BindingContext;
 
-    public SelectLanguagePopup(SelectLanguagePopupVm<T> viewModel)
+    public RadioButtonPopup(RadioButtonPopupVm<T> viewModel)
     {
         InitializeComponentEquivalent();
         BindingContext = viewModel;
@@ -22,24 +22,16 @@ public partial class SelectLanguagePopup<T> : Popup<T>
 
     private void InitializeComponentEquivalent()
     {
-        // BackgroundColor="Transparent"
         BackgroundColor = Colors.Transparent;
-
-        // Padding="0"
         Padding = 0;
-
-        // CanBeDismissedByTappingOutsideOfPopup="False"
         CanBeDismissedByTappingOutsideOfPopup = false;
 
-        // ControlTemplate="{StaticResource PopupTemplate}"
         ControlTemplate = (ControlTemplate?)Application.Current?.Resources["PopupTemplate"];
-
-        // Popup.Resources
         Resources = new ResourceDictionary { { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() } };
 
         var collectionView = new CollectionView { SelectionMode = Microsoft.Maui.Controls.SelectionMode.None };
 
-        collectionView.SetBinding(ItemsView.ItemsSourceProperty, nameof(SelectLanguagePopupVm<>.SourceVms));
+        collectionView.SetBinding(ItemsView.ItemsSourceProperty, nameof(RadioButtonPopupVm<>.SourceVms));
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
@@ -48,15 +40,13 @@ public partial class SelectLanguagePopup<T> : Popup<T>
             radioButton.SetBinding(
                 RadioButton.ContentProperty,
                 new Binding(
-                    nameof(LanguageViewModel<>.Title),
+                    nameof(RadioButtonViewModel<>.Title),
                     BindingMode.OneWay,
                     converter: (IValueConverter)Resources["AddSpaceBeforeStringConverter"]
                 )
             );
-
-            radioButton.SetBinding(RadioButton.IsCheckedProperty, nameof(LanguageViewModel<>.IsChecked));
-
-            radioButton.SetBinding(RadioButton.ValueProperty, nameof(LanguageViewModel<>.Value));
+            radioButton.SetBinding(RadioButton.IsCheckedProperty, nameof(RadioButtonViewModel<>.IsChecked));
+            radioButton.SetBinding(RadioButton.ValueProperty, nameof(RadioButtonViewModel<>.Value));
 
             radioButton.CheckedChanged += RadioButton_CheckedChanged;
 
@@ -91,7 +81,7 @@ public partial class SelectLanguagePopup<T> : Popup<T>
 
     private void RadioButton_CheckedChanged(object? sender, CheckedChangedEventArgs e)
     {
-        if (sender is not RadioButton rb || rb.BindingContext is not LanguageViewModel<T> langVm || !e.Value)
+        if (sender is not RadioButton rb || rb.BindingContext is not RadioButtonViewModel<T> langVm || !e.Value)
         {
             return;
         }

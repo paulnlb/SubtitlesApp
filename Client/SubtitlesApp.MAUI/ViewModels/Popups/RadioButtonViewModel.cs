@@ -2,7 +2,7 @@
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class LanguageViewModel<T> : ObservableObject
+public partial class RadioButtonViewModel<T> : ObservableObject
 {
     [ObservableProperty]
     private string _title;

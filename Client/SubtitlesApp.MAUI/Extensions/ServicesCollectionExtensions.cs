@@ -62,7 +62,7 @@ public static class ServicesCollectionExtensions
 
         #region popups
         services.AddTransientPopup<UrlEntryPopup, UrlEntryPopupViewModel>();
-        services.AddTransientPopup<SelectLanguagePopup<Language>, SelectLanguagePopupVm<Language>>();
+        services.AddTransientPopup<RadioButtonPopup<Language>, RadioButtonPopupVm<Language>>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
         services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
         #endregion

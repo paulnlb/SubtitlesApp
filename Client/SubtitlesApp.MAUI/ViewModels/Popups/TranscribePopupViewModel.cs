@@ -81,13 +81,13 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
 
         var queryAttributes = new Dictionary<string, object>
         {
-            [nameof(SelectLanguagePopupVm<>.Title)] = "Choose language of subtitles",
-            [nameof(SelectLanguagePopupVm<>.SourceItems)] = languageService.GetAllLanguages(),
-            [nameof(SelectLanguagePopupVm<>.DisplaySelector)] = displaySelector,
-            [nameof(SelectLanguagePopupVm<>.SelectedItem)] = SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
+            [nameof(RadioButtonPopupVm<>.Title)] = "Choose language of subtitles",
+            [nameof(RadioButtonPopupVm<>.SourceItems)] = languageService.GetAllLanguages(),
+            [nameof(RadioButtonPopupVm<>.DisplaySelector)] = displaySelector,
+            [nameof(RadioButtonPopupVm<>.SelectedItem)] = SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
         };
 
-        var popupResult = await popupService.ShowPopupAsync<SelectLanguagePopupVm<Language>, Language>(
+        var popupResult = await popupService.ShowPopupAsync<RadioButtonPopupVm<Language>, Language>(
             Shell.Current,
             new PopupOptions { Shape = null, Shadow = null },
             queryAttributes
