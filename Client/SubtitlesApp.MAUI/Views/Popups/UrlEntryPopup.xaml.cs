@@ -5,7 +5,7 @@ namespace SubtitlesApp.Views.Popups;
 
 public partial class UrlEntryPopup : Popup<string>
 {
-    public UrlEntryPopup(UrlEntryPopupViewModel vm)
+    public UrlEntryPopup(EntryPopupViewModel<string> vm)
     {
         BindingContext = vm;
         InitializeComponent();

@@ -88,11 +88,11 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
     {
         var queryAttributes = new Dictionary<string, object>
         {
-            { nameof(UrlEntryPopupViewModel.Title), "Enter Url" },
-            { nameof(UrlEntryPopupViewModel.AcceptText), "Open" },
+            { nameof(EntryPopupViewModel<>.Title), "Enter Url" },
+            { nameof(EntryPopupViewModel<>.AcceptText), "Open" },
         };
 
-        var popupResult = await toolkitPopupService.ShowPopupAsync<UrlEntryPopupViewModel, string>(
+        var popupResult = await toolkitPopupService.ShowPopupAsync<EntryPopupViewModel<string>, string>(
             Shell.Current,
             _popupOptions,
             queryAttributes

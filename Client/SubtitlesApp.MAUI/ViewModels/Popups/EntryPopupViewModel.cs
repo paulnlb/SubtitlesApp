@@ -3,10 +3,10 @@ using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class UrlEntryPopupViewModel(ICustomPopupService popupService) : BasePopupVm, IQueryAttributable
+public partial class EntryPopupViewModel<T>(ICustomPopupService popupService) : BasePopupVm, IQueryAttributable
 {
     [ObservableProperty]
-    private string _url;
+    private T _value;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -32,7 +32,7 @@ public partial class UrlEntryPopupViewModel(ICustomPopupService popupService) : 
 
     public override Task Accept()
     {
-        return popupService.CloseCurrentAsync(Url);
+        return popupService.CloseCurrentAsync(Value);
     }
 
     public override Task Cancel()

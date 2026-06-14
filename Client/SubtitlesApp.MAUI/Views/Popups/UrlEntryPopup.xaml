@@ -4,14 +4,13 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
-  xmlns:system="clr-namespace:System;assembly=mscorlib"
-  x:DataType="viewModels:UrlEntryPopupViewModel"
+  x:DataType="viewModels:EntryPopupViewModel`1"
   x:Class="SubtitlesApp.Views.Popups.UrlEntryPopup"
-  x:TypeArguments="system:String"
+  x:TypeArguments="x:String"
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
-  <Entry x:Name="urlEntry" Placeholder="https://..." Text="{Binding Url}">
+  <Entry x:Name="urlEntry" Placeholder="https://..." Text="{Binding Value}">
     <Entry.Behaviors>
       <toolkit:TextValidationBehavior
         x:Name="validationBehavior"
