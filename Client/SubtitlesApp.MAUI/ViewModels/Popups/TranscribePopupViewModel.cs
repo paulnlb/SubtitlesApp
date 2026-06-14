@@ -1,13 +1,13 @@
-using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class TranscribePopupViewModel(IPopupService popupService, LanguageService languageService)
+public partial class TranscribePopupViewModel(ICustomPopupService popupService, LanguageService languageService)
     : BasePopupVm,
         IQueryAttributable
 {
@@ -77,25 +77,16 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
     [RelayCommand]
     public async Task ChooseSubtitlesLanguage()
     {
-        Func<Language, string> displaySelector = x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})";
-
-        var queryAttributes = new Dictionary<string, object>
-        {
-            [nameof(RadioButtonPopupVm<>.Title)] = "Choose language of subtitles",
-            [nameof(RadioButtonPopupVm<>.SourceItems)] = languageService.GetAllLanguages(),
-            [nameof(RadioButtonPopupVm<>.DisplaySelector)] = displaySelector,
-            [nameof(RadioButtonPopupVm<>.SelectedItem)] = SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
-        };
-
-        var popupResult = await popupService.ShowPopupAsync<RadioButtonPopupVm<Language>, Language>(
-            Shell.Current,
-            new PopupOptions { Shape = null, Shadow = null },
-            queryAttributes
+        var selectedLang = await popupService.ShowRadioButtons(
+            "Choose language of subtitles",
+            languageService.GetAllLanguages(),
+            x => x.Name == "Auto" ? x.Name : $"{x.Name} ({x.NativeName})",
+            SubtitlesLanguage ?? languageService.GetDefaultLanguage()
         );
 
-        if (popupResult.Result is not null)
+        if (selectedLang is not null)
         {
-            SubtitlesLanguage = popupResult.Result;
+            SubtitlesLanguage = selectedLang;
         }
     }
 
@@ -103,17 +94,17 @@ public partial class TranscribePopupViewModel(IPopupService popupService, Langua
     {
         var transcriptionSettings = new TranscriptionSettings
         {
-            SubtitlesLanguage = this.SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
+            SubtitlesLanguage = SubtitlesLanguage ?? languageService.GetDefaultLanguage(),
             FromTime = FromTime,
             ToTime = ToTime,
         };
 
-        await popupService.ClosePopupAsync(Shell.Current, transcriptionSettings);
+        await popupService.CloseCurrentAsync(transcriptionSettings);
     }
 
     public override async Task Cancel()
     {
-        await popupService.ClosePopupAsync(Shell.Current);
+        await popupService.CloseCurrentAsync();
     }
 
     partial void OnFromTimeChanged(TimeSpan value)

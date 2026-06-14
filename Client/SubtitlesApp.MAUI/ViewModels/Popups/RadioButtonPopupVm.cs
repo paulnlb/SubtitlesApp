@@ -1,11 +1,11 @@
 ﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class RadioButtonPopupVm<T>(IPopupService popupService) : BasePopupVm, IQueryAttributable
+public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : BasePopupVm, IQueryAttributable
 {
     private RadioButtonViewModel<T>? _selectedVm;
 
@@ -13,7 +13,7 @@ public partial class RadioButtonPopupVm<T>(IPopupService popupService) : BasePop
     private IEnumerable<T> _sourceItems = [];
 
     [ObservableProperty]
-    private Func<T, string> _displaySelector = x => x.ToString() ?? string.Empty;
+    private Func<T, string> _displaySelector = x => x?.ToString() ?? string.Empty;
 
     [ObservableProperty]
     private T? _selectedItem;
@@ -42,12 +42,10 @@ public partial class RadioButtonPopupVm<T>(IPopupService popupService) : BasePop
         {
             CancelText = cancelText;
         }
-
         if (selectorValue is Func<T, string> displaySelector)
         {
             DisplaySelector = displaySelector;
         }
-
         if (items is IEnumerable<T> sourceItems)
         {
             SourceItems = sourceItems;
@@ -89,14 +87,14 @@ public partial class RadioButtonPopupVm<T>(IPopupService popupService) : BasePop
         _selectedVm = vm;
     }
 
-    public override async Task Accept()
+    public override Task Accept()
     {
         var result = _selectedVm is null ? default : _selectedVm.Value;
-        await popupService.ClosePopupAsync(Shell.Current, result);
+        return popupService.CloseCurrentAsync(result);
     }
 
-    public override async Task Cancel()
+    public override Task Cancel()
     {
-        await popupService.ClosePopupAsync(Shell.Current);
+        return popupService.CloseCurrentAsync();
     }
 }

@@ -1,9 +1,9 @@
-﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class UrlEntryPopupViewModel(IPopupService popupService) : BasePopupVm, IQueryAttributable
+public partial class UrlEntryPopupViewModel(ICustomPopupService popupService) : BasePopupVm, IQueryAttributable
 {
     [ObservableProperty]
     private string _url;
@@ -32,11 +32,11 @@ public partial class UrlEntryPopupViewModel(IPopupService popupService) : BasePo
 
     public override Task Accept()
     {
-        return popupService.ClosePopupAsync(Shell.Current, Url);
+        return popupService.CloseCurrentAsync(Url);
     }
 
     public override Task Cancel()
     {
-        return popupService.ClosePopupAsync(Shell.Current);
+        return popupService.CloseCurrentAsync();
     }
 }

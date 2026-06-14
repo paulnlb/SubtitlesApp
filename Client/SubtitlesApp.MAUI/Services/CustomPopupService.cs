@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Maui;
-using Microsoft.Maui.Controls.Shapes;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Interfaces;
@@ -98,6 +97,42 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             _popupOptions,
             queryAttributes
         );
+
+        return popupResult.Result;
+    }
+
+    public async Task<T?> ShowRadioButtons<T>(
+        string title,
+        IEnumerable<T> sourceItems,
+        Func<T, string> displaySelector,
+        T? selected
+    )
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(RadioButtonPopupVm<>.Title), title },
+            { nameof(RadioButtonPopupVm<>.SourceItems), sourceItems },
+            { nameof(RadioButtonPopupVm<>.DisplaySelector), displaySelector },
+            { nameof(RadioButtonPopupVm<>.SelectedItem), selected ?? default },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<RadioButtonPopupVm<T>, T>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+
+    public Task CloseCurrentAsync()
+    {
+        return toolkitPopupService.ClosePopupAsync(Shell.Current);
+    }
+
+    public async Task<T?> CloseCurrentAsync<T>(T result)
+    {
+        var popupResult = await toolkitPopupService.ClosePopupAsync(Shell.Current, result);
 
         return popupResult.Result;
     }

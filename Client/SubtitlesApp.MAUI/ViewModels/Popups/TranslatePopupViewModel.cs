@@ -1,13 +1,13 @@
-using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class TranslatePopupViewModel(IPopupService popupService, LanguageService languageService)
+public partial class TranslatePopupViewModel(ICustomPopupService popupService, LanguageService languageService)
     : BasePopupVm,
         IQueryAttributable
 {
@@ -79,27 +79,16 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
     [RelayCommand]
     public async Task ChooseTargetLanguage()
     {
-        Func<Language, string> displaySelector = x => $"{x.Name} ({x.NativeName})";
-
-        var queryAttributes = new Dictionary<string, object>
-        {
-            [nameof(RadioButtonPopupVm<>.Title)] = "Choose language of translation",
-            [nameof(RadioButtonPopupVm<>.SourceItems)] = languageService.GetLanguages(l =>
-                l.Code != SourceLanguageCode && l.Code != "auto"
-            ),
-            [nameof(RadioButtonPopupVm<>.DisplaySelector)] = displaySelector,
-            [nameof(RadioButtonPopupVm<>.SelectedItem)] = TargetLanguage,
-        };
-
-        var popupResult = await popupService.ShowPopupAsync<RadioButtonPopupVm<Language>, Language>(
-            Shell.Current,
-            new PopupOptions { Shape = null, Shadow = null },
-            queryAttributes
+        var selectedLang = await popupService.ShowRadioButtons(
+            "Choose language of translation",
+            languageService.GetLanguages(l => l.Code != SourceLanguageCode && l.Code != "auto"),
+            x => $"{x.Name} ({x.NativeName})",
+            TargetLanguage
         );
 
-        if (popupResult.Result is not null)
+        if (selectedLang is not null)
         {
-            TargetLanguage = popupResult.Result;
+            TargetLanguage = selectedLang;
         }
     }
 
@@ -112,12 +101,12 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
             ToTime = ToTime,
         };
 
-        await popupService.ClosePopupAsync(Shell.Current, translationSettings);
+        await popupService.CloseCurrentAsync(translationSettings);
     }
 
     public override async Task Cancel()
     {
-        await popupService.ClosePopupAsync(Shell.Current);
+        await popupService.CloseCurrentAsync();
     }
 
     partial void OnFromTimeChanged(TimeSpan value)

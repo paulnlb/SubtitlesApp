@@ -20,4 +20,15 @@ public interface ICustomPopupService
     );
 
     public Task<string?> ShowUrlEntry();
+
+    public Task<T?> ShowRadioButtons<T>(
+        string title,
+        IEnumerable<T> sourceItems,
+        Func<T, string> displaySelector,
+        T? selected
+    );
+
+    public Task CloseCurrentAsync();
+
+    public Task<T?> CloseCurrentAsync<T>(T result);
 }
