@@ -8,6 +8,7 @@
   x:Class="SubtitlesApp.Views.Popups.UrlEntryPopup"
   x:TypeArguments="x:String"
   ControlTemplate="{StaticResource PopupTemplate}"
+  WidthRequest="300"
   x:Name="root"
 >
   <Entry x:Name="urlEntry" Placeholder="https://..." Text="{Binding Value}">

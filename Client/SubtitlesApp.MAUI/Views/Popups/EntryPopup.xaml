@@ -8,6 +8,7 @@
   x:Class="SubtitlesApp.Views.Popups.EntryPopup"
   x:TypeArguments="x:String"
   ControlTemplate="{StaticResource PopupTemplate}"
+  WidthRequest="300"
 >
   <Entry Text="{Binding Value}" />
 </toolkit:Popup>

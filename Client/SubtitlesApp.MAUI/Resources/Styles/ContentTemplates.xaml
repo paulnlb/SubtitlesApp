@@ -6,8 +6,8 @@
   x:Class="SubtitlesApp.Resources.Styles.ContentTemplates"
 >
   <ControlTemplate x:Key="PopupTemplate" x:DataType="popupVms:BasePopupVm">
-    <Border Padding="0" StyleClass="PopupBorder, PopupView">
-      <Grid RowDefinitions="Auto, Auto, *, Auto, Auto">
+    <Border Padding="0" StyleClass="PopupBorder">
+      <Grid RowDefinitions="Auto, Auto, *, Auto, Auto" StyleClass="PopupView">
         <Label x:Name="header" Grid.Row="0" Text="{Binding Title}" Margin="20" />
         <BoxView StyleClass="Divider" Grid.Row="1" Margin="0" />
 
