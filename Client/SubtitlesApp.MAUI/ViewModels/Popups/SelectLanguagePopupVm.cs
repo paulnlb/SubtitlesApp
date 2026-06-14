@@ -2,25 +2,24 @@
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class SelectLanguagePopupVm(IPopupService popupService) : BasePopupVm, IQueryAttributable
+public partial class SelectLanguagePopupVm<T>(IPopupService popupService) : BasePopupVm, IQueryAttributable
 {
-    private LanguageViewModel? _selectedVm;
+    private LanguageViewModel<T>? _selectedVm;
 
     [ObservableProperty]
-    private IEnumerable<Language> _sourceItems = [];
+    private IEnumerable<T> _sourceItems = [];
 
     [ObservableProperty]
-    private Func<Language, string> _displaySelector = x => x.ToString() ?? string.Empty;
+    private Func<T, string> _displaySelector = x => x.ToString() ?? string.Empty;
 
     [ObservableProperty]
-    private Language? _selectedItem;
+    private T? _selectedItem;
 
     [ObservableProperty]
-    private ObservableCollection<LanguageViewModel> _sourceVms = [];
+    private ObservableCollection<LanguageViewModel<T>> _sourceVms = [];
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -44,21 +43,23 @@ public partial class SelectLanguagePopupVm(IPopupService popupService) : BasePop
             CancelText = cancelText;
         }
 
-        if (selectorValue is Func<Language, string> displaySelector)
+        if (selectorValue is Func<T, string> displaySelector)
         {
             DisplaySelector = displaySelector;
         }
 
-        if (items is IEnumerable<Language> sourceItems)
+        if (items is IEnumerable<T> sourceItems)
         {
             SourceItems = sourceItems;
         }
-
-        SelectedItem = selectedValue as Language;
+        if (selectedValue is T selectedItem)
+        {
+            SelectedItem = selectedItem;
+        }
 
         foreach (var item in SourceItems)
         {
-            var vm = new LanguageViewModel
+            var vm = new LanguageViewModel<T>
             {
                 Title = DisplaySelector(item),
                 Value = item,
@@ -77,7 +78,7 @@ public partial class SelectLanguagePopupVm(IPopupService popupService) : BasePop
     }
 
     [RelayCommand]
-    public void ItemSelected(LanguageViewModel vm)
+    public void ItemSelected(LanguageViewModel<T> vm)
     {
         if (vm == _selectedVm)
         {

@@ -1,15 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
-public partial class LanguageViewModel : ObservableObject
+public partial class LanguageViewModel<T> : ObservableObject
 {
     [ObservableProperty]
     private string _title;
 
     [ObservableProperty]
-    private Language _value;
+    private T _value;
 
     [ObservableProperty]
     private bool _isChecked;

@@ -83,15 +83,15 @@ public partial class TranslatePopupViewModel(IPopupService popupService, Languag
 
         var queryAttributes = new Dictionary<string, object>
         {
-            [nameof(SelectLanguagePopupVm.Title)] = "Choose language of translation",
-            [nameof(SelectLanguagePopupVm.SourceItems)] = languageService.GetLanguages(l =>
+            [nameof(SelectLanguagePopupVm<>.Title)] = "Choose language of translation",
+            [nameof(SelectLanguagePopupVm<>.SourceItems)] = languageService.GetLanguages(l =>
                 l.Code != SourceLanguageCode && l.Code != "auto"
             ),
-            [nameof(SelectLanguagePopupVm.DisplaySelector)] = displaySelector,
-            [nameof(SelectLanguagePopupVm.SelectedItem)] = TargetLanguage,
+            [nameof(SelectLanguagePopupVm<>.DisplaySelector)] = displaySelector,
+            [nameof(SelectLanguagePopupVm<>.SelectedItem)] = TargetLanguage,
         };
 
-        var popupResult = await popupService.ShowPopupAsync<SelectLanguagePopupVm, Language>(
+        var popupResult = await popupService.ShowPopupAsync<SelectLanguagePopupVm<Language>, Language>(
             Shell.Current,
             new PopupOptions { Shape = null, Shadow = null },
             queryAttributes
