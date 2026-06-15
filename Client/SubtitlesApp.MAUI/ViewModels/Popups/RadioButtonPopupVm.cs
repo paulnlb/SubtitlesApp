@@ -1,13 +1,30 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : BasePopupVm, IQueryAttributable
 {
-    private RadioButtonViewModel<T>? _selectedVm;
+    private SelectedItemVm<T>? _selectedVm;
+
+    public SelectedItemVm<T>? SelectedVm
+    {
+        get => _selectedVm;
+        set
+        {
+            if (_selectedVm == value)
+                return;
+
+            _selectedVm?.IsSelected = false;
+
+            _selectedVm = value;
+
+            _selectedVm?.IsSelected = true;
+
+            OnPropertyChanged();
+        }
+    }
 
     [ObservableProperty]
     private IEnumerable<T> _sourceItems = [];
@@ -19,7 +36,7 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
     private T? _selectedItem;
 
     [ObservableProperty]
-    private ObservableCollection<RadioButtonViewModel<T>> _sourceVms = [];
+    private ObservableCollection<SelectedItemVm<T>> _sourceVms = [];
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -57,16 +74,16 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
 
         foreach (var item in SourceItems)
         {
-            var vm = new RadioButtonViewModel<T>
+            var vm = new SelectedItemVm<T>
             {
                 Title = DisplaySelector(item),
                 Value = item,
-                IsChecked = item is not null && item.Equals(SelectedItem),
+                IsSelected = item is not null && item.Equals(SelectedItem),
             };
 
-            if (vm.IsChecked)
+            if (vm.IsSelected)
             {
-                _selectedVm = vm;
+                SelectedVm = vm;
             }
 
             SourceVms.Add(vm);
@@ -75,21 +92,9 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
         query.Clear();
     }
 
-    [RelayCommand]
-    public void ItemSelected(RadioButtonViewModel<T> vm)
-    {
-        if (vm == _selectedVm)
-        {
-            return;
-        }
-
-        _selectedVm?.IsChecked = false;
-        _selectedVm = vm;
-    }
-
     public override Task Accept()
     {
-        var result = _selectedVm is null ? default : _selectedVm.Value;
+        var result = SelectedVm is null ? default : SelectedVm.Value;
         return popupService.CloseCurrentAsync(result);
     }
 

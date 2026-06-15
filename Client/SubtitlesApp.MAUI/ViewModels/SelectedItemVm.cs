@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace SubtitlesApp.ViewModels.Popups;
+namespace SubtitlesApp.ViewModels;
 
-public partial class RadioButtonViewModel<T> : ObservableObject
+public partial class SelectedItemVm<T> : ObservableObject
 {
     [ObservableProperty]
     private string _title;
@@ -11,5 +11,5 @@ public partial class RadioButtonViewModel<T> : ObservableObject
     private T _value;
 
     [ObservableProperty]
-    private bool _isChecked;
+    private bool _isSelected;
 }

@@ -163,7 +163,7 @@ public partial class SettingsViewModelNew : ObservableObject
             10
         )
         {
-            Title = "Last n subtitles as prompt",
+            Title = "Use last n subtitles as prompt",
         };
 
         SettingsItems.Add(

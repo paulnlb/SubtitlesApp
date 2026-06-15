@@ -1,5 +1,6 @@
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.Converters;
+using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
 using UraniumUI.Extensions;
 
@@ -7,8 +8,6 @@ namespace SubtitlesApp.Views.Popups;
 
 public partial class RadioButtonPopup<T> : Popup<T>
 {
-    private RadioButtonPopupVm<T> Vm => (RadioButtonPopupVm<T>)BindingContext;
-
     public RadioButtonPopup(RadioButtonPopupVm<T> viewModel)
     {
         InitializeComponentEquivalent();
@@ -25,9 +24,10 @@ public partial class RadioButtonPopup<T> : Popup<T>
         ControlTemplate = (ControlTemplate?)Application.Current?.Resources["PopupTemplate"];
         Resources = new ResourceDictionary { { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() } };
 
-        var collectionView = new CollectionView { SelectionMode = Microsoft.Maui.Controls.SelectionMode.None };
+        var collectionView = new CollectionView { SelectionMode = Microsoft.Maui.Controls.SelectionMode.Single };
 
-        collectionView.SetBinding(ItemsView.ItemsSourceProperty, nameof(RadioButtonPopupVm<>.SourceVms));
+        collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(RadioButtonPopupVm<>.SourceVms));
+        collectionView.SetBinding(CollectionView.SelectedItemProperty, nameof(RadioButtonPopupVm<>.SelectedVm));
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
@@ -36,15 +36,14 @@ public partial class RadioButtonPopup<T> : Popup<T>
             radioButton.SetBinding(
                 RadioButton.ContentProperty,
                 new Binding(
-                    nameof(RadioButtonViewModel<>.Title),
+                    nameof(SelectedItemVm<>.Title),
                     BindingMode.OneWay,
                     converter: (IValueConverter)Resources["AddSpaceBeforeStringConverter"]
                 )
             );
-            radioButton.SetBinding(RadioButton.IsCheckedProperty, nameof(RadioButtonViewModel<>.IsChecked));
-            radioButton.SetBinding(RadioButton.ValueProperty, nameof(RadioButtonViewModel<>.Value));
-
-            radioButton.CheckedChanged += RadioButton_CheckedChanged;
+            radioButton.SetBinding(RadioButton.IsCheckedProperty, nameof(SelectedItemVm<>.IsSelected));
+            radioButton.SetBinding(RadioButton.ValueProperty, nameof(SelectedItemVm<>.Value));
+            radioButton.InputTransparent = true;
 
             return radioButton;
         });
@@ -73,18 +72,5 @@ public partial class RadioButtonPopup<T> : Popup<T>
         }
 
         return new Size(100, 100);
-    }
-
-    private void RadioButton_CheckedChanged(object? sender, CheckedChangedEventArgs e)
-    {
-        if (sender is not RadioButton rb || rb.BindingContext is not RadioButtonViewModel<T> langVm || !e.Value)
-        {
-            return;
-        }
-
-        if (Vm.ItemSelectedCommand != null && Vm.ItemSelectedCommand.CanExecute(langVm))
-        {
-            Vm.ItemSelectedCommand.Execute(langVm);
-        }
     }
 }
