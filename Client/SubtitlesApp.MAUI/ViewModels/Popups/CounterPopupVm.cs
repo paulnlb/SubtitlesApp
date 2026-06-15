@@ -54,12 +54,12 @@ public partial class CounterPopupVm(ICustomPopupService popupService) : BasePopu
 
     public override Task Accept()
     {
-        return popupService.CloseCurrentAsync(Counter);
+        return popupService.CloseCurrentAsync<int?>(Counter);
     }
 
     public override Task Cancel()
     {
-        return popupService.CloseCurrentAsync();
+        return popupService.CloseCurrentAsync<int?>(null);
     }
 
     [RelayCommand]

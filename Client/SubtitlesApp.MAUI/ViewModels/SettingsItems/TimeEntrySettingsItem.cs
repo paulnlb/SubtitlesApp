@@ -30,16 +30,16 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
         var value = GetValue();
         var result = await _popupService.ShowTimeEntry(Title, value);
 
-        if (result == value)
+        if (result is null || result == value)
         {
             return;
         }
 
-        SetValue(result);
+        SetValue(result.Value);
 
         if (_valueAsSubtitle)
         {
-            SubTitle = ConvertToDescription(result);
+            SubTitle = ConvertToDescription(result.Value);
         }
     }
 

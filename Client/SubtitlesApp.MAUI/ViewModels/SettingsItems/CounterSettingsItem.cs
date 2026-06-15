@@ -37,16 +37,16 @@ public class CounterSettingsItem : VirtualSettingsItem<int>
 
         var result = await _popupService.ShowCounter(Title, value, _min, _max);
 
-        if (result == value)
+        if (result is null || result == value)
         {
             return;
         }
 
-        SetValue(result);
+        SetValue(result.Value);
 
         if (_valueAsSubtitle)
         {
-            SubTitle = result.ToString();
+            SubTitle = result.Value.ToString();
         }
     }
 }

@@ -5,6 +5,8 @@ namespace SubtitlesApp.ViewModels.Popups;
 
 public partial class EntryPopupViewModel<T>(ICustomPopupService popupService) : BasePopupVm, IQueryAttributable
 {
+    protected ICustomPopupService PopupService = popupService;
+
     [ObservableProperty]
     private T _value;
 
@@ -37,11 +39,11 @@ public partial class EntryPopupViewModel<T>(ICustomPopupService popupService) : 
 
     public override Task Accept()
     {
-        return popupService.CloseCurrentAsync(Value);
+        return PopupService.CloseCurrentAsync(Value);
     }
 
     public override Task Cancel()
     {
-        return popupService.CloseCurrentAsync();
+        return PopupService.CloseCurrentAsync();
     }
 }

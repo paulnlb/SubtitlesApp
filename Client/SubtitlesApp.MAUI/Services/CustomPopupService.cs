@@ -155,7 +155,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         return popupResult.Result;
     }
 
-    public async Task<TimeSpan> ShowTimeEntry(string title, TimeSpan value)
+    public async Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value)
     {
         var queryAttributes = new Dictionary<string, object>
         {
@@ -164,7 +164,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(TimeEntryPopupVm.Value), value },
         };
 
-        var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan>(
+        var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan?>(
             Shell.Current,
             _popupOptions,
             queryAttributes
@@ -173,7 +173,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         return popupResult.Result;
     }
 
-    public async Task<int> ShowCounter(string title, int value, int min = 0, int max = int.MaxValue)
+    public async Task<int?> ShowCounter(string title, int value, int min = 0, int max = int.MaxValue)
     {
         var queryAttributes = new Dictionary<string, object>
         {
@@ -184,7 +184,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(CounterPopupVm.Max), max },
         };
 
-        var popupResult = await toolkitPopupService.ShowPopupAsync<CounterPopupVm, int>(
+        var popupResult = await toolkitPopupService.ShowPopupAsync<CounterPopupVm, int?>(
             Shell.Current,
             _popupOptions,
             queryAttributes
