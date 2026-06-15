@@ -33,4 +33,6 @@ public interface ICustomPopupService
     public Task<T?> CloseCurrentAsync<T>(T result);
 
     Task<string?> ShowEntry(string title, string? value);
+
+    Task<TimeSpan> ShowTimeEntry(string title, TimeSpan value);
 }

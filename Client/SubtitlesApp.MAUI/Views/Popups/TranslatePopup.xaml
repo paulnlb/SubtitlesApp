@@ -16,7 +16,6 @@
 >
   <toolkit:Popup.Resources>
     <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
-    <conv:AllTrueMultiConverter x:Key="AllTrueConverter" />
   </toolkit:Popup.Resources>
   <Grid RowDefinitions="Auto, 20, 50" ColumnDefinitions="*, *">
     <uranium:StatefulContentView

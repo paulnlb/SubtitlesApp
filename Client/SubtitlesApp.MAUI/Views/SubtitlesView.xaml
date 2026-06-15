@@ -14,7 +14,6 @@
   <ContentView.Resources>
     <ResourceDictionary>
       <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-      <converters:AllTrueMultiConverter x:Key="AllTrueConverter" />
     </ResourceDictionary>
     <Style x:Key="ButtonStyle" TargetType="Button" BasedOn="{StaticResource TranslucentButton}">
       <Setter Property="Padding" Value="3" />

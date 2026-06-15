@@ -125,5 +125,5 @@ public class TranscriptionService(
     }
 
     private TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime) =>
-        maxEndTime <= startTime + settings.SubIntervalSize ? maxEndTime : startTime + settings.SubIntervalSize;
+        maxEndTime <= startTime + settings.ChunkLength ? maxEndTime : startTime + settings.ChunkLength;
 }

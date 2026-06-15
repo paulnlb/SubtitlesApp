@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SubtitlesApp.Constants;
+using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
@@ -12,11 +13,12 @@ public partial class SettingsViewModelNew : ObservableObject
 {
     private const string ValueMask = "******";
 
-    private readonly ITranscriptionClientSettings _transcriptionSettings;
+    private readonly ITranscriptionClientSettings _transcriptionClientSettings;
     private readonly IGeminiClientSettings _geminiClientSettings;
     private readonly IOpenAiClientSettings _openAiClientSettings;
     private readonly ILlmSettings _llmClientSettings;
     private readonly ICustomPopupService _popupService;
+    private readonly ITranscriptionSettings _transcriptionSettings;
 
     private readonly ObservableCollection<SettingsItem> _openAiSettings = [];
     private readonly ObservableCollection<SettingsItem> _geminiSettings = [];
@@ -24,18 +26,20 @@ public partial class SettingsViewModelNew : ObservableObject
     public ObservableCollection<SettingsItemsGroup> SettingsItems { get; } = [];
 
     public SettingsViewModelNew(
-        ITranscriptionClientSettings transcriptionSettings,
+        ITranscriptionClientSettings transcriptionClientSettings,
         IGeminiClientSettings geminiClientSettings,
         IOpenAiClientSettings openAiClientSettings,
         ILlmSettings llmClientSettings,
-        ICustomPopupService popupService
+        ICustomPopupService popupService,
+        ITranscriptionSettings transcriptionSettings
     )
     {
-        _transcriptionSettings = transcriptionSettings;
+        _transcriptionClientSettings = transcriptionClientSettings;
         _geminiClientSettings = geminiClientSettings;
         _openAiClientSettings = openAiClientSettings;
         _llmClientSettings = llmClientSettings;
         _popupService = popupService;
+        _transcriptionSettings = transcriptionSettings;
 
         AddTranscriptionSettings();
         AddOpenAiSettings();
@@ -99,8 +103,8 @@ public partial class SettingsViewModelNew : ObservableObject
         var modelSettings = new EntrySettingsItem(
             _popupService,
             true,
-            () => _transcriptionSettings.Model,
-            (value) => _transcriptionSettings.Model = value
+            () => _transcriptionClientSettings.Model,
+            (value) => _transcriptionClientSettings.Model = value
         )
         {
             Title = "Model",
@@ -108,8 +112,8 @@ public partial class SettingsViewModelNew : ObservableObject
 
         var apiKeySettings = new AsyncEntrySettingsItem(
             _popupService,
-            _transcriptionSettings.GetSecret,
-            _transcriptionSettings.SetSecret
+            _transcriptionClientSettings.GetSecret,
+            _transcriptionClientSettings.SetSecret
         )
         {
             Title = "Api Key",
@@ -119,18 +123,28 @@ public partial class SettingsViewModelNew : ObservableObject
         var endpointSettings = new EntrySettingsItem(
             _popupService,
             false,
-            () => _transcriptionSettings.Endpoint ?? string.Empty,
-            (value) => _transcriptionSettings.Endpoint = value
+            () => _transcriptionClientSettings.Endpoint ?? string.Empty,
+            (value) => _transcriptionClientSettings.Endpoint = value
         )
         {
             Title = "Endpoint",
             SubTitle = "Set endpoint to use third-party/self-hosted whisper models",
         };
 
+        var chunkLengthSettings = new TimeEntrySettingsItem(
+            _popupService,
+            true,
+            () => _transcriptionSettings.ChunkLength,
+            (value) => _transcriptionSettings.ChunkLength = value
+        )
+        {
+            Title = "Audio chunk length",
+        };
+
         SettingsItems.Add(
             new SettingsItemsGroup(
                 AppSettingsConstants.OnlineTranscriptionGroup,
-                [modelSettings, apiKeySettings, endpointSettings]
+                [modelSettings, apiKeySettings, endpointSettings, chunkLengthSettings]
             )
         );
     }

@@ -93,6 +93,9 @@
     <Compile Update="Views\Popups\EntryPopup.xaml.cs">
       <DependentUpon>EntryPopup.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Popups\TimeEntryPopup.xaml.cs">
+      <DependentUpon>TimeEntryPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Popups\UrlEntryPopup.xaml.cs">
       <DependentUpon>UrlEntryPopup.xaml</DependentUpon>
     </Compile>
@@ -112,6 +115,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Popups\EntryPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Popups\TimeEntryPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Popups\UrlEntryPopup.xaml">

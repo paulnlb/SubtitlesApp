@@ -154,4 +154,22 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
 
         return popupResult.Result;
     }
+
+    public async Task<TimeSpan> ShowTimeEntry(string title, TimeSpan value)
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(StringEntryPopupVm.Title), title },
+            { nameof(StringEntryPopupVm.AcceptText), "Ok" },
+            { nameof(StringEntryPopupVm.Value), value },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
 }
