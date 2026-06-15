@@ -24,6 +24,7 @@ public static class ErrorCodeExtensions
             ErrorCode.FailedServerResponse => "Received failed status from server.",
             ErrorCode.RetryLimitExceeded => "Retry limit exceeded.",
             ErrorCode.InvalidLlmTranslation => "LLM translation failed. Please try again.",
+            ErrorCode.InvalidInput => "Error: provided data or configuration is invalid",
             _ => string.Empty,
         };
     }

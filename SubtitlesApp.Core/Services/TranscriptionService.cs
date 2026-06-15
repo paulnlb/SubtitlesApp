@@ -21,6 +21,14 @@ public class TranscriptionService(
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        if (settings.ChunkLength < TimeSpan.FromSeconds(30))
+        {
+            yield return Result<SubtitleDto>.Failure(
+                new Error(ErrorCode.InvalidInput, "Audio chunk length must be 30 seconds or longer")
+            );
+            yield break;
+        }
+
         var subIntervalStart = timeInterval.StartTime;
         var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
         var context = string.Empty;

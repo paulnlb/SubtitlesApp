@@ -29,7 +29,7 @@
         ValidStyle="{StaticResource DefaultEntryStyle}"
         Flags="ValidateOnValueChanged"
         RegexPattern="^[0-5]\d:[0-5]\d$"
-        IsValid="{Binding IsAcceptEnabled, Mode=OneWayToSource}"
+        IsValid="{Binding IsInputValid, Mode=OneWayToSource}"
       />
     </Entry.Behaviors>
   </Entry>

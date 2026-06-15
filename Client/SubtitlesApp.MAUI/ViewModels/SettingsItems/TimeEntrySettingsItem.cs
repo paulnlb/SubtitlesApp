@@ -7,17 +7,23 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
 {
     private bool _valueAsSubtitle;
     private readonly ICustomPopupService _popupService;
+    private readonly TimeSpan? _min;
+    private readonly TimeSpan? _max;
 
     public TimeEntrySettingsItem(
         ICustomPopupService popupService,
         bool valueAsSubTitle = false,
         Func<TimeSpan>? getter = null,
-        Action<TimeSpan>? setter = null
+        Action<TimeSpan>? setter = null,
+        TimeSpan? min = null,
+        TimeSpan? max = null
     )
         : base(getter, setter)
     {
         _popupService = popupService;
         _valueAsSubtitle = valueAsSubTitle;
+        _min = min;
+        _max = max;
 
         if (valueAsSubTitle)
         {
@@ -28,7 +34,7 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
     public override async Task EditValueAsync()
     {
         var value = GetValue();
-        var result = await _popupService.ShowTimeEntry(Title, value);
+        var result = await _popupService.ShowTimeEntry(Title, value, _min, _max);
 
         if (result is null || result == value)
         {

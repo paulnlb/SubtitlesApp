@@ -146,7 +146,9 @@ public partial class SettingsViewModelNew : ObservableObject
             _popupService,
             true,
             () => _transcriptionSettings.ChunkLength,
-            (value) => _transcriptionSettings.ChunkLength = value
+            (value) => _transcriptionSettings.ChunkLength = value,
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromMinutes(10)
         )
         {
             Title = "Audio chunk length",

@@ -155,13 +155,15 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         return popupResult.Result;
     }
 
-    public async Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value)
+    public async Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value, TimeSpan? min = null, TimeSpan? max = null)
     {
         var queryAttributes = new Dictionary<string, object>
         {
             { nameof(TimeEntryPopupVm.Title), title },
             { nameof(TimeEntryPopupVm.AcceptText), "Ok" },
             { nameof(TimeEntryPopupVm.Value), value },
+            { nameof(TimeEntryPopupVm.Min), min },
+            { nameof(TimeEntryPopupVm.Max), max },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan?>(
