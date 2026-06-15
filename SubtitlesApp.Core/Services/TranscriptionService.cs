@@ -23,6 +23,7 @@ public class TranscriptionService(
     {
         var subIntervalStart = timeInterval.StartTime;
         var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
+        var context = string.Empty;
 
         while (subIntervalStart < timeInterval.EndTime)
         {
@@ -36,7 +37,7 @@ public class TranscriptionService(
                 subIntervalStart,
                 subIntervalEnd,
                 languageCode,
-                string.Empty,
+                context,
                 cancellationToken
             );
 
@@ -47,6 +48,13 @@ public class TranscriptionService(
             }
 
             var subtitles = subtitlesResult.Value;
+
+            if (subtitles.Count > 0)
+            {
+                var lastSubtitles = subtitles.TakeLast(settings.SubtitlesAsPromptCount).Select(x => x.Text);
+
+                context = string.Join(' ', lastSubtitles);
+            }
 
             // implement overlapping by expanding the sub-interval start time back by one subtitle
             // not applicable if there is 0 or 1 subtitle in the sub-interval

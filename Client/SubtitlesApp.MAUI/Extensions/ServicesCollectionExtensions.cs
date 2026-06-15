@@ -68,6 +68,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<EntryPopup, StringEntryPopupVm>();
         services.AddTransientPopup<TimeEntryPopup, TimeEntryPopupVm>();
         services.AddTransientPopup<UrlEntryPopup, UrlEntryPopupVm>();
+        services.AddTransientPopup<CounterPopup, CounterPopupVm>();
         #endregion
     }
 }

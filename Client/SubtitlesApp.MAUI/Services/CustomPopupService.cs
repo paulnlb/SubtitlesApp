@@ -159,12 +159,32 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
     {
         var queryAttributes = new Dictionary<string, object>
         {
-            { nameof(StringEntryPopupVm.Title), title },
-            { nameof(StringEntryPopupVm.AcceptText), "Ok" },
-            { nameof(StringEntryPopupVm.Value), value },
+            { nameof(TimeEntryPopupVm.Title), title },
+            { nameof(TimeEntryPopupVm.AcceptText), "Ok" },
+            { nameof(TimeEntryPopupVm.Value), value },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+
+    public async Task<int> ShowCounter(string title, int value, int min = 0, int max = int.MaxValue)
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(CounterPopupVm.Title), title },
+            { nameof(CounterPopupVm.AcceptText), "Ok" },
+            { nameof(CounterPopupVm.Counter), value },
+            { nameof(CounterPopupVm.Min), min },
+            { nameof(CounterPopupVm.Max), max },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<CounterPopupVm, int>(
             Shell.Current,
             _popupOptions,
             queryAttributes

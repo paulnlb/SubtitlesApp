@@ -42,6 +42,7 @@ public partial class SettingsViewModelNew : ObservableObject
         _transcriptionSettings = transcriptionSettings;
 
         AddTranscriptionSettings();
+        AddTranscriptionChunkingSettings();
         AddOpenAiSettings();
         AddGeminiSettings();
 
@@ -131,6 +132,16 @@ public partial class SettingsViewModelNew : ObservableObject
             SubTitle = "Set endpoint to use third-party/self-hosted whisper models",
         };
 
+        SettingsItems.Add(
+            new SettingsItemsGroup(
+                AppSettingsConstants.OnlineTranscriptionGroup,
+                [modelSettings, apiKeySettings, endpointSettings]
+            )
+        );
+    }
+
+    private void AddTranscriptionChunkingSettings()
+    {
         var chunkLengthSettings = new TimeEntrySettingsItem(
             _popupService,
             true,
@@ -141,10 +152,22 @@ public partial class SettingsViewModelNew : ObservableObject
             Title = "Audio chunk length",
         };
 
+        var lastSubtitlesAsPrompt = new CounterSettingsItem(
+            _popupService,
+            true,
+            () => _transcriptionSettings.SubtitlesAsPromptCount,
+            (value) => _transcriptionSettings.SubtitlesAsPromptCount = value,
+            0,
+            10
+        )
+        {
+            Title = "Last n subtitles as prompt",
+        };
+
         SettingsItems.Add(
             new SettingsItemsGroup(
-                AppSettingsConstants.OnlineTranscriptionGroup,
-                [modelSettings, apiKeySettings, endpointSettings, chunkLengthSettings]
+                AppSettingsConstants.TranscriptionChunkingGroup,
+                [chunkLengthSettings, lastSubtitlesAsPrompt]
             )
         );
     }

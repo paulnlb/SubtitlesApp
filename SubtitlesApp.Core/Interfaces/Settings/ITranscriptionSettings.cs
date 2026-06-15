@@ -2,8 +2,10 @@ namespace SubtitlesApp.Core.Interfaces.Settings;
 
 public interface ITranscriptionSettings
 {
-    public TimeSpan ChunkLength { get; set; }
-    public TimeSpan OverlapSize { get; }
+    TimeSpan ChunkLength { get; set; }
 
-    public TimeSpan Epsilon { get; }
+    int SubtitlesAsPromptCount { get; set; }
+    TimeSpan OverlapSize { get; }
+
+    TimeSpan Epsilon { get; }
 }

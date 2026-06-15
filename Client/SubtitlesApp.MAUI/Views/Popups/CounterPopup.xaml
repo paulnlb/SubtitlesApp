@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  x:DataType="viewModels:CounterPopupVm"
+  x:Class="SubtitlesApp.Views.Popups.CounterPopup"
+  x:TypeArguments="x:Int32"
+  ControlTemplate="{StaticResource PopupTemplate}"
+  WidthRequest="300"
+>
+  <Grid ColumnDefinitions="*,*,*">
+    <Button
+      HorizontalOptions="Center"
+      Grid.Column="0"
+      ImageSource="{AppThemeBinding Dark=remove_light.png, Light=remove_dark.png}"
+      Style="{StaticResource TranslucentButton}"
+      Command="{Binding DecrementCommand}"
+    />
+    <Label HorizontalOptions="Center" VerticalOptions="Center" FontSize="22" Grid.Column="1" Text="{Binding Counter}" />
+    <Button
+      HorizontalOptions="Center"
+      Grid.Column="2"
+      ImageSource="{AppThemeBinding Dark=add_light.png, Light=add_dark.png}"
+      Style="{StaticResource TranslucentButton}"
+      Command="{Binding IncrementCommand}"
+    />
+  </Grid>
+</toolkit:Popup>

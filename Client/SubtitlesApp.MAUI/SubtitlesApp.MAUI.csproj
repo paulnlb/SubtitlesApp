@@ -90,6 +90,9 @@
     <Compile Update="CustomControls\PlayerControls.xaml.cs">
       <DependentUpon>PlayerControls.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Views\Popups\CounterPopup.xaml.cs">
+      <DependentUpon>CounterPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Popups\EntryPopup.xaml.cs">
       <DependentUpon>EntryPopup.xaml</DependentUpon>
     </Compile>
@@ -112,6 +115,9 @@
 
   <ItemGroup>
     <MauiXaml Update="CustomControls\LoadingButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Popups\CounterPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Popups\EntryPopup.xaml">
