@@ -34,8 +34,6 @@ public static class ServicesCollectionExtensions
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
-        services.AddTransient<ISubtitlesRepository, SubtitlesRepository>();
-        services.AddTransient<IVideoSessionRepository, VideoSessionRepository>();
         #endregion
 
         #region singleton
@@ -43,6 +41,8 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<ILlmClient, GenericLlmClient>();
         services.AddKeyedSingleton<ILlmClient, GeminiLlmClient>(LlmProviderConstants.Gemini);
         services.AddKeyedSingleton<ILlmClient, OpenAiLlmClient>(LlmProviderConstants.OpenAi);
+        services.AddSingleton<ISubtitlesRepository, SubtitlesRepository>();
+        services.AddSingleton<IVideoSessionRepository, VideoSessionRepository>();
         #endregion
 
         #region pages
@@ -61,7 +61,7 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
-
+        services.AddSingleton<IPersistenceSettings, PersistenceSettings>();
         #endregion
 
         #region popups

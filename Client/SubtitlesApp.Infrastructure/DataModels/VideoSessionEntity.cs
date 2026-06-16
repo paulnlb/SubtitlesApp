@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SQLite;
 
-namespace SubtitlesApp.Core.DTOs;
+namespace SubtitlesApp.Infrastructure.DataModels;
 
-public class VideoSessionDto
+public class VideoSessionEntity
 {
+    [PrimaryKey]
     public string VideoId { get; set; }
 
     public TimeSpan PlaybackPosition { get; set; }

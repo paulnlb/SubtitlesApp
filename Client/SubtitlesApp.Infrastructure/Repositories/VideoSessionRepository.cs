@@ -1,28 +1,65 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using SQLite;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces.Repositories;
+using SubtitlesApp.Infrastructure.Constants;
+using SubtitlesApp.Infrastructure.DataModels;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Mapper;
 
 namespace SubtitlesApp.Infrastructure.Repositories;
 
-public class VideoSessionRepository : IVideoSessionRepository
+public class VideoSessionRepository(IPersistenceSettings persistenceSettings) : IVideoSessionRepository
 {
-    public Task Create(VideoSessionDto videoSession)
+    SQLiteAsyncConnection _database;
+
+    async Task Init()
     {
-        return Task.CompletedTask;
+        if (_database is not null)
+            return;
+
+        _database = new SQLiteAsyncConnection(
+            Path.Combine(persistenceSettings.AppDataDirectory, SqliteConstants.DatabaseFilename),
+            SqliteConstants.Flags
+        );
+        await _database.CreateTableAsync<VideoSessionEntity>();
     }
 
-    public Task Delete(string videoId)
+    public async Task Create(VideoSessionDto videoSession)
     {
-        return Task.CompletedTask;
+        await Init();
+        var entity = VideoSessionMapper.ToEntity(videoSession);
+        await _database.InsertAsync(entity);
     }
 
-    public Task<VideoSessionDto?> Get(string videoId)
+    public async Task Delete(string videoId)
     {
-        VideoSessionDto? videoSession = null;
-        return Task.FromResult(videoSession);
+        await Init();
+        var entity =
+            await _database.Table<VideoSessionEntity>().Where(x => x.VideoId == videoId).FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException($"Item with id {videoId} does not exist");
+
+        await _database.DeleteAsync(entity);
     }
 
-    public Task Update(VideoSessionDto videoSession)
+    public async Task<VideoSessionDto?> Get(string videoId)
     {
-        return Task.CompletedTask;
+        await Init();
+        var entity = await _database.Table<VideoSessionEntity>().Where(x => x.VideoId == videoId).FirstOrDefaultAsync();
+
+        if (entity is null)
+        {
+            return null;
+        }
+
+        return VideoSessionMapper.ToDto(entity);
+    }
+
+    public async Task Update(VideoSessionDto videoSession)
+    {
+        await Init();
+
+        var entity = VideoSessionMapper.ToEntity(videoSession);
+
+        await _database.UpdateAsync(entity);
     }
 }

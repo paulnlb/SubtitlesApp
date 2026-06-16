@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels.CustomEventArgs;
@@ -60,18 +61,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task LoadSession()
     {
-        var session = await _videoSessionRepository.Get(MediaPath);
+        _session = await _videoSessionRepository.Get(MediaPath);
 
-        if (session is null)
+        if (_session is null)
         {
             _session = new VideoSessionDto { VideoId = MediaPath };
-
+            await _videoSessionRepository.Create(_session);
             return;
         }
 
-        if (session.PlaybackPosition != TimeSpan.Zero)
+        if (_session.PlaybackPosition != TimeSpan.Zero)
         {
-            SeekRequested?.Invoke(this, new SeekEventArgs { Time = session.PlaybackPosition });
+            SeekRequested?.Invoke(this, new SeekEventArgs { Time = _session.PlaybackPosition });
         }
 
         SubtitlesVm.IsTranscriptionLoading = true;
@@ -79,17 +80,17 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
         try
         {
-            if (!string.IsNullOrWhiteSpace(session.SubtitlesReference))
+            if (!string.IsNullOrWhiteSpace(_session.SubtitlesReference))
             {
                 SubtitlesVm.Subtitles = _mapper.SubtitlesDtosToObservableVisualSubtitles(
-                    await _subtitlesRepository.Get(session.SubtitlesReference)
+                    await _subtitlesRepository.Get(_session.SubtitlesReference)
                 );
             }
 
-            if (!string.IsNullOrWhiteSpace(session.TranslationsReference))
+            if (!string.IsNullOrWhiteSpace(_session.TranslationsReference))
             {
                 SubtitlesVm.Translations = _mapper.SubtitlesDtosToObservableVisualSubtitles(
-                    await _subtitlesRepository.Get(session.TranslationsReference)
+                    await _subtitlesRepository.Get(_session.TranslationsReference)
                 );
             }
         }

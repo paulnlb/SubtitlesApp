@@ -68,7 +68,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             return;
         }
 
-        await Vm.SaveSession(mauiMediaElement.Position);
+        var playerPosition = mauiMediaElement.Position;
+
         mauiMediaElement.Stop();
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
@@ -80,6 +81,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
+
+        await Vm.SaveSession(playerPosition);
     }
 
     protected override bool OnBackButtonPressed()
