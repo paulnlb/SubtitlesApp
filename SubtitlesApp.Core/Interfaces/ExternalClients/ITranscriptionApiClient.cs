@@ -1,7 +1,7 @@
 ﻿using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Result;
 
-namespace SubtitlesApp.Core.Interfaces.HttpClients;
+namespace SubtitlesApp.Core.Interfaces.ExternalClients;
 
 public interface ITranscriptionApiClient
 {

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 

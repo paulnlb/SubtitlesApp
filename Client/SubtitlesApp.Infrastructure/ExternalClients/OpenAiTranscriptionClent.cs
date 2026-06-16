@@ -3,7 +3,7 @@ using OpenAI;
 using OpenAI.Audio;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 

@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Core.Constants;
+﻿namespace SubtitlesApp.Infrastructure.Constants;
 
 public static class AudioFormats
 {

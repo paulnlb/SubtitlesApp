@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;

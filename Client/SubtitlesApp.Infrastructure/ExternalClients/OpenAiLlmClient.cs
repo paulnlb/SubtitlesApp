@@ -8,7 +8,7 @@ using System.Text.Unicode;
 using OpenAI;
 using OpenAI.Responses;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Mapper;

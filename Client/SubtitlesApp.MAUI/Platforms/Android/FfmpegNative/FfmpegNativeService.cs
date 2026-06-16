@@ -1,5 +1,5 @@
-using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.Interfaces;
+using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Platforms.Android.FfmpegNative;
 
 namespace SubtitlesApp.Services;

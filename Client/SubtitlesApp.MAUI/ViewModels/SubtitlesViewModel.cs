@@ -137,7 +137,7 @@ public partial class SubtitlesViewModel : ObservableObject
 
             var subtitleDto = result.Value;
 
-            // Workaround that reduces the precision of the timemtapms in order to roughly match seeking precision
+            // Workaround that reduces timestamp precision to roughly match seeking precision
             subtitleDto.StartTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.StartTime.TotalMilliseconds));
             subtitleDto.EndTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.EndTime.TotalMilliseconds));
 

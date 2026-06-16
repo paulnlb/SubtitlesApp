@@ -43,7 +43,7 @@ public static class LlmMapper
                     contentList.Add(new Content() { Role = "model", Parts = [Part.FromText(msg.Content)] });
                     break;
 
-                // system instructions must be set inside a GenerateContentConfig instance
+                // system instructions must be set inside an instance of GenerateContentConfig
             }
         }
     }
