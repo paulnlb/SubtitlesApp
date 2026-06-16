@@ -8,4 +8,6 @@ public class PersistenceSettings : IPersistenceSettings
     {
         get => FileSystem.AppDataDirectory;
     }
+
+    public string SubtitlesBlobsDirectory => "subtitles";
 }

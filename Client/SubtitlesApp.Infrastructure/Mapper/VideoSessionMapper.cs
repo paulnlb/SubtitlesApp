@@ -29,12 +29,6 @@ public static class VideoSessionMapper
 
     public static IEnumerable<VideoSessionDto> ToDtos(IEnumerable<VideoSessionEntity> entities)
     {
-        return entities.Select(x => new VideoSessionDto
-        {
-            VideoId = x.VideoId,
-            PlaybackPosition = x.PlaybackPosition,
-            SubtitlesReference = x.SubtitlesReference,
-            TranslationsReference = x.TranslationsReference,
-        });
+        return entities.Select(ToDto);
     }
 }

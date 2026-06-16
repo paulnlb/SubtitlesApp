@@ -1,23 +1,53 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using MessagePack;
 using SubtitlesApp.Core.Interfaces.Repositories;
+using SubtitlesApp.Core.Models;
+using SubtitlesApp.Infrastructure.DataModels;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Mapper;
 
 namespace SubtitlesApp.Infrastructure.Repositories;
 
 public class SubtitlesRepository : ISubtitlesRepository
 {
-    public Task Create(string key, IEnumerable<SubtitleDto> subtitles)
+    private readonly string SubtitlesDirectory;
+
+    public SubtitlesRepository(IPersistenceSettings persistenceSettings)
     {
-        return Task.CompletedTask;
+        SubtitlesDirectory = Path.Combine(persistenceSettings.AppDataDirectory, persistenceSettings.SubtitlesBlobsDirectory);
+        Directory.CreateDirectory(SubtitlesDirectory);
     }
 
-    public Task Delete(string key)
+    public async Task Create(string key, IEnumerable<Subtitle> subtitles)
     {
-        return Task.CompletedTask;
+        var filePath = Path.Combine(SubtitlesDirectory, key);
+        var serializables = SubtitleMapper.ToSerializables(subtitles);
+
+        using var fileStream = File.OpenWrite(filePath);
+
+        await MessagePackSerializer.SerializeAsync(fileStream, serializables);
     }
 
-    public async Task<IEnumerable<SubtitleDto>> Get(string key)
+    public void Delete(string key)
     {
-        IEnumerable<SubtitleDto> subtitles = [];
-        return subtitles;
+        var filePath = Path.Combine(SubtitlesDirectory, key);
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    public async Task<IEnumerable<Subtitle>> Get(string key)
+    {
+        var filePath = Path.Combine(SubtitlesDirectory, key);
+        if (!File.Exists(filePath))
+        {
+            return [];
+        }
+
+        using var fileStream = File.OpenRead(filePath);
+        var serializables = await MessagePackSerializer.DeserializeAsync<IEnumerable<SubtitleSerializable>>(fileStream);
+
+        return SubtitleMapper.ToDomainClasses(serializables);
     }
 }

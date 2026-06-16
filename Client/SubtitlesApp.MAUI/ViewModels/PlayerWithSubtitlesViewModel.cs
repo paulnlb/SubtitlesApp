@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels.CustomEventArgs;
@@ -82,14 +81,14 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         {
             if (!string.IsNullOrWhiteSpace(_session.SubtitlesReference))
             {
-                SubtitlesVm.Subtitles = _mapper.SubtitlesDtosToObservableVisualSubtitles(
+                SubtitlesVm.Subtitles = _mapper.SubtitlesToVisualSubtitles(
                     await _subtitlesRepository.Get(_session.SubtitlesReference)
                 );
             }
 
             if (!string.IsNullOrWhiteSpace(_session.TranslationsReference))
             {
-                SubtitlesVm.Translations = _mapper.SubtitlesDtosToObservableVisualSubtitles(
+                SubtitlesVm.Translations = _mapper.SubtitlesToVisualSubtitles(
                     await _subtitlesRepository.Get(_session.TranslationsReference)
                 );
             }
@@ -119,16 +118,13 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
                 var oldReference = _session.SubtitlesReference;
                 var newReference = $"subtiltes-{key}";
 
-                await _subtitlesRepository.Create(
-                    newReference,
-                    _mapper.VisualSubtitlesToSubtitleDtoList(SubtitlesVm.Subtitles)
-                );
+                await _subtitlesRepository.Create(newReference, SubtitlesVm.Subtitles);
 
                 _session.SubtitlesReference = newReference;
 
                 if (!string.IsNullOrWhiteSpace(oldReference))
                 {
-                    await _subtitlesRepository.Delete(oldReference);
+                    _subtitlesRepository.Delete(oldReference);
                 }
             }
             if (SubtitlesVm.Translations.Count > 0)
@@ -136,16 +132,13 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
                 var oldReference = _session.TranslationsReference;
                 var newReference = $"translation-{key}";
 
-                await _subtitlesRepository.Create(
-                    _session.TranslationsReference,
-                    _mapper.VisualSubtitlesToSubtitleDtoList(SubtitlesVm.Translations)
-                );
+                await _subtitlesRepository.Create(newReference, SubtitlesVm.Translations);
 
                 _session.TranslationsReference = newReference;
 
                 if (!string.IsNullOrWhiteSpace(oldReference))
                 {
-                    await _subtitlesRepository.Delete(oldReference);
+                    _subtitlesRepository.Delete(oldReference);
                 }
             }
         }

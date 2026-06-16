@@ -1,12 +1,12 @@
-﻿using SubtitlesApp.Core.DTOs;
+﻿using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Core.Interfaces.Repositories;
 
 public interface ISubtitlesRepository
 {
-    Task<IEnumerable<SubtitleDto>> Get(string key);
+    Task<IEnumerable<Subtitle>> Get(string key);
 
-    Task Create(string key, IEnumerable<SubtitleDto> subtitles);
+    Task Create(string key, IEnumerable<Subtitle> subtitles);
 
-    Task Delete(string key);
+    void Delete(string key);
 }

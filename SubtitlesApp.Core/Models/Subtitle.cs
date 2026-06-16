@@ -2,7 +2,7 @@
 
 public class Subtitle
 {
-    private string Text { get; set; }
-    private string LanguageCode { get; set; }
+    public string Text { get; set; }
+    public string LanguageCode { get; set; }
     public TimeInterval TimeInterval { get; set; }
 }
