@@ -70,7 +70,7 @@
           <toolkit:EventToCommandBehavior
             EventName="PositionChanged"
             BindingContext="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext}"
-            Command="{Binding SubtitlesVm.PositionChangedCommand}"
+            Command="{Binding PositionChangedCommand}"
             CommandParameter="{Binding Source={x:Reference mauiMediaElement}, Path=Position}"
           />
           <toolkit:EventToCommandBehavior

@@ -68,21 +68,18 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             return;
         }
 
-        var playerPosition = mauiMediaElement.Position;
-
+        Vm.StopRefreshingSession();
+        Vm.PropertyChanged -= OnVmPropertyChanged;
+        Vm.SeekRequested -= OnSeekRequested;
         mauiMediaElement.Stop();
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
+        mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerControls.Dispose();
         subtitlesView.Dispose();
-        Vm.PropertyChanged -= OnVmPropertyChanged;
-        Vm.SeekRequested -= OnSeekRequested;
-        mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
-
-        await Vm.SaveSession(playerPosition);
     }
 
     protected override bool OnBackButtonPressed()

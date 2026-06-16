@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels.CustomEventArgs;
@@ -12,8 +13,15 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 {
     private readonly IVideoSessionRepository _videoSessionRepository;
     private readonly ISubtitlesRepository _subtitlesRepository;
+
+    #region private fields
+
+    private readonly TimeSpan _positionRefreshTreshold = TimeSpan.FromSeconds(10);
     private VideoSessionDto? _session;
     private SubtitlesMapper _mapper;
+    private bool _shouldRefreshPosition = true;
+
+    #endregion
 
     #region observable properties
 
@@ -49,6 +57,30 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = true;
         MediaPath = null;
         SubtitlesVm = captionsViewModel;
+        SubtitlesVm.SubtitlesGenerated += OnSubtitlesGenerated;
+        SubtitlesVm.TranslationsGenerated += OnTranslationsGenerated;
+    }
+
+    [RelayCommand]
+    public async Task PositionChanged(TimeSpan currentPosition)
+    {
+        if (SubtitlesVm.UpdateIndexesCommand is not null && SubtitlesVm.UpdateIndexesCommand.CanExecute(currentPosition))
+        {
+            SubtitlesVm.UpdateIndexesCommand.Execute(currentPosition);
+        }
+
+        if (
+            _shouldRefreshPosition
+            && (
+                currentPosition > _session!.PlaybackPosition + _positionRefreshTreshold
+                || currentPosition < _session!.PlaybackPosition - _positionRefreshTreshold
+            )
+        )
+        {
+            _session.PlaybackPosition = currentPosition;
+
+            await _videoSessionRepository.Update(_session);
+        }
     }
 
     [RelayCommand]
@@ -100,52 +132,57 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
-    public async Task SaveSession(TimeSpan playbackPosition)
+    public void StopRefreshingSession()
     {
-        if (_session is null)
+        _shouldRefreshPosition = false;
+        SubtitlesVm.SubtitlesGenerated -= OnSubtitlesGenerated;
+        SubtitlesVm.TranslationsGenerated -= OnTranslationsGenerated;
+    }
+
+    private async void OnSubtitlesGenerated(object? sender, EventArgs e)
+    {
+        if (SubtitlesVm.Subtitles.Count == 0 || _session is null)
         {
             return;
         }
 
-        _session.PlaybackPosition = playbackPosition;
+        var key = GenerateSubtitlesKey(_session.VideoId);
+        var oldReference = _session.SubtitlesReference;
+        var newReference = $"subtiltes-{key}";
 
-        try
+        await _subtitlesRepository.Create(newReference, SubtitlesVm.Subtitles);
+
+        _session.SubtitlesReference = newReference;
+
+        if (!string.IsNullOrWhiteSpace(oldReference))
         {
-            var key = GenerateSubtitlesKey(_session.VideoId);
-
-            if (SubtitlesVm.Subtitles.Count > 0)
-            {
-                var oldReference = _session.SubtitlesReference;
-                var newReference = $"subtiltes-{key}";
-
-                await _subtitlesRepository.Create(newReference, SubtitlesVm.Subtitles);
-
-                _session.SubtitlesReference = newReference;
-
-                if (!string.IsNullOrWhiteSpace(oldReference))
-                {
-                    _subtitlesRepository.Delete(oldReference);
-                }
-            }
-            if (SubtitlesVm.Translations.Count > 0)
-            {
-                var oldReference = _session.TranslationsReference;
-                var newReference = $"translation-{key}";
-
-                await _subtitlesRepository.Create(newReference, SubtitlesVm.Translations);
-
-                _session.TranslationsReference = newReference;
-
-                if (!string.IsNullOrWhiteSpace(oldReference))
-                {
-                    _subtitlesRepository.Delete(oldReference);
-                }
-            }
+            _subtitlesRepository.Delete(oldReference);
         }
-        finally
+
+        await _videoSessionRepository.Update(_session);
+    }
+
+    private async void OnTranslationsGenerated(object? sender, EventArgs e)
+    {
+        if (SubtitlesVm.Translations.Count == 0 || _session is null)
         {
-            await _videoSessionRepository.Update(_session);
+            return;
         }
+
+        var key = GenerateSubtitlesKey(_session.VideoId);
+        var oldReference = _session.TranslationsReference;
+        var newReference = $"translation-{key}";
+
+        await _subtitlesRepository.Create(newReference, SubtitlesVm.Translations);
+
+        _session.TranslationsReference = newReference;
+
+        if (!string.IsNullOrWhiteSpace(oldReference))
+        {
+            _subtitlesRepository.Delete(oldReference);
+        }
+
+        await _videoSessionRepository.Update(_session);
     }
 
     partial void OnIsFullScreenOnChanged(bool value)

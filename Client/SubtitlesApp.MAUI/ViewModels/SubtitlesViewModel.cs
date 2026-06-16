@@ -61,6 +61,13 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #endregion
 
+    #region events
+
+    public event EventHandler? SubtitlesGenerated;
+    public event EventHandler? TranslationsGenerated;
+
+    #endregion
+
     public SubtitlesViewModel(
         ITranslationService translationService,
         LanguageService languageService,
@@ -90,7 +97,7 @@ public partial class SubtitlesViewModel : ObservableObject
     #region commands
 
     [RelayCommand]
-    public void PositionChanged(TimeSpan currentPosition)
+    public void UpdateIndexes(TimeSpan currentPosition)
     {
         CurrentSubtitleIndex = FindNewIndex(currentPosition, Subtitles, CurrentSubtitleIndex);
         CurrentTranslationIndex = FindNewIndex(currentPosition, Translations, CurrentTranslationIndex);
@@ -144,6 +151,8 @@ public partial class SubtitlesViewModel : ObservableObject
             Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto));
         }
 
+        SubtitlesGenerated?.Invoke(this, EventArgs.Empty);
+
         IsTranscriptionLoading = false;
     }
 
@@ -187,6 +196,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
             Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
         }
+
+        TranslationsGenerated?.Invoke(this, EventArgs.Empty);
 
         IsTranslationLoading = false;
     }
