@@ -127,16 +127,23 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
 
     partial void OnIsEndTimeValidChanged(bool value)
     {
-        IsAcceptEnabled = value && IsStartTimeValid && IsTimeRangeValid;
+        IsAcceptEnabled = CanTranslate();
     }
 
     partial void OnIsStartTimeValidChanged(bool value)
     {
-        IsAcceptEnabled = value && IsEndTimeValid && IsTimeRangeValid;
+        IsAcceptEnabled = CanTranslate();
     }
 
     partial void OnIsTimeRangeValidChanged(bool value)
     {
-        IsAcceptEnabled = IsStartTimeValid && IsEndTimeValid && value;
+        IsAcceptEnabled = CanTranslate();
     }
+
+    partial void OnTargetLanguageChanged(Language value)
+    {
+        IsAcceptEnabled = CanTranslate();
+    }
+
+    private bool CanTranslate() => TargetLanguage is not null && IsStartTimeValid && IsEndTimeValid && IsTimeRangeValid;
 }
