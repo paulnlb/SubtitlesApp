@@ -47,6 +47,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         _layoutStateManager = new AdaptiveLayoutStateManager(adaptiveLayout);
 
         vm.PropertyChanged += OnVmPropertyChanged;
+        vm.SeekRequested += OnSeekRequested;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
         adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
 
@@ -58,7 +59,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         SubscribeToGestures();
     }
 
-    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+    protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
         base.OnNavigatedFrom(args);
 
@@ -67,12 +68,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             return;
         }
 
+        await Vm.SaveSession(mauiMediaElement.Position);
         mauiMediaElement.Stop();
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
         playerControls.Dispose();
         subtitlesView.Dispose();
         Vm.PropertyChanged -= OnVmPropertyChanged;
+        Vm.SeekRequested -= OnSeekRequested;
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;

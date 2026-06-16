@@ -4,7 +4,7 @@ namespace SubtitlesApp.Core.Interfaces.Repositories;
 
 public interface IVideoSessionRepository
 {
-    Task<VideoSessionDto> Get(string videoId);
+    Task<VideoSessionDto?> Get(string videoId);
 
     Task Create(VideoSessionDto videoSession);
 

@@ -1,12 +1,14 @@
 ﻿using CommunityToolkit.Maui;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.ExternalClients;
+using SubtitlesApp.Core.Interfaces.Repositories;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Repositories;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
@@ -32,6 +34,8 @@ public static class ServicesCollectionExtensions
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
+        services.AddTransient<ISubtitlesRepository, SubtitlesRepository>();
+        services.AddTransient<IVideoSessionRepository, VideoSessionRepository>();
         #endregion
 
         #region singleton

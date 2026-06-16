@@ -73,6 +73,11 @@
             Command="{Binding SubtitlesVm.PositionChangedCommand}"
             CommandParameter="{Binding Source={x:Reference mauiMediaElement}, Path=Position}"
           />
+          <toolkit:EventToCommandBehavior
+            EventName="MediaOpened"
+            BindingContext="{Binding Source={x:Reference playerSubtitlesPage}, Path=BindingContext}"
+            Command="{Binding LoadSessionCommand}"
+          />
         </customControls:ExtendedMediaElement.Behaviors>
       </customControls:ExtendedMediaElement>
 

@@ -1,10 +1,20 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Text;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.ClientModels.CustomEventArgs;
+using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Interfaces.Repositories;
+using SubtitlesApp.Mapper;
 
 namespace SubtitlesApp.ViewModels;
 
 public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttributable
 {
+    private readonly IVideoSessionRepository _videoSessionRepository;
+    private readonly ISubtitlesRepository _subtitlesRepository;
+    private VideoSessionDto? _session;
+    private SubtitlesMapper _mapper;
+
     #region observable properties
 
     [ObservableProperty]
@@ -24,8 +34,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     #endregion
 
-    public PlayerWithSubtitlesViewModel(SubtitlesViewModel captionsViewModel)
+    public event EventHandler<SeekEventArgs>? SeekRequested;
+
+    public PlayerWithSubtitlesViewModel(
+        SubtitlesViewModel captionsViewModel,
+        IVideoSessionRepository videoSessionRepository,
+        ISubtitlesRepository subtitlesRepository,
+        SubtitlesMapper mapper
+    )
     {
+        _videoSessionRepository = videoSessionRepository;
+        _subtitlesRepository = subtitlesRepository;
+        _mapper = mapper;
         PlayerControlsVisible = true;
         MediaPath = null;
         SubtitlesVm = captionsViewModel;
@@ -35,6 +55,103 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     public void TogglePlayerControlsVisibility()
     {
         PlayerControlsVisible = !PlayerControlsVisible;
+    }
+
+    [RelayCommand]
+    public async Task LoadSession()
+    {
+        var session = await _videoSessionRepository.Get(MediaPath);
+
+        if (session is null)
+        {
+            _session = new VideoSessionDto { VideoId = MediaPath };
+
+            return;
+        }
+
+        if (session.PlaybackPosition != TimeSpan.Zero)
+        {
+            SeekRequested?.Invoke(this, new SeekEventArgs { Time = session.PlaybackPosition });
+        }
+
+        SubtitlesVm.IsTranscriptionLoading = true;
+        SubtitlesVm.IsTranslationLoading = true;
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(session.SubtitlesReference))
+            {
+                SubtitlesVm.Subtitles = _mapper.SubtitlesDtosToObservableVisualSubtitles(
+                    await _subtitlesRepository.Get(session.SubtitlesReference)
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(session.TranslationsReference))
+            {
+                SubtitlesVm.Translations = _mapper.SubtitlesDtosToObservableVisualSubtitles(
+                    await _subtitlesRepository.Get(session.TranslationsReference)
+                );
+            }
+        }
+        finally
+        {
+            SubtitlesVm.IsTranscriptionLoading = false;
+            SubtitlesVm.IsTranslationLoading = false;
+        }
+    }
+
+    public async Task SaveSession(TimeSpan playbackPosition)
+    {
+        if (_session is null)
+        {
+            return;
+        }
+
+        _session.PlaybackPosition = playbackPosition;
+
+        try
+        {
+            var key = GenerateSubtitlesKey(_session.VideoId);
+
+            if (SubtitlesVm.Subtitles.Count > 0)
+            {
+                var oldReference = _session.SubtitlesReference;
+                var newReference = $"subtiltes-{key}";
+
+                await _subtitlesRepository.Create(
+                    newReference,
+                    _mapper.VisualSubtitlesToSubtitleDtoList(SubtitlesVm.Subtitles)
+                );
+
+                _session.SubtitlesReference = newReference;
+
+                if (!string.IsNullOrWhiteSpace(oldReference))
+                {
+                    await _subtitlesRepository.Delete(oldReference);
+                }
+            }
+            if (SubtitlesVm.Translations.Count > 0)
+            {
+                var oldReference = _session.TranslationsReference;
+                var newReference = $"translation-{key}";
+
+                await _subtitlesRepository.Create(
+                    _session.TranslationsReference,
+                    _mapper.VisualSubtitlesToSubtitleDtoList(SubtitlesVm.Translations)
+                );
+
+                _session.TranslationsReference = newReference;
+
+                if (!string.IsNullOrWhiteSpace(oldReference))
+                {
+                    await _subtitlesRepository.Delete(oldReference);
+                }
+            }
+        }
+        finally
+        {
+            await _videoSessionRepository.Update(_session);
+        }
     }
 
     partial void OnIsFullScreenOnChanged(bool value)
@@ -57,5 +174,25 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
 
         query.Clear();
+    }
+
+    private static string GenerateSubtitlesKey(string videoId)
+    {
+        var fileName = Path.GetFileNameWithoutExtension(videoId);
+
+        var keyBuilder = new StringBuilder();
+
+        // remove spaces and special characters
+        foreach (char c in fileName)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                keyBuilder.Append(c);
+            }
+        }
+
+        keyBuilder.Append(DateTime.Now.ToString("yyyyMMddhhmmss"));
+
+        return keyBuilder.ToString();
     }
 }

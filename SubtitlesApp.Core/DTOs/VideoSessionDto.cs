@@ -12,4 +12,6 @@ public class VideoSessionDto
     public TimeSpan PlaybackPosition { get; set; }
 
     public string SubtitlesReference { get; set; }
+
+    public string TranslationsReference { get; set; }
 }
