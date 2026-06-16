@@ -63,8 +63,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #region events
 
-    public event EventHandler? SubtitlesGenerated;
-    public event EventHandler? TranslationsGenerated;
+    public event Func<Task>? SubtitlesGenerated;
+    public event Func<Task>? TranslationsGenerated;
 
     #endregion
 
@@ -151,7 +151,18 @@ public partial class SubtitlesViewModel : ObservableObject
             Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto));
         }
 
-        SubtitlesGenerated?.Invoke(this, EventArgs.Empty);
+        if (SubtitlesGenerated is null)
+        {
+            IsTranscriptionLoading = false;
+            return;
+        }
+
+        var handlers = SubtitlesGenerated.GetInvocationList();
+
+        foreach (var handler in handlers.Cast<Func<Task>>())
+        {
+            await handler();
+        }
 
         IsTranscriptionLoading = false;
     }
@@ -197,7 +208,18 @@ public partial class SubtitlesViewModel : ObservableObject
             Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
         }
 
-        TranslationsGenerated?.Invoke(this, EventArgs.Empty);
+        if (TranslationsGenerated is null)
+        {
+            IsTranslationLoading = false;
+            return;
+        }
+
+        var handlers = TranslationsGenerated.GetInvocationList();
+
+        foreach (var handler in handlers.Cast<Func<Task>>())
+        {
+            await handler();
+        }
 
         IsTranslationLoading = false;
     }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels.CustomEventArgs;
@@ -19,7 +18,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private readonly TimeSpan _positionRefreshTreshold = TimeSpan.FromSeconds(10);
     private VideoSessionDto? _session;
     private SubtitlesMapper _mapper;
-    private bool _shouldRefreshPosition = true;
+    private bool _shouldRefreshPosition;
 
     #endregion
 
@@ -57,8 +56,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = true;
         MediaPath = null;
         SubtitlesVm = captionsViewModel;
-        SubtitlesVm.SubtitlesGenerated += OnSubtitlesGenerated;
-        SubtitlesVm.TranslationsGenerated += OnTranslationsGenerated;
+        StartRefreshingSession();
     }
 
     [RelayCommand]
@@ -132,6 +130,13 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         }
     }
 
+    public void StartRefreshingSession()
+    {
+        _shouldRefreshPosition = true;
+        SubtitlesVm.SubtitlesGenerated += OnSubtitlesGenerated;
+        SubtitlesVm.TranslationsGenerated += OnTranslationsGenerated;
+    }
+
     public void StopRefreshingSession()
     {
         _shouldRefreshPosition = false;
@@ -139,7 +144,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         SubtitlesVm.TranslationsGenerated -= OnTranslationsGenerated;
     }
 
-    private async void OnSubtitlesGenerated(object? sender, EventArgs e)
+    private async Task OnSubtitlesGenerated()
     {
         if (SubtitlesVm.Subtitles.Count == 0 || _session is null)
         {
@@ -162,7 +167,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         await _videoSessionRepository.Update(_session);
     }
 
-    private async void OnTranslationsGenerated(object? sender, EventArgs e)
+    private async Task OnTranslationsGenerated()
     {
         if (SubtitlesVm.Translations.Count == 0 || _session is null)
         {
@@ -196,7 +201,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         PlayerControlsVisible = false;
     }
 
-    void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("open", out object? value))
         {
