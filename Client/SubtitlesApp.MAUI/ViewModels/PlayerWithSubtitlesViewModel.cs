@@ -133,18 +133,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     public void StartRefreshingSession()
     {
         _shouldRefreshPosition = true;
-        SubtitlesVm.SubtitlesGenerated += OnSubtitlesGenerated;
-        SubtitlesVm.TranslationsGenerated += OnTranslationsGenerated;
+        SubtitlesVm.SubtitlesUpdated += OnSubtitlesUpdated;
+        SubtitlesVm.TranslationsUpdated += OnTranslationsUpdated;
     }
 
     public void StopRefreshingSession()
     {
         _shouldRefreshPosition = false;
-        SubtitlesVm.SubtitlesGenerated -= OnSubtitlesGenerated;
-        SubtitlesVm.TranslationsGenerated -= OnTranslationsGenerated;
+        SubtitlesVm.SubtitlesUpdated -= OnSubtitlesUpdated;
+        SubtitlesVm.TranslationsUpdated -= OnTranslationsUpdated;
     }
 
-    private async Task OnSubtitlesGenerated()
+    private async Task OnSubtitlesUpdated()
     {
         if (SubtitlesVm.Subtitles.Count == 0 || _session is null)
         {
@@ -167,7 +167,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         await _videoSessionRepository.Update(_session);
     }
 
-    private async Task OnTranslationsGenerated()
+    private async Task OnTranslationsUpdated()
     {
         if (SubtitlesVm.Translations.Count == 0 || _session is null)
         {

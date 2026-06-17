@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 
@@ -7,6 +8,7 @@ namespace SubtitlesApp.CustomControls;
 public partial class SubtitleCollection : ContentView, IDisposable
 {
     private bool _disposed = false;
+    private VisualSubtitle? _currentSubtitle;
 
     public static readonly BindableProperty SubtitlesProperty = BindableProperty.Create(
         nameof(Subtitles),
@@ -129,6 +131,7 @@ public partial class SubtitleCollection : ContentView, IDisposable
         if (disposing)
         {
             SubtitlesAdapter?.Dispose();
+            Subtitles?.CollectionChanged -= OnSubtitlesCollectionChanged;
         }
 
         _disposed = true;
@@ -142,6 +145,8 @@ public partial class SubtitleCollection : ContentView, IDisposable
         {
             var adapter = new ObservableCollectionAdapter<VisualSubtitle>(newSubtitles);
             bindable.SetValue(SubtitlesAdapterProperty, adapter);
+
+            newSubtitles.CollectionChanged += ((SubtitleCollection)bindable).OnSubtitlesCollectionChanged;
         }
     }
 
@@ -149,14 +154,11 @@ public partial class SubtitleCollection : ContentView, IDisposable
     {
         if (bindable is SubtitleCollection subsCollection && oldValue is int oldIndex && newValue is int newIndex)
         {
-            if (oldIndex != -1)
-            {
-                var oldSub = subsCollection.Subtitles[oldIndex];
-                oldSub.IsHighlighted = false;
-            }
+            subsCollection._currentSubtitle?.IsHighlighted = false;
 
             if (newIndex == -1)
             {
+                subsCollection._currentSubtitle = null;
                 return;
             }
 
@@ -167,8 +169,8 @@ public partial class SubtitleCollection : ContentView, IDisposable
                     && newIndex >= subsCollection.FirstVisibleSubtitleIndex;
             }
 
-            var newSub = subsCollection.Subtitles[newIndex];
-            newSub.IsHighlighted = true;
+            subsCollection._currentSubtitle = subsCollection.Subtitles[newIndex];
+            subsCollection._currentSubtitle.IsHighlighted = true;
 
             if (subsCollection.AutoScrollEnabled)
             {
@@ -195,5 +197,17 @@ public partial class SubtitleCollection : ContentView, IDisposable
     private void OnSubsScrolled(object? sender, ScrolledEventArgs e)
     {
         AutoScrollEnabled = IsCurrentSubVisible || CurrentSubtitleIndex == -1;
+    }
+
+    private void OnSubtitlesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (
+            e.Action == NotifyCollectionChangedAction.Remove
+            && e.OldItems is not null
+            && e.OldItems.Contains(_currentSubtitle)
+        )
+        {
+            CurrentSubtitleIndex = -1;
+        }
     }
 }

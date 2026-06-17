@@ -11,7 +11,7 @@ public static class ErrorCodeExtensions
             ErrorCode.Unspecified => "Unknown error.",
             ErrorCode.BadRequest => "Something is wrong with your request to the server.",
             ErrorCode.InternalServerError => "Something has broken on the server side. Please try again later.",
-            ErrorCode.InternalClientError => "An error has occurred on the client side. Restart the app and try again.",
+            ErrorCode.InternalClientError => "An error has occurred on the client side",
             ErrorCode.ConnectionError => "Error while connecting to the server. Check your connection and try again.",
             ErrorCode.InvalidAudio => "Provided audio file is invalid.",
             ErrorCode.OperationCanceled => "Operation has been cancelled.",
@@ -25,6 +25,7 @@ public static class ErrorCodeExtensions
             ErrorCode.RetryLimitExceeded => "Retry limit exceeded.",
             ErrorCode.InvalidLlmTranslation => "LLM translation failed. Please try again.",
             ErrorCode.InvalidInput => "Error: provided data or configuration is invalid",
+            ErrorCode.SubtitlesPersistenceError => "An unexpected error occurred while saving subtitles to disk",
             _ => string.Empty,
         };
     }

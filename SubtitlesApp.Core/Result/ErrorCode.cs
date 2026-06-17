@@ -19,4 +19,5 @@ public enum ErrorCode
     RetryLimitExceeded,
     InvalidLlmTranslation,
     InvalidInput,
+    SubtitlesPersistenceError,
 }

@@ -6,6 +6,7 @@ using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
@@ -63,8 +64,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #region events
 
-    public event Func<Task>? SubtitlesGenerated;
-    public event Func<Task>? TranslationsGenerated;
+    public event Func<Task>? SubtitlesUpdated;
+    public event Func<Task>? TranslationsUpdated;
 
     #endregion
 
@@ -121,12 +122,15 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         _transcriptionSettings = newSettings;
-
         IsTranscriptionLoading = true;
+
+        var timeInterval = new TimeInterval(newSettings.FromTime, newSettings.ToTime);
+
+        Subtitles.RemoveInside(timeInterval);
 
         var results = _transcriptionService.TranscribeAsync(
             MediaPath,
-            new TimeInterval(newSettings.FromTime, newSettings.ToTime),
+            timeInterval,
             newSettings.SubtitlesLanguage.Code,
             default
         );
@@ -151,20 +155,19 @@ public partial class SubtitlesViewModel : ObservableObject
             Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto));
         }
 
-        if (SubtitlesGenerated is null)
+        try
+        {
+            await InvokeAsync(SubtitlesUpdated);
+        }
+        catch (Exception ex)
+        {
+            var error = new Error(ErrorCode.SubtitlesPersistenceError, ex.Message);
+            await _builtInDialogService.DisplayError(error);
+        }
+        finally
         {
             IsTranscriptionLoading = false;
-            return;
         }
-
-        var handlers = SubtitlesGenerated.GetInvocationList();
-
-        foreach (var handler in handlers.Cast<Func<Task>>())
-        {
-            await handler();
-        }
-
-        IsTranscriptionLoading = false;
     }
 
     [RelayCommand]
@@ -192,6 +195,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
         IsTranslationLoading = true;
 
+        Translations.RemoveInside(new(newSettings.FromTime, newSettings.ToTime));
+
         var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, default);
 
         await foreach (var result in results)
@@ -208,20 +213,19 @@ public partial class SubtitlesViewModel : ObservableObject
             Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
         }
 
-        if (TranslationsGenerated is null)
+        try
+        {
+            await InvokeAsync(TranslationsUpdated);
+        }
+        catch (Exception ex)
+        {
+            var error = new Error(ErrorCode.SubtitlesPersistenceError, ex.Message);
+            await _builtInDialogService.DisplayError(error);
+        }
+        finally
         {
             IsTranslationLoading = false;
-            return;
         }
-
-        var handlers = TranslationsGenerated.GetInvocationList();
-
-        foreach (var handler in handlers.Cast<Func<Task>>())
-        {
-            await handler();
-        }
-
-        IsTranslationLoading = false;
     }
 
     #endregion
@@ -266,5 +270,20 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         return newIndex;
+    }
+
+    private static async Task InvokeAsync(Func<Task>? eventToInvoke)
+    {
+        if (eventToInvoke is null)
+        {
+            return;
+        }
+
+        var handlers = eventToInvoke.GetInvocationList();
+
+        foreach (var handler in handlers.Cast<Func<Task>>())
+        {
+            await handler();
+        }
     }
 }

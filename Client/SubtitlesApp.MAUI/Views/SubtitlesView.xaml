@@ -56,7 +56,7 @@
           <customControls:SubtitleCollection
             x:Name="subtitleCollection"
             Subtitles="{Binding Subtitles}"
-            CurrentSubtitleIndex="{Binding CurrentSubtitleIndex}"
+            CurrentSubtitleIndex="{Binding CurrentSubtitleIndex, Mode=TwoWay}"
             EmptyText="To see the transcription here, click the Transcribe button."
             SubtitleTapped="OnSubtitleTapped"
           />
@@ -68,7 +68,7 @@
           <customControls:SubtitleCollection
             x:Name="translationCollection"
             Subtitles="{Binding Translations}"
-            CurrentSubtitleIndex="{Binding CurrentTranslationIndex}"
+            CurrentSubtitleIndex="{Binding CurrentTranslationIndex, Mode=TwoWay}"
             EmptyText="To see the translations here, click the Translate button."
             SubtitleTapped="OnSubtitleTapped"
           />
