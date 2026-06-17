@@ -2,7 +2,7 @@
 
 SubtitlesApp (working title) is a .NET MAUI mobile application that uses AI tools to generate subtitles for any video, translate them into multiple languages, and display them as a navigable collection.
 
-<img width="900" alt="SubAppPreview" src="https://github.com/user-attachments/assets/c5f45498-fbc3-4d12-8407-cf64e33dc6c4" />
+<img width="900" alt="SubAppPreview" src="https://github.com/user-attachments/assets/898c3c89-e4e9-4b66-b1aa-e9e93d64bb2c" />
 
 ## Supported Platforms
 ✅ Android\
