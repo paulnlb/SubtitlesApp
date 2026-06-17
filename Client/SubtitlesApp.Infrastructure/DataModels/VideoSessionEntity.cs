@@ -12,4 +12,6 @@ public class VideoSessionEntity
     public string SubtitlesReference { get; set; }
 
     public string TranslationsReference { get; set; }
+
+    public DateTimeOffset ModifiedOn { get; set; }
 }

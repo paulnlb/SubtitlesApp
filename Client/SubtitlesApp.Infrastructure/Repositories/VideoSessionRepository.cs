@@ -27,13 +27,17 @@ public class VideoSessionRepository(IPersistenceSettings persistenceSettings) : 
     public async Task Create(VideoSessionDto videoSession)
     {
         await Init();
+
         var entity = VideoSessionMapper.ToEntity(videoSession);
+        entity.ModifiedOn = DateTimeOffset.UtcNow;
+
         await _database.InsertAsync(entity);
     }
 
     public async Task Delete(string videoId)
     {
         await Init();
+
         var entity =
             await _database.Table<VideoSessionEntity>().Where(x => x.VideoId == videoId).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException($"Item with id {videoId} does not exist");
@@ -44,6 +48,7 @@ public class VideoSessionRepository(IPersistenceSettings persistenceSettings) : 
     public async Task<VideoSessionDto?> Get(string videoId)
     {
         await Init();
+
         var entity = await _database.Table<VideoSessionEntity>().Where(x => x.VideoId == videoId).FirstOrDefaultAsync();
 
         if (entity is null)
@@ -59,6 +64,7 @@ public class VideoSessionRepository(IPersistenceSettings persistenceSettings) : 
         await Init();
 
         var entity = VideoSessionMapper.ToEntity(videoSession);
+        entity.ModifiedOn = DateTimeOffset.UtcNow;
 
         await _database.UpdateAsync(entity);
     }
