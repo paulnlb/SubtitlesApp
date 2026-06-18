@@ -17,10 +17,10 @@
     </Style>
   </ContentPage.Resources>
 
-  <CollectionView ItemsSource="{Binding SettingsItems}" SelectionMode="None" Margin="15, 0, 15, 10">
+  <CollectionView ItemsSource="{Binding SettingsItems}" SelectionMode="None" Margin="0, 0, 0, 10">
     <CollectionView.ItemTemplate>
       <DataTemplate x:DataType="settingsItems:SettingsItemsGroup">
-        <VerticalStackLayout Spacing="0" Margin="0, 0, 0, 10" MaximumWidthRequest="{StaticResource MaxLayoutWidth}">
+        <VerticalStackLayout Spacing="0" Margin="15, 0, 15, 10" MaximumWidthRequest="{StaticResource MaxLayoutWidth}">
           <Label
             Text="{Binding Name}"
             Padding="0, 10, 0, 10"

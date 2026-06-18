@@ -129,7 +129,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Endpoint",
-            SubTitle = "Set endpoint to use third-party/self-hosted whisper models",
+            SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible Whisper APIs",
         };
 
         SettingsItems.Add(
@@ -204,7 +204,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Endpoint",
-            SubTitle = "Set endpoint to use third-party/self-hosted OpeAi-compatible APIs",
+            SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible LLM APIs",
         };
 
         _openAiSettings.Add(modelSettings);
