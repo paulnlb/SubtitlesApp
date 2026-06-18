@@ -1,8 +1,12 @@
 # SubtitlesApp
 
-SubtitlesApp is a .NET MAUI mobile application that uses AI tools to generate subtitles for any video, translate them into multiple languages, and display them as a navigable collection, similar to a deck of cards.
+SubtitlesApp (working title) is a .NET MAUI mobile application that uses AI tools to generate subtitles for any video, translate them into multiple languages, and display them as a navigable collection.
 
-<img width="900" alt="SubAppPreview" src="https://github.com/user-attachments/assets/c5f45498-fbc3-4d12-8407-cf64e33dc6c4" />
+<img width="900" alt="SubAppPreview" src="https://github.com/user-attachments/assets/898c3c89-e4e9-4b66-b1aa-e9e93d64bb2c" />
+
+---
+
+> **Note**: this app is essentially just a <ins>client</ins> (wrapper, yeah) for OpenAi-compatible APIs, such as `/audio/transcriptions` and `/responses`. As a user, you are expected to manage the APIs yourself.
 
 ## Supported Platforms
 ✅ Android\
@@ -10,7 +14,7 @@ SubtitlesApp is a .NET MAUI mobile application that uses AI tools to generate su
 
 ## Features
 Inside the app, users can:
-- Play local or remote videos;
+- Play local or online videos;
 - Generate subtitles for any video by selecting the start time, end time, and optionally the source language;
 - Translate subtitles into multiple languages;
 - Instantly switch between original subtitles and their translations;
@@ -19,10 +23,14 @@ Inside the app, users can:
 
 Subtitles are displayed in a scrollable list that is automatically synchronized with the current video playback. The list can also be manually scrolled and hidden or revealed when needed.
 
-For video transcription, the app relies on an OpenAI-compatible transcription API. You can configure the model, endpoint (including local/self-hosted servers), and API key.
+For video transcription, the app relies on Whisper models hosted on an OpenAI-compatible `/audio/transcriptions` API. You can configure the exact model, endpoint (for third-party/self-hosted servers), and API key.
 
-For translation, the app relies on the OpenAI-compatible `/responses` API. The app uses LLMs for subtitle translation because even small locally hosted models can provide fluent translations and broad language support. You can configure the model, endpoint (including local/self-hosted servers), and API key.
+For translation, the app can be configured to use LLMs hosted on:
 
+- OpenAI-compatible `/responses` API, or
+- Google Gemini API.
+
+The app relies on LLMs for subtitle translation because even small locally hosted models can provide fluent translations and broad language support. You can configure the model, endpoint (for third-party/self-hosted OpenAI-compatible servers), and API key.
 
 
 
