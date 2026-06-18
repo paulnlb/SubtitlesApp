@@ -11,49 +11,47 @@
     <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
   </ContentPage.Resources>
 
-  <ScrollView>
-    <Grid
-      Padding="30,0"
-      RowSpacing="15"
-      RowDefinitions="*, Auto, Auto, *"
-      ColumnDefinitions="*"
-      MaximumWidthRequest="{StaticResource MaxLayoutWidth}"
-    >
-      <Label
-        Grid.Row="0"
-        Text="{Binding MainLabelText}"
-        Style="{StaticResource Headline}"
-        SemanticProperties.HeadingLevel="Level1"
-        VerticalOptions="Center"
-        HorizontalOptions="Fill"
-      />
+  <Grid
+    Padding="30,0"
+    RowSpacing="15"
+    RowDefinitions="*, Auto, Auto, *"
+    ColumnDefinitions="*"
+    MaximumWidthRequest="{StaticResource MaxLayoutWidth}"
+  >
+    <Label
+      Grid.Row="0"
+      Text="{Binding MainLabelText}"
+      Style="{StaticResource Headline}"
+      SemanticProperties.HeadingLevel="Level1"
+      VerticalOptions="Center"
+      HorizontalOptions="Fill"
+    />
 
-      <Button
-        Grid.Row="1"
-        x:Name="CounterBtn"
-        Text="Open Video"
-        SemanticProperties.Hint="Opens a video"
-        HorizontalOptions="Fill"
-        Command="{Binding OpenMediaFileCommand}"
-      />
+    <Button
+      Grid.Row="1"
+      x:Name="CounterBtn"
+      Text="Open Video"
+      SemanticProperties.Hint="Opens a video"
+      HorizontalOptions="Fill"
+      Command="{Binding OpenMediaFileCommand}"
+    />
 
-      <Button
-        Grid.Row="2"
-        x:Name="SettingsBtn"
-        Text="App Settings"
-        SemanticProperties.Hint="Opens app settings"
-        HorizontalOptions="Fill"
-        Command="{Binding OpenSettingsCommand}"
-      />
+    <Button
+      Grid.Row="2"
+      x:Name="SettingsBtn"
+      Text="App Settings"
+      SemanticProperties.Hint="Opens app settings"
+      HorizontalOptions="Fill"
+      Command="{Binding OpenSettingsCommand}"
+    />
 
-      <Label
-        Grid.Row="3"
-        Text="{Binding FooterText}"
-        TextColor="{StaticResource Gray}"
-        HorizontalOptions="Center"
-        VerticalOptions="End"
-        Margin="0,0,0,5"
-      />
-    </Grid>
-  </ScrollView>
+    <Label
+      Grid.Row="3"
+      Text="{Binding FooterText}"
+      TextColor="{StaticResource Gray}"
+      HorizontalOptions="Center"
+      VerticalOptions="End"
+      Margin="0,0,0,5"
+    />
+  </Grid>
 </ContentPage>

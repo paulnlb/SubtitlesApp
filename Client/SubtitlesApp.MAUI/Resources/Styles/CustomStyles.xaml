@@ -84,4 +84,8 @@
       </VisualStateGroupList>
     </Setter>
   </Style>
+
+  <Style TargetType="Entry">
+    <Setter Property="HeightRequest" Value="54" />
+  </Style>
 </ResourceDictionary>

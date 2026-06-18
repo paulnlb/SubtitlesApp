@@ -17,10 +17,7 @@
     <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
   </toolkit:Popup.Resources>
 
-  <Entry
-    Placeholder="{Binding Value, StringFormat='{0:mm\\:ss}'}"
-    Text="{Binding Value, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}, ConverterParameter={x:Static constants:TimeSpanConverterConstants.MinutesMode}}"
-  >
+  <Entry Text="{Binding Value, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}, ConverterParameter={x:Static constants:TimeSpanConverterConstants.MinutesMode}}">
     <Entry.Behaviors>
       <toolkit:TextValidationBehavior
         x:Name="fromValidationBehavior"

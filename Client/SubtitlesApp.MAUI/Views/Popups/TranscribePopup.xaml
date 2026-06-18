@@ -36,9 +36,9 @@
     <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
 
     <Entry
+      Placeholder="From"
       Grid.Row="2"
       Grid.Column="0"
-      Placeholder="{Binding FromTime, StringFormat='{0:hh\\:mm\\:ss}'}"
       Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
     >
       <Entry.Behaviors>
@@ -54,9 +54,9 @@
       </Entry.Behaviors>
     </Entry>
     <Entry
+      Placeholder="To"
       Grid.Row="2"
       Grid.Column="1"
-      Placeholder="{Binding ToTime, StringFormat='{0:hh\\:mm\\:ss}'}"
       Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
     >
       <Entry.Behaviors>
