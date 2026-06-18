@@ -1,8 +1,7 @@
-﻿using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Interfaces;
-using SubtitlesApp.ViewModels.Popups;
+using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -10,25 +9,45 @@ public partial class MainPageViewModel : ObservableObject
 {
     private const string LoadOnlineVideo = "Load Online Video";
     private const string LoadLocalResource = "Choose Local Video From Device";
+    private readonly List<string> _mainLabelList =
+    [
+        "Rare case when AI is actually useful",
+        "Language barrier is not a thing anymore",
+        "Transcribe and translate any video",
+        "Nothing impressive. Just subtitles that are less distracting",
+        "Great tool for learning foreign languages",
+        "Nothing special as a service",
+        "The app is free and open source. The APIs - not necessarily",
+        "Transcribe, translate, swipe in, swipe away, scroll and navigate",
+        "Not just another API wrapper!",
+        "Video transcription is largely solved",
+        "This version is newer than anything we've ever released",
+    ];
 
     private readonly IBuiltInDialogService _dialogService;
     private readonly IVideoPicker _videoPicker;
-    private readonly IPopupService _popupService;
+    private readonly ICustomPopupService _popupService;
 
     [ObservableProperty]
-    private bool _isLoggedIn;
+    private string _mainLabelText;
 
-    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, IPopupService popupService)
+    [ObservableProperty]
+    private string _footerText = $"v{AppInfo.Current.VersionString} alpha. The app may crash.";
+
+    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, ICustomPopupService popupService)
     {
         _dialogService = dialogService;
         _videoPicker = videoPicker;
         _popupService = popupService;
 
-        _isLoggedIn = false;
+        var random = new Random();
+        var index = random.Next(_mainLabelList.Count);
+
+        MainLabelText = _mainLabelList[index];
     }
 
     [RelayCommand]
-    public void OpenSettings() => Shell.Current.GoToAsync($"settings");
+    public void OpenSettings() => Shell.Current.GoToAsync(nameof(SettingsPage));
 
     [RelayCommand]
     public async Task OpenMediaFile()
@@ -44,11 +63,12 @@ public partial class MainPageViewModel : ObservableObject
         switch (result)
         {
             case LoadOnlineVideo:
-                var popupResult = await _popupService.ShowPopupAsync<InputPopupViewModel>();
 
-                if (popupResult is string stringPath && !string.IsNullOrEmpty(stringPath))
+                var url = await _popupService.ShowUrlEntry();
+
+                if (!string.IsNullOrEmpty(url))
                 {
-                    await OpenPlayerWithSubtitlesPage(stringPath);
+                    await OpenPlayerWithSubtitlesPage(url);
                 }
 
                 break;
@@ -68,6 +88,6 @@ public partial class MainPageViewModel : ObservableObject
 
     private static Task OpenPlayerWithSubtitlesPage(string path)
     {
-        return Shell.Current.GoToAsync($"PlayerWithSubtitlesPage?open={path}");
+        return Shell.Current.GoToAsync($"{nameof(PlayerWithSubtitlesPage)}?open={path}");
     }
 }

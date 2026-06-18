@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+  xmlns:conv="clr-namespace:SubtitlesApp.Converters"
+  xmlns:clientmodels="clr-namespace:SubtitlesApp.ClientModels"
+  x:Class="SubtitlesApp.Views.Popups.TranscribePopup"
+  x:DataType="viewModels:TranscribePopupViewModel"
+  x:TypeArguments="clientmodels:TranscriptionSettings"
+  WidthRequest="300"
+  ControlTemplate="{StaticResource PopupTemplate}"
+  x:Name="root"
+>
+  <toolkit:Popup.Resources>
+    <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
+  </toolkit:Popup.Resources>
+  <Grid RowDefinitions="Auto, 20, 50" ColumnDefinitions="*, *">
+    <uranium:StatefulContentView
+      Grid.Row="0"
+      Grid.ColumnSpan="2"
+      Margin="0,0,0,10"
+      TappedCommand="{Binding ChooseSubtitlesLanguageCommand}"
+    >
+      <Border Padding="20">
+        <VerticalStackLayout>
+          <Label Text="Language" VerticalOptions="Center" HorizontalOptions="Center" />
+          <Label Text="{Binding SubtitlesLanguage.Name}" VerticalOptions="Center" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+      </Border>
+    </uranium:StatefulContentView>
+
+    <Label Grid.Row="1" Grid.Column="0" Text="From" VerticalTextAlignment="End" />
+    <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
+
+    <Entry
+      Placeholder="From"
+      Grid.Row="2"
+      Grid.Column="0"
+      Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
+    >
+      <Entry.Behaviors>
+        <toolkit:TextValidationBehavior
+          x:Name="fromValidationBehavior"
+          BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
+          InvalidStyle="{StaticResource InvalidEntryStyle}"
+          ValidStyle="{StaticResource DefaultEntryStyle}"
+          Flags="ValidateOnValueChanged"
+          RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
+          IsValid="{Binding IsStartTimeValid, Mode=OneWayToSource}"
+        />
+      </Entry.Behaviors>
+    </Entry>
+    <Entry
+      Placeholder="To"
+      Grid.Row="2"
+      Grid.Column="1"
+      Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
+    >
+      <Entry.Behaviors>
+        <toolkit:TextValidationBehavior
+          x:Name="toValidationBehavior"
+          BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
+          InvalidStyle="{StaticResource InvalidEntryStyle}"
+          ValidStyle="{StaticResource DefaultEntryStyle}"
+          Flags="ValidateOnValueChanged"
+          RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
+          IsValid="{Binding IsEndTimeValid, Mode=OneWayToSource}"
+        />
+      </Entry.Behaviors>
+    </Entry>
+  </Grid>
+</toolkit:Popup>

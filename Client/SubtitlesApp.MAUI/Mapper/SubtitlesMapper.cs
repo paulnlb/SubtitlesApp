@@ -24,6 +24,8 @@ public partial class SubtitlesMapper
         IEnumerable<SubtitleDto> subtitleDtos
     );
 
+    public partial ObservableCollection<VisualSubtitle> SubtitlesToVisualSubtitles(IEnumerable<Subtitle> subtitleDto);
+
     private TimeInterval SubtitleDtoToTimeInterval(SubtitleDto subtitleDto) =>
         new(subtitleDto.StartTime, subtitleDto.EndTime);
 }

@@ -7,8 +7,6 @@ public class VisualSubtitle : Subtitle, INotifyPropertyChanged
 {
     private bool _isHighlighted;
 
-    private string _text;
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public bool IsHighlighted
@@ -20,19 +18,6 @@ public class VisualSubtitle : Subtitle, INotifyPropertyChanged
             {
                 _isHighlighted = value;
                 OnPropertyChanged(nameof(IsHighlighted));
-            }
-        }
-    }
-
-    public string Text
-    {
-        get => _text;
-        set
-        {
-            if (_text != value)
-            {
-                _text = value;
-                OnPropertyChanged(nameof(Text));
             }
         }
     }

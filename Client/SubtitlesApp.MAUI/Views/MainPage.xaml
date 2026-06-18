@@ -1,39 +1,57 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
-             x:Class="SubtitlesApp.Views.MainPage"
-             x:DataType="viewModels:MainPageViewModel">
+<ContentPage
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+  x:Class="SubtitlesApp.Views.MainPage"
+  x:DataType="viewModels:MainPageViewModel"
+>
+  <ContentPage.Resources>
+    <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+  </ContentPage.Resources>
 
-        <ContentPage.Resources>
-                <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter"/>
-        </ContentPage.Resources>
+  <Grid
+    Padding="30,0"
+    RowSpacing="15"
+    RowDefinitions="*, Auto, Auto, *"
+    ColumnDefinitions="*"
+    MaximumWidthRequest="{StaticResource MaxLayoutWidth}"
+  >
+    <Label
+      Grid.Row="0"
+      Text="{Binding MainLabelText}"
+      Style="{StaticResource Headline}"
+      SemanticProperties.HeadingLevel="Level1"
+      VerticalOptions="Center"
+      HorizontalOptions="Fill"
+    />
 
-        <VerticalStackLayout>
-                <VerticalStackLayout Padding="30,0"
-                                     Spacing="25">
-                        <Image Margin="0, 40, 0, 0"
-                               Source="subtitles.png"
-                               HeightRequest="175"
-                               Aspect="AspectFit"/>
+    <Button
+      Grid.Row="1"
+      x:Name="CounterBtn"
+      Text="Open Video"
+      SemanticProperties.Hint="Opens a video"
+      HorizontalOptions="Fill"
+      Command="{Binding OpenMediaFileCommand}"
+    />
 
-                        <Label Text="Welcome to SubtitlesApp!"
-                               Style="{StaticResource Headline}"
-                               SemanticProperties.HeadingLevel="Level1"/>
+    <Button
+      Grid.Row="2"
+      x:Name="SettingsBtn"
+      Text="App Settings"
+      SemanticProperties.Hint="Opens app settings"
+      HorizontalOptions="Fill"
+      Command="{Binding OpenSettingsCommand}"
+    />
 
-                        <Button x:Name="CounterBtn"
-                                Text="Open a file"
-                                SemanticProperties.Hint="Opens a file to view"
-                                HorizontalOptions="Fill"
-                                Command="{Binding OpenMediaFileCommand}"/>
-
-                        <Button x:Name="SettingsBtn"
-                                Text="App settings"
-                                SemanticProperties.Hint="Opens app settings"
-                                HorizontalOptions="Fill"
-                                Command="{Binding OpenSettingsCommand}"/>
-                </VerticalStackLayout>
-        </VerticalStackLayout>
-
+    <Label
+      Grid.Row="3"
+      Text="{Binding FooterText}"
+      TextColor="{StaticResource Gray}"
+      HorizontalOptions="Center"
+      VerticalOptions="End"
+      Margin="0,0,0,5"
+    />
+  </Grid>
 </ContentPage>

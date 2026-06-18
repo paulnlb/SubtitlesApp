@@ -3,7 +3,7 @@
 /// <summary>
 /// Processes media and returns audio bytes
 /// </summary>
-public interface IAudioExtractor : IDisposable
+public interface IAudioExtractor
 {
     /// <summary>
     ///     Exctract audio from source
@@ -13,7 +13,7 @@ public interface IAudioExtractor : IDisposable
     /// <param name="endTime"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<byte[]> ExtractAudioAsync(
+    Task<Stream> ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
         TimeSpan endTime,

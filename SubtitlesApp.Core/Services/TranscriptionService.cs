@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
@@ -14,29 +14,6 @@ public class TranscriptionService(
     ITranscriptionSettings settings
 ) : ITranscriptionService
 {
-    private bool _disposed;
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        if (disposing)
-        {
-            audioExtractor.Dispose();
-        }
-
-        _disposed = true;
-    }
-
     public async IAsyncEnumerable<Result<SubtitleDto>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeInterval,
@@ -44,8 +21,17 @@ public class TranscriptionService(
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        if (settings.ChunkLength < TimeSpan.FromSeconds(30))
+        {
+            yield return Result<SubtitleDto>.Failure(
+                new Error(ErrorCode.InvalidInput, "Audio chunk length must be 30 seconds or longer")
+            );
+            yield break;
+        }
+
         var subIntervalStart = timeInterval.StartTime;
         var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
+        var context = string.Empty;
 
         while (subIntervalStart < timeInterval.EndTime)
         {
@@ -59,6 +45,7 @@ public class TranscriptionService(
                 subIntervalStart,
                 subIntervalEnd,
                 languageCode,
+                context,
                 cancellationToken
             );
 
@@ -68,18 +55,31 @@ public class TranscriptionService(
                 yield break;
             }
 
-            subIntervalStart = subIntervalEnd;
-            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
-
             var subtitles = subtitlesResult.Value;
+            int skipLast;
 
-            // implement overlapping by expanding the sub-interval start time backwards by one subtitle
+            // implement overlapping by expanding the sub-interval start time back by one subtitle
             // not applicable if there is 0 or 1 subtitle in the sub-interval
             // also not applicable if the current sub-interval is the last one
             if (subtitles.Count > 1 && subIntervalEnd < timeInterval.EndTime)
             {
                 subIntervalStart = subtitles.Last().StartTime;
+                skipLast = 1;
             }
+            else
+            {
+                subIntervalStart = subIntervalEnd;
+                skipLast = 0;
+            }
+
+            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
+
+            var subtitlesForContext = subtitles
+                .SkipLast(skipLast)
+                .TakeLast(settings.SubtitlesAsPromptCount)
+                .Select(x => x.Text);
+
+            context = string.Join(' ', subtitlesForContext);
 
             foreach (var subtitle in subtitles)
             {
@@ -98,6 +98,7 @@ public class TranscriptionService(
         TimeSpan startTime,
         TimeSpan endTime,
         string languageCode,
+        string context,
         CancellationToken cancellationToken = default
     )
     {
@@ -107,7 +108,7 @@ public class TranscriptionService(
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var transcriptionResult = await subtitlesClient.GetSubsAsync(audio, languageCode, cancellationToken);
+            var transcriptionResult = await subtitlesClient.GetSubsAsync(audio, languageCode, context, cancellationToken);
 
             if (transcriptionResult.IsFailure)
             {
@@ -143,5 +144,5 @@ public class TranscriptionService(
     }
 
     private TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime) =>
-        maxEndTime >= startTime + settings.SubIntervalSize ? maxEndTime : startTime + settings.SubIntervalSize;
+        maxEndTime <= startTime + settings.ChunkLength ? maxEndTime : startTime + settings.ChunkLength;
 }

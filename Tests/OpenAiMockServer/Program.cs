@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using OpenAiMockServer;
 using OpenAiMockServer.Helpers;
 using OpenAiMockServer.ResponseModels;
@@ -29,14 +30,24 @@ app.MapGet("/test", () => "Hi there");
 
 app.MapPost(
         "/v1/audio/transcriptions",
-        async () =>
+        async ([FromForm] IFormFile file, [FromForm] string model, ILogger<Program> logger) =>
         {
+            logger.LogInformation("Selected model: {Model}", model);
+            logger.LogInformation("Input audio size in bytes: {Size}", file.Length.ToString());
+
+            using var stream = File.OpenWrite(
+                @$"InputAudio/sample{DateTime.Now.ToString("HHmmss", System.Globalization.CultureInfo.InvariantCulture)}.wav"
+            );
+
+            await file.OpenReadStream().CopyToAsync(stream);
+
             latinWordsCache ??= await TextHelper.ReadWordsAsync(@"Assets/lorem_ipsum.txt");
 
-            return new TranscriptionResponse() { Segments = SeedHelper.MakeSegments(latinWordsCache, 15, 10).ToList() };
+            return new TranscriptionResponse() { Segments = SeedHelper.MakeSegments(latinWordsCache, 30, 10).ToList() };
         }
     )
-    .WithName("Transcription");
+    .WithName("Transcription")
+    .DisableAntiforgery();
 
 app.MapPost(
         "/v1/responses",
@@ -44,7 +55,7 @@ app.MapPost(
         {
             ukrWordsCache ??= await TextHelper.ReadWordsAsync(@"Assets/ukr_text.txt");
 
-            var translations = SeedHelper.MakeTranslations(ukrWordsCache, 10, 10).ToList();
+            var translations = SeedHelper.MakeTranslations(ukrWordsCache, 5, 10).ToList();
             var response = new LlmSubtitleListDto() { Items = translations };
 
             return new OpenAIResponse

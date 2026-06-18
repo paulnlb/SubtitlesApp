@@ -77,6 +77,31 @@ public static class SubtitlesExtensions
         }
     }
 
+    public static int RemoveInside<T>(this ObservableCollection<T> list, TimeInterval timeInterval)
+        where T : Subtitle
+    {
+        var itemsRemoved = 0;
+        var startIndex = list.GetNextClosest(timeInterval.StartTime);
+
+        if (startIndex == -1)
+        {
+            return itemsRemoved;
+        }
+
+        foreach (var item in list.Skip(startIndex).ToList())
+        {
+            if (timeInterval.IsEarlierThan(item.TimeInterval.StartTime))
+            {
+                return itemsRemoved;
+            }
+
+            list.Remove(item);
+            itemsRemoved++;
+        }
+
+        return itemsRemoved;
+    }
+
     private static int GetNextClosest<T>(this ObservableCollection<T> list, TimeSpan mediaTime)
         where T : Subtitle
     {

@@ -1,180 +1,84 @@
-﻿using System.Collections.ObjectModel;
-using Android.Text.Format;
-using CommunityToolkit.Maui.Core;
+﻿using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Maui.Adapters;
-using SubtitlesApp.ClientModels;
-using SubtitlesApp.Core.Extensions;
-using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Models;
-using SubtitlesApp.Core.Services;
-using SubtitlesApp.Interfaces;
+using SubtitlesApp.ClientModels.CustomEventArgs;
+using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Interfaces.Repositories;
 using SubtitlesApp.Mapper;
-using SubtitlesApp.Messages;
-using SubtitlesApp.ViewModels.Popups;
 
 namespace SubtitlesApp.ViewModels;
 
 public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttributable
 {
+    private readonly IVideoSessionRepository _videoSessionRepository;
+    private readonly ISubtitlesRepository _subtitlesRepository;
+
+    #region private fields
+
+    private readonly TimeSpan _positionRefreshTreshold = TimeSpan.FromSeconds(10);
+    private VideoSessionDto? _session;
+    private SubtitlesMapper _mapper;
+    private bool _shouldRefreshPosition;
+
+    #endregion
+
     #region observable properties
-
-    [ObservableProperty]
-    private ObservableCollection<VisualSubtitle> _subtitles;
-
-    [ObservableProperty]
-    private ObservableCollectionAdapter<VisualSubtitle> _subtitlesAdapter;
-
-    [ObservableProperty]
-    private ObservableCollection<VisualSubtitle> _translations;
-
-    [ObservableProperty]
-    private ObservableCollectionAdapter<VisualSubtitle> _translationsAdapter;
 
     [ObservableProperty]
     private string? _mediaPath;
 
     [ObservableProperty]
-    private SubtitlesCollectionState _subtitlesCollectionState;
-
-    [ObservableProperty]
-    private SubtitlesCollectionState _translationsCollectionState;
-
-    [ObservableProperty]
     private bool _playerControlsVisible;
 
     [ObservableProperty]
-    private PlayerSubtitlesLayoutSettings _layoutSettings;
+    private bool _isImmersiveOn;
 
     [ObservableProperty]
-    private bool _isBusy;
+    private bool _isFullScreenOn;
 
     [ObservableProperty]
-    private bool _isSubtitlesSelected;
-
-    [ObservableProperty]
-    private bool _isTranslationsSelected;
+    SubtitlesViewModel _subtitlesVm;
 
     #endregion
 
-    #region services
-
-    private readonly ITranslationService _translationService;
-    private readonly IPopupService _popupService;
-    private readonly ITranscriptionService _transcriptionService;
-    private readonly IBuiltInDialogService _builtInDialogService;
-    private readonly LanguageService _languageService;
-
-    #endregion
-
-    #region private fields
-
-    private readonly SubtitlesMapper _subtitlesMapper;
-    private TranscriptionSettings? _transcriptionSettings;
-    private TranslationSettings? _translationSettings;
-
-    #endregion
-
-    public event EventHandler? SubsScrollRequested;
-    public event EventHandler? TranslationsScrollRequested;
-
-    public TimeSpan MediaDuration { get; set; }
+    public event EventHandler<SeekEventArgs>? SeekRequested;
 
     public PlayerWithSubtitlesViewModel(
-        ITranslationService translationService,
-        LanguageService languageService,
-        IPopupService popupService,
-        SubtitlesMapper subtitlesMapper,
-        ITranscriptionService transcriptionService,
-        Interfaces.IBuiltInDialogService builtInDialogService
+        SubtitlesViewModel captionsViewModel,
+        IVideoSessionRepository videoSessionRepository,
+        ISubtitlesRepository subtitlesRepository,
+        SubtitlesMapper mapper
     )
     {
-        #region observable properties
-
+        _videoSessionRepository = videoSessionRepository;
+        _subtitlesRepository = subtitlesRepository;
+        _mapper = mapper;
         PlayerControlsVisible = true;
         MediaPath = null;
-        Subtitles = [];
-        Translations = [];
-        SubtitlesAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_subtitles);
-        TranslationsAdapter = new ObservableCollectionAdapter<VisualSubtitle>(_translations);
-        SubtitlesCollectionState = new SubtitlesCollectionState { AutoScrollEnabled = true };
-        TranslationsCollectionState = new SubtitlesCollectionState { AutoScrollEnabled = true };
-        LayoutSettings = new PlayerSubtitlesLayoutSettings
-        {
-            PlayerRelativeVerticalLength = 0.3,
-            PlayerRelativeHorizontalLength = 0.65,
-            SubtitlesRelativeVerticalLength = 0.7,
-            SubtitlesRelativeHorizontalLength = 0.35,
-        };
-        IsSubtitlesSelected = true;
-        IsTranslationsSelected = false;
-
-        #endregion
-
-        _translationService = translationService;
-        _popupService = popupService;
-        _transcriptionService = transcriptionService;
-        _builtInDialogService = builtInDialogService;
-        _languageService = languageService;
-
-        _subtitlesMapper = subtitlesMapper;
-    }
-
-    #region commands
-
-    [RelayCommand]
-    public void PositionChanged(TimeSpan currentPosition)
-    {
-        var isSubUpdated = UpdateCurrentSubtitleIndex(currentPosition, Subtitles, SubtitlesCollectionState);
-
-        var isTranslationUpdated = UpdateCurrentSubtitleIndex(currentPosition, Translations, TranslationsCollectionState);
-
-        if (isTranslationUpdated && TranslationsCollectionState.AutoScrollEnabled)
-        {
-            TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
-        }
-        if (isSubUpdated && SubtitlesCollectionState.AutoScrollEnabled)
-        {
-            SubsScrollRequested?.Invoke(this, EventArgs.Empty);
-        }
+        SubtitlesVm = captionsViewModel;
+        StartRefreshingSession();
     }
 
     [RelayCommand]
-    public void ScrollToCurentSub()
+    public async Task PositionChanged(TimeSpan currentPosition)
     {
-        var currentVisible =
-            SubtitlesCollectionState.CurrentSubtitleIndex <= SubtitlesCollectionState.LastVisibleSubtitleIndex
-            && SubtitlesCollectionState.CurrentSubtitleIndex >= SubtitlesCollectionState.FirstVisibleSubtitleIndex;
-
-        if (!currentVisible)
+        if (SubtitlesVm.UpdateIndexesCommand is not null && SubtitlesVm.UpdateIndexesCommand.CanExecute(currentPosition))
         {
-            SubsScrollRequested?.Invoke(this, EventArgs.Empty);
+            SubtitlesVm.UpdateIndexesCommand.Execute(currentPosition);
         }
 
-        SubtitlesCollectionState.AutoScrollEnabled = true;
-    }
-
-    [RelayCommand]
-    public void ScrollToCurentTranslation()
-    {
-        var currentVisible =
-            TranslationsCollectionState.CurrentSubtitleIndex <= TranslationsCollectionState.LastVisibleSubtitleIndex
-            && TranslationsCollectionState.CurrentSubtitleIndex >= TranslationsCollectionState.FirstVisibleSubtitleIndex;
-
-        if (!currentVisible)
+        if (
+            _shouldRefreshPosition
+            && (
+                currentPosition > _session!.PlaybackPosition + _positionRefreshTreshold
+                || currentPosition < _session!.PlaybackPosition - _positionRefreshTreshold
+            )
+        )
         {
-            TranslationsScrollRequested?.Invoke(this, EventArgs.Empty);
+            _session.PlaybackPosition = currentPosition;
+
+            await _videoSessionRepository.Update(_session);
         }
-
-        TranslationsCollectionState.AutoScrollEnabled = true;
-    }
-
-    [RelayCommand]
-    public void SubtitleTapped(VisualSubtitle subtitle)
-    {
-        StrongReferenceMessenger.Default.Send(new SeekToPositionMessage(subtitle.TimeInterval.StartTime));
     }
 
     [RelayCommand]
@@ -184,203 +88,147 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     }
 
     [RelayCommand]
-    public async Task Transcribe()
+    public async Task LoadSession()
     {
-        object? popupResult;
+        _session = await _videoSessionRepository.Get(MediaPath);
 
-        if (_transcriptionSettings is null)
+        if (_session is null)
         {
-            popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
-            {
-                vm.MediaDuration = MediaDuration;
-                vm.SubtitlesLanguage = _languageService.GetDefaultLanguage();
-            });
-        }
-        else
-        {
-            popupResult = await _popupService.ShowPopupAsync<TranscribePopupViewModel>(vm =>
-            {
-                vm.MediaDuration = MediaDuration;
-                vm.SubtitlesLanguage = _transcriptionSettings.SubtitlesLanguage;
-                vm.FromTime = _transcriptionSettings.FromTime;
-                vm.ToTime = _transcriptionSettings.ToTime;
-            });
+            _session = new VideoSessionDto { VideoId = MediaPath };
+            await _videoSessionRepository.Create(_session);
+            return;
         }
 
-        if (popupResult is not TranscriptionSettings newSettings)
+        if (_session.PlaybackPosition != TimeSpan.Zero)
+        {
+            SeekRequested?.Invoke(this, new SeekEventArgs { Time = _session.PlaybackPosition });
+        }
+
+        SubtitlesVm.IsTranscriptionLoading = true;
+        SubtitlesVm.IsTranslationLoading = true;
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_session.SubtitlesReference))
+            {
+                SubtitlesVm.Subtitles = _mapper.SubtitlesToVisualSubtitles(
+                    await _subtitlesRepository.Get(_session.SubtitlesReference)
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(_session.TranslationsReference))
+            {
+                SubtitlesVm.Translations = _mapper.SubtitlesToVisualSubtitles(
+                    await _subtitlesRepository.Get(_session.TranslationsReference)
+                );
+            }
+        }
+        finally
+        {
+            SubtitlesVm.IsTranscriptionLoading = false;
+            SubtitlesVm.IsTranslationLoading = false;
+        }
+    }
+
+    public void StartRefreshingSession()
+    {
+        _shouldRefreshPosition = true;
+        SubtitlesVm.SubtitlesUpdated += OnSubtitlesUpdated;
+        SubtitlesVm.TranslationsUpdated += OnTranslationsUpdated;
+    }
+
+    public void StopRefreshingSession()
+    {
+        _shouldRefreshPosition = false;
+        SubtitlesVm.SubtitlesUpdated -= OnSubtitlesUpdated;
+        SubtitlesVm.TranslationsUpdated -= OnTranslationsUpdated;
+    }
+
+    private async Task OnSubtitlesUpdated()
+    {
+        if (SubtitlesVm.Subtitles.Count == 0 || _session is null)
         {
             return;
         }
 
-        _transcriptionSettings = newSettings;
+        var key = GenerateSubtitlesKey(_session.VideoId);
+        var oldReference = _session.SubtitlesReference;
+        var newReference = $"subtiltes-{key}";
 
-        var results = _transcriptionService.TranscribeAsync(
-            MediaPath,
-            new TimeInterval(newSettings.FromTime, newSettings.ToTime),
-            newSettings.SubtitlesLanguage.Code,
-            default
-        );
+        await _subtitlesRepository.Create(newReference, SubtitlesVm.Subtitles);
 
-        await foreach (var result in results)
+        _session.SubtitlesReference = newReference;
+
+        if (!string.IsNullOrWhiteSpace(oldReference))
         {
-            if (result.IsFailure)
-            {
-                await _builtInDialogService.DisplayError(result.Error);
-
-                return;
-            }
-
-            var visualSub = _subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value);
-
-            Subtitles.Insert(visualSub);
+            _subtitlesRepository.Delete(oldReference);
         }
+
+        await _videoSessionRepository.Update(_session);
     }
 
-    [RelayCommand]
-    public async Task Translate()
+    private async Task OnTranslationsUpdated()
     {
-        object? popupResult;
-
-        if (_translationSettings is null)
-        {
-            popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
-            {
-                vm.MediaDuration = MediaDuration;
-            });
-        }
-        else
-        {
-            popupResult = await _popupService.ShowPopupAsync<TranslatePopupViewModel>(vm =>
-            {
-                vm.MediaDuration = MediaDuration;
-                vm.TargetLanguage = _translationSettings.TargetLanguage;
-                vm.FromTime = _translationSettings.FromTime;
-                vm.ToTime = _translationSettings.ToTime;
-            });
-        }
-
-        if (popupResult is not TranslationSettings newSettings)
+        if (SubtitlesVm.Translations.Count == 0 || _session is null)
         {
             return;
         }
 
-        _translationSettings = newSettings;
+        var key = GenerateSubtitlesKey(_session.VideoId);
+        var oldReference = _session.TranslationsReference;
+        var newReference = $"translation-{key}";
 
-        var subtitlesToTranslate = Subtitles.Where(s =>
-            s.TimeInterval.StartTime >= newSettings.FromTime && s.TimeInterval.EndTime <= newSettings.ToTime
-        );
+        await _subtitlesRepository.Create(newReference, SubtitlesVm.Translations);
 
-        var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
+        _session.TranslationsReference = newReference;
 
-        var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, default);
-
-        await foreach (var result in results)
+        if (!string.IsNullOrWhiteSpace(oldReference))
         {
-            if (result.IsFailure)
-            {
-                await _builtInDialogService.DisplayError(result.Error);
-
-                return;
-            }
-
-            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
+            _subtitlesRepository.Delete(oldReference);
         }
+
+        await _videoSessionRepository.Update(_session);
     }
 
-    [RelayCommand]
-    public void SubsScrolled()
+    partial void OnIsFullScreenOnChanged(bool value)
     {
-        var isCurrentVisible =
-            SubtitlesCollectionState.CurrentSubtitleIndex <= SubtitlesCollectionState.LastVisibleSubtitleIndex
-            && SubtitlesCollectionState.CurrentSubtitleIndex >= SubtitlesCollectionState.FirstVisibleSubtitleIndex;
-
-        SubtitlesCollectionState.AutoScrollEnabled = isCurrentVisible;
+        IsImmersiveOn = value;
+        PlayerControlsVisible = false;
     }
 
-    [RelayCommand]
-    public void TranslationsScrolled()
+    partial void OnIsImmersiveOnChanged(bool value)
     {
-        var isCurrentVisible =
-            TranslationsCollectionState.CurrentSubtitleIndex <= TranslationsCollectionState.LastVisibleSubtitleIndex
-            && TranslationsCollectionState.CurrentSubtitleIndex >= TranslationsCollectionState.FirstVisibleSubtitleIndex;
-
-        TranslationsCollectionState.AutoScrollEnabled = isCurrentVisible;
-    }
-    #endregion
-
-    #region public methods
-
-    public void Clean()
-    {
-        _transcriptionService.Dispose();
-        SubsScrollRequested = null;
-        TranslationsScrollRequested = null;
+        PlayerControlsVisible = false;
     }
 
-    #endregion
-
-    #region private methods
-    void IQueryAttributable.ApplyQueryAttributes(IDictionary<string, object> query)
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("open", out object? value))
         {
             MediaPath = value.ToString();
+            SubtitlesVm.MediaPath = value.ToString();
         }
+
+        query.Clear();
     }
 
-    private static bool UpdateCurrentSubtitleIndex(
-        TimeSpan currPosition,
-        ObservableCollection<VisualSubtitle> subtitles,
-        SubtitlesCollectionState collectionState
-    )
+    private static string GenerateSubtitlesKey(string videoId)
     {
-        if (subtitles is null or { Count: 0 })
+        var fileName = Path.GetFileNameWithoutExtension(videoId);
+
+        var keyBuilder = new StringBuilder();
+
+        // remove spaces and special characters
+        foreach (char c in fileName)
         {
-            return false;
+            if (char.IsLetterOrDigit(c))
+            {
+                keyBuilder.Append(c);
+            }
         }
 
-        var currIndex = collectionState.CurrentSubtitleIndex;
-        var currSub = subtitles[currIndex];
+        keyBuilder.Append(DateTime.Now.ToString("yyyyMMddhhmmss"));
 
-        if (currSub.TimeInterval.ContainsTime(currPosition))
-        {
-            currSub.IsHighlighted = true;
-
-            return false;
-        }
-
-        VisualSubtitle? prevSub = currIndex > 0 ? subtitles[currIndex - 1] : null;
-        VisualSubtitle? nextSub = currIndex < subtitles.Count - 1 ? subtitles[currIndex + 1] : null;
-
-        VisualSubtitle? newSub;
-        int newIndex;
-
-        if (prevSub is not null && prevSub.TimeInterval.ContainsTime(currPosition))
-        {
-            newSub = prevSub;
-            newIndex = currIndex - 1;
-        }
-        else if (nextSub is not null && nextSub.TimeInterval.ContainsTime(currPosition))
-        {
-            newSub = nextSub;
-            newIndex = currIndex + 1;
-        }
-        else
-        {
-            (newSub, newIndex) = subtitles.BinarySearch(currPosition);
-        }
-
-        if (newSub != null)
-        {
-            currSub.IsHighlighted = false;
-            collectionState.CurrentSubtitleIndex = newIndex;
-            newSub.IsHighlighted = true;
-
-            return true;
-        }
-
-        return false;
+        return keyBuilder.ToString();
     }
-
-    #endregion
 }

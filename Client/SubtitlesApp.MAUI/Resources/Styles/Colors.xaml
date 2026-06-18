@@ -15,6 +15,7 @@
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
+    <Color x:Key="Gray">#8E8E93</Color>
     <Color x:Key="Magenta">#D600AA</Color>
     <Color x:Key="MidnightBlue">#190649</Color>
     <Color x:Key="OffBlack">#1f1f1f</Color>
@@ -27,6 +28,12 @@
     <Color x:Key="Gray600">#404040</Color>
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
+
+    <Color x:Key="DarkBackground">#1A1B1E</Color>
+    <Color x:Key="CardBackground">#25262B</Color>
+    <Color x:Key="LightTextPrimary">#E1E1E1</Color>
+    <Color x:Key="LightTextSecondary">#9E9E9E</Color>
+    <Color x:Key="OffWhite">#F2F2F7</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>

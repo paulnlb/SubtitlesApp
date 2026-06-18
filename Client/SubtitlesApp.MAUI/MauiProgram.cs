@@ -1,8 +1,11 @@
-﻿using System.Text;
-using CommunityToolkit.Maui;
+﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Core.Services;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
+using Microsoft.Maui.Platform;
 using SubtitlesApp.Extensions;
+using SubtitlesApp.Services;
 using UraniumUI;
 
 namespace SubtitlesApp;
@@ -17,8 +20,19 @@ public static class MauiProgram
             .UseFullScreen()
             .UseUraniumUI()
             .UseUraniumUIMaterial()
-            .UseMauiCommunityToolkit()
-            .UseMauiCommunityToolkitMediaElement()
+            .UseMauiCommunityToolkit(options =>
+            {
+                options.SetPopupDefaults(
+                    new DefaultPopupSettings
+                    {
+                        BackgroundColor = Colors.Transparent,
+                        Padding = 0,
+                        Margin = 0,
+                    }
+                );
+                options.SetShouldUseStatusBarBehaviorOnAndroidModalPage(false);
+            })
+            .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: false)
             .UseVirtualListView()
             .ConfigureFonts(fonts =>
             {
@@ -28,6 +42,37 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Logging.AddDebug();
+#endif
+
+#if ANDROID
+        builder.ConfigureLifecycleEvents(static lifecycleBuilder =>
+        {
+            lifecycleBuilder.AddAndroid(static androidBuilder =>
+            {
+                androidBuilder.OnCreate(
+                    static (activity, _) =>
+                    {
+                        if (activity is not AndroidX.AppCompat.App.AppCompatActivity componentActivity)
+                        {
+                            return;
+                        }
+
+                        if (
+                            componentActivity.GetFragmentManager()
+                            is not AndroidX.Fragment.App.FragmentManager fragmentManager
+                        )
+                        {
+                            return;
+                        }
+
+                        fragmentManager.RegisterFragmentLifecycleCallbacks(
+                            new FragmentLifecycleManager(new PopupDialogFragmentService()),
+                            false
+                        );
+                    }
+                );
+            });
+        });
 #endif
 
         builder.Services.AddSubtitlesAppServices();

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:customContols="clr-namespace:SubtitlesApp.CustomControls"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  x:Class="SubtitlesApp.CustomControls.LoadingButton"
+  x:Name="root"
+  x:DataType="customContols:LoadingButton"
+>
+  <ContentView.Resources>
+    <ResourceDictionary>
+      <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+    </ResourceDictionary>
+  </ContentView.Resources>
+  <Grid>
+    <Button
+      x:Name="MainButton"
+      Text="{Binding Source={x:Reference root}, Path=Text}"
+      MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
+      MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
+      ImageSource="{Binding Source={x:Reference root}, Path=ImageSource}"
+      Command="{Binding Source={x:Reference root}, Path=Command}"
+      CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
+      Style="{Binding Source={x:Reference root}, Path=ButtonStyle}"
+      IsVisible="{Binding Source={x:Reference root}, Path=IsLoading, Converter={x:StaticResource InvertedBoolConverter}}"
+    />
+
+    <ActivityIndicator
+      MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
+      MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
+      IsRunning="{Binding Source={x:Reference root}, Path=IsLoading}"
+      IsVisible="{Binding Source={x:Reference root}, Path=IsLoading}"
+      Color="{Binding Source={x:Reference root}, Path=SpinnerColor}"
+      HorizontalOptions="Center"
+      VerticalOptions="Center"
+      InputTransparent="True"
+    />
+  </Grid>
+</ContentView>

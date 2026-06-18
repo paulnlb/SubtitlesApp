@@ -1,21 +1,22 @@
 ﻿using CommunityToolkit.Maui;
 using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.HttpClients;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
+using SubtitlesApp.Core.Interfaces.Repositories;
 using SubtitlesApp.Core.Interfaces.Settings;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.CustomControls.Popups;
-using SubtitlesApp.Infrastructure.HttpClients;
+using SubtitlesApp.Infrastructure.Constants;
+using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Repositories;
 using SubtitlesApp.Interfaces;
-using SubtitlesApp.Interfaces.Socket;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
-using SubtitlesApp.Services.Sockets;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
 using SubtitlesApp.Views;
-using UraniumUI;
+using SubtitlesApp.Views.Popups;
 
 namespace SubtitlesApp.Extensions;
 
@@ -25,48 +26,53 @@ public static class ServicesCollectionExtensions
     {
         #region transient
         services.AddTransient<IVideoPicker, VideoPicker>();
-        services.AddTransient<ISocketListener, UnixSocketListener>();
-        services.AddTransient<ISocketSender, UnixSocketSender>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
-
         services.AddTransient<ITranscriptionService, TranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
-        services.AddTransient<ILlmClient, OpenAiLlmClient>();
         services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
-        services.AddTransient<HttpsClientHandlerService>();
+        services.AddTransient<SubtitlesViewModel>();
+        services.AddTransient<ICustomPopupService, CustomPopupService>();
         #endregion
 
         #region singleton
         services.AddSingleton<LanguageService>();
+        services.AddSingleton<ILlmClient, GenericLlmClient>();
+        services.AddKeyedSingleton<ILlmClient, GeminiLlmClient>(LlmProviderConstants.Gemini);
+        services.AddKeyedSingleton<ILlmClient, OpenAiLlmClient>(LlmProviderConstants.OpenAi);
+        services.AddSingleton<ISubtitlesRepository, SubtitlesRepository>();
+        services.AddSingleton<IVideoSessionRepository, VideoSessionRepository>();
         #endregion
 
         #region pages
-        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>("PlayerWithSubtitles");
-        services.AddTransientWithShellRoute<MainPage, MainPageViewModel>("MainPage");
-        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModel>("settings");
+        services.AddTransientWithShellRoute<PlayerWithSubtitlesPage, PlayerWithSubtitlesViewModel>(
+            nameof(PlayerWithSubtitlesPage)
+        );
+        services.AddTransientWithShellRoute<MainPage, MainPageViewModel>(nameof(MainPage));
+        services.AddTransientWithShellRoute<SettingsPage, SettingsViewModelNew>(nameof(SettingsPage));
         #endregion
 
         #region preferences
         services.AddSingleton(Preferences.Default);
-        services.AddSingleton<IOpenAiSettings, OpenAiSettings>();
+        services.AddSingleton<ILlmSettings, LlmSettings>();
+        services.AddSingleton<IOpenAiClientSettings, OpenAiClientSettings>();
+        services.AddSingleton<IGeminiClientSettings, GeminiClientSettings>();
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
         services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
-        services.AddSingleton<ISettingsService, SettingsService>();
-
+        services.AddSingleton<IPersistenceSettings, PersistenceSettings>();
         #endregion
 
         #region popups
-        services.AddTransientPopup<InputPopup, InputPopupViewModel>();
-        services.AddTransientPopup<LoadingPopup, LoadingPopupViewModel>();
+        services.AddTransientPopup<RadioButtonPopup<Language>, RadioButtonPopupVm<Language>>();
+        services.AddTransientPopup<RadioButtonPopup<string>, RadioButtonPopupVm<string>>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
         services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
-        #endregion
-
-        #region third-party
-        services.AddCommunityToolkitDialogs();
+        services.AddTransientPopup<EntryPopup, StringEntryPopupVm>();
+        services.AddTransientPopup<TimeEntryPopup, TimeEntryPopupVm>();
+        services.AddTransientPopup<UrlEntryPopup, UrlEntryPopupVm>();
+        services.AddTransientPopup<CounterPopup, CounterPopupVm>();
         #endregion
     }
 }

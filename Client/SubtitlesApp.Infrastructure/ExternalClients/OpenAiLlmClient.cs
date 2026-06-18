@@ -1,0 +1,135 @@
+using System.ClientModel;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Schema;
+using System.Text.Json.Serialization;
+using System.Text.Unicode;
+using OpenAI;
+using OpenAI.Responses;
+using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Interfaces.ExternalClients;
+using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Mapper;
+
+namespace SubtitlesApp.Infrastructure.ExternalClients;
+
+#pragma warning disable OPENAI001
+public class OpenAiLlmClient(IOpenAiClientSettings settings) : ILlmClient
+{
+    private readonly Task<ResponsesClient> _responsesClientTask = InitClient(settings);
+    private readonly JsonSerializerOptions _schemaGenerationOptions = new(JsonSerializerOptions.Default)
+    {
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+    };
+    private readonly JsonSchemaExporterOptions _schemaExporterOptions = new() { TreatNullObliviousAsNonNullable = true };
+
+    public async Task<Result<string>> SendChatAsync(
+        List<LlmMessageDto> chatHistory,
+        string userPrompt,
+        JsonNode responseFormat
+    )
+    {
+        CreateResponseOptions options = new()
+        {
+            Model = settings.Model,
+            ReasoningOptions = new() { ReasoningEffortLevel = ResponseReasoningEffortLevel.None },
+        };
+
+        LlmMapper.ToResponseItems(chatHistory, options.InputItems);
+        options.InputItems.Add(ResponseItem.CreateUserMessageItem(userPrompt));
+
+        if (responseFormat is JsonNode schema)
+        {
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(schema);
+            var binaryData = BinaryData.FromBytes(bytes);
+
+            var textFormat = ResponseTextFormat.CreateJsonSchemaFormat("translation", binaryData, jsonSchemaIsStrict: true);
+
+            options.TextOptions = new ResponseTextOptions { TextFormat = textFormat };
+        }
+
+        ResponseResult response;
+
+        try
+        {
+            var responsesClient = await _responsesClientTask;
+            response = await responsesClient.CreateResponseAsync(options);
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Failure(
+                new Error(ErrorCode.FailedServerResponse, $"LLM response failed with error: {ex.Message}")
+            );
+        }
+
+        if (response.Status == ResponseStatus.Failed)
+        {
+            var error = new Error(ErrorCode.FailedServerResponse, $"LLM response failed with reason: {response.Error}");
+
+            return Result<string>.Failure(error);
+        }
+
+        string? resultText = null;
+
+        foreach (ResponseItem item in response.OutputItems)
+        {
+            if (item is MessageResponseItem message)
+            {
+                resultText = message.Content?.FirstOrDefault()?.Text;
+                break;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(resultText))
+        {
+            return Result<string>.Failure(
+                new Error(ErrorCode.FailedServerResponse, "LLM response did not contain any text output")
+            );
+        }
+
+        return Result<string>.Success(resultText);
+    }
+
+    public async Task<Result<T>> SendChatAsync<T>(List<LlmMessageDto> chatHistory, string userPrompt)
+    {
+        var responseFormat = _schemaGenerationOptions.GetJsonSchemaAsNode(typeof(T), _schemaExporterOptions);
+
+        var result = await SendChatAsync(chatHistory, userPrompt, responseFormat);
+
+        if (result.IsFailure)
+        {
+            return Result<T>.Failure(result.Error);
+        }
+
+        var deserialized = JsonSerializer.Deserialize<T>(
+            result.Value,
+            new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic, UnicodeRanges.Arabic),
+            }
+        );
+
+        if (deserialized is null)
+        {
+            return Result<T>.Failure(new Error(ErrorCode.InternalClientError, "Could not deserialize llm output"));
+        }
+
+        return Result<T>.Success(deserialized);
+    }
+
+    private static async Task<ResponsesClient> InitClient(IOpenAiClientSettings settings)
+    {
+        if (!string.IsNullOrWhiteSpace(settings.Endpoint))
+        {
+            return new(
+                new ApiKeyCredential(await settings.GetSecret()),
+                new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
+            );
+        }
+
+        return new(await settings.GetSecret());
+    }
+}
