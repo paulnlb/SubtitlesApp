@@ -22,7 +22,7 @@
     <ApplicationTitle>SubtitlesApp</ApplicationTitle>
 
     <!-- App Identifier -->
-    <ApplicationId>com.companyname.subtitlesapp</ApplicationId>
+    <ApplicationId>com.paulnlb.subtitlesapp</ApplicationId>
 
     <!-- Versions -->
     <ApplicationDisplayVersion>0.5.0</ApplicationDisplayVersion>
@@ -34,7 +34,7 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0-android|AnyCPU'">
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
