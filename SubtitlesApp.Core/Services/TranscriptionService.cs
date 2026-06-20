@@ -9,7 +9,7 @@ using SubtitlesApp.Core.Result;
 namespace SubtitlesApp.Core.Services;
 
 public class TranscriptionService(
-    IAudioExtractor audioExtractor,
+    IAudioChunker audioChunker,
     ITranscriptionApiClient subtitlesClient,
     ITranscriptionSettings settings
 ) : ITranscriptionService
@@ -21,29 +21,25 @@ public class TranscriptionService(
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        if (settings.ChunkLength < TimeSpan.FromSeconds(30))
+        var context = string.Empty;
+
+        if (cancellationToken.IsCancellationRequested)
         {
-            yield return Result<SubtitleDto>.Failure(
-                new Error(ErrorCode.InvalidInput, "Audio chunk length must be 30 seconds or longer")
-            );
             yield break;
         }
 
-        var subIntervalStart = timeInterval.StartTime;
-        var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
-        var context = string.Empty;
-
-        while (subIntervalStart < timeInterval.EndTime)
+        await foreach (var audioChunkResult in audioChunker.ChunkAsync(mediaPath, timeInterval, cancellationToken))
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (audioChunkResult.IsFailure)
             {
+                yield return Result<SubtitleDto>.Failure(audioChunkResult.Error);
                 yield break;
             }
 
-            var subtitlesResult = await TranscribeAsyncInternal(
-                mediaPath,
-                subIntervalStart,
-                subIntervalEnd,
+            var audioChunk = audioChunkResult.Value;
+
+            var subtitlesResult = await subtitlesClient.GetSubsAsync(
+                audioChunk.Audio,
                 languageCode,
                 context,
                 cancellationToken
@@ -55,82 +51,25 @@ public class TranscriptionService(
                 yield break;
             }
 
+            if (audioChunk.StartTime != TimeSpan.Zero)
+            {
+                AlignSubsByTime(subtitlesResult.Value, audioChunk.StartTime);
+            }
+
             var subtitles = subtitlesResult.Value;
-            int skipLast;
-
-            // implement overlapping by expanding the sub-interval start time back by one subtitle
-            // not applicable if there is 0 or 1 subtitle in the sub-interval
-            // also not applicable if the current sub-interval is the last one
-            if (subtitles.Count > 1 && subIntervalEnd < timeInterval.EndTime)
-            {
-                subIntervalStart = subtitles.Last().StartTime;
-                skipLast = 1;
-            }
-            else
-            {
-                subIntervalStart = subIntervalEnd;
-                skipLast = 0;
-            }
-
-            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
-
-            var subtitlesForContext = subtitles
-                .SkipLast(skipLast)
-                .TakeLast(settings.SubtitlesAsPromptCount)
-                .Select(x => x.Text);
+            var subtitlesForContext = subtitles.TakeLast(settings.SubtitlesAsPromptCount).Select(x => x.Text);
 
             context = string.Join(' ', subtitlesForContext);
 
             foreach (var subtitle in subtitles)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    yield break;
-                }
-
                 yield return Result<SubtitleDto>.Success(subtitle);
             }
-        }
-    }
 
-    private async Task<ListResult<SubtitleDto>> TranscribeAsyncInternal(
-        string mediaPath,
-        TimeSpan startTime,
-        TimeSpan endTime,
-        string languageCode,
-        string context,
-        CancellationToken cancellationToken = default
-    )
-    {
-        try
-        {
-            var audio = await audioExtractor.ExtractAudioAsync(mediaPath, startTime, endTime, cancellationToken);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var transcriptionResult = await subtitlesClient.GetSubsAsync(audio, languageCode, context, cancellationToken);
-
-            if (transcriptionResult.IsFailure)
+            if (cancellationToken.IsCancellationRequested)
             {
-                return ListResult<SubtitleDto>.Failure(transcriptionResult.Error);
+                yield break;
             }
-
-            if (startTime != TimeSpan.Zero)
-            {
-                AlignSubsByTime(transcriptionResult.Value, startTime);
-            }
-
-            return ListResult<SubtitleDto>.Success(transcriptionResult.Value);
-        }
-        catch (OperationCanceledException)
-        {
-            var error = new Error(ErrorCode.OperationCanceled, "Transcription operation has been canceled");
-            return ListResult<SubtitleDto>.Failure(error);
-        }
-        catch (Exception)
-        {
-            var error = new Error(ErrorCode.InternalClientError, "An unexpected error has occured.");
-            return ListResult<SubtitleDto>.Failure(error);
         }
     }
 
@@ -142,7 +81,4 @@ public class TranscriptionService(
             subtitleDto.EndTime += timeOffset;
         }
     }
-
-    private TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime) =>
-        maxEndTime <= startTime + settings.ChunkLength ? maxEndTime : startTime + settings.ChunkLength;
 }

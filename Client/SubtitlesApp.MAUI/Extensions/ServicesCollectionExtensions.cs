@@ -9,6 +9,7 @@ using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Repositories;
+using SubtitlesApp.Infrastructure.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
@@ -34,6 +35,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<IAudioExtractor, FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
+        services.AddTransient<IAudioChunker, FixedSizeChunker>();
         #endregion
 
         #region singleton
