@@ -152,7 +152,7 @@ public partial class SubtitlesViewModel : ObservableObject
             subtitleDto.StartTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.StartTime.TotalMilliseconds));
             subtitleDto.EndTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.EndTime.TotalMilliseconds));
 
-            Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto));
+            Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto), false);
         }
 
         try
@@ -210,7 +210,7 @@ public partial class SubtitlesViewModel : ObservableObject
                 return;
             }
 
-            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
+            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value), false);
         }
 
         try

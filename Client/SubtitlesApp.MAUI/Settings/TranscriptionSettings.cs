@@ -22,7 +22,7 @@ public class TranscriptionSettings : ITranscriptionSettings
         set => Preferences.Set(_subtitltesAsPromptKey, value);
     }
 
-    public TimeSpan OverlapSize => TimeSpan.FromSeconds(2);
+    public TimeSpan OverlapSize => TimeSpan.FromSeconds(5);
 
-    public TimeSpan Epsilon => TimeSpan.FromMilliseconds(300);
+    public TimeSpan Epsilon => TimeSpan.FromMilliseconds(100);
 }

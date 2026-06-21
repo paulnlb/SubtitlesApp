@@ -33,18 +33,24 @@ public static class SubtitlesExtensions
         return (null, -1);
     }
 
-    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle)
+    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle, bool removeOverlapping = true)
         where T : Subtitle
     {
-        bool overlapsWithPrevious = false;
-        bool overlapsWithNext = false;
-
         var insertionIndex = list.GetNextClosest(newSubtitle.TimeInterval.EndTime);
 
         if (insertionIndex == -1)
         {
             insertionIndex = list.Count;
         }
+
+        if (!removeOverlapping)
+        {
+            list.Insert(insertionIndex, newSubtitle);
+            return;
+        }
+
+        bool overlapsWithPrevious = false;
+        bool overlapsWithNext = false;
 
         if (insertionIndex > 0)
         {

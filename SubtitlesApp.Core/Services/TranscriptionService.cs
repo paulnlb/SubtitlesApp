@@ -22,11 +22,7 @@ public class TranscriptionService(
     )
     {
         var context = string.Empty;
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            yield break;
-        }
+        SubtitleDto? lastEmitted = null;
 
         await foreach (var audioChunkResult in audioChunker.ChunkAsync(mediaPath, timeInterval, cancellationToken))
         {
@@ -53,7 +49,7 @@ public class TranscriptionService(
 
             if (audioChunk.StartTime != TimeSpan.Zero)
             {
-                AlignSubsByTime(subtitlesResult.Value, audioChunk.StartTime);
+                AlignByTime(subtitlesResult.Value, audioChunk.StartTime);
             }
 
             var subtitles = subtitlesResult.Value;
@@ -63,7 +59,13 @@ public class TranscriptionService(
 
             foreach (var subtitle in subtitles)
             {
+                if (lastEmitted is not null && subtitle.EndTime - lastEmitted.EndTime < settings.Epsilon)
+                {
+                    continue;
+                }
+
                 yield return Result<SubtitleDto>.Success(subtitle);
+                lastEmitted = subtitle;
             }
 
             if (cancellationToken.IsCancellationRequested)
@@ -73,7 +75,7 @@ public class TranscriptionService(
         }
     }
 
-    private static void AlignSubsByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
+    private static void AlignByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
     {
         foreach (var subtitleDto in subsToAlign)
         {

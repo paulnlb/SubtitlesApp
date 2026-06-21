@@ -7,16 +7,10 @@ using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class FixedSizeChunker : IAudioChunker
+public class FixedSizeChunker(ITranscriptionSettings settings, IAudioExtractor audioExtractor) : IAudioChunker
 {
-    private readonly TimeSpan _chunkLength;
-    private readonly IAudioExtractor _audioExtractor;
-
-    public FixedSizeChunker(ITranscriptionSettings settings, IAudioExtractor audioExtractor)
-    {
-        _chunkLength = settings.ChunkLength;
-        _audioExtractor = audioExtractor;
-    }
+    private readonly TimeSpan _chunkLength = settings.ChunkLength;
+    private readonly IAudioExtractor _audioExtractor = audioExtractor;
 
     public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
         string audioPath,
@@ -49,9 +43,9 @@ public class FixedSizeChunker : IAudioChunker
                     cancellationToken
                 );
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                extractingError = new Error(ErrorCode.InternalClientError, "An unexpected error has occured.");
+                extractingError = new Error(ErrorCode.InternalClientError, ex.Message);
             }
 
             if (extractingError is not null)
@@ -69,7 +63,16 @@ public class FixedSizeChunker : IAudioChunker
                 }
             );
 
-            subIntervalStart = subIntervalEnd;
+            // do not do overlapping if current interval is the last one
+            if (subIntervalEnd == timeInterval.EndTime)
+            {
+                subIntervalStart = subIntervalEnd;
+            }
+            else
+            {
+                subIntervalStart = subIntervalEnd - settings.OverlapSize;
+            }
+
             subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
         }
     }
