@@ -1,16 +1,16 @@
 ﻿using System.Runtime.CompilerServices;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class FixedSizeChunker(ITranscriptionSettings settings, IAudioExtractor audioExtractor) : IAudioChunker
+public class FixedSizeChunker(ITranscriptionSettings settings, FfmpegNativeService audioExtractor)
 {
     private readonly TimeSpan _chunkLength = settings.ChunkLength;
-    private readonly IAudioExtractor _audioExtractor = audioExtractor;
+    private readonly FfmpegNativeService _audioExtractor = audioExtractor;
 
     public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
         string audioPath,

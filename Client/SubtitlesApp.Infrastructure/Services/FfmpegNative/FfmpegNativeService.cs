@@ -1,12 +1,10 @@
-using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Infrastructure.Constants;
-using SubtitlesApp.Platforms.Android.FfmpegNative;
 
-namespace SubtitlesApp.Services;
+namespace SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
-public partial class FfmpegNativeService : IAudioExtractor
+public class FfmpegNativeService
 {
-    public async partial Task<Stream> ExtractAudioAsync(
+    public async Task<Stream> ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
         TimeSpan endTime,

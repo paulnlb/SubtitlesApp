@@ -3,13 +3,12 @@ using OpenAI;
 using OpenAI.Audio;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.Infrastructure.ExternalClients;
 
-public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings) : ITranscriptionApiClient
+public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
 {
     private readonly Task<AudioClient> _audioClientTask = InitClient(settings);
 

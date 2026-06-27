@@ -10,6 +10,7 @@ using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Repositories;
 using SubtitlesApp.Infrastructure.Services;
+using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
@@ -29,13 +30,13 @@ public static class ServicesCollectionExtensions
         services.AddTransient<IVideoPicker, VideoPicker>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
-        services.AddTransient<ITranscriptionService, TranscriptionService>();
+        services.AddTransient<ITranscriptionService, WhisperTranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
-        services.AddTransient<ITranscriptionApiClient, OpenAiTranscriptionClent>();
-        services.AddTransient<IAudioExtractor, FfmpegNativeService>();
+        services.AddTransient<OpenAiTranscriptionClent>();
+        services.AddTransient<FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
-        services.AddTransient<IAudioChunker, FixedSizeChunker>();
+        services.AddTransient<FixedSizeChunker>();
         #endregion
 
         #region singleton

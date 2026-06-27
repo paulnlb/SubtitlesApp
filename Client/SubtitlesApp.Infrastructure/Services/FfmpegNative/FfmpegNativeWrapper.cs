@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace SubtitlesApp.Platforms.Android.FfmpegNative;
+namespace SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 public static partial class FfmpegNativeWrapper
 {

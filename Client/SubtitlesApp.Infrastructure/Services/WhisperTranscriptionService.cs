@@ -1,16 +1,16 @@
 ﻿using System.Runtime.CompilerServices;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
-using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.ExternalClients;
 
-namespace SubtitlesApp.Core.Services;
+namespace SubtitlesApp.Infrastructure.Services;
 
-public class TranscriptionService(
-    IAudioChunker audioChunker,
-    ITranscriptionApiClient subtitlesClient,
+public class WhisperTranscriptionService(
+    FixedSizeChunker audioChunker,
+    OpenAiTranscriptionClent transcriptionsClient,
     ITranscriptionSettings settings
 ) : ITranscriptionService
 {
@@ -34,7 +34,7 @@ public class TranscriptionService(
 
             var audioChunk = audioChunkResult.Value;
 
-            var subtitlesResult = await subtitlesClient.GetSubsAsync(
+            var subtitlesResult = await transcriptionsClient.GetSubsAsync(
                 audioChunk.Audio,
                 languageCode,
                 context,

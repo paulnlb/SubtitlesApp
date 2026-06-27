@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../SubtitlesApp.Core/SubtitlesApp.Core.csproj" />
@@ -12,5 +13,13 @@
     <PackageReference Include="MessagePack" Version="3.1.7" />
     <PackageReference Include="OpenAI" Version="2.10.0" />
     <PackageReference Include="sqlite-net-pcl" Version="1.11.272-beta" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Services\FfmpegNative\FfmpegNativeService.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
+    <Compile Update="Services\FfmpegNative\FfmpegNativeWrapper.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
   </ItemGroup>
 </Project>
