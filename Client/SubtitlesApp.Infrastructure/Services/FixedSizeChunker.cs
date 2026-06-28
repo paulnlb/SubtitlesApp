@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 namespace SubtitlesApp.Infrastructure.Services;

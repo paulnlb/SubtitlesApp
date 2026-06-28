@@ -37,4 +37,6 @@ public interface ICustomPopupService
     Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value, TimeSpan? min = null, TimeSpan? max = null);
 
     Task<int?> ShowCounter(string title, int value, int min = 0, int max = int.MaxValue);
+
+    Task<double?> ShowDoubleEntry(string title, double value, double? min = null, double? max = null);
 }

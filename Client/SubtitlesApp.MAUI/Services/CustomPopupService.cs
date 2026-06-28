@@ -194,4 +194,24 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
 
         return popupResult.Result;
     }
+
+    public async Task<double?> ShowDoubleEntry(string title, double value, double? min = null, double? max = null)
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(DoubleEntryPopupVm.Title), title },
+            { nameof(DoubleEntryPopupVm.AcceptText), "Ok" },
+            { nameof(DoubleEntryPopupVm.Value), value },
+            { nameof(DoubleEntryPopupVm.Min), min },
+            { nameof(DoubleEntryPopupVm.Max), max },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<DoubleEntryPopupVm, double?>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
 }

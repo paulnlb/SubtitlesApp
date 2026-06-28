@@ -91,8 +91,14 @@
     <Compile Update="CustomControls\PlayerControls.xaml.cs">
       <DependentUpon>PlayerControls.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Resources\Styles\Templates.xaml.cs">
+      <DependentUpon>Templates.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\Popups\CounterPopup.xaml.cs">
       <DependentUpon>CounterPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Popups\DoubleEntryPopup.xaml.cs">
+      <DependentUpon>DoubleEntryPopup.xaml</DependentUpon>
     </Compile>
     <Compile Update="Views\Popups\EntryPopup.xaml.cs">
       <DependentUpon>EntryPopup.xaml</DependentUpon>
@@ -118,7 +124,13 @@
     <MauiXaml Update="CustomControls\LoadingButton.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Resources\Styles\Converters.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Popups\CounterPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Popups\DoubleEntryPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Popups\EntryPopup.xaml">
@@ -149,6 +161,9 @@
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\TranscriptionSettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
   </ItemGroup>

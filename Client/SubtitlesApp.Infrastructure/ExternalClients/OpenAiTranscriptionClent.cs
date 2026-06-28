@@ -53,6 +53,15 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
 
         foreach (TranscribedSegment segment in apiResult.Segments)
         {
+            if (
+                segment.NoSpeechProbability > settings.NoSpeechProbabilityThreshold
+                || segment.AverageLogProbability < settings.AverageLogProbabilityThreshold
+                || segment.CompressionRatio > settings.CompressionRatioThreshold
+            )
+            {
+                continue;
+            }
+
             subtitles.Add(
                 new()
                 {

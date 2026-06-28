@@ -54,6 +54,9 @@ public static class ServicesCollectionExtensions
         );
         services.AddTransientWithShellRoute<MainPage, MainPageViewModel>(nameof(MainPage));
         services.AddTransientWithShellRoute<SettingsPage, SettingsViewModelNew>(nameof(SettingsPage));
+        services.AddTransientWithShellRoute<TranscriptionSettingsPage, TranscriptionSettingsVm>(
+            nameof(TranscriptionSettingsPage)
+        );
         #endregion
 
         #region preferences
@@ -76,6 +79,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<TimeEntryPopup, TimeEntryPopupVm>();
         services.AddTransientPopup<UrlEntryPopup, UrlEntryPopupVm>();
         services.AddTransientPopup<CounterPopup, CounterPopupVm>();
+        services.AddTransientPopup<DoubleEntryPopup, DoubleEntryPopupVm>();
         #endregion
     }
 }

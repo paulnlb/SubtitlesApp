@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  x:DataType="viewModels:DoubleEntryPopupVm"
+  x:Class="SubtitlesApp.Views.Popups.DoubleEntryPopup"
+  x:TypeArguments="x:Double"
+  ControlTemplate="{StaticResource PopupTemplate}"
+  WidthRequest="300"
+  x:Name="root"
+>
+  <Entry Keyboard="Numeric" Text="{Binding Value, Mode=TwoWay}">
+    <Entry.Behaviors>
+      <toolkit:TextValidationBehavior
+        x:Name="doubleValidationBehavior"
+        BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
+        InvalidStyle="{StaticResource InvalidEntryStyle}"
+        ValidStyle="{StaticResource DefaultEntryStyle}"
+        Flags="ValidateOnValueChanged"
+        RegexPattern="^-?\d+([.,]\d+)?$"
+        IsValid="{Binding IsInputValid, Mode=OneWayToSource}"
+      />
+    </Entry.Behaviors>
+  </Entry>
+</toolkit:Popup>

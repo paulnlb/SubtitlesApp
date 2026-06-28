@@ -3,9 +3,9 @@
   xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
-  x:Class="SubtitlesApp.Views.SettingsPage"
-  x:DataType="viewModels:SettingsViewModelNew"
-  Title="Settings"
+  x:Class="SubtitlesApp.Views.TranscriptionSettingsPage"
+  x:DataType="viewModels:TranscriptionSettingsVm"
+  Title="Advanced Transcription Settings"
   BackgroundColor="{AppThemeBinding Light={StaticResource OffWhite}, Dark={StaticResource DarkBackground}}"
 >
   <CollectionView

@@ -1,11 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SubtitlesApp.Constants;
-using SubtitlesApp.Core.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.ViewModels.SettingsItems;
+using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -18,7 +18,6 @@ public partial class SettingsViewModelNew : ObservableObject
     private readonly IOpenAiClientSettings _openAiClientSettings;
     private readonly ILlmSettings _llmClientSettings;
     private readonly ICustomPopupService _popupService;
-    private readonly ITranscriptionSettings _transcriptionSettings;
 
     private readonly ObservableCollection<SettingsItem> _openAiSettings = [];
     private readonly ObservableCollection<SettingsItem> _geminiSettings = [];
@@ -30,8 +29,7 @@ public partial class SettingsViewModelNew : ObservableObject
         IGeminiClientSettings geminiClientSettings,
         IOpenAiClientSettings openAiClientSettings,
         ILlmSettings llmClientSettings,
-        ICustomPopupService popupService,
-        ITranscriptionSettings transcriptionSettings
+        ICustomPopupService popupService
     )
     {
         _transcriptionClientSettings = transcriptionClientSettings;
@@ -39,10 +37,8 @@ public partial class SettingsViewModelNew : ObservableObject
         _openAiClientSettings = openAiClientSettings;
         _llmClientSettings = llmClientSettings;
         _popupService = popupService;
-        _transcriptionSettings = transcriptionSettings;
 
         AddTranscriptionSettings();
-        AddTranscriptionChunkingSettings();
         AddOpenAiSettings();
         AddGeminiSettings();
 
@@ -132,44 +128,12 @@ public partial class SettingsViewModelNew : ObservableObject
             SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible Whisper APIs",
         };
 
+        var advancedSettings = new PageSettingsItem(nameof(TranscriptionSettingsPage)) { Title = "Advanced Settings" };
+
         SettingsItems.Add(
             new SettingsItemsGroup(
                 AppSettingsConstants.OnlineTranscriptionGroup,
-                [modelSettings, apiKeySettings, endpointSettings]
-            )
-        );
-    }
-
-    private void AddTranscriptionChunkingSettings()
-    {
-        var chunkLengthSettings = new TimeEntrySettingsItem(
-            _popupService,
-            true,
-            () => _transcriptionSettings.ChunkLength,
-            (value) => _transcriptionSettings.ChunkLength = value,
-            TimeSpan.FromSeconds(30),
-            TimeSpan.FromMinutes(10)
-        )
-        {
-            Title = "Audio chunk length",
-        };
-
-        var lastSubtitlesAsPrompt = new CounterSettingsItem(
-            _popupService,
-            true,
-            () => _transcriptionSettings.SubtitlesAsPromptCount,
-            (value) => _transcriptionSettings.SubtitlesAsPromptCount = value,
-            0,
-            10
-        )
-        {
-            Title = "Use last n subtitles as prompt",
-        };
-
-        SettingsItems.Add(
-            new SettingsItemsGroup(
-                AppSettingsConstants.TranscriptionChunkingGroup,
-                [chunkLengthSettings, lastSubtitlesAsPrompt]
+                [modelSettings, apiKeySettings, endpointSettings, advancedSettings]
             )
         );
     }
