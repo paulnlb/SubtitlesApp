@@ -6,28 +6,19 @@
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
   xmlns:constants="clr-namespace:SubtitlesApp.Constants"
   xmlns:conv="clr-namespace:SubtitlesApp.Converters"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   x:DataType="viewModels:TimeEntryPopupVm"
   x:Class="SubtitlesApp.Views.Popups.TimeEntryPopup"
   x:TypeArguments="x:TimeSpan"
   ControlTemplate="{StaticResource PopupTemplate}"
-  WidthRequest="300"
   x:Name="root"
 >
   <toolkit:Popup.Resources>
     <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
   </toolkit:Popup.Resources>
 
-  <Entry Text="{Binding Value, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}, ConverterParameter={x:Static constants:TimeSpanConverterConstants.MinutesMode}}">
-    <Entry.Behaviors>
-      <toolkit:TextValidationBehavior
-        x:Name="fromValidationBehavior"
-        BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
-        InvalidStyle="{StaticResource InvalidEntryStyle}"
-        ValidStyle="{StaticResource DefaultEntryStyle}"
-        Flags="ValidateOnValueChanged"
-        RegexPattern="^[0-5]\d:[0-5]\d$"
-        IsValid="{Binding IsInputValid, Mode=OneWayToSource}"
-      />
-    </Entry.Behaviors>
-  </Entry>
+  <customControls:TimeEntry
+    TimeScope="Minutes"
+    Text="{Binding Value, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}, ConverterParameter={x:Static constants:TimeSpanConverterConstants.MinutesMode}}"
+  ></customControls:TimeEntry>
 </toolkit:Popup>

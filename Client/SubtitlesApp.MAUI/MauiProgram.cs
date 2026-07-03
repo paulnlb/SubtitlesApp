@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui.Core.Services;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
@@ -78,15 +79,16 @@ public static class MauiProgram
 #endif
 
         EntryHandler.Mapper.AppendToMapping(
-            "NoCursor",
+            "TimeEntry",
             (handler, view) =>
             {
-                if (view is not TimeEntry)
+                if (view is not TimeEntry timeEntry)
                 {
                     return;
                 }
 #if ANDROID
                 handler.PlatformView.SetCursorVisible(false);
+
 #elif IOS || MACCATALYST
                 handler.PlatformView.TintColor = UIKit.UIColor.Clear;
 #elif WINDOWS

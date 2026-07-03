@@ -26,12 +26,6 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
     [ObservableProperty]
     private TimeSpan _mediaDuration;
 
-    [ObservableProperty]
-    private bool _isStartTimeValid;
-
-    [ObservableProperty]
-    private bool _isEndTimeValid;
-
     public required string SourceLanguageCode;
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -130,16 +124,6 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         ToTime = value;
     }
 
-    partial void OnIsEndTimeValidChanged(bool value)
-    {
-        IsAcceptEnabled = CanTranslate();
-    }
-
-    partial void OnIsStartTimeValidChanged(bool value)
-    {
-        IsAcceptEnabled = CanTranslate();
-    }
-
     partial void OnIsTimeRangeValidChanged(bool value)
     {
         IsAcceptEnabled = CanTranslate();
@@ -150,5 +134,5 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         IsAcceptEnabled = CanTranslate();
     }
 
-    private bool CanTranslate() => TargetLanguage is not null && IsStartTimeValid && IsEndTimeValid && IsTimeRangeValid;
+    private bool CanTranslate() => TargetLanguage is not null && IsTimeRangeValid;
 }

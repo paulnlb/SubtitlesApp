@@ -21,16 +21,7 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
     private TimeSpan _toTime;
 
     [ObservableProperty]
-    private bool _isTimeRangeValid;
-
-    [ObservableProperty]
     private TimeSpan _mediaDuration;
-
-    [ObservableProperty]
-    private bool _isStartTimeValid;
-
-    [ObservableProperty]
-    private bool _isEndTimeValid;
 
     [ObservableProperty]
     private TimeSpan _currentMediaTime;
@@ -122,32 +113,17 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
 
     partial void OnFromTimeChanged(TimeSpan value)
     {
-        IsTimeRangeValid = value < ToTime;
+        IsAcceptEnabled = value < ToTime;
     }
 
     partial void OnToTimeChanged(TimeSpan value)
     {
-        IsTimeRangeValid = FromTime < value && value <= MediaDuration;
+        IsAcceptEnabled = FromTime < value && value <= MediaDuration;
     }
 
     partial void OnMediaDurationChanged(TimeSpan value)
     {
         FromTime = TimeSpan.Zero;
         ToTime = value;
-    }
-
-    partial void OnIsEndTimeValidChanged(bool value)
-    {
-        IsAcceptEnabled = value && IsStartTimeValid && IsTimeRangeValid;
-    }
-
-    partial void OnIsStartTimeValidChanged(bool value)
-    {
-        IsAcceptEnabled = value && IsEndTimeValid && IsTimeRangeValid;
-    }
-
-    partial void OnIsTimeRangeValidChanged(bool value)
-    {
-        IsAcceptEnabled = IsStartTimeValid && IsEndTimeValid && value;
     }
 }

@@ -11,14 +11,13 @@
   x:Class="SubtitlesApp.Views.Popups.TranslatePopup"
   x:DataType="viewModels:TranslatePopupViewModel"
   x:TypeArguments="clientmodels:TranslationSettings"
-  WidthRequest="300"
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
   <toolkit:Popup.Resources>
     <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
   </toolkit:Popup.Resources>
-  <ScrollView>
+  <ScrollView VerticalOptions="Start">
     <Grid RowDefinitions="Auto, 20, 50, Auto" ColumnDefinitions="*, *" RowSpacing="5">
       <uranium:StatefulContentView
         Grid.Row="0"

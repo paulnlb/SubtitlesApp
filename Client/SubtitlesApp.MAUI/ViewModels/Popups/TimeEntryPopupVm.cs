@@ -14,9 +14,6 @@ public partial class TimeEntryPopupVm(ICustomPopupService popupService) : BasePo
     [ObservableProperty]
     private TimeSpan _value;
 
-    [ObservableProperty]
-    private bool _isInputValid;
-
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         query.TryGetValue(nameof(Title), out var titleValue);
@@ -66,11 +63,6 @@ public partial class TimeEntryPopupVm(ICustomPopupService popupService) : BasePo
 
     partial void OnValueChanged(TimeSpan value)
     {
-        IsAcceptEnabled = IsInputValid && value <= Max && value >= Min;
-    }
-
-    partial void OnIsInputValidChanged(bool value)
-    {
-        IsAcceptEnabled = value && Value <= Max && Value >= Min;
+        IsAcceptEnabled = value <= Max && value >= Min;
     }
 }
