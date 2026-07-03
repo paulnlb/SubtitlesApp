@@ -92,6 +92,11 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         }
     }
 
+    public void SetFromTime(TimeSpan time) => FromTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, ToTime.Ticks));
+
+    public void SetToTime(TimeSpan time) =>
+        ToTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, FromTime.Ticks, MediaDuration.Ticks));
+
     public override async Task Accept()
     {
         var translationSettings = new TranslationSettings

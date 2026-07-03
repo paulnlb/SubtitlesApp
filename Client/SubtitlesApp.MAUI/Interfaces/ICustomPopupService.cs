@@ -7,6 +7,7 @@ public interface ICustomPopupService
 {
     public Task<TranscriptionSettings?> ShowTranscriptionSettings(
         TimeSpan mediaDuration,
+        TimeSpan currentMediaTime,
         Language language,
         TimeSpan? fromTime,
         TimeSpan? toTime

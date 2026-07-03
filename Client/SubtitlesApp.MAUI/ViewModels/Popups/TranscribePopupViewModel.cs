@@ -32,6 +32,9 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
     [ObservableProperty]
     private bool _isEndTimeValid;
 
+    [ObservableProperty]
+    private TimeSpan _currentMediaTime;
+
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         query.TryGetValue(nameof(MediaDuration), out var durationValue);
@@ -41,6 +44,7 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
         query.TryGetValue(nameof(Title), out var titleValue);
         query.TryGetValue(nameof(AcceptText), out var acceptTextValue);
         query.TryGetValue(nameof(CancelText), out var cancelTextValue);
+        query.TryGetValue(nameof(CurrentMediaTime), out var currentMediaTimeValue);
 
         if (titleValue is string title)
         {
@@ -70,6 +74,10 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
         {
             ToTime = toTime;
         }
+        if (currentMediaTimeValue is TimeSpan currentMediaTime)
+        {
+            CurrentMediaTime = currentMediaTime;
+        }
 
         query.Clear();
     }
@@ -89,6 +97,11 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
             SubtitlesLanguage = selectedLang;
         }
     }
+
+    public void SetFromTime(TimeSpan time) => FromTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, ToTime.Ticks));
+
+    public void SetToTime(TimeSpan time) =>
+        ToTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, FromTime.Ticks, MediaDuration.Ticks));
 
     public override async Task Accept()
     {

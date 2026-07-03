@@ -57,6 +57,7 @@ public partial class SubtitlesViewModel : ObservableObject
     private readonly SubtitlesMapper _subtitlesMapper;
     private TranscriptionSettings? _transcriptionSettings;
     private TranslationSettings? _translationSettings;
+    private TimeSpan _currentMediaTime;
 
     #endregion
 
@@ -98,6 +99,7 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public void UpdateIndexes(TimeSpan currentPosition)
     {
+        _currentMediaTime = currentPosition;
         CurrentSubtitleIndex = FindNewIndex(currentPosition, Subtitles, CurrentSubtitleIndex);
         CurrentTranslationIndex = FindNewIndex(currentPosition, Translations, CurrentTranslationIndex);
     }
@@ -109,6 +111,7 @@ public partial class SubtitlesViewModel : ObservableObject
 
         var popupResult = await _popupService.ShowTranscriptionSettings(
             MediaDuration,
+            _currentMediaTime,
             subtitlesLang,
             _transcriptionSettings?.FromTime,
             _transcriptionSettings?.ToTime

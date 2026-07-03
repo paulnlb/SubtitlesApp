@@ -17,6 +17,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
 
     public async Task<TranscriptionSettings?> ShowTranscriptionSettings(
         TimeSpan mediaDuration,
+        TimeSpan currentMediaTime,
         Language language,
         TimeSpan? fromTime,
         TimeSpan? toTime
@@ -28,6 +29,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(TranscribePopupViewModel.SubtitlesLanguage), language },
             { nameof(TranscribePopupViewModel.Title), "Transcription" },
             { nameof(TranscribePopupViewModel.AcceptText), "Transcribe" },
+            { nameof(TranscribePopupViewModel.CurrentMediaTime), currentMediaTime },
         };
 
         if (fromTime is not null)

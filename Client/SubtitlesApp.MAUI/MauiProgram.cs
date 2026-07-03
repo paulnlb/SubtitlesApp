@@ -2,8 +2,10 @@
 using CommunityToolkit.Maui.Core.Services;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Handlers;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
+using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
 using SubtitlesApp.Services;
 using UraniumUI;
@@ -74,6 +76,24 @@ public static class MauiProgram
             });
         });
 #endif
+
+        EntryHandler.Mapper.AppendToMapping(
+            "NoCursor",
+            (handler, view) =>
+            {
+                if (view is not TimeEntry)
+                {
+                    return;
+                }
+#if ANDROID
+                handler.PlatformView.SetCursorVisible(false);
+#elif IOS || MACCATALYST
+                handler.PlatformView.TintColor = UIKit.UIColor.Clear;
+#elif WINDOWS
+                handler.PlatformView.IsReadOnly = true;
+#endif
+            }
+        );
 
         builder.Services.AddSubtitlesAppServices();
 

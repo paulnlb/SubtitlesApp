@@ -7,6 +7,7 @@
   xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
   xmlns:conv="clr-namespace:SubtitlesApp.Converters"
   xmlns:clientmodels="clr-namespace:SubtitlesApp.ClientModels"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   x:Class="SubtitlesApp.Views.Popups.TranscribePopup"
   x:DataType="viewModels:TranscribePopupViewModel"
   x:TypeArguments="clientmodels:TranscriptionSettings"
@@ -17,59 +18,84 @@
   <toolkit:Popup.Resources>
     <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
   </toolkit:Popup.Resources>
-  <Grid RowDefinitions="Auto, 20, 50" ColumnDefinitions="*, *">
-    <uranium:StatefulContentView
-      Grid.Row="0"
-      Grid.ColumnSpan="2"
-      Margin="0,0,0,10"
-      TappedCommand="{Binding ChooseSubtitlesLanguageCommand}"
-    >
-      <Border Padding="20">
-        <VerticalStackLayout>
-          <Label Text="Language" VerticalOptions="Center" HorizontalOptions="Center" />
-          <Label Text="{Binding SubtitlesLanguage.Name}" VerticalOptions="Center" HorizontalOptions="Center" />
-        </VerticalStackLayout>
-      </Border>
-    </uranium:StatefulContentView>
+  <ScrollView>
+    <Grid RowDefinitions="Auto, 20, 50, Auto" ColumnDefinitions="*, *" RowSpacing="5">
+      <uranium:StatefulContentView
+        Grid.Row="0"
+        Grid.ColumnSpan="2"
+        Margin="0,0,0,10"
+        TappedCommand="{Binding ChooseSubtitlesLanguageCommand}"
+      >
+        <Border Padding="20">
+          <VerticalStackLayout>
+            <Label Text="Language" VerticalOptions="Center" HorizontalOptions="Center" />
+            <Label Text="{Binding SubtitlesLanguage.Name}" VerticalOptions="Center" HorizontalOptions="Center" />
+          </VerticalStackLayout>
+        </Border>
+      </uranium:StatefulContentView>
 
-    <Label Grid.Row="1" Grid.Column="0" Text="From" VerticalTextAlignment="End" />
-    <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
+      <Label Grid.Row="1" Grid.Column="0" Text="From" VerticalTextAlignment="End" />
+      <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
 
-    <Entry
-      Placeholder="From"
-      Grid.Row="2"
-      Grid.Column="0"
-      Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
-    >
-      <Entry.Behaviors>
-        <toolkit:TextValidationBehavior
-          x:Name="fromValidationBehavior"
-          BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
-          InvalidStyle="{StaticResource InvalidEntryStyle}"
-          ValidStyle="{StaticResource DefaultEntryStyle}"
-          Flags="ValidateOnValueChanged"
-          RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
-          IsValid="{Binding IsStartTimeValid, Mode=OneWayToSource}"
+      <customControls:TimeEntry
+        x:Name="FromEntry"
+        Placeholder="From"
+        Grid.Row="2"
+        Grid.Column="0"
+        Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
+      />
+      <customControls:TimeEntry
+        x:Name="ToEntry"
+        Placeholder="To"
+        Grid.Row="2"
+        Grid.Column="1"
+        Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
+      />
+
+      <FlexLayout Grid.Row="3" Grid.ColumnSpan="2" Wrap="Wrap">
+        <Button
+          Text="Current Time"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnAbsoluteModifierClicked"
+          CommandParameter="{Binding CurrentMediaTime}"
         />
-      </Entry.Behaviors>
-    </Entry>
-    <Entry
-      Placeholder="To"
-      Grid.Row="2"
-      Grid.Column="1"
-      Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
-    >
-      <Entry.Behaviors>
-        <toolkit:TextValidationBehavior
-          x:Name="toValidationBehavior"
-          BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
-          InvalidStyle="{StaticResource InvalidEntryStyle}"
-          ValidStyle="{StaticResource DefaultEntryStyle}"
-          Flags="ValidateOnValueChanged"
-          RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
-          IsValid="{Binding IsEndTimeValid, Mode=OneWayToSource}"
+        <Button
+          Text="Media Start"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnAbsoluteModifierClicked"
+          CommandParameter="0:0:0"
         />
-      </Entry.Behaviors>
-    </Entry>
-  </Grid>
+        <Button
+          Text="Media End"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnAbsoluteModifierClicked"
+          CommandParameter="{Binding MediaDuration}"
+        />
+        <Button
+          Text="+5s"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnRelativeModifierClicked"
+          CommandParameter="0:0:5"
+        />
+        <Button
+          Text="+30s"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnRelativeModifierClicked"
+          CommandParameter="0:0:30"
+        />
+        <Button
+          Text="+5m"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnRelativeModifierClicked"
+          CommandParameter="0:5:0"
+        />
+        <Button
+          Text="+30m"
+          StyleClass="TextButton, Dialog.Button2"
+          Clicked="OnRelativeModifierClicked"
+          CommandParameter="0:30:0"
+        />
+      </FlexLayout>
+    </Grid>
+  </ScrollView>
 </toolkit:Popup>
