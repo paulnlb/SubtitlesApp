@@ -34,7 +34,7 @@ public static class MauiProgram
                 );
                 options.SetShouldUseStatusBarBehaviorOnAndroidModalPage(false);
             })
-            .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: false)
+            .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: true)
             .UseVirtualListView()
             .ConfigureFonts(fonts =>
             {
