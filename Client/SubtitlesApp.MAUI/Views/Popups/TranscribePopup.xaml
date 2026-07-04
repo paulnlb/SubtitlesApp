@@ -5,7 +5,6 @@
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
   xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-  xmlns:conv="clr-namespace:SubtitlesApp.Converters"
   xmlns:clientmodels="clr-namespace:SubtitlesApp.ClientModels"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   x:Class="SubtitlesApp.Views.Popups.TranscribePopup"
@@ -14,9 +13,6 @@
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
-  <toolkit:Popup.Resources>
-    <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
-  </toolkit:Popup.Resources>
   <ScrollView VerticalOptions="Start">
     <Grid RowDefinitions="Auto, 20, 50, Auto" ColumnDefinitions="*, *" RowSpacing="5">
       <uranium:StatefulContentView
@@ -41,14 +37,14 @@
         Placeholder="From"
         Grid.Row="2"
         Grid.Column="0"
-        Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
+        TimeValue="{Binding FromTime, Mode=TwoWay}"
       />
       <customControls:TimeEntry
         x:Name="ToEntry"
         Placeholder="To"
         Grid.Row="2"
         Grid.Column="1"
-        Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
+        TimeValue="{Binding ToTime, Mode=TwoWay}"
       />
 
       <FlexLayout Grid.Row="3" Grid.ColumnSpan="2" Wrap="Wrap">

@@ -1,15 +1,20 @@
 ﻿using System.ComponentModel;
+using System.Globalization;
 using SubtitlesApp.ClientModels.Enums;
 
 namespace SubtitlesApp.CustomControls;
 
-public class TimeEntry : Entry
+public partial class TimeEntry : Entry
 {
+    private bool _isInternalTimeUpdate;
+    private const string DefaultText = "00:00:00";
+
     public static readonly BindableProperty TimeScopeProperty = BindableProperty.Create(
         nameof(TimeScope),
         typeof(TimeEntryScope),
         typeof(TimeEntry),
-        TimeEntryScope.Hours
+        TimeEntryScope.Hours,
+        propertyChanged: OnTimeScopeChanged
     );
 
     public TimeEntryScope TimeScope
@@ -18,59 +23,94 @@ public class TimeEntry : Entry
         set => SetValue(TimeScopeProperty, value);
     }
 
-    private int _digitsCount;
-    private string _defaultText;
+    public static readonly BindableProperty TimeValueProperty = BindableProperty.Create(
+        nameof(TimeValue),
+        typeof(TimeSpan),
+        typeof(TimeEntry),
+        TimeSpan.Zero,
+        propertyChanged: OnTimeValueChanged
+    );
+
+    public TimeSpan TimeValue
+    {
+        get => (TimeSpan)GetValue(TimeValueProperty);
+        set => SetValue(TimeValueProperty, value);
+    }
 
     public TimeEntry()
     {
         Keyboard = Keyboard.Numeric;
-        _digitsCount = GetDigitsCount();
-        _defaultText = GetDefaultText();
 
         if (string.IsNullOrEmpty(Text))
         {
-            Text = _defaultText;
+            Text = DefaultText;
         }
 
-        TextChanged += OnTimeTextChanged;
+        TextChanged += OnTextChanged;
         PropertyChanged += OnPropertyChanged;
     }
 
-    private void OnTimeTextChanged(object? sender, TextChangedEventArgs e)
+    private static void OnTimeValueChanged(BindableObject bindable, object oldValue, object newValue)
     {
-        _digitsCount = GetDigitsCount();
-        _defaultText = GetDefaultText();
+        if (bindable is not TimeEntry timeEntry || newValue is not TimeSpan newTime)
+        {
+            return;
+        }
 
+        if (!timeEntry._isInternalTimeUpdate)
+        {
+            timeEntry.UpdateTextInternal(newTime.ToString(timeEntry.GetFormat(), CultureInfo.CurrentCulture));
+        }
+    }
+
+    private static void OnTimeScopeChanged(BindableObject bindable, object oldValue, object newValue)
+    {
+        if (bindable is not TimeEntry timeEntry || newValue is not TimeEntryScope newScope)
+        {
+            return;
+        }
+
+        if (newScope != TimeEntryScope.Hours && timeEntry.Text == DefaultText)
+        {
+            timeEntry.UpdateTextInternal(TimeSpan.Zero.ToString(timeEntry.GetFormat()));
+        }
+    }
+
+    private void OnTextChanged(object? sender, TextChangedEventArgs e)
+    {
         try
         {
+            var digitsCount = GetDigitsCount();
+
             string rawDigits = (e.NewTextValue ?? "").Replace(":", "");
 
             rawDigits = new string(rawDigits.Where(char.IsDigit).ToArray());
 
-            if (rawDigits.Length > _digitsCount)
+            if (rawDigits.Length > digitsCount)
             {
-                rawDigits = rawDigits.Substring(rawDigits.Length - _digitsCount);
+                rawDigits = rawDigits.Substring(rawDigits.Length - digitsCount);
             }
-            else if (rawDigits.Length < _digitsCount)
+            else if (rawDigits.Length < digitsCount)
             {
-                rawDigits = rawDigits.PadLeft(_digitsCount, '0');
+                rawDigits = rawDigits.PadLeft(digitsCount, '0');
             }
 
-            var finalText = TimeScope switch
+            var (time, timeStr) = TimeScope switch
             {
-                TimeEntryScope.Hours => FormatTimeHours(rawDigits),
-                TimeEntryScope.Minutes => FormatTimeMinutes(rawDigits),
+                TimeEntryScope.Hours => ConvertToTimeHours(rawDigits),
+                TimeEntryScope.Minutes => ConvertToTimeMinutes(rawDigits),
             };
 
-            UpdateText(finalText);
+            UpdateTextInternal(timeStr);
+            UpdateTimeValueInternal(time);
         }
         catch
         {
-            UpdateText(_defaultText);
+            TimeValue = TimeSpan.Zero;
         }
     }
 
-    private static string FormatTimeHours(string rawDigits)
+    private static (TimeSpan Time, string TimeStr) ConvertToTimeHours(string rawDigits)
     {
         string hhStr = rawDigits.Substring(0, 2);
         string mmStr = rawDigits.Substring(2, 2);
@@ -80,15 +120,10 @@ public class TimeEntry : Entry
         int mm = int.Parse(mmStr);
         int ss = int.Parse(ssStr);
 
-        if (mm > 59)
-            mm = 59;
-        if (ss > 59)
-            ss = 59;
-
-        return $"{hh:D2}:{mm:D2}:{ss:D2}";
+        return (new TimeSpan(hh, mm, ss), $"{hh:D2}:{mm:D2}:{ss:D2}");
     }
 
-    private static string FormatTimeMinutes(string rawDigits)
+    private static (TimeSpan Time, string TimeStr) ConvertToTimeMinutes(string rawDigits)
     {
         string mmStr = rawDigits.Substring(0, 2);
         string ssStr = rawDigits.Substring(2, 2);
@@ -96,22 +131,24 @@ public class TimeEntry : Entry
         int mm = int.Parse(mmStr);
         int ss = int.Parse(ssStr);
 
-        if (mm > 59)
-            mm = 59;
-        if (ss > 59)
-            ss = 59;
-
-        return $"{mm:D2}:{ss:D2}";
+        return (new TimeSpan(0, mm, ss), $"{mm:D2}:{ss:D2}");
     }
 
-    private void UpdateText(string formattedTime)
+    private void UpdateTextInternal(string formattedTime)
     {
         Dispatcher.Dispatch(() =>
         {
-            TextChanged -= OnTimeTextChanged;
+            TextChanged -= OnTextChanged;
             Text = formattedTime;
-            TextChanged += OnTimeTextChanged;
+            TextChanged += OnTextChanged;
         });
+    }
+
+    private void UpdateTimeValueInternal(TimeSpan newTime)
+    {
+        _isInternalTimeUpdate = true;
+        TimeValue = newTime;
+        _isInternalTimeUpdate = false;
     }
 
     private void OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -136,12 +173,12 @@ public class TimeEntry : Entry
         };
     }
 
-    private string GetDefaultText()
+    private string GetFormat()
     {
         return TimeScope switch
         {
-            TimeEntryScope.Hours => "00:00:00",
-            TimeEntryScope.Minutes => "00:00",
+            TimeEntryScope.Hours => @"hh\:mm\:ss",
+            TimeEntryScope.Minutes => @"mm\:ss",
         };
     }
 }

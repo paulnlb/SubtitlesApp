@@ -4,8 +4,6 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
-  xmlns:constants="clr-namespace:SubtitlesApp.Constants"
-  xmlns:conv="clr-namespace:SubtitlesApp.Converters"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   x:DataType="viewModels:TimeEntryPopupVm"
   x:Class="SubtitlesApp.Views.Popups.TimeEntryPopup"
@@ -13,12 +11,5 @@
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
-  <toolkit:Popup.Resources>
-    <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
-  </toolkit:Popup.Resources>
-
-  <customControls:TimeEntry
-    TimeScope="Minutes"
-    Text="{Binding Value, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}, ConverterParameter={x:Static constants:TimeSpanConverterConstants.MinutesMode}}"
-  ></customControls:TimeEntry>
+  <customControls:TimeEntry TimeScope="Minutes" TimeValue="{Binding Value, Mode=TwoWay}" />
 </toolkit:Popup>
