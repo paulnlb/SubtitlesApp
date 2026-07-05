@@ -1,4 +1,5 @@
 ﻿using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Interfaces;
@@ -35,7 +36,13 @@ public interface ICustomPopupService
 
     Task<string?> ShowEntry(string title, string? value);
 
-    Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value, TimeSpan? min = null, TimeSpan? max = null);
+    Task<TimeSpan?> ShowTimeEntry(
+        string title,
+        TimeSpan value,
+        TimeSpan? min = null,
+        TimeSpan? max = null,
+        TimeEntryScope timeScope = TimeEntryScope.Hours
+    );
 
     Task<int?> ShowCounter(string title, int value, int min = 0, int max = int.MaxValue);
 

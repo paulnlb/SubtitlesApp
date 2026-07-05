@@ -2,6 +2,7 @@
 
 public enum TimeEntryScope
 {
-    Hours,
+    Seconds,
     Minutes,
+    Hours,
 }

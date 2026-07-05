@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Constants;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Interfaces;
@@ -37,7 +38,8 @@ public class TranscriptionSettingsVm : ObservableObject
             () => _transcriptionSettings.ChunkLength,
             (value) => _transcriptionSettings.ChunkLength = value,
             TimeSpan.FromSeconds(30),
-            TimeSpan.FromMinutes(10)
+            TimeSpan.FromMinutes(10),
+            TimeEntryScope.Minutes
         )
         {
             Title = "Audio chunk length",
@@ -59,7 +61,10 @@ public class TranscriptionSettingsVm : ObservableObject
             _popupService,
             true,
             () => _transcriptionSettings.OverlapSize,
-            (value) => _transcriptionSettings.OverlapSize = value
+            (value) => _transcriptionSettings.OverlapSize = value,
+            TimeSpan.Zero,
+            _transcriptionSettings.ChunkLength,
+            TimeEntryScope.Seconds
         )
         {
             Title = "Chunk Overlap Size",

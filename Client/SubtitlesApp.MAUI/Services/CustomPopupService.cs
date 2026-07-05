@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.ViewModels.Popups;
@@ -157,7 +158,13 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         return popupResult.Result;
     }
 
-    public async Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value, TimeSpan? min = null, TimeSpan? max = null)
+    public async Task<TimeSpan?> ShowTimeEntry(
+        string title,
+        TimeSpan value,
+        TimeSpan? min = null,
+        TimeSpan? max = null,
+        TimeEntryScope timeScope = TimeEntryScope.Hours
+    )
     {
         var queryAttributes = new Dictionary<string, object>
         {
@@ -166,6 +173,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(TimeEntryPopupVm.Value), value },
             { nameof(TimeEntryPopupVm.Min), min },
             { nameof(TimeEntryPopupVm.Max), max },
+            { nameof(TimeEntryPopupVm.TimeScope), timeScope },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan?>(
