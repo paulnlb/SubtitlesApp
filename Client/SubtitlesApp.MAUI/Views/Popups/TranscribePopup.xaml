@@ -13,84 +13,40 @@
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
-  <ScrollView VerticalOptions="Start">
-    <Grid RowDefinitions="Auto, 20, 50, Auto" ColumnDefinitions="*, *" RowSpacing="5">
-      <uranium:StatefulContentView
-        Grid.Row="0"
-        Grid.ColumnSpan="2"
-        Margin="0,0,0,10"
-        TappedCommand="{Binding ChooseSubtitlesLanguageCommand}"
-      >
-        <Border Padding="20">
-          <VerticalStackLayout>
-            <Label Text="Language" VerticalOptions="Center" HorizontalOptions="Center" />
-            <Label Text="{Binding SubtitlesLanguage.Name}" VerticalOptions="Center" HorizontalOptions="Center" />
-          </VerticalStackLayout>
-        </Border>
-      </uranium:StatefulContentView>
+  <Grid RowDefinitions="Auto, 20, 40" ColumnDefinitions="*, *" RowSpacing="10" ColumnSpacing="10">
+    <uranium:StatefulContentView
+      Grid.Row="0"
+      Grid.ColumnSpan="2"
+      Margin="0,0,0,10"
+      TappedCommand="{Binding ChooseSubtitlesLanguageCommand}"
+    >
+      <Border Padding="20">
+        <VerticalStackLayout>
+          <Label Text="Language" VerticalOptions="Center" HorizontalOptions="Center" />
+          <Label Text="{Binding SubtitlesLanguage.Name}" VerticalOptions="Center" HorizontalOptions="Center" />
+        </VerticalStackLayout>
+      </Border>
+    </uranium:StatefulContentView>
 
-      <Label Grid.Row="1" Grid.Column="0" Text="From" VerticalTextAlignment="End" />
-      <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
+    <Label Grid.Row="1" Grid.Column="0" Text="From" VerticalTextAlignment="End" />
+    <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
 
-      <customControls:TimeEntry
-        x:Name="FromEntry"
-        Placeholder="From"
-        Grid.Row="2"
-        Grid.Column="0"
-        TimeValue="{Binding FromTime, Mode=TwoWay}"
-      />
-      <customControls:TimeEntry
-        x:Name="ToEntry"
-        Placeholder="To"
-        Grid.Row="2"
-        Grid.Column="1"
-        TimeValue="{Binding ToTime, Mode=TwoWay}"
-      />
-
-      <FlexLayout Grid.Row="3" Grid.ColumnSpan="2" Wrap="Wrap">
-        <Button
-          Text="Current Time"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnAbsoluteModifierClicked"
-          CommandParameter="{Binding CurrentMediaTime}"
-        />
-        <Button
-          Text="Media Start"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnAbsoluteModifierClicked"
-          CommandParameter="0:0:0"
-        />
-        <Button
-          Text="Media End"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnAbsoluteModifierClicked"
-          CommandParameter="{Binding MediaDuration}"
-        />
-        <Button
-          Text="+5s"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnRelativeModifierClicked"
-          CommandParameter="0:0:5"
-        />
-        <Button
-          Text="+30s"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnRelativeModifierClicked"
-          CommandParameter="0:0:30"
-        />
-        <Button
-          Text="+5m"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnRelativeModifierClicked"
-          CommandParameter="0:5:0"
-        />
-        <Button
-          Text="+30m"
-          StyleClass="TextButton, Dialog.Button2"
-          Clicked="OnRelativeModifierClicked"
-          CommandParameter="0:30:0"
-        />
-      </FlexLayout>
-    </Grid>
-  </ScrollView>
+    <customControls:TimeSelector
+      Grid.Row="2"
+      Grid.Column="0"
+      Value="{Binding FromTime, Mode=TwoWay}"
+      MaxValue="{Binding ToTime}"
+      Title="Transcription Start Time"
+      Presets="{Binding TimePresets}"
+    />
+    <customControls:TimeSelector
+      Grid.Row="2"
+      Grid.Column="1"
+      Value="{Binding ToTime, Mode=TwoWay}"
+      MinValue="{Binding FromTime}"
+      MaxValue="{Binding MediaDuration}"
+      Title="Transcription End Time"
+      Presets="{Binding TimePresets}"
+    />
+  </Grid>
 </toolkit:Popup>

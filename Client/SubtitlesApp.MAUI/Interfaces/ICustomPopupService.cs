@@ -41,7 +41,8 @@ public interface ICustomPopupService
         TimeSpan value,
         TimeSpan? min = null,
         TimeSpan? max = null,
-        TimeEntryScope timeScope = TimeEntryScope.Hours
+        TimeEntryScope timeScope = TimeEntryScope.Hours,
+        IEnumerable<TimePreset>? timePresets = null
     );
 
     Task<int?> ShowCounter(string title, int value, int min = 0, int max = int.MaxValue);

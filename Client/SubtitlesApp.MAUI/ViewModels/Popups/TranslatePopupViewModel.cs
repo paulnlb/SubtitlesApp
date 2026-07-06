@@ -1,6 +1,8 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
@@ -25,6 +27,9 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
 
     [ObservableProperty]
     private TimeSpan _mediaDuration;
+
+    [ObservableProperty]
+    private ObservableCollection<TimePreset> _timePresets = [];
 
     public required string SourceLanguageCode;
 
@@ -67,6 +72,8 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
             ToTime = toTime;
         }
 
+        AddTimePresets();
+
         query.Clear();
     }
 
@@ -86,11 +93,6 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         }
     }
 
-    public void SetFromTime(TimeSpan time) => FromTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, ToTime.Ticks));
-
-    public void SetToTime(TimeSpan time) =>
-        ToTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, FromTime.Ticks, MediaDuration.Ticks));
-
     public override async Task Accept()
     {
         var translationSettings = new TranslationSettings
@@ -106,6 +108,58 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
     public override async Task Cancel()
     {
         await popupService.CloseCurrentAsync();
+    }
+
+    private void AddTimePresets()
+    {
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = TimeSpan.Zero,
+                Title = "Start",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = MediaDuration,
+                Title = "End",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromSeconds(5),
+                Title = "+5s",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromSeconds(30),
+                Title = "+30s",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromMinutes(5),
+                Title = "+5m",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromMinutes(30),
+                Title = "+30m",
+            }
+        );
     }
 
     partial void OnFromTimeChanged(TimeSpan value)

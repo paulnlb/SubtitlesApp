@@ -124,6 +124,9 @@
     <MauiXaml Update="CustomControls\LoadingButton.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomControls\TimeSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Resources\Styles\Converters.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

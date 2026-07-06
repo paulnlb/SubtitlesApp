@@ -88,4 +88,29 @@
   <Style TargetType="Entry">
     <Setter Property="HeightRequest" Value="54" />
   </Style>
+
+  <Style x:Key="PresetButton" TargetType="Button">
+    <Setter Property="TextColor" Value="{StaticResource White}" />
+    <Setter Property="Background" Value="#9d5ebf" />
+    <Setter Property="CornerRadius" Value="20" />
+    <Setter Property="Padding" Value="20,0" />
+    <Setter Property="VisualStateManager.VisualStateGroups">
+      <VisualStateGroupList>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="Disabled">
+            <VisualState.Setters>
+              <Setter Property="Opacity" Value="0.3" />
+            </VisualState.Setters>
+          </VisualState>
+          <VisualState x:Name="PointerOver" />
+        </VisualStateGroup>
+      </VisualStateGroupList>
+    </Setter>
+  </Style>
+
+  <Style TargetType="Button" Class="BigButtonText" ApplyToDerivedTypes="True" CanCascade="True">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="FontSize" Value="22" />
+  </Style>
 </ResourceDictionary>

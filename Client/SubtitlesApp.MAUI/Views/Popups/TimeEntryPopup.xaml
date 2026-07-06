@@ -11,24 +11,50 @@
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
-  <StackLayout Orientation="Vertical" Spacing="20">
-    <Label x:Name="timeLabel" HorizontalOptions="Center">
+  <StackLayout x:Name="rootLayout" Orientation="Vertical" Spacing="20">
+    <Label x:Name="timeLabel" HorizontalOptions="Center" VerticalOptions="Center">
       <Label.FormattedText>
         <FormattedString>
-          <Span Text="{Binding HourSection}" FontSize="22" />
-          <Span Text="h " FontSize="15" />
-          <Span Text="{Binding MinuteSection}" FontSize="22" />
-          <Span Text="m " FontSize="15" />
-          <Span Text="{Binding SecondSection}" FontSize="22" />
-          <Span Text="s" FontSize="15" />
+          <Span Text="{Binding HourSection}" FontSize="28" />
+          <Span Text="h " FontSize="18" />
+          <Span Text="{Binding MinuteSection}" FontSize="28" />
+          <Span Text="m " FontSize="18" />
+          <Span Text="{Binding SecondSection}" FontSize="28" />
+          <Span Text="s" FontSize="18" />
         </FormattedString>
       </Label.FormattedText>
     </Label>
+    <ScrollView
+      x:Name="presetsCollectionScroll"
+      Orientation="Horizontal"
+      HorizontalScrollBarVisibility="Never"
+      VerticalScrollBarVisibility="Never"
+    >
+      <StackLayout
+        x:Name="presetsCollection"
+        Orientation="Horizontal"
+        BindableLayout.ItemsSource="{Binding Presets}"
+        Spacing="10"
+      >
+        <BindableLayout.ItemTemplate>
+          <DataTemplate>
+            <Button
+              HeightRequest="30"
+              Text="{Binding Title}"
+              Style="{StaticResource PresetButton}"
+              Command="{Binding Source={x:Reference root}, Path=BindingContext.ApplyPresetCommand}"
+              CommandParameter="{Binding .}"
+            />
+          </DataTemplate>
+        </BindableLayout.ItemTemplate>
+      </StackLayout>
+    </ScrollView>
     <Grid RowDefinitions="*, *, *, *" ColumnDefinitions="*, *, *" RowSpacing="10" ColumnSpacing="10">
       <Button
         Grid.Row="0"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="1"
         Command="{Binding AddCommand}"
         CommandParameter="1"
@@ -37,6 +63,7 @@
         Grid.Row="0"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="2"
         Command="{Binding AddCommand}"
         CommandParameter="2"
@@ -45,6 +72,7 @@
         Grid.Row="0"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="3"
         Command="{Binding AddCommand}"
         CommandParameter="3"
@@ -53,6 +81,7 @@
         Grid.Row="1"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="4"
         Command="{Binding AddCommand}"
         CommandParameter="4"
@@ -61,6 +90,7 @@
         Grid.Row="1"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="5"
         Command="{Binding AddCommand}"
         CommandParameter="5"
@@ -69,6 +99,7 @@
         Grid.Row="1"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="6"
         Command="{Binding AddCommand}"
         CommandParameter="6"
@@ -77,6 +108,7 @@
         Grid.Row="2"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="7"
         Command="{Binding AddCommand}"
         CommandParameter="7"
@@ -85,6 +117,7 @@
         Grid.Row="2"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="8"
         Command="{Binding AddCommand}"
         CommandParameter="8"
@@ -93,6 +126,7 @@
         Grid.Row="2"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="9"
         Command="{Binding AddCommand}"
         CommandParameter="9"
@@ -101,6 +135,7 @@
         Grid.Row="3"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="00"
         Command="{Binding AddCommand}"
         CommandParameter="00"
@@ -109,6 +144,7 @@
         Grid.Row="3"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
+        StyleClass="BigButtonText"
         Text="0"
         Command="{Binding AddCommand}"
         CommandParameter="0"
@@ -117,6 +153,7 @@
         Grid.Row="3"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
+        Padding="5"
         ImageSource="{AppThemeBinding Light=backspace_dark, Dark=backspace_light}"
         Command="{Binding RemoveCommand}"
       />

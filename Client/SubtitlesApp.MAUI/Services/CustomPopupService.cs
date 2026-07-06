@@ -163,7 +163,8 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         TimeSpan value,
         TimeSpan? min = null,
         TimeSpan? max = null,
-        TimeEntryScope timeScope = TimeEntryScope.Hours
+        TimeEntryScope timeScope = TimeEntryScope.Hours,
+        IEnumerable<TimePreset>? timePresets = null
     )
     {
         var queryAttributes = new Dictionary<string, object>
@@ -174,6 +175,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(TimeEntryPopupVm.Min), min },
             { nameof(TimeEntryPopupVm.Max), max },
             { nameof(TimeEntryPopupVm.TimeScope), timeScope },
+            { nameof(TimeEntryPopupVm.Presets), timePresets },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan?>(

@@ -78,25 +78,6 @@ public static class MauiProgram
         });
 #endif
 
-        EntryHandler.Mapper.AppendToMapping(
-            "TimeEntry",
-            (handler, view) =>
-            {
-                if (view is not TimeEntry timeEntry)
-                {
-                    return;
-                }
-#if ANDROID
-                handler.PlatformView.SetCursorVisible(false);
-
-#elif IOS || MACCATALYST
-                handler.PlatformView.TintColor = UIKit.UIColor.Clear;
-#elif WINDOWS
-                handler.PlatformView.IsReadOnly = true;
-#endif
-            }
-        );
-
         builder.Services.AddSubtitlesAppServices();
 
         return builder.Build();

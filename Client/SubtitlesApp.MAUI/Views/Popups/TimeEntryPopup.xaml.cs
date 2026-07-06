@@ -13,8 +13,28 @@ public partial class TimeEntryPopup : Popup<TimeSpan>
     {
         InitializeComponent();
         BindingContext = vm;
-        ViewSizeHelper.SetPopupSize(this);
+        ViewSizeHelper.SetWidePopupSize(this);
+
         vm.TimeScopeChanged += OnTimeScopeChanged;
+        SizeChanged += OnSizeChanged;
+    }
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        if (Width > Height)
+        {
+            rootLayout.Orientation = StackOrientation.Horizontal;
+            presetsCollection.Orientation = StackOrientation.Vertical;
+            presetsCollectionScroll.Orientation = ScrollOrientation.Vertical;
+            rootLayout.HorizontalOptions = LayoutOptions.Center;
+        }
+        else
+        {
+            rootLayout.Orientation = StackOrientation.Vertical;
+            presetsCollection.Orientation = StackOrientation.Horizontal;
+            presetsCollectionScroll.Orientation = ScrollOrientation.Horizontal;
+            rootLayout.HorizontalOptions = LayoutOptions.Fill;
+        }
     }
 
     private void OnTimeScopeChanged(object? sender, EventArgs e)
@@ -23,27 +43,27 @@ public partial class TimeEntryPopup : Popup<TimeSpan>
 
         if (Vm.TimeScope == TimeEntryScope.Hours)
         {
-            var hourSpan = new Span { Text = Vm.HourSection, FontSize = 22 };
+            var hourSpan = new Span { Text = Vm.HourSection, FontSize = 28 };
             hourSpan.SetBinding(Span.TextProperty, nameof(Vm.HourSection), BindingMode.OneWay);
 
             formattedStr.Spans.Add(hourSpan);
-            formattedStr.Spans.Add(new Span { Text = "h ", FontSize = 15 });
+            formattedStr.Spans.Add(new Span { Text = "h ", FontSize = 18 });
         }
 
         if (Vm.TimeScope >= TimeEntryScope.Minutes)
         {
-            var minuteSpan = new Span { Text = Vm.MinuteSection, FontSize = 22 };
+            var minuteSpan = new Span { Text = Vm.MinuteSection, FontSize = 28 };
             minuteSpan.SetBinding(Span.TextProperty, nameof(Vm.MinuteSection), BindingMode.OneWay);
 
             formattedStr.Spans.Add(minuteSpan);
-            formattedStr.Spans.Add(new Span { Text = "m ", FontSize = 15 });
+            formattedStr.Spans.Add(new Span { Text = "m ", FontSize = 18 });
         }
 
-        var secondSpan = new Span { Text = Vm.SecondSection, FontSize = 22 };
+        var secondSpan = new Span { Text = Vm.SecondSection, FontSize = 28 };
         secondSpan.SetBinding(Span.TextProperty, nameof(Vm.SecondSection), BindingMode.OneWay);
 
         formattedStr.Spans.Add(secondSpan);
-        formattedStr.Spans.Add(new Span { Text = "s ", FontSize = 15 });
+        formattedStr.Spans.Add(new Span { Text = "s ", FontSize = 18 });
 
         timeLabel.FormattedText = formattedStr;
     }

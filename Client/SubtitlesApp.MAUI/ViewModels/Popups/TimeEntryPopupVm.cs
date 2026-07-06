@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System.Collections.ObjectModel;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Interfaces;
 
@@ -29,6 +31,9 @@ public partial class TimeEntryPopupVm(ICustomPopupService popupService) : BasePo
     [ObservableProperty]
     private TimeEntryScope _timeScope = TimeEntryScope.Hours;
 
+    [ObservableProperty]
+    private ObservableCollection<TimePreset> _presets = [];
+
     private StringBuilder _timeString = new();
 
     public event EventHandler? TimeScopeChanged;
@@ -42,6 +47,7 @@ public partial class TimeEntryPopupVm(ICustomPopupService popupService) : BasePo
         query.TryGetValue(nameof(Min), out var minValue);
         query.TryGetValue(nameof(Max), out var maxValue);
         query.TryGetValue(nameof(TimeScope), out var timeScopeValue);
+        query.TryGetValue(nameof(Presets), out var presetsValue);
 
         if (titleValue is string title)
         {
@@ -71,6 +77,10 @@ public partial class TimeEntryPopupVm(ICustomPopupService popupService) : BasePo
         {
             TimeScope = timeScope;
         }
+        if (presetsValue is IEnumerable<TimePreset> presets)
+        {
+            Presets = new ObservableCollection<TimePreset>(presets);
+        }
 
         SetSectionsFrom(Value);
         SetTimeStringFrom(Value);
@@ -96,6 +106,21 @@ public partial class TimeEntryPopupVm(ICustomPopupService popupService) : BasePo
 
         SetSectionsFrom(_timeString);
         RefreshValue();
+    }
+
+    [RelayCommand]
+    private void ApplyPreset(TimePreset preset)
+    {
+        var newValue = preset.Type switch
+        {
+            TimePresetType.Absolute => preset.Time,
+            TimePresetType.Incremental => Value + preset.Time,
+        };
+
+        Value = TimeSpan.FromTicks(Math.Clamp(newValue.Ticks, Min.Ticks, Max.Ticks));
+
+        SetSectionsFrom(Value);
+        SetTimeStringFrom(Value);
     }
 
     public override Task Accept()

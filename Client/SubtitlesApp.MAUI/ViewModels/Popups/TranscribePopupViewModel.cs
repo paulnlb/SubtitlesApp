@@ -1,6 +1,8 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
@@ -25,6 +27,9 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
 
     [ObservableProperty]
     private TimeSpan _currentMediaTime;
+
+    [ObservableProperty]
+    private ObservableCollection<TimePreset> _timePresets = [];
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -70,6 +75,8 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
             CurrentMediaTime = currentMediaTime;
         }
 
+        AddTimePresets();
+
         query.Clear();
     }
 
@@ -89,10 +96,39 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
         }
     }
 
-    public void SetFromTime(TimeSpan time) => FromTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, 0, ToTime.Ticks));
+    [RelayCommand]
+    public async Task EnterFromTime()
+    {
+        var result = await popupService.ShowTimeEntry(
+            "Transcription Start Time",
+            FromTime,
+            TimeSpan.Zero,
+            ToTime,
+            timePresets: TimePresets
+        );
 
-    public void SetToTime(TimeSpan time) =>
-        ToTime = TimeSpan.FromTicks(Math.Clamp(time.Ticks, FromTime.Ticks, MediaDuration.Ticks));
+        if (result is TimeSpan selectedTime)
+        {
+            FromTime = selectedTime;
+        }
+    }
+
+    [RelayCommand]
+    public async Task EnterToTime()
+    {
+        var result = await popupService.ShowTimeEntry(
+            "Transcription End Time",
+            ToTime,
+            FromTime,
+            MediaDuration,
+            timePresets: TimePresets
+        );
+
+        if (result is TimeSpan selectedTime)
+        {
+            ToTime = selectedTime;
+        }
+    }
 
     public override async Task Accept()
     {
@@ -109,6 +145,66 @@ public partial class TranscribePopupViewModel(ICustomPopupService popupService, 
     public override async Task Cancel()
     {
         await popupService.CloseCurrentAsync();
+    }
+
+    private void AddTimePresets()
+    {
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = CurrentMediaTime,
+                Title = "Current",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = TimeSpan.Zero,
+                Title = "Start",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = MediaDuration,
+                Title = "End",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromSeconds(5),
+                Title = "+5s",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromSeconds(30),
+                Title = "+30s",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromMinutes(5),
+                Title = "+5m",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromMinutes(30),
+                Title = "+30m",
+            }
+        );
     }
 
     partial void OnFromTimeChanged(TimeSpan value)
