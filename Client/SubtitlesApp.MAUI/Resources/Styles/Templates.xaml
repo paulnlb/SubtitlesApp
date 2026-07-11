@@ -7,15 +7,15 @@
   x:Class="SubtitlesApp.Resources.Styles.ControlTemplates"
 >
   <ControlTemplate x:Key="PopupTemplate" x:DataType="popupVms:BasePopupVm">
-    <Border Padding="0" StyleClass="PopupBorder">
+    <Border StyleClass="PopupBorder">
       <Grid RowDefinitions="Auto, Auto, *, Auto, Auto" StyleClass="PopupView">
-        <Label x:Name="header" Grid.Row="0" Text="{Binding Title}" Margin="20" />
+        <Label x:Name="header" Grid.Row="0" Text="{Binding Title}" Margin="20,15" />
         <BoxView StyleClass="Divider" Grid.Row="1" Margin="0" />
 
-        <ContentPresenter Grid.Row="2" Margin="20" VerticalOptions="Center" />
+        <ContentPresenter Grid.Row="2" Margin="20, 15" VerticalOptions="Center" />
 
         <BoxView Grid.Row="3" StyleClass="Divider" Margin="0" />
-        <FlexLayout Grid.Row="4" JustifyContent="End" Margin="10">
+        <FlexLayout Grid.Row="4" JustifyContent="End" Margin="10, 5">
           <Button Text="{Binding CancelText}" Command="{Binding CancelCommand}" StyleClass="TextButton, Dialog.Button2" />
           <Button
             Text="{Binding AcceptText}"

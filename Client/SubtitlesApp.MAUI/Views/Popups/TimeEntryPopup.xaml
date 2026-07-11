@@ -11,6 +11,13 @@
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
+  <toolkit:Popup.Resources>
+    <Style TargetType="Button" Class="KeypadBtn" ApplyToDerivedTypes="True" CanCascade="True">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="FontSize" Value="22" />
+      <Setter Property="MinimumWidthRequest" Value="40" />
+    </Style>
+  </toolkit:Popup.Resources>
   <StackLayout x:Name="rootLayout" Orientation="Vertical" Spacing="20">
     <Label x:Name="timeLabel" HorizontalOptions="Center" VerticalOptions="Center">
       <Label.FormattedText>
@@ -54,7 +61,7 @@
         Grid.Row="0"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="1"
         Command="{Binding AddCommand}"
         CommandParameter="1"
@@ -63,7 +70,7 @@
         Grid.Row="0"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="2"
         Command="{Binding AddCommand}"
         CommandParameter="2"
@@ -72,7 +79,7 @@
         Grid.Row="0"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="3"
         Command="{Binding AddCommand}"
         CommandParameter="3"
@@ -81,7 +88,7 @@
         Grid.Row="1"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="4"
         Command="{Binding AddCommand}"
         CommandParameter="4"
@@ -90,7 +97,7 @@
         Grid.Row="1"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="5"
         Command="{Binding AddCommand}"
         CommandParameter="5"
@@ -99,7 +106,7 @@
         Grid.Row="1"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="6"
         Command="{Binding AddCommand}"
         CommandParameter="6"
@@ -108,7 +115,7 @@
         Grid.Row="2"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="7"
         Command="{Binding AddCommand}"
         CommandParameter="7"
@@ -117,7 +124,7 @@
         Grid.Row="2"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="8"
         Command="{Binding AddCommand}"
         CommandParameter="8"
@@ -126,7 +133,7 @@
         Grid.Row="2"
         Grid.Column="2"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="9"
         Command="{Binding AddCommand}"
         CommandParameter="9"
@@ -135,7 +142,7 @@
         Grid.Row="3"
         Grid.Column="0"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="00"
         Command="{Binding AddCommand}"
         CommandParameter="00"
@@ -144,7 +151,7 @@
         Grid.Row="3"
         Grid.Column="1"
         Style="{StaticResource TranslucentButton}"
-        StyleClass="BigButtonText"
+        StyleClass="KeypadBtn"
         Text="0"
         Command="{Binding AddCommand}"
         CommandParameter="0"

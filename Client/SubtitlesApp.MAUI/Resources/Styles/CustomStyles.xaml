@@ -56,7 +56,7 @@
   <Style Class="PopupBorder" TargetType="Border" ApplyToDerivedTypes="True" CanCascade="True">
     <Setter Property="StrokeThickness" Value="0" />
     <Setter Property="StrokeShape" Value="RoundRectangle 8" />
-    <Setter Property="Padding" Value="10" />
+    <Setter Property="Padding" Value="0" />
   </Style>
   <Style Class="PopupView" TargetType="View" ApplyToDerivedTypes="True" CanCascade="True">
     <Setter
@@ -107,10 +107,5 @@
         </VisualStateGroup>
       </VisualStateGroupList>
     </Setter>
-  </Style>
-
-  <Style TargetType="Button" Class="BigButtonText" ApplyToDerivedTypes="True" CanCascade="True">
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="FontSize" Value="22" />
   </Style>
 </ResourceDictionary>
