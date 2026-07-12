@@ -6,16 +6,12 @@
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   xmlns:material="http://schemas.enisn-projects.io/dotnet/maui/uraniumui/material"
   xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
-  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:views="clr-namespace:SubtitlesApp.Views"
   x:Class="SubtitlesApp.Views.SubtitlesView"
   x:DataType="viewModels:SubtitlesViewModel"
 >
   <ContentView.Resources>
-    <ResourceDictionary>
-      <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-    </ResourceDictionary>
     <Style x:Key="ButtonStyle" TargetType="Button" BasedOn="{StaticResource TranslucentButton}">
       <Setter Property="Padding" Value="3" />
     </Style>

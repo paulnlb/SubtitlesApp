@@ -2,20 +2,12 @@
 <ContentView
   xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-  xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-  xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   xmlns:views="clr-namespace:SubtitlesApp.Views"
   x:Class="SubtitlesApp.Views.PlayerControls"
   x:DataType="views:PlayerControls"
   x:Name="root"
 >
-  <ContentView.Resources>
-    <converters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
-    <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
-    <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
-  </ContentView.Resources>
-
   <Grid
     BindingContext="{x:Reference root}"
     x:Name="controls"

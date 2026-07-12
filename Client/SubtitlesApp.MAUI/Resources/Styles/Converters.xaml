@@ -8,4 +8,9 @@
 >
   <toolkit:IsNotNullConverter x:Key="IsNotNullConverter" />
   <customConverters:TimeSpanConverter x:Key="TimeSpanConverter" />
+  <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+  <customConverters:SecondsToStringConverter x:Key="SecondsToStringConverter" />
+  <customConverters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
+  <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
+  <customConverters:SizeAndOrientationConverter x:Key="SizeAndOrientationConverter" />
 </ResourceDictionary>

@@ -8,11 +8,6 @@
   x:Name="root"
   x:DataType="customContols:LoadingButton"
 >
-  <ContentView.Resources>
-    <ResourceDictionary>
-      <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-    </ResourceDictionary>
-  </ContentView.Resources>
   <Border x:Name="BtnBorder" StrokeThickness="0">
     <Border.StrokeShape>
       <RoundRectangle CornerRadius="{Binding Source={x:Reference MainButton}, Path=CornerRadius}" />
