@@ -155,7 +155,7 @@ public partial class LoadingButton : ContentView
 
     private void OnCancelBtnClicked(object sender, EventArgs e)
     {
-        if (Command is IAsyncRelayCommand asyncCommand)
+        if (Command is IAsyncRelayCommand asyncCommand && asyncCommand.CanBeCanceled)
         {
             asyncCommand.Cancel();
         }

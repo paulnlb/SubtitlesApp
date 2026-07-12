@@ -31,6 +31,12 @@ public class FixedSizeChunker(ITranscriptionSettings settings, FfmpegNativeServi
 
         while (subIntervalStart < timeInterval.EndTime)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                yield return Result<AudioChunkDto>.Failure(new Error(ErrorCode.OperationCanceled));
+                yield break;
+            }
+
             Stream? audioChunk = null;
             Error? extractingError = null;
 

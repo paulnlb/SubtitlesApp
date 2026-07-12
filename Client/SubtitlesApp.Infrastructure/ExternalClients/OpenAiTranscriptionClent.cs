@@ -40,7 +40,10 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
         try
         {
             var audioClient = await _audioClientTask;
-            apiResult = await audioClient.TranscribeAudioAsync(audio, "audio.wav", transcriptionOptions, cancellationToken);
+
+            // cancellation token is not forwarded because of inconsistent behavior during cancellation
+            // (main thread is blocked and sometimes 'Socket Closed' exception is thrown instead of OperationCancelledException)
+            apiResult = await audioClient.TranscribeAudioAsync(audio, "audio.wav", transcriptionOptions);
         }
         catch (Exception ex)
         {

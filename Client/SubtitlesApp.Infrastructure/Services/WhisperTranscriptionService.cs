@@ -70,6 +70,7 @@ public class WhisperTranscriptionService(
 
             if (cancellationToken.IsCancellationRequested)
             {
+                yield return Result<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
                 yield break;
             }
         }
