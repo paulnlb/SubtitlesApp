@@ -1,6 +1,4 @@
-﻿// NativeAnimation.cs
-//
-// Android-native, vsync-driven animation wrapper for .NET MAUI.
+﻿// Android-native, vsync-driven animation wrapper for .NET MAUI.
 // API intentionally resembles MAUI Animation.Commit.
 //
 // Usage:
@@ -220,11 +218,15 @@ public static class NativeAnimation
     private sealed class FallbackAnimation : IDisposable
     {
         private readonly Microsoft.Maui.Controls.Animation animation;
-
+        private string animationName;
         private bool disposed;
 
-        private FallbackAnimation(double start, double end, Action<double> callback)
+        private AnimationOwner? animationOwner;
+
+        private FallbackAnimation(string name, double start, double end, Action<double> callback)
         {
+            animationOwner ??= new AnimationOwner();
+            animationName = name;
             animation = new Microsoft.Maui.Controls.Animation(callback, start, end);
         }
 
@@ -238,13 +240,11 @@ public static class NativeAnimation
             Func<bool>? repeat
         )
         {
-            var wrapper = new FallbackAnimation(start, end, callback);
-
-            animationOwner ??= new AnimationOwner();
+            var wrapper = new FallbackAnimation(name: Guid.NewGuid().ToString(), start, end, callback);
 
             wrapper.animation.Commit(
-                owner: animationOwner,
-                name: Guid.NewGuid().ToString(),
+                owner: wrapper.animationOwner,
+                name: wrapper.animationName,
                 length: length,
                 easing: easing,
                 finished: finished,
@@ -254,11 +254,10 @@ public static class NativeAnimation
             return wrapper;
         }
 
-        private static AnimationOwner? animationOwner;
-
         public void Dispose()
         {
             disposed = true;
+            animationOwner.AbortAnimation(animationName);
         }
 
         private sealed class AnimationOwner : BindableObject, IAnimatable

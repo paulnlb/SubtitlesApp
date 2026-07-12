@@ -105,7 +105,7 @@ public partial class SubtitlesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task Transcribe()
+    public async Task Transcribe(CancellationToken cancellationToken)
     {
         var subtitlesLang = _transcriptionSettings?.SubtitlesLanguage ?? _languageService.GetDefaultLanguage();
 
@@ -133,7 +133,7 @@ public partial class SubtitlesViewModel : ObservableObject
             MediaPath,
             timeInterval,
             newSettings.SubtitlesLanguage.Code,
-            default
+            cancellationToken
         );
 
         await foreach (var result in results)
@@ -172,7 +172,7 @@ public partial class SubtitlesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task Translate()
+    public async Task Translate(CancellationToken cancellationToken)
     {
         var popupResult = await _popupService.ShowTranslationSettings(
             MediaDuration,
@@ -198,7 +198,7 @@ public partial class SubtitlesViewModel : ObservableObject
 
         Translations.RemoveInside(new(newSettings.FromTime, newSettings.ToTime));
 
-        var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, default);
+        var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, cancellationToken);
 
         await foreach (var result in results)
         {
