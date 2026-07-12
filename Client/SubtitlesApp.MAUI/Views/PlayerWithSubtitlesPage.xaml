@@ -25,7 +25,7 @@
 
   <AbsoluteLayout x:Name="absoluteLayout">
     <!--Player controls overlay-->
-    <customControls:PlayerControls
+    <views:PlayerControls
       x:Name="playerControls"
       MauiMediaElement="{x:Reference mauiMediaElement}"
       PlayerControlsVisible="{Binding PlayerControlsVisible}"
@@ -34,10 +34,10 @@
       ZIndex="1"
       AbsoluteLayout.LayoutFlags="SizeProportional"
     >
-      <customControls:PlayerControls.GestureRecognizers>
+      <views:PlayerControls.GestureRecognizers>
         <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
         <PanGestureRecognizer x:Name="playerControlsGestureRecognizer" />
-      </customControls:PlayerControls.GestureRecognizers>
+      </views:PlayerControls.GestureRecognizers>
       <AbsoluteLayout.LayoutBounds>
         <MultiBinding Converter="{StaticResource SizeAndOrientationConverter}">
           <Binding Source="{x:Reference playerSubtitlesPage}" Path="CurrentLayoutSettings.PlayerHorizontalLength" />
@@ -45,7 +45,7 @@
           <Binding Source="{x:Reference adaptiveLayout}" Path="Orientation" />
         </MultiBinding>
       </AbsoluteLayout.LayoutBounds>
-    </customControls:PlayerControls>
+    </views:PlayerControls>
 
     <!--Main layout-->
     <layouts:AdaptiveLayout

@@ -3,7 +3,7 @@ using System.Collections.Specialized;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 
-namespace SubtitlesApp.CustomControls;
+namespace SubtitlesApp.Views;
 
 public partial class SubtitleCollection : ContentView, IDisposable
 {

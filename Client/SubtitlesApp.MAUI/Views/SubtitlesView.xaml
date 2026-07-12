@@ -8,6 +8,7 @@
   xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:converters="clr-namespace:SubtitlesApp.Converters"
+  xmlns:views="clr-namespace:SubtitlesApp.Views"
   x:Class="SubtitlesApp.Views.SubtitlesView"
   x:DataType="viewModels:SubtitlesViewModel"
 >
@@ -53,7 +54,7 @@
     <material:TabView x:Name="tabView" Grid.Row="1" Grid.ColumnSpan="3" CachingStrategy="CacheOnLayout">
       <material:TabItem Title="Subtitles">
         <material:TabItem.Content>
-          <customControls:SubtitleCollection
+          <views:SubtitleCollection
             x:Name="subtitleCollection"
             Subtitles="{Binding Subtitles}"
             CurrentSubtitleIndex="{Binding CurrentSubtitleIndex, Mode=TwoWay}"
@@ -65,7 +66,7 @@
 
       <material:TabItem Title="Translations">
         <material:TabItem.Content>
-          <customControls:SubtitleCollection
+          <views:SubtitleCollection
             x:Name="translationCollection"
             Subtitles="{Binding Translations}"
             CurrentSubtitleIndex="{Binding CurrentTranslationIndex, Mode=TwoWay}"

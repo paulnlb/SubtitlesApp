@@ -4,7 +4,7 @@ using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels.CustomEventArgs;
 
-namespace SubtitlesApp.CustomControls;
+namespace SubtitlesApp.Views;
 
 public partial class PlayerControls : ContentView, IDisposable
 {
