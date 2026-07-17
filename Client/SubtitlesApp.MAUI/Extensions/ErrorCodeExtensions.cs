@@ -26,6 +26,7 @@ public static class ErrorCodeExtensions
             ErrorCode.InvalidLlmTranslation => "LLM translation failed. Please try again.",
             ErrorCode.InvalidInput => "Error: provided data or configuration is invalid",
             ErrorCode.SubtitlesPersistenceError => "An unexpected error occurred while saving subtitles to disk",
+            ErrorCode.MediaPlayerError => "An error occured while trying to play your media",
             _ => string.Empty,
         };
     }

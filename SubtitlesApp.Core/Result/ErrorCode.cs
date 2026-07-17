@@ -20,4 +20,5 @@ public enum ErrorCode
     InvalidLlmTranslation,
     InvalidInput,
     SubtitlesPersistenceError,
+    MediaPlayerError,
 }

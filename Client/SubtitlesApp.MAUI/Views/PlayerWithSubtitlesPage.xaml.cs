@@ -1,9 +1,12 @@
 using System.ComponentModel;
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Helpers;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
@@ -18,6 +21,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private readonly AdaptiveLayoutStateManager _layoutStateManager;
     private readonly LayoutSettings _normalLayoutSettings;
     private readonly LayoutSettings _expandedLayoutSettings;
+    private readonly IBuiltInDialogService _builtInDialogService;
 
     private PlayerWithSubtitlesViewModel Vm => (PlayerWithSubtitlesViewModel)BindingContext;
 
@@ -34,13 +38,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         set => SetValue(LayoutSettingsProperty, value);
     }
 
-    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm)
+    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm, IBuiltInDialogService builtInDialogService)
     {
         InitializeComponent();
 
         _normalLayoutSettings = new(false);
         _expandedLayoutSettings = new(true);
         CurrentLayoutSettings = new(false);
+        _builtInDialogService = builtInDialogService;
 
         BindingContext = vm;
 
@@ -50,6 +55,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         vm.SeekRequested += OnSeekRequested;
         mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
         adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
+        mauiMediaElement.MediaFailed += OnMediaFailed;
 
         mauiMediaElement.SetBinding(
             MediaElement.DurationProperty,
@@ -57,6 +63,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         );
 
         SubscribeToGestures();
+    }
+
+    private async void OnMediaFailed(object? sender, MediaFailedEventArgs e)
+    {
+        await _builtInDialogService.DisplayError(new Error(ErrorCode.MediaPlayerError, e.ErrorMessage));
     }
 
     protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -75,6 +86,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
+        mauiMediaElement.MediaFailed -= OnMediaFailed;
         playerControls.Dispose();
         subtitlesView.Dispose();
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
