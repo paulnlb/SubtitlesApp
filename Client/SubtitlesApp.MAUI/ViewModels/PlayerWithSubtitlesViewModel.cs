@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces.Repositories;
+using SubtitlesApp.Infrastructure.Interfaces;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
 
 namespace SubtitlesApp.ViewModels;
@@ -12,6 +14,9 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 {
     private readonly IVideoSessionRepository _videoSessionRepository;
     private readonly ISubtitlesRepository _subtitlesRepository;
+
+    private readonly IBuiltInDialogService _builtInDialogService;
+    private readonly ICustomFilePicker _filePicker;
 
     #region private fields
 
@@ -37,7 +42,13 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private bool _isFullScreenOn;
 
     [ObservableProperty]
-    SubtitlesViewModel _subtitlesVm;
+    private SubtitlesViewModel _subtitlesVm;
+
+    [ObservableProperty]
+    private Stream? _mediaStream;
+
+    [ObservableProperty]
+    private string _title = string.Empty;
 
     #endregion
 
@@ -47,11 +58,15 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         SubtitlesViewModel captionsViewModel,
         IVideoSessionRepository videoSessionRepository,
         ISubtitlesRepository subtitlesRepository,
-        SubtitlesMapper mapper
+        SubtitlesMapper mapper,
+        IBuiltInDialogService builtInDialogService,
+        ICustomFilePicker filePicker
     )
     {
         _videoSessionRepository = videoSessionRepository;
         _subtitlesRepository = subtitlesRepository;
+        _filePicker = filePicker;
+        _builtInDialogService = builtInDialogService;
         _mapper = mapper;
         PlayerControlsVisible = true;
         MediaPath = null;
@@ -205,11 +220,30 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         if (query.TryGetValue("open", out object? value))
         {
-            MediaPath = value.ToString();
-            SubtitlesVm.MediaPath = value.ToString();
-        }
+            var uri = value.ToString()!;
+            query.Clear();
 
-        query.Clear();
+            var streamResult = _filePicker.GetFileStream(uri);
+
+            if (streamResult.IsFailure)
+            {
+                _builtInDialogService.DisplayError(streamResult.Error);
+                return;
+            }
+
+            MediaStream = streamResult.Value;
+            SubtitlesVm.MediaPath = MediaPath = uri;
+
+            var fileNameResult = _filePicker.GetFileName(uri);
+
+            if (fileNameResult.IsFailure)
+            {
+                _builtInDialogService.DisplayError(fileNameResult.Error);
+                return;
+            }
+
+            Title = fileNameResult.Value;
+        }
     }
 
     private static string GenerateSubtitlesKey(string videoId)

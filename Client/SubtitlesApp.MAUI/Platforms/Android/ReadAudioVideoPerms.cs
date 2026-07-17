@@ -1,6 +1,6 @@
 ﻿namespace SubtitlesApp.Platforms.Android;
 
-public class ReadPhotoVideoPerms : Permissions.BasePlatformPermission
+public class ReadAudioVideoPerms : Permissions.BasePlatformPermission
 {
     public override (string androidPermission, bool isRuntime)[] RequiredPermissions
     {
@@ -10,7 +10,7 @@ public class ReadPhotoVideoPerms : Permissions.BasePlatformPermission
             {
                 return
                 [
-                    (global::Android.Manifest.Permission.ReadMediaImages, true),
+                    (global::Android.Manifest.Permission.ReadMediaAudio, true),
                     (global::Android.Manifest.Permission.ReadMediaVideo, true),
                 ];
             }

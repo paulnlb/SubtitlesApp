@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.Platforms.Android;
 using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
@@ -25,7 +27,7 @@ public partial class MainPageViewModel : ObservableObject
     ];
 
     private readonly IBuiltInDialogService _dialogService;
-    private readonly IVideoPicker _videoPicker;
+    private readonly ICustomFilePicker _filePicker;
     private readonly ICustomPopupService _popupService;
 
     [ObservableProperty]
@@ -34,10 +36,14 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string _footerText = $"v{AppInfo.Current.VersionString} alpha. The app may crash.";
 
-    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, ICustomPopupService popupService)
+    public MainPageViewModel(
+        IBuiltInDialogService dialogService,
+        ICustomFilePicker filePicker,
+        ICustomPopupService popupService
+    )
     {
         _dialogService = dialogService;
-        _videoPicker = videoPicker;
+        _filePicker = filePicker;
         _popupService = popupService;
 
         var random = new Random();
@@ -75,7 +81,15 @@ public partial class MainPageViewModel : ObservableObject
 
             case LoadLocalResource:
 
-                var path = await _videoPicker.PickAsync();
+                var status = await Permissions.RequestAsync<ReadAudioVideoPerms>();
+
+                if (status != PermissionStatus.Granted)
+                {
+                    AppInfo.Current.ShowSettingsUI();
+                    return;
+                }
+
+                var path = await _filePicker.PickAsync(["video/*", "audio/*"]);
 
                 if (!string.IsNullOrEmpty(path))
                 {
@@ -88,6 +102,6 @@ public partial class MainPageViewModel : ObservableObject
 
     private static Task OpenPlayerWithSubtitlesPage(string path)
     {
-        return Shell.Current.GoToAsync($"{nameof(PlayerWithSubtitlesPage)}?open={path}");
+        return Shell.Current.GoToAsync(nameof(PlayerWithSubtitlesPage), new Dictionary<string, object> { { "open", path } });
     }
 }

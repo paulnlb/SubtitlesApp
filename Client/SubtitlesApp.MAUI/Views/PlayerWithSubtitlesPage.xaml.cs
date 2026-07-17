@@ -6,6 +6,7 @@ using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Helpers;
+using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.Settings;
@@ -38,7 +39,11 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         set => SetValue(LayoutSettingsProperty, value);
     }
 
-    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm, IBuiltInDialogService builtInDialogService)
+    public PlayerWithSubtitlesPage(
+        PlayerWithSubtitlesViewModel vm,
+        IBuiltInDialogService builtInDialogService,
+        ICustomFilePicker videoPicker
+    )
     {
         InitializeComponent();
 
@@ -92,6 +97,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
+        Vm.MediaStream?.Dispose();
     }
 
     protected override bool OnBackButtonPressed()
@@ -141,6 +147,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
         {
             ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
+        }
+        else if (e.PropertyName == nameof(Vm.MediaStream) && Vm.MediaStream is not null)
+        {
+            mauiMediaElement.Source = MediaSource.FromStream(Vm.MediaStream);
         }
     }
 

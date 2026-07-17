@@ -7,6 +7,7 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.ExternalClients;
+using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Repositories;
 using SubtitlesApp.Infrastructure.Services;
@@ -27,7 +28,7 @@ public static class ServicesCollectionExtensions
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
         #region transient
-        services.AddTransient<IVideoPicker, VideoPicker>();
+        services.AddTransient<ICustomFilePicker, Services.FilePicker>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<SubtitlesMapper>();
         services.AddTransient<ITranscriptionService, WhisperTranscriptionService>();

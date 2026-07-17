@@ -57,6 +57,13 @@ public partial class PlayerControls : ContentView, IDisposable
         typeof(PlayerControls)
     );
 
+    public static readonly BindableProperty TitleProperty = BindableProperty.Create(
+        nameof(Title),
+        typeof(string),
+        typeof(PlayerControls),
+        string.Empty
+    );
+
     public MediaElement MauiMediaElement
     {
         get => (MediaElement)GetValue(MauiMediaElementProperty);
@@ -93,6 +100,12 @@ public partial class PlayerControls : ContentView, IDisposable
     {
         get => (ICommand)GetValue(ImmersiveModeToggledCommandProperty);
         set => SetValue(ImmersiveModeToggledCommandProperty, value);
+    }
+
+    public string Title
+    {
+        get => (string)GetValue(TitleProperty);
+        set => SetValue(TitleProperty, value);
     }
 
     #region implementation of IDisposable

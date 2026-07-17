@@ -19,7 +19,7 @@
     ColumnDefinitions="*, *, *"
   >
     <Label
-      Text="{Binding MauiMediaElement.Source, Converter={x:StaticResource PathToFileNameConverter}}"
+      Text="{Binding Title}"
       TextColor="White"
       Grid.Row="0"
       Grid.ColumnSpan="2"
