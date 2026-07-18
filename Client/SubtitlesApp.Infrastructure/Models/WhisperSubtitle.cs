@@ -1,6 +1,6 @@
 ﻿using SubtitlesApp.Core.Models;
 
-namespace SubtitlesApp.Infrastructure.DataModels;
+namespace SubtitlesApp.Infrastructure.Models;
 
 public class WhisperSubtitle : Subtitle
 {

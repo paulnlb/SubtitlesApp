@@ -2,9 +2,9 @@
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
-using SubtitlesApp.Infrastructure.DataModels;
 using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.Services;
 

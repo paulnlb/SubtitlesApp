@@ -5,8 +5,8 @@ using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
-using SubtitlesApp.Infrastructure.DataModels;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.ExternalClients;
 

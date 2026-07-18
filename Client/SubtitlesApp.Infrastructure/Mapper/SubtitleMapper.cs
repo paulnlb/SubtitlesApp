@@ -1,5 +1,5 @@
 ﻿using SubtitlesApp.Core.Models;
-using SubtitlesApp.Infrastructure.DataModels;
+using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.Mapper;
 

@@ -1,6 +1,6 @@
 ﻿using MessagePack;
 
-namespace SubtitlesApp.Infrastructure.DataModels;
+namespace SubtitlesApp.Infrastructure.Models;
 
 [MessagePackObject]
 public class SubtitleSerializable

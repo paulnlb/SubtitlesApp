@@ -2,9 +2,9 @@
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces.Repositories;
 using SubtitlesApp.Infrastructure.Constants;
-using SubtitlesApp.Infrastructure.DataModels;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Mapper;
+using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.Repositories;
 

@@ -1,6 +1,6 @@
 ﻿using SQLite;
 
-namespace SubtitlesApp.Infrastructure.DataModels;
+namespace SubtitlesApp.Infrastructure.Models;
 
 public class VideoSessionEntity
 {
