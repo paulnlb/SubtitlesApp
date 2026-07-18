@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.DataModels;
 using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
@@ -14,7 +14,7 @@ public class WhisperTranscriptionService(
     ITranscriptionSettings settings
 ) : ITranscriptionService
 {
-    public async IAsyncEnumerable<Result<SubtitleDto>> TranscribeAsync(
+    public async IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeInterval,
         string languageCode,
@@ -22,13 +22,13 @@ public class WhisperTranscriptionService(
     )
     {
         var context = string.Empty;
-        SubtitleDto? lastEmitted = null;
+        WhisperSubtitle? lastEmitted = null;
 
         await foreach (var audioChunkResult in audioChunker.ChunkAsync(mediaPath, timeInterval, cancellationToken))
         {
             if (audioChunkResult.IsFailure)
             {
-                yield return Result<SubtitleDto>.Failure(audioChunkResult.Error);
+                yield return Result<Subtitle>.Failure(audioChunkResult.Error);
                 yield break;
             }
 
@@ -43,7 +43,7 @@ public class WhisperTranscriptionService(
 
             if (subtitlesResult.IsFailure)
             {
-                yield return Result<SubtitleDto>.Failure(subtitlesResult.Error);
+                yield return Result<Subtitle>.Failure(subtitlesResult.Error);
                 yield break;
             }
 
@@ -59,29 +59,34 @@ public class WhisperTranscriptionService(
 
             foreach (var subtitle in subtitles)
             {
-                if (lastEmitted is not null && subtitle.EndTime - lastEmitted.EndTime < settings.Epsilon)
+                if (
+                    lastEmitted is not null
+                    && subtitle.TimeInterval.EndTime - lastEmitted.TimeInterval.EndTime < settings.Epsilon
+                )
                 {
                     continue;
                 }
 
-                yield return Result<SubtitleDto>.Success(subtitle);
+                yield return Result<Subtitle>.Success(subtitle);
                 lastEmitted = subtitle;
             }
 
             if (cancellationToken.IsCancellationRequested)
             {
-                yield return Result<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
+                yield return Result<Subtitle>.Failure(new Error(ErrorCode.OperationCanceled));
                 yield break;
             }
         }
     }
 
-    private static void AlignByTime(List<SubtitleDto> subsToAlign, TimeSpan timeOffset)
+    private static void AlignByTime(List<WhisperSubtitle> subsToAlign, TimeSpan timeOffset)
     {
-        foreach (var subtitleDto in subsToAlign)
+        foreach (var subtitle in subsToAlign)
         {
-            subtitleDto.StartTime += timeOffset;
-            subtitleDto.EndTime += timeOffset;
+            var newStart = subtitle.TimeInterval.StartTime + timeOffset;
+            var newEnd = subtitle.TimeInterval.EndTime + timeOffset;
+
+            subtitle.TimeInterval = new TimeInterval(newStart, newEnd);
         }
     }
 }

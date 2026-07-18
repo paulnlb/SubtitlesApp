@@ -22,7 +22,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
     private readonly TimeSpan _positionRefreshTreshold = TimeSpan.FromSeconds(10);
     private VideoSessionDto? _session;
-    private SubtitlesMapper _mapper;
     private bool _shouldRefreshPosition;
 
     #endregion
@@ -58,7 +57,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         SubtitlesViewModel captionsViewModel,
         IVideoSessionRepository videoSessionRepository,
         ISubtitlesRepository subtitlesRepository,
-        SubtitlesMapper mapper,
         IBuiltInDialogService builtInDialogService,
         ICustomFilePicker filePicker
     )
@@ -67,7 +65,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         _subtitlesRepository = subtitlesRepository;
         _filePicker = filePicker;
         _builtInDialogService = builtInDialogService;
-        _mapper = mapper;
         PlayerControlsVisible = true;
         MediaPath = null;
         SubtitlesVm = captionsViewModel;
@@ -126,14 +123,14 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
         {
             if (!string.IsNullOrWhiteSpace(_session.SubtitlesReference))
             {
-                SubtitlesVm.Subtitles = _mapper.SubtitlesToVisualSubtitles(
+                SubtitlesVm.Subtitles = SubtitlesMapper.ToVisualSubtitles(
                     await _subtitlesRepository.Get(_session.SubtitlesReference)
                 );
             }
 
             if (!string.IsNullOrWhiteSpace(_session.TranslationsReference))
             {
-                SubtitlesVm.Translations = _mapper.SubtitlesToVisualSubtitles(
+                SubtitlesVm.Translations = SubtitlesMapper.ToVisualSubtitles(
                     await _subtitlesRepository.Get(_session.TranslationsReference)
                 );
             }

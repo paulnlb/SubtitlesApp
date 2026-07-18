@@ -25,6 +25,11 @@
           <Label Text="{Binding Text}" FontSize="16" VerticalTextAlignment="Center" Padding="5">
             <Label.GestureRecognizers>
               <TapGestureRecognizer NumberOfTapsRequired="2" CommandParameter="{Binding .}" Tapped="OnSubtitleTapped" />
+              <PointerGestureRecognizer
+                PointerPressed="OnPointerPressed"
+                PointerReleased="OnPointerReleased"
+                PointerExited="OnPointerExited"
+              />
             </Label.GestureRecognizers>
             <Label.Triggers>
               <DataTrigger TargetType="Label" Binding="{Binding IsHighlighted}" Value="True">

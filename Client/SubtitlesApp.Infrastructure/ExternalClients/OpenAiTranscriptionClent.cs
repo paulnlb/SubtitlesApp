@@ -3,7 +3,9 @@ using OpenAI;
 using OpenAI.Audio;
 using SubtitlesApp.Core.Constants;
 using SubtitlesApp.Core.DTOs;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.DataModels;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.Infrastructure.ExternalClients;
@@ -12,7 +14,7 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
 {
     private readonly Task<AudioClient> _audioClientTask = InitClient(settings);
 
-    public async Task<ListResult<SubtitleDto>> GetSubsAsync(
+    public async Task<ListResult<WhisperSubtitle>> GetSubsAsync(
         Stream audio,
         string languageCode,
         string context,
@@ -47,12 +49,12 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
         }
         catch (Exception ex)
         {
-            return ListResult<SubtitleDto>.Failure(
+            return ListResult<WhisperSubtitle>.Failure(
                 new Error(ErrorCode.InternalClientError, $"Audio transcription failed with error: {ex.Message}")
             );
         }
 
-        var subtitles = new List<SubtitleDto>();
+        var subtitles = new List<WhisperSubtitle>();
 
         foreach (TranscribedSegment segment in apiResult.Segments)
         {
@@ -70,13 +72,15 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
                 {
                     LanguageCode = apiResult.Language,
                     Text = segment.Text.TrimStart(),
-                    StartTime = segment.StartTime,
-                    EndTime = segment.EndTime,
+                    TimeInterval = new TimeInterval(segment.StartTime, segment.EndTime),
+                    NoSpeechProbability = segment.NoSpeechProbability,
+                    AverageLogProbability = segment.AverageLogProbability,
+                    CompressionRatio = segment.CompressionRatio,
                 }
             );
         }
 
-        return ListResult<SubtitleDto>.Success(subtitles);
+        return ListResult<WhisperSubtitle>.Success(subtitles);
     }
 
     private static async Task<AudioClient> InitClient(ITranscriptionClientSettings settings)

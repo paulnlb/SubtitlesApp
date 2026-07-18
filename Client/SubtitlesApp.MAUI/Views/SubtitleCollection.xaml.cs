@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using Microsoft.Maui.Adapters;
 using SubtitlesApp.ClientModels;
 
@@ -9,6 +10,8 @@ public partial class SubtitleCollection : ContentView, IDisposable
 {
     private bool _disposed = false;
     private VisualSubtitle? _currentSubtitle;
+    private CancellationTokenSource _additionalInfoCts = new CancellationTokenSource();
+    private TimeSpan _additionalInfoPopupDelay = TimeSpan.FromMilliseconds(500);
 
     public static readonly BindableProperty SubtitlesProperty = BindableProperty.Create(
         nameof(Subtitles),
@@ -208,6 +211,47 @@ public partial class SubtitleCollection : ContentView, IDisposable
         )
         {
             CurrentSubtitleIndex = -1;
+        }
+    }
+
+    private void OnPointerPressed(object sender, PointerEventArgs e)
+    {
+        if (sender is not Label label || label.BindingContext is not VisualSubtitle visualSubtitle)
+        {
+            return;
+        }
+
+        _additionalInfoCts.Cancel();
+        _additionalInfoCts = new CancellationTokenSource();
+        _ = ShowInfoAfter(_additionalInfoPopupDelay, visualSubtitle, _additionalInfoCts.Token);
+        Debug.WriteLine("SubtitleCollection: Pointer pressed");
+    }
+
+    private void OnPointerReleased(object sender, PointerEventArgs e)
+    {
+        _additionalInfoCts.Cancel();
+        Debug.WriteLine("SubtitleCollection: Pointer released");
+    }
+
+    private void OnPointerExited(object sender, PointerEventArgs e)
+    {
+        _additionalInfoCts.Cancel();
+        Debug.WriteLine("SubtitleCollection: Pointer exited");
+    }
+
+    private async Task ShowInfoAfter(TimeSpan delay, VisualSubtitle visualSubtitle, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(delay, cancellationToken);
+
+            MainThread.BeginInvokeOnMainThread(() =>
+                Shell.Current.CurrentPage.DisplayAlertAsync("Additional info", visualSubtitle.AdditionalInfo, "Ok")
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.WriteLine("SubtitleCollection: Show popup cancelled");
         }
     }
 }

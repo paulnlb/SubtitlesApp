@@ -1,31 +1,40 @@
 ﻿using System.Collections.ObjectModel;
-using Riok.Mapperly.Abstractions;
+using CommunityToolkit.Maui.Core.Extensions;
 using SubtitlesApp.ClientModels;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Mapper;
 
-[Mapper]
-public partial class SubtitlesMapper
+public static class SubtitlesMapper
 {
-    [MapPropertyFromSource(nameof(VisualSubtitle.TimeInterval))]
-    [MapperIgnoreTarget(nameof(VisualSubtitle.IsHighlighted))]
-    public partial VisualSubtitle SubtitleDtoToVisualSubtitle(SubtitleDto subtitleDto);
+    public static VisualSubtitle ToVisualSubtitle(Subtitle subtitle)
+    {
+        return new VisualSubtitle
+        {
+            Text = subtitle.Text,
+            LanguageCode = subtitle.LanguageCode,
+            TimeInterval = subtitle.TimeInterval,
+            AdditionalInfo = subtitle.ToString(),
+        };
+    }
 
-    [MapProperty(nameof(VisualSubtitle.TimeInterval.StartTime), nameof(SubtitleDto.StartTime))]
-    [MapProperty(nameof(VisualSubtitle.TimeInterval.EndTime), nameof(SubtitleDto.EndTime))]
-    [MapperIgnoreSource(nameof(VisualSubtitle.IsHighlighted))]
-    public partial SubtitleDto VisualSubtitleToSubtitleDto(VisualSubtitle visualSubtitle);
+    public static Subtitle ToSubtitle(VisualSubtitle visualSubtitle)
+    {
+        return new Subtitle
+        {
+            Text = visualSubtitle.Text,
+            LanguageCode = visualSubtitle.LanguageCode,
+            TimeInterval = visualSubtitle.TimeInterval,
+        };
+    }
 
-    public partial List<SubtitleDto> VisualSubtitlesToSubtitleDtoList(IEnumerable<VisualSubtitle> visualSubtitles);
+    public static List<Subtitle> ToSubtitleList(IEnumerable<VisualSubtitle> visualSubtitles)
+    {
+        return visualSubtitles.Select(ToSubtitle).ToList();
+    }
 
-    public partial ObservableCollection<VisualSubtitle> SubtitlesDtosToObservableVisualSubtitles(
-        IEnumerable<SubtitleDto> subtitleDtos
-    );
-
-    public partial ObservableCollection<VisualSubtitle> SubtitlesToVisualSubtitles(IEnumerable<Subtitle> subtitleDto);
-
-    private TimeInterval SubtitleDtoToTimeInterval(SubtitleDto subtitleDto) =>
-        new(subtitleDto.StartTime, subtitleDto.EndTime);
+    public static ObservableCollection<VisualSubtitle> ToVisualSubtitles(IEnumerable<Subtitle> subtitles)
+    {
+        return subtitles.Select(ToVisualSubtitle).ToObservableCollection();
+    }
 }

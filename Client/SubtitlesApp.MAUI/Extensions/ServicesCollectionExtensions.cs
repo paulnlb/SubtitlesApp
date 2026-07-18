@@ -30,7 +30,6 @@ public static class ServicesCollectionExtensions
         #region transient
         services.AddTransient<ICustomFilePicker, Services.FilePicker>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
-        services.AddTransient<SubtitlesMapper>();
         services.AddTransient<ITranscriptionService, WhisperTranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
         services.AddTransient<OpenAiTranscriptionClent>();

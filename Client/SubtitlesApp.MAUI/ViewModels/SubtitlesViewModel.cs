@@ -54,7 +54,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #region private fields
 
-    private readonly SubtitlesMapper _subtitlesMapper;
     private TranscriptionSettings? _transcriptionSettings;
     private TranslationSettings? _translationSettings;
     private TimeSpan _currentMediaTime;
@@ -72,7 +71,6 @@ public partial class SubtitlesViewModel : ObservableObject
         ITranslationService translationService,
         LanguageService languageService,
         ICustomPopupService popupService,
-        SubtitlesMapper subtitlesMapper,
         ITranscriptionService transcriptionService,
         IBuiltInDialogService builtInDialogService
     )
@@ -90,8 +88,6 @@ public partial class SubtitlesViewModel : ObservableObject
         _transcriptionService = transcriptionService;
         _builtInDialogService = builtInDialogService;
         _languageService = languageService;
-
-        _subtitlesMapper = subtitlesMapper;
     }
 
     #region commands
@@ -147,13 +143,14 @@ public partial class SubtitlesViewModel : ObservableObject
                 return;
             }
 
-            var subtitleDto = result.Value;
+            var subtitle = result.Value;
 
             // Workaround that reduces timestamp precision to roughly match seeking precision
-            subtitleDto.StartTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.StartTime.TotalMilliseconds));
-            subtitleDto.EndTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.EndTime.TotalMilliseconds));
+            var newStart = TimeSpan.FromMilliseconds(Math.Round(subtitle.TimeInterval.StartTime.TotalMilliseconds));
+            var newEnd = TimeSpan.FromMilliseconds(Math.Round(subtitle.TimeInterval.EndTime.TotalMilliseconds));
+            subtitle.TimeInterval = new TimeInterval(newStart, newEnd);
 
-            Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto), false);
+            Subtitles.Insert(SubtitlesMapper.ToVisualSubtitle(subtitle), false);
         }
 
         try
@@ -192,13 +189,13 @@ public partial class SubtitlesViewModel : ObservableObject
             s.TimeInterval.StartTime >= newSettings.FromTime && s.TimeInterval.EndTime <= newSettings.ToTime
         );
 
-        var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
+        var subtitles = SubtitlesMapper.ToSubtitleList(subtitlesToTranslate);
 
         IsTranslationLoading = true;
 
         Translations.RemoveInside(new(newSettings.FromTime, newSettings.ToTime));
 
-        var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, cancellationToken);
+        var results = _translationService.TranslateAsync(subtitles, newSettings.TargetLanguage, cancellationToken);
 
         await foreach (var result in results)
         {
@@ -211,7 +208,7 @@ public partial class SubtitlesViewModel : ObservableObject
                 return;
             }
 
-            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value), false);
+            Translations.Insert(SubtitlesMapper.ToVisualSubtitle(result.Value), false);
         }
 
         try
