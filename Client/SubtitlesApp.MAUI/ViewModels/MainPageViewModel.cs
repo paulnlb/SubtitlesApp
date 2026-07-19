@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Services;
 using SubtitlesApp.Views;
@@ -74,7 +75,9 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (!string.IsNullOrEmpty(url))
                 {
-                    await OpenPlayerWithSubtitlesPage(new RemoteFileResource(url));
+                    await OpenPlayerWithSubtitlesPage(
+                        new MediaFileInfo(FileResourceType.Remote, url, new Uri(url).Segments.Last().TrimEnd('/'), url)
+                    );
                 }
 
                 break;
@@ -92,7 +95,7 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    private static Task OpenPlayerWithSubtitlesPage(IFileResource fileResource)
+    private static Task OpenPlayerWithSubtitlesPage(MediaFileInfo fileResource)
     {
         return Shell.Current.GoToAsync(
             nameof(PlayerWithSubtitlesPage),

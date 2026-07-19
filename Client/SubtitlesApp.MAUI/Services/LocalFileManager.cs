@@ -1,11 +1,11 @@
-﻿using SubtitlesApp.Core.Result;
-using SubtitlesApp.Interfaces;
+﻿using SubtitlesApp.ClientModels;
+using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Services;
 
 public partial class LocalFileManager
 {
-    public partial Task<IFileResource?> PickFileAsync(string[] mimeTypes);
+    public partial Task<MediaFileInfo?> PickFileAsync(string[] mimeTypes);
 
     public partial Result<Stream> GetFileStream(string uriString);
 }

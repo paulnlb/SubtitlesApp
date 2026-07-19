@@ -1,11 +1,9 @@
 ﻿using Android.Content;
 using Android.Database;
-using Android.OS;
 using Android.Provider;
 using AndroidX.Activity.Result;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Result;
-using SubtitlesApp.Interfaces;
-using SubtitlesApp.Platforms.Android;
 
 namespace SubtitlesApp.Services;
 
@@ -14,7 +12,7 @@ namespace SubtitlesApp.Services;
 /// </summary>
 public partial class LocalFileManager
 {
-    public async partial Task<IFileResource?> PickFileAsync(string[] mimeTypes)
+    public async partial Task<MediaFileInfo?> PickFileAsync(string[] mimeTypes)
     {
         MainActivity.Instance.FilePickerActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
         MainActivity.Instance.FilePickerLauncher?.Launch(mimeTypes);
@@ -27,7 +25,6 @@ public partial class LocalFileManager
         }
 
         var idResult = GetContentId(uri);
-        var fdResult = GetDescriptor(uri);
         var nameResult = GetFileName(uri);
 
         if (idResult.IsFailure)
@@ -42,13 +39,7 @@ public partial class LocalFileManager
             );
         }
 
-        if (fdResult.IsFailure)
-        {
-            throw new InvalidOperationException($"Could not retrieve local file path. Error: {fdResult.Error.Description}");
-        }
-
-        return new AndroidFileResource(
-            fdResult.Value,
+        return new MediaFileInfo(
             ClientModels.Enums.FileResourceType.Local,
             idResult.Value,
             nameResult.Value,
@@ -159,29 +150,6 @@ public partial class LocalFileManager
         }
 
         return Result<string>.Success(split[1]);
-    }
-
-    private Result<ParcelFileDescriptor> GetDescriptor(Android.Net.Uri uri)
-    {
-        if (uri.Scheme != "content")
-        {
-            return Result<ParcelFileDescriptor>.Failure(
-                new Error(ErrorCode.ValidationFailed, $"Uri scheme {uri.Scheme} is not supported")
-            );
-        }
-
-        var resolver = Platform.CurrentActivity!.ContentResolver!;
-
-        var parcelFd = resolver.OpenFileDescriptor(uri, "rw");
-
-        if (parcelFd is null)
-        {
-            return Result<ParcelFileDescriptor>.Failure(
-                new(ErrorCode.InternalClientError, $"File descriptor is null for Uri: {uri}")
-            );
-        }
-
-        return Result<ParcelFileDescriptor>.Success(parcelFd);
     }
 }
 

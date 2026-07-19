@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.DTOs;
@@ -38,7 +39,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private SubtitlesViewModel _subtitlesVm;
 
     [ObservableProperty]
-    private IFileResource? _fileResource;
+    private MediaFileInfo? _fileInfo;
 
     #endregion
 
@@ -88,16 +89,16 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task LoadSession()
     {
-        if (FileResource is null)
+        if (FileInfo is null)
         {
             return;
         }
 
-        _session = await _videoSessionRepository.Get(FileResource.Id);
+        _session = await _videoSessionRepository.Get(FileInfo.Id);
 
         if (_session is null)
         {
-            _session = new VideoSessionDto { VideoId = FileResource.Id };
+            _session = new VideoSessionDto { VideoId = FileInfo.Id };
             await _videoSessionRepository.Create(_session);
             return;
         }
@@ -208,13 +209,10 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         if (query.TryGetValue("open", out object? value))
         {
-            if (value is not IFileResource fileResource)
+            if (value is MediaFileInfo fileInfo)
             {
-                query.Clear();
-                return;
+                SubtitlesVm.FileInfo = FileInfo = fileInfo;
             }
-
-            SubtitlesVm.FileResource = FileResource = fileResource;
 
             query.Clear();
         }

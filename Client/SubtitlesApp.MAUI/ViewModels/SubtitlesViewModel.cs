@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using Android.Telephony.Mbms;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
@@ -40,7 +41,7 @@ public partial class SubtitlesViewModel : ObservableObject
     private bool _isTranslationLoading;
 
     [ObservableProperty]
-    private IFileResource _fileResource;
+    private MediaFileInfo _fileInfo;
 
     #endregion
 
@@ -132,10 +133,10 @@ public partial class SubtitlesViewModel : ObservableObject
         IAsyncEnumerable<Result<Subtitle>> results;
         Stream? stream = null;
 
-        if (FileResource.Type == FileResourceType.Remote)
+        if (FileInfo.Type == FileResourceType.Remote)
         {
             results = _transcriptionService.TranscribeAsync(
-                FileResource.Uri,
+                FileInfo.Uri,
                 timeInterval,
                 newSettings.SubtitlesLanguage.Code,
                 cancellationToken
@@ -143,7 +144,7 @@ public partial class SubtitlesViewModel : ObservableObject
         }
         else
         {
-            var streamResult = _localFileManager.GetFileStream(FileResource.Uri);
+            var streamResult = _localFileManager.GetFileStream(FileInfo.Uri);
 
             if (streamResult.IsFailure)
             {

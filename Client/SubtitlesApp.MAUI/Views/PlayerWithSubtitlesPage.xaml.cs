@@ -97,7 +97,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
         subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
-        Vm.FileResource?.Dispose();
     }
 
     protected override bool OnBackButtonPressed()
@@ -148,10 +147,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         {
             ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
         }
-        else if (e.PropertyName == nameof(Vm.FileResource) && Vm.FileResource is not null)
+        else if (e.PropertyName == nameof(Vm.FileInfo) && Vm.FileInfo is not null)
         {
-            mauiMediaElement.Source = MediaSource.FromUri(Vm.FileResource.Uri);
-            playerControls.Title = Vm.FileResource.Name;
+            mauiMediaElement.Source = MediaSource.FromUri(Vm.FileInfo.Uri);
+            playerControls.Title = Vm.FileInfo.Name;
         }
     }
 
