@@ -2,9 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels.CustomEventArgs;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces.Repositories;
-using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
 
@@ -15,9 +15,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private readonly IVideoSessionRepository _videoSessionRepository;
     private readonly ISubtitlesRepository _subtitlesRepository;
 
-    private readonly IBuiltInDialogService _builtInDialogService;
-    private readonly ICustomFilePicker _filePicker;
-
     #region private fields
 
     private readonly TimeSpan _positionRefreshTreshold = TimeSpan.FromSeconds(10);
@@ -27,9 +24,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #endregion
 
     #region observable properties
-
-    [ObservableProperty]
-    private string? _mediaPath;
 
     [ObservableProperty]
     private bool _playerControlsVisible;
@@ -44,10 +38,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     private SubtitlesViewModel _subtitlesVm;
 
     [ObservableProperty]
-    private Stream? _mediaStream;
-
-    [ObservableProperty]
-    private string _title = string.Empty;
+    private IFileResource? _fileResource;
 
     #endregion
 
@@ -56,17 +47,12 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     public PlayerWithSubtitlesViewModel(
         SubtitlesViewModel captionsViewModel,
         IVideoSessionRepository videoSessionRepository,
-        ISubtitlesRepository subtitlesRepository,
-        IBuiltInDialogService builtInDialogService,
-        ICustomFilePicker filePicker
+        ISubtitlesRepository subtitlesRepository
     )
     {
         _videoSessionRepository = videoSessionRepository;
         _subtitlesRepository = subtitlesRepository;
-        _filePicker = filePicker;
-        _builtInDialogService = builtInDialogService;
         PlayerControlsVisible = true;
-        MediaPath = null;
         SubtitlesVm = captionsViewModel;
         StartRefreshingSession();
     }
@@ -102,11 +88,16 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     [RelayCommand]
     public async Task LoadSession()
     {
-        _session = await _videoSessionRepository.Get(MediaPath);
+        if (FileResource is null)
+        {
+            return;
+        }
+
+        _session = await _videoSessionRepository.Get(FileResource.Id);
 
         if (_session is null)
         {
-            _session = new VideoSessionDto { VideoId = MediaPath };
+            _session = new VideoSessionDto { VideoId = FileResource.Id };
             await _videoSessionRepository.Create(_session);
             return;
         }
@@ -217,29 +208,18 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     {
         if (query.TryGetValue("open", out object? value))
         {
-            var uri = value.ToString()!;
+            if (value is not IFileResource fileResource)
+            {
+                query.Clear();
+                return;
+            }
+
+            SubtitlesVm.MediaPath =
+                fileResource.Type == FileResourceType.Remote ? fileResource.Uri : fileResource.AbsolutePath;
+
+            FileResource = fileResource;
+
             query.Clear();
-
-            var streamResult = _filePicker.GetFileStream(uri);
-
-            if (streamResult.IsFailure)
-            {
-                _builtInDialogService.DisplayError(streamResult.Error);
-                return;
-            }
-
-            MediaStream = streamResult.Value;
-            SubtitlesVm.MediaPath = MediaPath = uri;
-
-            var fileNameResult = _filePicker.GetFileName(uri);
-
-            if (fileNameResult.IsFailure)
-            {
-                _builtInDialogService.DisplayError(fileNameResult.Error);
-                return;
-            }
-
-            Title = fileNameResult.Value;
         }
     }
 

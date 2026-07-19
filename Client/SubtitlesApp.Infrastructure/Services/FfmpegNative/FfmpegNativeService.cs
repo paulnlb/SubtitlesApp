@@ -1,17 +1,9 @@
 using SubtitlesApp.Infrastructure.Constants;
-using SubtitlesApp.Infrastructure.Interfaces;
 
 namespace SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 public class FfmpegNativeService
 {
-    private readonly ICustomFilePicker _filePicker;
-
-    public FfmpegNativeService(ICustomFilePicker filePicker)
-    {
-        _filePicker = filePicker;
-    }
-
     public async Task<Stream> ExtractAudioAsync(
         string sourcePath,
         TimeSpan startTime,
@@ -19,23 +11,7 @@ public class FfmpegNativeService
         CancellationToken cancellationToken
     )
     {
-        IFileResource? fr = null;
-
-        if (Uri.TryCreate(sourcePath, UriKind.Absolute, out Uri? uri) && !IsRemoteUrl(uri))
-        {
-            var result = _filePicker.GetLocalPath(uri);
-
-            if (result.IsFailure)
-            {
-                throw new InvalidOperationException(result.Error.Description);
-            }
-
-            fr = result.Value;
-
-            sourcePath = fr.Path;
-        }
-
-        if (uri is null || !IsRemoteUrl(uri))
+        if (!IsRemoteUrl(sourcePath))
         {
             sourcePath = Uri.UnescapeDataString(sourcePath);
         }
@@ -45,38 +21,32 @@ public class FfmpegNativeService
             throw new ArgumentException("Source path cannot be null or empty.", nameof(sourcePath));
         }
 
-        try
-        {
-            var outputStream = new MemoryStream();
+        var outputStream = new MemoryStream();
 
-            await Task.Run(() =>
+        await Task.Run(() =>
+        {
+            var exitCode = FfmpegNativeWrapper.ExtractToStream(
+                sourcePath,
+                outputStream,
+                startTime.TotalSeconds,
+                endTime.TotalSeconds,
+                16000,
+                AudioFormats.Wave
+            );
+
+            if (exitCode < 0)
             {
-                var exitCode = FfmpegNativeWrapper.ExtractToStream(
-                    sourcePath,
-                    outputStream,
-                    startTime.TotalSeconds,
-                    endTime.TotalSeconds,
-                    16000,
-                    AudioFormats.Wave
-                );
+                throw new InvalidOperationException($"FFmpeg extraction failed with exit code {exitCode}.");
+            }
+        });
 
-                if (exitCode < 0)
-                {
-                    throw new InvalidOperationException($"FFmpeg extraction failed with exit code {exitCode}.");
-                }
-            });
-
-            outputStream.Position = 0;
-            return outputStream;
-        }
-        finally
-        {
-            fr?.Dispose();
-        }
+        outputStream.Position = 0;
+        return outputStream;
     }
 
-    private static bool IsRemoteUrl(Uri uri)
+    private static bool IsRemoteUrl(string path)
     {
-        return uri!.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+        var uriCreated = Uri.TryCreate(path, UriKind.Absolute, out var uriResult);
+        return uriCreated && (uriResult!.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
     }
 }

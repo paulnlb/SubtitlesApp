@@ -22,7 +22,6 @@
       PlayerControlsVisible="{Binding PlayerControlsVisible}"
       IsFullScreenOn="{Binding IsFullScreenOn, Mode=TwoWay}"
       IsImmersiveOn="{Binding IsImmersiveOn, Mode=TwoWay}"
-      Title="{Binding Title}"
       ZIndex="1"
       AbsoluteLayout.LayoutFlags="SizeProportional"
     >

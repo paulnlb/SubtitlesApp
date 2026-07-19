@@ -77,7 +77,6 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         #region observable properties
 
-        MediaPath = null;
         Subtitles = [];
         Translations = [];
 

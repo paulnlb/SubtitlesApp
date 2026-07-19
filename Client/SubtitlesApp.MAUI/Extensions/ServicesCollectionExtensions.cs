@@ -7,13 +7,11 @@ using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.ExternalClients;
-using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Repositories;
 using SubtitlesApp.Infrastructure.Services;
 using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 using SubtitlesApp.Interfaces;
-using SubtitlesApp.Mapper;
 using SubtitlesApp.Services;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
@@ -28,7 +26,6 @@ public static class ServicesCollectionExtensions
     public static void AddSubtitlesAppServices(this IServiceCollection services)
     {
         #region transient
-        services.AddTransient<ICustomFilePicker, Services.FilePicker>();
         services.AddTransient<IBuiltInDialogService, BuiltInDialogService>();
         services.AddTransient<ITranscriptionService, WhisperTranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
@@ -37,6 +34,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
         services.AddTransient<FixedSizeChunker>();
+        services.AddTransient<LocalFileManager>();
         #endregion
 
         #region singleton

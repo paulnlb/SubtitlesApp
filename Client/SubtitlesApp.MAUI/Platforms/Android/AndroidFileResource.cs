@@ -1,11 +1,22 @@
 ﻿using Android.OS;
-using SubtitlesApp.Infrastructure.Interfaces;
+using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.Platforms.Android;
 
-public class FileDescriptorResource(ParcelFileDescriptor descriptor) : IFileResource
+public class AndroidFileResource(
+    ParcelFileDescriptor descriptor,
+    FileResourceType type,
+    string id,
+    string name,
+    string uri
+) : IFileResource
 {
-    public string Path => $"/proc/self/fd/{descriptor.Fd}";
+    public FileResourceType Type => type;
+    public string Id => id;
+    public string Name => name;
+    public string Uri => uri;
+    public string? AbsolutePath => $"/proc/self/fd/{descriptor.Fd}";
 
     private bool _disposed;
 

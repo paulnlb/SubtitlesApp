@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SubtitlesApp.Infrastructure.Interfaces;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Platforms.Android;
+using SubtitlesApp.Services;
 using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
@@ -27,7 +28,7 @@ public partial class MainPageViewModel : ObservableObject
     ];
 
     private readonly IBuiltInDialogService _dialogService;
-    private readonly ICustomFilePicker _filePicker;
+    private readonly LocalFileManager _localFileManager;
     private readonly ICustomPopupService _popupService;
 
     [ObservableProperty]
@@ -38,12 +39,12 @@ public partial class MainPageViewModel : ObservableObject
 
     public MainPageViewModel(
         IBuiltInDialogService dialogService,
-        ICustomFilePicker filePicker,
+        LocalFileManager localFileManager,
         ICustomPopupService popupService
     )
     {
         _dialogService = dialogService;
-        _filePicker = filePicker;
+        _localFileManager = localFileManager;
         _popupService = popupService;
 
         var random = new Random();
@@ -74,7 +75,7 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (!string.IsNullOrEmpty(url))
                 {
-                    await OpenPlayerWithSubtitlesPage(url);
+                    await OpenPlayerWithSubtitlesPage(new RemoteFileResource(url));
                 }
 
                 break;
@@ -89,19 +90,22 @@ public partial class MainPageViewModel : ObservableObject
                     return;
                 }
 
-                var path = await _filePicker.PickAsync(["video/*", "audio/*"]);
+                var localFileResource = await _localFileManager.PickFileAsync(["video/*", "audio/*"]);
 
-                if (!string.IsNullOrEmpty(path))
+                if (localFileResource is not null)
                 {
-                    await OpenPlayerWithSubtitlesPage(path);
+                    await OpenPlayerWithSubtitlesPage(localFileResource);
                 }
 
                 break;
         }
     }
 
-    private static Task OpenPlayerWithSubtitlesPage(string path)
+    private static Task OpenPlayerWithSubtitlesPage(IFileResource fileResource)
     {
-        return Shell.Current.GoToAsync(nameof(PlayerWithSubtitlesPage), new Dictionary<string, object> { { "open", path } });
+        return Shell.Current.GoToAsync(
+            nameof(PlayerWithSubtitlesPage),
+            new Dictionary<string, object> { { "open", fileResource } }
+        );
     }
 }
