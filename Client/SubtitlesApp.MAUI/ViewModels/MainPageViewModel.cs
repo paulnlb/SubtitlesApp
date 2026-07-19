@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Interfaces;
-using SubtitlesApp.Platforms.Android;
 using SubtitlesApp.Services;
 using SubtitlesApp.Views;
 
@@ -81,14 +80,6 @@ public partial class MainPageViewModel : ObservableObject
                 break;
 
             case LoadLocalResource:
-
-                var status = await Permissions.RequestAsync<ReadAudioVideoPerms>();
-
-                if (status != PermissionStatus.Granted)
-                {
-                    AppInfo.Current.ShowSettingsUI();
-                    return;
-                }
 
                 var localFileResource = await _localFileManager.PickFileAsync(["video/*", "audio/*"]);
 
