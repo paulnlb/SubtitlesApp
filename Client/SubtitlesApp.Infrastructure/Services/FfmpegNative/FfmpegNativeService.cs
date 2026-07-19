@@ -44,6 +44,36 @@ public class FfmpegNativeService
         return outputStream;
     }
 
+    public async Task<Stream> ExtractAudioAsync(
+        Stream mediaStream,
+        TimeSpan startTime,
+        TimeSpan endTime,
+        CancellationToken cancellationToken
+    )
+    {
+        var outputStream = new MemoryStream();
+
+        await Task.Run(() =>
+        {
+            var exitCode = FfmpegNativeWrapper.ExtractFromStreamToStream(
+                mediaStream,
+                outputStream,
+                startTime.TotalSeconds,
+                endTime.TotalSeconds,
+                16000,
+                AudioFormats.Wave
+            );
+
+            if (exitCode < 0)
+            {
+                throw new InvalidOperationException($"FFmpeg extraction failed with exit code {exitCode}.");
+            }
+        });
+
+        outputStream.Position = 0;
+        return outputStream;
+    }
+
     private static bool IsRemoteUrl(string path)
     {
         var uriCreated = Uri.TryCreate(path, UriKind.Absolute, out var uriResult);

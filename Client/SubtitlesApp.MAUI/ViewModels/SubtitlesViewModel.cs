@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
@@ -9,6 +10,7 @@ using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
+using SubtitlesApp.Services;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -21,9 +23,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<VisualSubtitle> _translations;
-
-    [ObservableProperty]
-    private string? _mediaPath;
 
     [ObservableProperty]
     private int _currentSubtitleIndex = -1;
@@ -40,6 +39,9 @@ public partial class SubtitlesViewModel : ObservableObject
     [ObservableProperty]
     private bool _isTranslationLoading;
 
+    [ObservableProperty]
+    private IFileResource _fileResource;
+
     #endregion
 
     #region services
@@ -49,6 +51,7 @@ public partial class SubtitlesViewModel : ObservableObject
     private readonly ITranscriptionService _transcriptionService;
     private readonly IBuiltInDialogService _builtInDialogService;
     private readonly LanguageService _languageService;
+    private readonly LocalFileManager _localFileManager;
 
     #endregion
 
@@ -72,7 +75,8 @@ public partial class SubtitlesViewModel : ObservableObject
         LanguageService languageService,
         ICustomPopupService popupService,
         ITranscriptionService transcriptionService,
-        IBuiltInDialogService builtInDialogService
+        IBuiltInDialogService builtInDialogService,
+        LocalFileManager localFileManager
     )
     {
         #region observable properties
@@ -87,6 +91,7 @@ public partial class SubtitlesViewModel : ObservableObject
         _transcriptionService = transcriptionService;
         _builtInDialogService = builtInDialogService;
         _languageService = languageService;
+        _localFileManager = localFileManager;
     }
 
     #region commands
@@ -124,12 +129,36 @@ public partial class SubtitlesViewModel : ObservableObject
 
         Subtitles.RemoveInside(timeInterval);
 
-        var results = _transcriptionService.TranscribeAsync(
-            MediaPath,
-            timeInterval,
-            newSettings.SubtitlesLanguage.Code,
-            cancellationToken
-        );
+        IAsyncEnumerable<Result<Subtitle>> results;
+        Stream? stream = null;
+
+        if (FileResource.Type == FileResourceType.Remote)
+        {
+            results = _transcriptionService.TranscribeAsync(
+                FileResource.Uri,
+                timeInterval,
+                newSettings.SubtitlesLanguage.Code,
+                cancellationToken
+            );
+        }
+        else
+        {
+            var streamResult = _localFileManager.GetFileStream(FileResource.Uri);
+
+            if (streamResult.IsFailure)
+            {
+                await _builtInDialogService.DisplayError(streamResult.Error);
+            }
+
+            stream = streamResult.Value;
+
+            results = _transcriptionService.TranscribeAsync(
+                stream,
+                timeInterval,
+                newSettings.SubtitlesLanguage.Code,
+                cancellationToken
+            );
+        }
 
         await foreach (var result in results)
         {
@@ -151,6 +180,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
             Subtitles.Insert(SubtitlesMapper.ToVisualSubtitle(subtitle), false);
         }
+
+        stream?.Dispose();
 
         try
         {

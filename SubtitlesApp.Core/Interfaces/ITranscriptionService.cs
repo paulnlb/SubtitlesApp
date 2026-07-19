@@ -20,4 +20,11 @@ public interface ITranscriptionService
         string languageCode,
         CancellationToken cancellationToken = default
     );
+
+    IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
+        Stream media,
+        TimeInterval timeInterval,
+        string languageCode,
+        CancellationToken cancellationToken = default
+    );
 }

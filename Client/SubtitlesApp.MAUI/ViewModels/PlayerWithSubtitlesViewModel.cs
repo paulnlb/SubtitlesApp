@@ -214,10 +214,7 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
                 return;
             }
 
-            SubtitlesVm.MediaPath =
-                fileResource.Type == FileResourceType.Remote ? fileResource.Uri : fileResource.AbsolutePath;
-
-            FileResource = fileResource;
+            SubtitlesVm.FileResource = FileResource = fileResource;
 
             query.Clear();
         }

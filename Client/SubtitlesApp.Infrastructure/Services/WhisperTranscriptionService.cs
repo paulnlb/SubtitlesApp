@@ -79,6 +79,71 @@ public class WhisperTranscriptionService(
         }
     }
 
+    public async IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
+        Stream media,
+        TimeInterval timeInterval,
+        string languageCode,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
+    {
+        var context = string.Empty;
+        WhisperSubtitle? lastEmitted = null;
+
+        await foreach (var audioChunkResult in audioChunker.ChunkAsync(media, timeInterval, cancellationToken))
+        {
+            if (audioChunkResult.IsFailure)
+            {
+                yield return Result<Subtitle>.Failure(audioChunkResult.Error);
+                yield break;
+            }
+
+            var audioChunk = audioChunkResult.Value;
+
+            var subtitlesResult = await transcriptionsClient.GetSubsAsync(
+                audioChunk.Audio,
+                languageCode,
+                context,
+                cancellationToken
+            );
+
+            if (subtitlesResult.IsFailure)
+            {
+                yield return Result<Subtitle>.Failure(subtitlesResult.Error);
+                yield break;
+            }
+
+            if (audioChunk.StartTime != TimeSpan.Zero)
+            {
+                AlignByTime(subtitlesResult.Value, audioChunk.StartTime);
+            }
+
+            var subtitles = subtitlesResult.Value;
+            var subtitlesForContext = subtitles.TakeLast(settings.SubtitlesAsPromptCount).Select(x => x.Text);
+
+            context = string.Join(' ', subtitlesForContext);
+
+            foreach (var subtitle in subtitles)
+            {
+                if (
+                    lastEmitted is not null
+                    && subtitle.TimeInterval.EndTime - lastEmitted.TimeInterval.EndTime < settings.Epsilon
+                )
+                {
+                    continue;
+                }
+
+                yield return Result<Subtitle>.Success(subtitle);
+                lastEmitted = subtitle;
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                yield return Result<Subtitle>.Failure(new Error(ErrorCode.OperationCanceled));
+                yield break;
+            }
+        }
+    }
+
     private static void AlignByTime(List<WhisperSubtitle> subsToAlign, TimeSpan timeOffset)
     {
         foreach (var subtitle in subsToAlign)
