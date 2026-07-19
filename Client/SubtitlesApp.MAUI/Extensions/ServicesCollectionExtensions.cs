@@ -30,10 +30,8 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ITranscriptionService, WhisperTranscriptionService>();
         services.AddTransient<ITranslationService, LlmTranslationService>();
         services.AddTransient<OpenAiTranscriptionClent>();
-        services.AddTransient<FfmpegNativeService>();
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
-        services.AddTransient<FixedSizeChunker>();
         services.AddTransient<LocalFileManager>();
         #endregion
 

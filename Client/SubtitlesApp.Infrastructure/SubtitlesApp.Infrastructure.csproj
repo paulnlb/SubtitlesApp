@@ -15,7 +15,10 @@
     <PackageReference Include="sqlite-net-pcl" Version="1.11.272-beta" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Services\FfmpegNative\FfmpegNativeService.cs">
+    <Compile Update="Services\FfmpegNative\FfmpegAudioExtractorStream.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
+    <Compile Update="Services\FfmpegNative\FfmpegAudioExtractor.cs">
       <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
     </Compile>
     <Compile Update="Services\FfmpegNative\FfmpegNativeWrapper.cs">

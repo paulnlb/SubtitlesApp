@@ -2,23 +2,18 @@
 using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
-using SubtitlesApp.Infrastructure.Interfaces.Settings;
-using SubtitlesApp.Infrastructure.Services.FfmpegNative;
+using SubtitlesApp.Infrastructure.Interfaces;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class FixedSizeChunker(ITranscriptionSettings settings, FfmpegNativeService audioExtractor)
+public class FixedSizeChunker(IAudioExtractor audioExtractor, TimeSpan chunkLength, TimeSpan overlapSize)
 {
-    private readonly TimeSpan _chunkLength = settings.ChunkLength;
-    private readonly FfmpegNativeService _audioExtractor = audioExtractor;
-
     public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
-        string audioPath,
         TimeInterval timeInterval,
         [EnumeratorCancellation] CancellationToken cancellationToken
     )
     {
-        if (_chunkLength < TimeSpan.FromSeconds(30))
+        if (chunkLength < TimeSpan.FromSeconds(30))
         {
             yield return Result<AudioChunkDto>.Failure(
                 new Error(ErrorCode.InvalidInput, "Audio chunk length must be 30 seconds or longer")
@@ -27,7 +22,7 @@ public class FixedSizeChunker(ITranscriptionSettings settings, FfmpegNativeServi
         }
 
         var subIntervalStart = timeInterval.StartTime;
-        var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
+        var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime, chunkLength);
 
         while (subIntervalStart < timeInterval.EndTime)
         {
@@ -42,12 +37,7 @@ public class FixedSizeChunker(ITranscriptionSettings settings, FfmpegNativeServi
 
             try
             {
-                audioChunk = await _audioExtractor.ExtractAudioAsync(
-                    audioPath,
-                    subIntervalStart,
-                    subIntervalEnd,
-                    cancellationToken
-                );
+                audioChunk = await audioExtractor.ExtractAudioAsync(subIntervalStart, subIntervalEnd, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -76,84 +66,13 @@ public class FixedSizeChunker(ITranscriptionSettings settings, FfmpegNativeServi
             }
             else
             {
-                subIntervalStart = subIntervalEnd - settings.OverlapSize;
+                subIntervalStart = subIntervalEnd - overlapSize;
             }
 
-            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
+            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime, chunkLength);
         }
     }
 
-    public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
-        Stream mediaStream,
-        TimeInterval timeInterval,
-        [EnumeratorCancellation] CancellationToken cancellationToken
-    )
-    {
-        if (_chunkLength < TimeSpan.FromSeconds(30))
-        {
-            yield return Result<AudioChunkDto>.Failure(
-                new Error(ErrorCode.InvalidInput, "Audio chunk length must be 30 seconds or longer")
-            );
-            yield break;
-        }
-
-        var subIntervalStart = timeInterval.StartTime;
-        var subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
-
-        while (subIntervalStart < timeInterval.EndTime)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                yield return Result<AudioChunkDto>.Failure(new Error(ErrorCode.OperationCanceled));
-                yield break;
-            }
-
-            Stream? audioChunk = null;
-            Error? extractingError = null;
-
-            try
-            {
-                audioChunk = await _audioExtractor.ExtractAudioAsync(
-                    mediaStream,
-                    subIntervalStart,
-                    subIntervalEnd,
-                    cancellationToken
-                );
-            }
-            catch (Exception ex)
-            {
-                extractingError = new Error(ErrorCode.InternalClientError, ex.Message);
-            }
-
-            if (extractingError is not null)
-            {
-                yield return Result<AudioChunkDto>.Failure(extractingError);
-                yield break;
-            }
-
-            yield return Result<AudioChunkDto>.Success(
-                new AudioChunkDto
-                {
-                    StartTime = subIntervalStart,
-                    EndTime = subIntervalEnd,
-                    Audio = audioChunk!,
-                }
-            );
-
-            // do not do overlapping if current interval is the last one
-            if (subIntervalEnd == timeInterval.EndTime)
-            {
-                subIntervalStart = subIntervalEnd;
-            }
-            else
-            {
-                subIntervalStart = subIntervalEnd - settings.OverlapSize;
-            }
-
-            subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime);
-        }
-    }
-
-    private TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime) =>
-        maxEndTime <= startTime + _chunkLength ? maxEndTime : startTime + _chunkLength;
+    private static TimeSpan GetEndTime(TimeSpan startTime, TimeSpan maxEndTime, TimeSpan chunkLength) =>
+        maxEndTime <= startTime + chunkLength ? maxEndTime : startTime + chunkLength;
 }

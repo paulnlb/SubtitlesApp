@@ -41,7 +41,7 @@ public partial class SubtitlesViewModel : ObservableObject
     private bool _isTranslationLoading;
 
     [ObservableProperty]
-    private MediaFileInfo _fileInfo;
+    private MediaFileInfo? _fileInfo;
 
     #endregion
 
