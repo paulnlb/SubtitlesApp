@@ -46,13 +46,12 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
     {
         var context = string.Empty;
         WhisperSubtitle? lastEmitted = null;
-        var lastSubtitles = new List<Subtitle>();
+        TimeSpan getAnchor() => lastEmitted is null ? TimeSpan.Zero : lastEmitted.TimeInterval.StartTime;
 
         //var audioChunker = new FixedSizeChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
-
         var audioChunker = new DynamicOverlapChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
 
-        await foreach (var audioChunkResult in audioChunker.ChunkAsync(timeInterval, lastSubtitles, cancellationToken))
+        await foreach (var audioChunkResult in audioChunker.ChunkAsync(timeInterval, getAnchor, cancellationToken))
         {
             if (audioChunkResult.IsFailure)
             {
@@ -97,13 +96,6 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
 
                 yield return Result<Subtitle>.Success(subtitle);
                 lastEmitted = subtitle;
-            }
-
-            lastSubtitles.Clear();
-
-            if (lastEmitted is not null)
-            {
-                lastSubtitles.Add(lastEmitted);
             }
 
             if (cancellationToken.IsCancellationRequested)

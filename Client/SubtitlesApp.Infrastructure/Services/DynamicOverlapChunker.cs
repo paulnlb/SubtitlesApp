@@ -10,7 +10,7 @@ public class DynamicOverlapChunker(IAudioExtractor audioExtractor, TimeSpan chun
 {
     public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
         TimeInterval timeInterval,
-        List<Subtitle> lastSubtitles,
+        Func<TimeSpan> getAnchor,
         [EnumeratorCancellation] CancellationToken cancellationToken
     )
     {
@@ -67,18 +67,9 @@ public class DynamicOverlapChunker(IAudioExtractor audioExtractor, TimeSpan chun
             }
 
             var minStart = subIntervalEnd - maxOverlap;
+            var intendedStart = getAnchor();
 
-            if (lastSubtitles.Count == 0)
-            {
-                subIntervalStart = minStart;
-            }
-            else
-            {
-                var intendedStart = lastSubtitles[0].TimeInterval.StartTime;
-
-                subIntervalStart = Max(intendedStart, minStart);
-            }
-
+            subIntervalStart = Max(intendedStart, minStart);
             subIntervalEnd = GetEndTime(subIntervalStart, timeInterval.EndTime, chunkLength);
         }
     }
