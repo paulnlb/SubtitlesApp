@@ -55,6 +55,11 @@ public class TimeInterval
         return Overlaps(other) || IsAdjacentTo(other);
     }
 
+    public bool Includes(TimeInterval other)
+    {
+        return StartTime <= other.StartTime && EndTime >= other.EndTime;
+    }
+
     public TimeInterval Union(TimeInterval other)
     {
         return new TimeInterval(

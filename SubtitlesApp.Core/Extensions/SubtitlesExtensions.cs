@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Models;
 
 namespace SubtitlesApp.Core.Extensions;
@@ -33,7 +34,11 @@ public static class SubtitlesExtensions
         return (null, -1);
     }
 
-    public static void Insert<T>(this ObservableCollection<T> list, T newSubtitle, bool removeOverlapping = true)
+    public static void Insert<T>(
+        this ObservableCollection<T> list,
+        T newSubtitle,
+        NeighborRemovalMode removeNeighbors = NeighborRemovalMode.None
+    )
         where T : Subtitle
     {
         var insertionIndex = list.GetNextClosest(newSubtitle.TimeInterval.EndTime);
@@ -43,32 +48,13 @@ public static class SubtitlesExtensions
             insertionIndex = list.Count;
         }
 
-        if (!removeOverlapping)
+        if (removeNeighbors == NeighborRemovalMode.PartialOverlap)
         {
-            list.Insert(insertionIndex, newSubtitle);
-            return;
+            insertionIndex = RemoveOverlapping(list, newSubtitle, insertionIndex);
         }
-
-        bool overlapsWithPrevious = false;
-        bool overlapsWithNext = false;
-
-        if (insertionIndex > 0)
+        else if (removeNeighbors == NeighborRemovalMode.FullOverlap)
         {
-            overlapsWithPrevious = list[insertionIndex - 1].TimeInterval.Overlaps(newSubtitle.TimeInterval);
-        }
-        if (insertionIndex < list.Count)
-        {
-            overlapsWithNext = list[insertionIndex].TimeInterval.Overlaps(newSubtitle.TimeInterval);
-        }
-
-        if (overlapsWithPrevious)
-        {
-            list.RemoveAt(insertionIndex - 1);
-            insertionIndex--;
-        }
-        if (overlapsWithNext)
-        {
-            list.RemoveAt(insertionIndex);
+            insertionIndex = RemoveFullyOverlapping(list, newSubtitle, insertionIndex);
         }
 
         list.Insert(insertionIndex, newSubtitle);
@@ -140,5 +126,61 @@ public static class SubtitlesExtensions
         }
 
         return mid;
+    }
+
+    private static int RemoveOverlapping<T>(ObservableCollection<T> list, T newSubtitle, int insertionIndex)
+        where T : Subtitle
+    {
+        bool overlapsWithPrevious = false;
+        bool overlapsWithNext = false;
+
+        if (insertionIndex > 0)
+        {
+            overlapsWithPrevious = list[insertionIndex - 1].TimeInterval.Overlaps(newSubtitle.TimeInterval);
+        }
+        if (insertionIndex < list.Count)
+        {
+            overlapsWithNext = list[insertionIndex].TimeInterval.Overlaps(newSubtitle.TimeInterval);
+        }
+
+        if (overlapsWithPrevious)
+        {
+            list.RemoveAt(insertionIndex - 1);
+            insertionIndex--;
+        }
+        if (overlapsWithNext)
+        {
+            list.RemoveAt(insertionIndex);
+        }
+
+        return insertionIndex;
+    }
+
+    private static int RemoveFullyOverlapping<T>(ObservableCollection<T> list, T newSubtitle, int insertionIndex)
+        where T : Subtitle
+    {
+        bool includesPrevious = false;
+        bool includesNext = false;
+
+        if (insertionIndex > 0)
+        {
+            includesPrevious = newSubtitle.TimeInterval.Includes(list[insertionIndex - 1].TimeInterval);
+        }
+        if (insertionIndex < list.Count)
+        {
+            includesNext = newSubtitle.TimeInterval.Includes(list[insertionIndex].TimeInterval);
+        }
+
+        if (includesPrevious)
+        {
+            list.RemoveAt(insertionIndex - 1);
+            insertionIndex--;
+        }
+        if (includesNext)
+        {
+            list.RemoveAt(insertionIndex);
+        }
+
+        return insertionIndex;
     }
 }

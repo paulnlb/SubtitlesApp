@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
@@ -179,7 +180,7 @@ public partial class SubtitlesViewModel : ObservableObject
             var newEnd = TimeSpan.FromMilliseconds(Math.Round(subtitle.TimeInterval.EndTime.TotalMilliseconds));
             subtitle.TimeInterval = new TimeInterval(newStart, newEnd);
 
-            Subtitles.Insert(SubtitlesMapper.ToVisualSubtitle(subtitle), false);
+            Subtitles.Insert(SubtitlesMapper.ToVisualSubtitle(subtitle), NeighborRemovalMode.FullOverlap);
         }
 
         stream?.Dispose();
@@ -239,7 +240,7 @@ public partial class SubtitlesViewModel : ObservableObject
                 return;
             }
 
-            Translations.Insert(SubtitlesMapper.ToVisualSubtitle(result.Value), false);
+            Translations.Insert(SubtitlesMapper.ToVisualSubtitle(result.Value), NeighborRemovalMode.FullOverlap);
         }
 
         try
