@@ -48,7 +48,6 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
         WhisperSubtitle? lastEmitted = null;
         TimeSpan getAnchor() => lastEmitted is null ? TimeSpan.Zero : lastEmitted.TimeInterval.StartTime;
 
-        //var audioChunker = new FixedSizeChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
         var audioChunker = new DynamicOverlapChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
 
         await foreach (var audioChunkResult in audioChunker.ChunkAsync(timeInterval, getAnchor, cancellationToken))

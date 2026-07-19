@@ -67,7 +67,7 @@ public class TranscriptionSettingsVm : ObservableObject
             TimeEntryScope.Seconds
         )
         {
-            Title = "Chunk Overlap Size",
+            Title = "Chunk Max Overlap Size",
         };
 
         var epsilonSettings = new FloatEntrySettingsItem(
