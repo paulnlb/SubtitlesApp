@@ -70,20 +70,10 @@ public class TranscriptionSettingsVm : ObservableObject
             Title = "Chunk Max Overlap Size",
         };
 
-        var epsilonSettings = new FloatEntrySettingsItem(
-            _popupService,
-            true,
-            () => (float)_transcriptionSettings.Epsilon.TotalMilliseconds,
-            (value) => _transcriptionSettings.Epsilon = TimeSpan.FromMilliseconds(value!.Value)
-        )
-        {
-            Title = "Epsilon (milliseconds)",
-        };
-
         SettingsItems.Add(
             new SettingsItemsGroup(
                 AppSettingsConstants.TranscriptionChunkingGroup,
-                [chunkLengthSettings, lastSubtitlesAsPrompt, chunkOverlapSettings, epsilonSettings]
+                [chunkLengthSettings, lastSubtitlesAsPrompt, chunkOverlapSettings]
             )
         );
     }
@@ -121,7 +111,7 @@ public class TranscriptionSettingsVm : ObservableObject
             min: 0f
         )
         {
-            Title = "Compression Ration Threshold",
+            Title = "Compression Ratio Threshold",
         };
 
         SettingsItems.Add(
