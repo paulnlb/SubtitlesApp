@@ -60,7 +60,6 @@ public class DynamicOverlapChunker(IAudioExtractor audioExtractor, TimeSpan chun
                 }
             );
 
-            // do not do overlapping if current interval is the last one
             if (subIntervalEnd == timeInterval.EndTime)
             {
                 yield break;

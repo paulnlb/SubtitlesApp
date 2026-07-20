@@ -45,8 +45,8 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
     )
     {
         var context = string.Empty;
-        WhisperSubtitle? lastEmitted = null;
-        TimeSpan getAnchor() => lastEmitted is null ? TimeSpan.Zero : lastEmitted.TimeInterval.StartTime;
+        List<WhisperSubtitle> buffer = [];
+        TimeSpan getAnchor() => buffer.Count == 0 ? TimeSpan.Zero : buffer.Last().TimeInterval.StartTime;
 
         var audioChunker = new DynamicOverlapChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
 
@@ -79,29 +79,35 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
             }
 
             var subtitles = subtitlesResult.Value;
-            var subtitlesForContext = subtitles.TakeLast(settings.SubtitlesAsPromptCount).Select(x => x.Text);
 
+            var subtitlesForContext = subtitles.TakeLast(settings.SubtitlesAsPromptCount).Select(x => x.Text);
             context = string.Join(' ', subtitlesForContext);
 
-            foreach (var subtitle in subtitles)
+            if (buffer.Count == 0)
             {
-                if (
-                    lastEmitted is not null
-                    && subtitle.TimeInterval.EndTime - lastEmitted.TimeInterval.EndTime < settings.Epsilon
-                )
-                {
-                    continue;
-                }
-
-                yield return Result<Subtitle>.Success(subtitle);
-                lastEmitted = subtitle;
+                buffer = subtitles;
+                continue;
             }
+
+            buffer.RemoveAll(s => s.TimeInterval.IsLaterOrStartsWith(audioChunk.StartTime));
+
+            foreach (var item in buffer)
+            {
+                yield return Result<Subtitle>.Success(item);
+            }
+
+            buffer = subtitles;
 
             if (cancellationToken.IsCancellationRequested)
             {
                 yield return Result<Subtitle>.Failure(new Error(ErrorCode.OperationCanceled));
                 yield break;
             }
+        }
+
+        foreach (var item in buffer)
+        {
+            yield return Result<Subtitle>.Success(item);
         }
     }
 

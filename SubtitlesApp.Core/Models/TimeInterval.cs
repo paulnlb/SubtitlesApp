@@ -40,6 +40,8 @@ public class TimeInterval
 
     public bool IsLaterThan(TimeSpan time) => StartTime > time && EndTime > time;
 
+    public bool IsLaterOrStartsWith(TimeSpan time) => StartTime >= time && EndTime > time;
+
     public bool Overlaps(TimeInterval other)
     {
         return EndTime > other.StartTime && StartTime < other.EndTime;
