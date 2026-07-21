@@ -32,11 +32,13 @@
         IsVisible="{Binding Source={x:Reference root}, Path=IsLoading, Converter={x:StaticResource InvertedBoolConverter}}"
       />
       <Button
+        x:Name="CancelButton"
         MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
         MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
         Style="{Binding Source={x:Reference root}, Path=ButtonStyle}"
         ImageSource="{AppThemeBinding Dark=close_light, Light=close_dark}"
         IsVisible="{Binding Source={x:Reference root}, Path=IsLoading}"
+        IsEnabled="{Binding Source={x:Reference MainButton}, Path=Command.IsCancellationRequested, Converter={x:StaticResource InvertedBoolConverter}}"
         Clicked="OnCancelBtnClicked"
       />
     </Grid>
