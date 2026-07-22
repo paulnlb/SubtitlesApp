@@ -9,12 +9,12 @@
   <Grid
     Padding="30,0"
     RowSpacing="15"
-    RowDefinitions="*, Auto, Auto, *"
+    RowDefinitions="*, Auto, *, Auto, Auto, 2*, Auto"
     ColumnDefinitions="*"
     MaximumWidthRequest="{StaticResource MaxLayoutWidth}"
   >
     <Label
-      Grid.Row="0"
+      Grid.Row="1"
       Text="{Binding MainLabelText}"
       Style="{StaticResource Headline}"
       SemanticProperties.HeadingLevel="Level1"
@@ -23,7 +23,7 @@
     />
 
     <Button
-      Grid.Row="1"
+      Grid.Row="3"
       x:Name="CounterBtn"
       Text="Open Video"
       SemanticProperties.Hint="Opens a video"
@@ -32,7 +32,7 @@
     />
 
     <Button
-      Grid.Row="2"
+      Grid.Row="4"
       x:Name="SettingsBtn"
       Text="App Settings"
       SemanticProperties.Hint="Opens app settings"
@@ -41,12 +41,12 @@
     />
 
     <Label
-      Grid.Row="3"
+      Grid.Row="6"
       Text="{Binding FooterText}"
       TextColor="{StaticResource Gray}"
       HorizontalOptions="Center"
       VerticalOptions="End"
-      Margin="0,0,0,5"
+      Margin="0,0,0,10"
     />
   </Grid>
 </ContentPage>

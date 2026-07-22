@@ -55,7 +55,10 @@
         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="0" Padding="15">
           <BindableLayout.ItemTemplate>
             <DataTemplate x:DataType="settingsItems:SettingsItem">
-              <VerticalStackLayout Grid.Column="0" Padding="0, 10">
+              <VerticalStackLayout
+                Padding="0, 10"
+                IsEnabled="{Binding EditValueCommand.IsRunning, Converter={x:StaticResource InvertedBoolConverter}}"
+              >
                 <VerticalStackLayout.GestureRecognizers>
                   <TapGestureRecognizer Command="{Binding EditValueCommand}" CommandParameter="{Binding .}" />
                 </VerticalStackLayout.GestureRecognizers>
