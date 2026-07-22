@@ -144,9 +144,7 @@ public partial class LocalFileManager
 
         if (split.Length != 2)
         {
-            return Result<string>.Failure(
-                new Error(ErrorCode.ValidationFailed, $"Unexpected structure of android document id: {id}")
-            );
+            return Result<string>.Success(id);
         }
 
         return Result<string>.Success(split[1]);
