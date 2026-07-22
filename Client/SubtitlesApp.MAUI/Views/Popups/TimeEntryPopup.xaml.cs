@@ -13,28 +13,15 @@ public partial class TimeEntryPopup : Popup<TimeSpan>
     {
         InitializeComponent();
         BindingContext = vm;
-        ViewSizeHelper.SetWidePopupSize(this);
+        UpdateOrientation();
 
         vm.TimeScopeChanged += OnTimeScopeChanged;
-        SizeChanged += OnSizeChanged;
+        Shell.Current.Window.SizeChanged += OnSizeChanged;
     }
 
     private void OnSizeChanged(object? sender, EventArgs e)
     {
-        if (Width > Height)
-        {
-            rootLayout.Orientation = StackOrientation.Horizontal;
-            presetsCollection.Orientation = StackOrientation.Vertical;
-            presetsCollectionScroll.Orientation = ScrollOrientation.Vertical;
-            rootLayout.HorizontalOptions = LayoutOptions.Center;
-        }
-        else
-        {
-            rootLayout.Orientation = StackOrientation.Vertical;
-            presetsCollection.Orientation = StackOrientation.Horizontal;
-            presetsCollectionScroll.Orientation = ScrollOrientation.Horizontal;
-            rootLayout.HorizontalOptions = LayoutOptions.Fill;
-        }
+        UpdateOrientation();
     }
 
     private void OnTimeScopeChanged(object? sender, EventArgs e)
@@ -66,5 +53,28 @@ public partial class TimeEntryPopup : Popup<TimeSpan>
         formattedStr.Spans.Add(new Span { Text = "s ", FontSize = 18 });
 
         timeLabel.FormattedText = formattedStr;
+    }
+
+    private void UpdateOrientation()
+    {
+        if (Shell.Current.Window.Width > Shell.Current.Window.Height)
+        {
+            rootLayout.Orientation = StackOrientation.Horizontal;
+            presetsCollection.Orientation = StackOrientation.Vertical;
+            presetsCollectionScroll.Orientation = ScrollOrientation.Vertical;
+            rootLayout.HorizontalOptions = LayoutOptions.Center;
+
+            WidthRequest = -1;
+            ViewSizeHelper.SetWidePopupSize(this);
+        }
+        else
+        {
+            rootLayout.Orientation = StackOrientation.Vertical;
+            presetsCollection.Orientation = StackOrientation.Horizontal;
+            presetsCollectionScroll.Orientation = ScrollOrientation.Horizontal;
+            rootLayout.HorizontalOptions = LayoutOptions.Fill;
+
+            ViewSizeHelper.SetPopupSize(this);
+        }
     }
 }

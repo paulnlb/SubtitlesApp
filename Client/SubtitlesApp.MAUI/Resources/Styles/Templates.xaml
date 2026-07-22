@@ -8,11 +8,18 @@
 >
   <ControlTemplate x:Key="PopupTemplate" x:DataType="popupVms:BasePopupVm">
     <Border StyleClass="PopupBorder">
-      <Grid RowDefinitions="Auto, Auto, *, Auto, Auto" StyleClass="PopupView">
+      <Grid RowDefinitions="Auto, Auto, *, Auto, Auto" ColumnDefinitions="Auto" StyleClass="PopupView">
         <Label x:Name="header" Grid.Row="0" Text="{Binding Title}" Margin="20,15" />
         <BoxView StyleClass="Divider" Grid.Row="1" Margin="0" />
 
-        <ContentPresenter Grid.Row="2" Margin="20, 15" VerticalOptions="Center" />
+        <ContentPresenter
+          Grid.Row="2"
+          Padding="20, 15"
+          VerticalOptions="Center"
+          MinimumWidthRequest="{Binding Source={x:RelativeSource TemplatedParent}, Path=MinimumWidthRequest}"
+          MaximumWidthRequest="{Binding Source={x:RelativeSource TemplatedParent}, Path=MaximumWidthRequest}"
+          WidthRequest="{Binding Source={x:RelativeSource TemplatedParent}, Path=WidthRequest}"
+        />
 
         <BoxView Grid.Row="3" StyleClass="Divider" Margin="0" />
         <FlexLayout Grid.Row="4" JustifyContent="End" Margin="10, 5">
