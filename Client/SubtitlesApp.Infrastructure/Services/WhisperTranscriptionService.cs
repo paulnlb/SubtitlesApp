@@ -46,7 +46,22 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
     {
         var context = string.Empty;
         List<WhisperSubtitle> buffer = [];
-        TimeSpan getAnchor() => buffer.Count == 0 ? TimeSpan.Zero : buffer.Last().TimeInterval.StartTime;
+        TimeSpan bufferChunkEnd = TimeSpan.Zero;
+        TimeSpan getAnchor()
+        {
+            if (buffer.Count == 0)
+            {
+                return TimeSpan.Zero;
+            }
+            else if (buffer.Last().TimeInterval.EndTime < bufferChunkEnd)
+            {
+                return bufferChunkEnd;
+            }
+            else
+            {
+                return buffer.Last().TimeInterval.StartTime;
+            }
+        }
 
         var audioChunker = new DynamicOverlapChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
 
@@ -86,6 +101,7 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
             if (buffer.Count == 0)
             {
                 buffer = subtitles;
+                bufferChunkEnd = audioChunk.EndTime;
                 continue;
             }
 
@@ -97,6 +113,7 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
             }
 
             buffer = subtitles;
+            bufferChunkEnd = audioChunk.EndTime;
 
             if (cancellationToken.IsCancellationRequested)
             {
