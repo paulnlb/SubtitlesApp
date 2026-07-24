@@ -2,7 +2,6 @@ using System.ClientModel;
 using OpenAI;
 using OpenAI.Audio;
 using SubtitlesApp.Core.Constants;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
@@ -17,7 +16,7 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
     public async Task<ListResult<WhisperSubtitle>> GetSubsAsync(
         Stream audio,
         string languageCode,
-        string context,
+        string prompt,
         CancellationToken cancellationToken = default
     )
     {
@@ -32,9 +31,9 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
             transcriptionOptions.Language = languageCode;
         }
 
-        if (!string.IsNullOrWhiteSpace(context))
+        if (!string.IsNullOrWhiteSpace(prompt))
         {
-            transcriptionOptions.Prompt = context;
+            transcriptionOptions.Prompt = prompt;
         }
 
         AudioTranscription apiResult;
@@ -85,15 +84,22 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
 
     private static async Task<AudioClient> InitClient(ITranscriptionClientSettings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.Endpoint))
+        if (string.IsNullOrWhiteSpace(settings.Endpoint))
         {
-            return new(
-                settings.Model,
-                new ApiKeyCredential(await settings.GetSecret()),
-                new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
-            );
+            return new(settings.Model, await settings.GetSecret());
         }
 
-        return new(settings.Model, await settings.GetSecret());
+        var apiKey = await settings.GetSecret();
+
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            apiKey = " ";
+        }
+
+        return new(
+            settings.Model,
+            new ApiKeyCredential(apiKey),
+            new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
+        );
     }
 }
