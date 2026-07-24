@@ -1,4 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
+using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
@@ -10,8 +12,11 @@ using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptionsClient, ITranscriptionSettings settings)
-    : ITranscriptionService
+public class WhisperTranscriptionService(
+    OpenAiTranscriptionClent transcriptionsClient,
+    ITranscriptionSettings settings,
+    ILogger<WhisperTranscriptionService> logger
+) : ITranscriptionService
 {
     public IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
         string mediaPath,
@@ -44,7 +49,6 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
-        var context = string.Empty;
         List<WhisperSubtitle> buffer = [];
         TimeSpan bufferChunkEnd = TimeSpan.Zero;
         TimeSpan getAnchor()
@@ -75,10 +79,21 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
 
             var audioChunk = audioChunkResult.Value;
 
+            logger.LogDebug(
+                "Audio chunk created. Start time: {StartTime}. End Time: {EndTime}",
+                audioChunk.StartTime,
+                audioChunk.EndTime
+            );
+
+            var prompt =
+                settings.SubtitlesAsPromptCount > 0 ? ConstuctDynamicPrompt(buffer, audioChunk.StartTime) : string.Empty;
+
+            logger.LogDebug("Prompt for the upcoming subtitle generation: {Prompt}", prompt);
+
             var subtitlesResult = await transcriptionsClient.GetSubsAsync(
                 audioChunk.Audio,
                 languageCode,
-                context,
+                prompt,
                 cancellationToken
             );
 
@@ -95,8 +110,18 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
 
             var subtitles = subtitlesResult.Value;
 
-            var subtitlesForContext = subtitles.TakeLast(settings.SubtitlesAsPromptCount).Select(x => x.Text);
-            context = string.Join(' ', subtitlesForContext);
+            if (subtitles.Count > 0)
+            {
+                logger.LogDebug(
+                    "Subtitiles gererated. Earliest subtitle start time: {StartTime}. Latest subtitle end Time: {EndTime}",
+                    subtitles.First().TimeInterval.StartTime,
+                    subtitles.Last().TimeInterval.EndTime
+                );
+            }
+            else
+            {
+                logger.LogDebug("No Subtitles were generated");
+            }
 
             if (buffer.Count == 0)
             {
@@ -126,6 +151,26 @@ public class WhisperTranscriptionService(OpenAiTranscriptionClent transcriptions
         {
             yield return Result<Subtitle>.Success(item);
         }
+    }
+
+    private string ConstuctDynamicPrompt(List<WhisperSubtitle> previousSubtitles, TimeSpan chunkStart)
+    {
+        var subtitlesForPrompt = previousSubtitles
+            .Where(s => s.TimeInterval.EndTime <= chunkStart)
+            .TakeLast(settings.SubtitlesAsPromptCount);
+
+        string prompt;
+
+        if (!subtitlesForPrompt.Any() || subtitlesForPrompt.Last().TimeInterval.EndTime < chunkStart)
+        {
+            prompt = string.Empty;
+        }
+        else
+        {
+            prompt = string.Join(' ', subtitlesForPrompt.Select(x => x.Text));
+        }
+
+        return prompt;
     }
 
     private static void AlignByTime(List<WhisperSubtitle> subsToAlign, TimeSpan timeOffset)
