@@ -12,7 +12,7 @@ namespace SubtitlesApp.Services;
 /// </summary>
 public partial class LocalFileManager
 {
-    public async partial Task<MediaFileInfo?> PickFileAsync(string[] mimeTypes)
+    public async partial Task<MediaFileInfo?> PickFile(string[] mimeTypes)
     {
         MainActivity.Instance.FilePickerActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
         MainActivity.Instance.FilePickerLauncher?.Launch(mimeTypes);

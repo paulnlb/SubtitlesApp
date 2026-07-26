@@ -17,7 +17,7 @@ public partial class MainPageViewModel : ObservableObject
         "Rare case when AI is actually useful",
         "Language barrier is not a thing anymore",
         "Transcribe and translate any video",
-        "Nothing impressive. Just subtitles that are less distracting",
+        "Nothing impressive. Just subtitles that don't get in your way",
         "Great tool for learning foreign languages",
         "Nothing special as a service",
         "The app is free and open source. The APIs - not necessarily",
@@ -54,7 +54,7 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void OpenSettings() => Shell.Current.GoToAsync(nameof(SettingsPage));
+    public Task OpenSettings() => Shell.Current.GoToAsync(nameof(SettingsPage));
 
     [RelayCommand]
     public async Task OpenMediaFile()
@@ -75,20 +75,25 @@ public partial class MainPageViewModel : ObservableObject
 
                 if (!string.IsNullOrEmpty(url))
                 {
-                    await OpenPlayerWithSubtitlesPage(
-                        new MediaFileInfo(FileResourceType.Remote, url, new Uri(url).Segments.Last().TrimEnd('/'), url)
+                    var remoteInfo = new MediaFileInfo(
+                        FileResourceType.Remote,
+                        url,
+                        new Uri(url).Segments.Last().TrimEnd('/'),
+                        url
                     );
+
+                    await OpenPlayerWithSubtitlesPage(remoteInfo);
                 }
 
                 break;
 
             case LoadLocalResource:
 
-                var localFileResource = await _localFileManager.PickFileAsync(["video/*", "audio/*"]);
+                var loalInfo = await _localFileManager.PickFile(["video/*", "audio/*"]);
 
-                if (localFileResource is not null)
+                if (loalInfo is not null)
                 {
-                    await OpenPlayerWithSubtitlesPage(localFileResource);
+                    await OpenPlayerWithSubtitlesPage(loalInfo);
                 }
 
                 break;
