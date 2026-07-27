@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Maui.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SubtitlesApp.Constants;
 using SubtitlesApp.Infrastructure.Constants;
@@ -41,19 +42,7 @@ public partial class SettingsViewModelNew : ObservableObject
         AddTranscriptionSettings();
         AddOpenAiSettings();
         AddGeminiSettings();
-
-        var llmProviderSettings = new PickerSettingsItem(
-            popupService,
-            true,
-            () => llmClientSettings.LlmProvider,
-            UpdateLlmProvider
-        )
-        {
-            Title = "LLM Provider",
-            AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
-        };
-
-        SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.LlmTranslationGroup, [llmProviderSettings]));
+        AddLlmProviderSettings();
 
         if (llmClientSettings.LlmProvider == LlmProviderConstants.OpenAi)
         {
@@ -63,6 +52,8 @@ public partial class SettingsViewModelNew : ObservableObject
         {
             SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.OnlineLlmTranslationGroup, [.. _geminiSettings]));
         }
+
+        AddLogsPage();
     }
 
     private void UpdateLlmProvider(string? newValue)
@@ -200,5 +191,28 @@ public partial class SettingsViewModelNew : ObservableObject
 
         _geminiSettings.Add(modelSettings);
         _geminiSettings.Add(apiKeySettings);
+    }
+
+    private void AddLogsPage()
+    {
+        var logsPage = new PageSettingsItem(nameof(LogsPage)) { Title = "Open App Logs" };
+
+        SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.LogsGroup, [logsPage]));
+    }
+
+    private void AddLlmProviderSettings()
+    {
+        var llmProviderSettings = new PickerSettingsItem(
+            _popupService,
+            true,
+            () => _llmClientSettings.LlmProvider,
+            UpdateLlmProvider
+        )
+        {
+            Title = "LLM Provider",
+            AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
+        };
+
+        SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.LlmTranslationGroup, [llmProviderSettings]));
     }
 }

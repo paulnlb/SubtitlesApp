@@ -2,11 +2,8 @@
 using CommunityToolkit.Maui.Core.Services;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.Platform;
-using Microsoft.Maui.Handlers;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
-using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
 using SubtitlesApp.Services;
 using UraniumUI;
@@ -45,8 +42,6 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Logging.AddDebug();
-
-        builder.Logging.SetMinimumLevel(LogLevel.Debug);
 #endif
 
 #if ANDROID
@@ -81,6 +76,7 @@ public static class MauiProgram
 #endif
 
         builder.Services.AddSubtitlesAppServices();
+        builder.Services.AddAppLogging();
 
         return builder.Build();
     }

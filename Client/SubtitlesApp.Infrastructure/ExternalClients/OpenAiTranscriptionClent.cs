@@ -1,4 +1,5 @@
 using System.ClientModel;
+using Microsoft.Extensions.Logging;
 using OpenAI;
 using OpenAI.Audio;
 using SubtitlesApp.Core.Constants;
@@ -9,7 +10,10 @@ using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.ExternalClients;
 
-public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
+public partial class OpenAiTranscriptionClent(
+    ITranscriptionClientSettings settings,
+    ILogger<OpenAiTranscriptionClent> logger
+)
 {
     private readonly Task<AudioClient> _audioClientTask = InitClient(settings);
 
@@ -63,8 +67,12 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
                 || segment.CompressionRatio > settings.CompressionRatioThreshold
             )
             {
+                LogSkippedSegment(segment.StartTime, segment.EndTime, segment.Text, apiResult.Language);
+
                 continue;
             }
+
+            LogSegment(segment.StartTime, segment.EndTime, segment.Text, apiResult.Language);
 
             subtitles.Add(
                 new()
@@ -102,4 +110,13 @@ public class OpenAiTranscriptionClent(ITranscriptionClientSettings settings)
             new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
         );
     }
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "ST: {StartTime}, ET: {EndTime}, Text: {Text}, Lang: {Lang}")]
+    private partial void LogSegment(TimeSpan startTime, TimeSpan endTime, string text, string lang);
+
+    [LoggerMessage(
+        Level = LogLevel.Trace,
+        Message = "Skipped because one of the threshold values were exceeded. ST: {StartTime}, ET: {EndTime}, Text: {Text}, Lang: {Lang}"
+    )]
+    private partial void LogSkippedSegment(TimeSpan startTime, TimeSpan endTime, string text, string lang);
 }

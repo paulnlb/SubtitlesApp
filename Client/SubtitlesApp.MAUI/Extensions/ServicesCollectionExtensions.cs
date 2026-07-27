@@ -1,4 +1,6 @@
 ﻿using CommunityToolkit.Maui;
+using Serilog;
+using SubtitlesApp.Constants;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.ExternalClients;
 using SubtitlesApp.Core.Interfaces.Repositories;
@@ -10,7 +12,6 @@ using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Repositories;
 using SubtitlesApp.Infrastructure.Services;
-using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Services;
 using SubtitlesApp.Settings;
@@ -53,6 +54,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientWithShellRoute<TranscriptionSettingsPage, TranscriptionSettingsVm>(
             nameof(TranscriptionSettingsPage)
         );
+        services.AddTransientWithShellRoute<LogsPage, LogsPageViewModel>(nameof(LogsPage));
         #endregion
 
         #region preferences
@@ -77,5 +79,29 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<CounterPopup, CounterPopupVm>();
         services.AddTransientPopup<DoubleEntryPopup, DoubleEntryPopupVm>();
         #endregion
+    }
+
+    public static void AddAppLogging(this IServiceCollection services)
+    {
+        Directory.CreateDirectory(Path.Combine(FileSystem.Current.AppDataDirectory, FileConstants.LogsDir));
+
+#if DEBUG
+        var logConfig = new LoggerConfiguration().MinimumLevel.Verbose();
+
+#else
+        var logConfig = new LoggerConfiguration().MinimumLevel.Warning();
+#endif
+
+        services.AddSerilog(
+            logConfig
+                .WriteTo.File(
+                    Path.Combine(FileSystem.Current.AppDataDirectory, FileConstants.LogsDir, FileConstants.LogsFile),
+                    rollingInterval: RollingInterval.Day,
+                    fileSizeLimitBytes: 10000000,
+                    retainedFileCountLimit: 7,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+                )
+                .CreateLogger()
+        );
     }
 }

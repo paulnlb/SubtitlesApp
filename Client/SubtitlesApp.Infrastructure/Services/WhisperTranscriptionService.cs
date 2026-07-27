@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
-using SubtitlesApp.Core.DTOs;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
@@ -12,7 +11,7 @@ using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class WhisperTranscriptionService(
+public partial class WhisperTranscriptionService(
     OpenAiTranscriptionClent transcriptionsClient,
     ITranscriptionSettings settings,
     ILogger<WhisperTranscriptionService> logger
@@ -79,16 +78,12 @@ public class WhisperTranscriptionService(
 
             var audioChunk = audioChunkResult.Value;
 
-            logger.LogDebug(
-                "Audio chunk created. Start time: {StartTime}. End Time: {EndTime}",
-                audioChunk.StartTime,
-                audioChunk.EndTime
-            );
+            LogAudioChunk(audioChunk.StartTime, audioChunk.EndTime);
 
             var prompt =
                 settings.SubtitlesAsPromptCount > 0 ? ConstuctDynamicPrompt(buffer, audioChunk.StartTime) : string.Empty;
 
-            logger.LogDebug("Prompt for the upcoming subtitle generation: {Prompt}", prompt);
+            LogPrompt(prompt);
 
             var subtitlesResult = await transcriptionsClient.GetSubsAsync(
                 audioChunk.Audio,
@@ -112,15 +107,11 @@ public class WhisperTranscriptionService(
 
             if (subtitles.Count > 0)
             {
-                logger.LogDebug(
-                    "Subtitiles gererated. Earliest subtitle start time: {StartTime}. Latest subtitle end Time: {EndTime}",
-                    subtitles.First().TimeInterval.StartTime,
-                    subtitles.Last().TimeInterval.EndTime
-                );
+                LogSubsRange(subtitles.First().TimeInterval.StartTime, subtitles.Last().TimeInterval.EndTime);
             }
             else
             {
-                logger.LogDebug("No Subtitles were generated");
+                logger.LogDebug("No subtitles have been generated");
             }
 
             if (buffer.Count == 0)
@@ -183,4 +174,16 @@ public class WhisperTranscriptionService(
             subtitle.TimeInterval = new TimeInterval(newStart, newEnd);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Audio chunk created. Start time: {StartTime}. End Time: {EndTime}")]
+    private partial void LogAudioChunk(TimeSpan startTime, TimeSpan endTime);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Prompt for the upcoming subtitle generation: {Prompt}")]
+    private partial void LogPrompt(string prompt);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Subtitiles have been gererated. Earliest subtitle start time: {StartTime}. Latest subtitle end Time: {EndTime}"
+    )]
+    private partial void LogSubsRange(TimeSpan startTime, TimeSpan endTime);
 }

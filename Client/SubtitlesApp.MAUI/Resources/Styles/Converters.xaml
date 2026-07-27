@@ -13,4 +13,5 @@
   <customConverters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
   <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
   <customConverters:SizeAndOrientationConverter x:Key="SizeAndOrientationConverter" />
+  <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsStringNotNullOrEmptyConverter" />
 </ResourceDictionary>

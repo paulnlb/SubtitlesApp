@@ -8,7 +8,7 @@ public interface IBuiltInDialogService
 
     Task DisplayAlert(string title, string message, string cancel);
 
-    Task DisplayAlert(string title, string message, string accept, string cancel);
+    Task<bool> DisplayAlert(string title, string message, string accept, string cancel);
 
     Task DisplayError(Error error);
 

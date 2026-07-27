@@ -7,4 +7,5 @@ public static class AppSettingsConstants
     public const string OnlineTranscriptionGroup = "Online Transcription";
     public const string TranscriptionChunkingGroup = "Audio Chunking";
     public const string WhisperSegmentThresholds = "Threshold Values for Segments";
+    public const string LogsGroup = "App Logs";
 }
