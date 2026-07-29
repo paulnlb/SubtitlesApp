@@ -22,8 +22,12 @@ namespace SubtitlesApp;
 public class MainActivity : MauiAppCompatActivity
 {
     internal static MainActivity Instance { get; private set; }
+
     public ActivityResultLauncher? FilePickerLauncher { get; private set; }
     public FilePickerActivityCallback FilePickerActivityCallback { get; private set; }
+
+    public ActivityResultLauncher? CreateTextFileLauncher { get; private set; }
+    public FilePickerActivityCallback CreateTextFileActivityCallback { get; private set; }
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -32,11 +36,16 @@ public class MainActivity : MauiAppCompatActivity
 
         FilePickerActivityCallback = new FilePickerActivityCallback();
 
-        var activity = (AndroidX.Activity.ComponentActivity)Platform.CurrentActivity!;
-
-        FilePickerLauncher = activity.RegisterForActivityResult(
+        FilePickerLauncher = RegisterForActivityResult(
             new ActivityResultContracts.OpenDocument(),
             FilePickerActivityCallback
+        );
+
+        CreateTextFileActivityCallback = new FilePickerActivityCallback();
+
+        CreateTextFileLauncher = RegisterForActivityResult(
+            new ActivityResultContracts.CreateDocument("text/plain"),
+            CreateTextFileActivityCallback
         );
     }
 

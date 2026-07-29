@@ -47,6 +47,64 @@ public partial class LocalFileManager
         );
     }
 
+    public async partial Task<Result> SaveTextFile(string fileName, string content)
+    {
+        MainActivity.Instance.CreateTextFileActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
+        MainActivity.Instance.CreateTextFileLauncher?.Launch(fileName);
+
+        var uri = await MainActivity.Instance.CreateTextFileActivityCallback.Tcs.Task;
+
+        if (uri is null)
+        {
+            return Result.Failure(new Error(ErrorCode.OperationCanceled));
+        }
+
+        var resolver = Platform.CurrentActivity!.ContentResolver!;
+
+        using var stream = resolver.OpenOutputStream(uri);
+
+        if (stream is null)
+        {
+            return Result.Failure(
+                new Error(ErrorCode.InternalClientError, $"File stream is null for Uri: {uri.ToString()}")
+            );
+        }
+
+        using var writer = new StreamWriter(stream);
+        await writer.WriteAsync(content);
+
+        return Result.Success();
+    }
+
+    public async partial Task<Result> SaveInternalTextFile(string outputFileName, string sourcePath)
+    {
+        MainActivity.Instance.CreateTextFileActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
+        MainActivity.Instance.CreateTextFileLauncher?.Launch(outputFileName);
+
+        var uri = await MainActivity.Instance.CreateTextFileActivityCallback.Tcs.Task;
+
+        if (uri is null)
+        {
+            return Result.Failure(new Error(ErrorCode.OperationCanceled));
+        }
+
+        var resolver = Platform.CurrentActivity!.ContentResolver!;
+
+        using var outputStream = resolver.OpenOutputStream(uri);
+
+        if (outputStream is null)
+        {
+            return Result.Failure(
+                new Error(ErrorCode.InternalClientError, $"File stream is null for Uri: {uri.ToString()}")
+            );
+        }
+
+        using var srcStream = File.OpenRead(sourcePath);
+        await srcStream.CopyToAsync(outputStream);
+
+        return Result.Success();
+    }
+
     public partial Result<Stream> GetFileStream(string uriString)
     {
         if (string.IsNullOrWhiteSpace(uriString))

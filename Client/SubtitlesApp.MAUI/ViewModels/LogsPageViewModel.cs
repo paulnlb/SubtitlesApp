@@ -3,7 +3,9 @@ using CommunityToolkit.Maui.Core.Extensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.Constants;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.Services;
 
 namespace SubtitlesApp.ViewModels;
 
@@ -19,35 +21,17 @@ public partial class LogsPageViewModel : ObservableObject
     private string _selected = string.Empty;
 
     private readonly IBuiltInDialogService _dialogService;
+    private readonly LocalFileManager _localFileManager;
 
     private readonly string _basePath;
 
-    public LogsPageViewModel(IBuiltInDialogService dialogService)
+    public LogsPageViewModel(IBuiltInDialogService dialogService, LocalFileManager localFileManager)
     {
         _basePath = Path.Combine(FileSystem.Current.AppDataDirectory, FileConstants.LogsDir);
         _dialogService = dialogService;
+        _localFileManager = localFileManager;
 
         LogFileNames = Directory.GetFiles(_basePath).Select(x => Path.GetFileName(x)).ToObservableCollection();
-    }
-
-    [RelayCommand]
-    public async Task ClearLog()
-    {
-        var shouldDelete = await _dialogService.DisplayAlert(
-            "Clear Selected Logs File",
-            $"You are about to clear {Selected} Are you sure?",
-            "Yes",
-            "Cancel"
-        );
-
-        if (!shouldDelete)
-        {
-            return;
-        }
-
-        var fullPath = Path.Combine(_basePath, Selected);
-        await File.WriteAllTextAsync(fullPath, string.Empty);
-        LogsText = string.Empty;
     }
 
     [RelayCommand]
@@ -81,7 +65,37 @@ public partial class LogsPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ExportLog() { }
+    public async Task ExportLog()
+    {
+        var result = await _localFileManager.SaveInternalTextFile(Selected, Path.Combine(_basePath, Selected));
+
+        if (result.IsFailure && result.Error.Code != ErrorCode.OperationCanceled)
+        {
+            await _dialogService.DisplayError(result.Error);
+        }
+
+        await _dialogService.DisplayAlert("Export Successful", $"{Selected} has been exported successfully.", "Ok");
+    }
+
+    [RelayCommand]
+    public async Task ClearLog()
+    {
+        var shouldDelete = await _dialogService.DisplayAlert(
+            "Clear Selected Logs File",
+            $"You are about to clear {Selected} Are you sure?",
+            "Yes",
+            "Cancel"
+        );
+
+        if (!shouldDelete)
+        {
+            return;
+        }
+
+        var fullPath = Path.Combine(_basePath, Selected);
+        await File.WriteAllTextAsync(fullPath, string.Empty);
+        LogsText = string.Empty;
+    }
 
     partial void OnSelectedChanged(string value)
     {

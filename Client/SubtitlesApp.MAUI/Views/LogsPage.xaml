@@ -24,15 +24,14 @@
         </MultiBinding>
       </Button.IsEnabled>
     </Button>
-    <Button Grid.Row="1" Grid.Column="1" Text="Clear" Command="{Binding ClearLogCommand}">
-      <Button.IsEnabled>
-        <MultiBinding Converter="{x:StaticResource AllTrueConverter}">
-          <Binding Path="Selected" Converter="{x:StaticResource IsStringNotNullOrEmptyConverter}" />
-          <Binding Path="LogsText" Converter="{x:StaticResource IsStringNotNullOrEmptyConverter}" />
-        </MultiBinding>
-      </Button.IsEnabled>
-    </Button>
-    <Button Grid.Row="1" Grid.Column="2" Text="Export" Command="{Binding ExportLogCommand}">
+    <Button
+      Grid.Row="1"
+      Grid.Column="1"
+      Text="Export"
+      Command="{Binding ExportLogCommand}"
+      IsEnabled="{Binding Selected, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
+    />
+    <Button Grid.Row="1" Grid.Column="2" Text="Clear" Command="{Binding ClearLogCommand}">
       <Button.IsEnabled>
         <MultiBinding Converter="{x:StaticResource AllTrueConverter}">
           <Binding Path="Selected" Converter="{x:StaticResource IsStringNotNullOrEmptyConverter}" />
