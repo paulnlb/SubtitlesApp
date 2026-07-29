@@ -77,7 +77,7 @@
         </DataTrigger>
 
         <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Stopped">
-          <Setter Property="ImageSource" Value="restart.png" />
+          <Setter Property="ImageSource" Value="replay.png" />
         </DataTrigger>
         <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Buffering">
           <Setter Property="IsVisible" Value="False" />
