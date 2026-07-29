@@ -7,7 +7,7 @@
   x:DataType="viewModels:LogsPageViewModel"
   Title="View App Logs"
 >
-  <Grid RowDefinitions="50, 50, *" ColumnDefinitions="*, *, *" ColumnSpacing="10">
+  <Grid RowDefinitions="50, 50, 50, *" ColumnDefinitions="*, *, *" ColumnSpacing="10">
     <Picker
       Grid.Row="0"
       Grid.ColumnSpan="3"
@@ -38,8 +38,15 @@
       Command="{Binding DeleteCommand}"
       IsEnabled="{Binding Selected, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
     />
-    <ScrollView Grid.Row="2" Grid.ColumnSpan="3" Orientation="Both">
-      <Label FontSize="18" Text="{Binding LogsText}" />
+    <Button
+      Grid.Row="2"
+      Grid.ColumnSpan="3"
+      Text="Scroll To The Bottom"
+      Clicked="OnScrollToBottom"
+      IsEnabled="{Binding LogsText, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
+    />
+    <ScrollView x:Name="scrollView" Grid.Row="3" Grid.ColumnSpan="3" Orientation="Both">
+      <Label x:Name="logText" FontSize="18" Text="{Binding LogsText}" />
     </ScrollView>
   </Grid>
 </ContentPage>

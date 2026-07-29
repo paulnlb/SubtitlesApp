@@ -9,4 +9,9 @@ public partial class LogsPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
+
+    private async void OnScrollToBottom(object sender, EventArgs e)
+    {
+        await scrollView.ScrollToAsync(0, logText.Height, true);
+    }
 }
