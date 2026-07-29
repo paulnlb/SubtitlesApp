@@ -50,7 +50,7 @@ public partial class WhisperTranscriptionService(
     {
         List<WhisperSubtitle> buffer = [];
         TimeSpan bufferChunkEnd = TimeSpan.Zero;
-        TimeSpan getAnchor()
+        TimeSpan GetAnchor()
         {
             if (buffer.Count == 0)
             {
@@ -68,7 +68,7 @@ public partial class WhisperTranscriptionService(
 
         var audioChunker = new DynamicOverlapChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
 
-        await foreach (var audioChunkResult in audioChunker.ChunkAsync(timeInterval, getAnchor, cancellationToken))
+        await foreach (var audioChunkResult in audioChunker.ChunkAsync(timeInterval, GetAnchor, cancellationToken))
         {
             if (audioChunkResult.IsFailure)
             {
@@ -98,12 +98,12 @@ public partial class WhisperTranscriptionService(
                 yield break;
             }
 
+            var subtitles = subtitlesResult.Value;
+
             if (audioChunk.StartTime != TimeSpan.Zero)
             {
-                AlignByTime(subtitlesResult.Value, audioChunk.StartTime);
+                AlignByTime(subtitles, audioChunk.StartTime);
             }
-
-            var subtitles = subtitlesResult.Value;
 
             if (subtitles.Count > 0)
             {
@@ -112,6 +112,12 @@ public partial class WhisperTranscriptionService(
             else
             {
                 logger.LogDebug("No subtitles have been generated");
+            }
+
+            if (subtitles.Count > 0 && subtitles.Last().TimeInterval.EndTime > audioChunk.EndTime)
+            {
+                var removedCount = ClampSubtitles(subtitles, audioChunk.EndTime);
+                LogRemovedExtra(removedCount);
             }
 
             if (buffer.Count == 0)
@@ -175,6 +181,39 @@ public partial class WhisperTranscriptionService(
         }
     }
 
+    private static int ClampSubtitles(List<WhisperSubtitle> subtitles, TimeSpan maxEndTime)
+    {
+        var removeFrom = -1;
+
+        for (int i = subtitles.Count - 1; i >= 0; i--)
+        {
+            var sub = subtitles[i];
+
+            if (sub.TimeInterval.StartTime >= maxEndTime)
+            {
+                removeFrom = i;
+            }
+            else if (sub.TimeInterval.StartTime < maxEndTime && sub.TimeInterval.EndTime > maxEndTime)
+            {
+                sub.TimeInterval = new TimeInterval(sub.TimeInterval.StartTime, maxEndTime);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (removeFrom == -1)
+        {
+            return 0;
+        }
+
+        var removedCount = subtitles.Count - removeFrom;
+        subtitles.RemoveRange(removeFrom, removedCount);
+
+        return removedCount;
+    }
+
     [LoggerMessage(Level = LogLevel.Debug, Message = "Audio chunk created. Start time: {StartTime}. End Time: {EndTime}")]
     private partial void LogAudioChunk(TimeSpan startTime, TimeSpan endTime);
 
@@ -183,7 +222,13 @@ public partial class WhisperTranscriptionService(
 
     [LoggerMessage(
         Level = LogLevel.Debug,
-        Message = "Subtitiles have been gererated. Earliest subtitle start time: {StartTime}. Latest subtitle end Time: {EndTime}"
+        Message = "Subtitiles have been gererated. Earliest subtitle ST: {StartTime}. Latest subtitle ET: {EndTime}"
     )]
     private partial void LogSubsRange(TimeSpan startTime, TimeSpan endTime);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Removed {Count} subtitles because their time intervals were outside the audio chunk's time range. If the message says \"Removed 0\", it means the ET of the last subtitle was outside the range and has been adjusted"
+    )]
+    private partial void LogRemovedExtra(int count);
 }
