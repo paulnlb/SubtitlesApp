@@ -16,7 +16,7 @@
       ItemsSource="{Binding LogFileNames}"
       SelectedItem="{Binding Selected}"
     />
-    <Button Grid.Row="1" Grid.Column="0" Text="Load" Command="{Binding LoadLogCommand}">
+    <Button Grid.Row="1" Grid.Column="0" Text="Load" Command="{Binding LoadCommand}">
       <Button.IsEnabled>
         <MultiBinding Converter="{x:StaticResource AllTrueConverter}">
           <Binding Path="Selected" Converter="{x:StaticResource IsStringNotNullOrEmptyConverter}" />
@@ -28,17 +28,16 @@
       Grid.Row="1"
       Grid.Column="1"
       Text="Export"
-      Command="{Binding ExportLogCommand}"
+      Command="{Binding ExportCommand}"
       IsEnabled="{Binding Selected, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
     />
-    <Button Grid.Row="1" Grid.Column="2" Text="Clear" Command="{Binding ClearLogCommand}">
-      <Button.IsEnabled>
-        <MultiBinding Converter="{x:StaticResource AllTrueConverter}">
-          <Binding Path="Selected" Converter="{x:StaticResource IsStringNotNullOrEmptyConverter}" />
-          <Binding Path="LogsText" Converter="{x:StaticResource IsStringNotNullOrEmptyConverter}" />
-        </MultiBinding>
-      </Button.IsEnabled>
-    </Button>
+    <Button
+      Grid.Row="1"
+      Grid.Column="2"
+      Text="Delete File"
+      Command="{Binding DeleteCommand}"
+      IsEnabled="{Binding Selected, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
+    />
     <ScrollView Grid.Row="2" Grid.ColumnSpan="3" Orientation="Both">
       <Label FontSize="18" Text="{Binding LogsText}" />
     </ScrollView>

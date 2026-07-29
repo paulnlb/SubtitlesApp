@@ -35,7 +35,7 @@ public partial class LogsPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task LoadLog()
+    public async Task Load()
     {
         if (string.IsNullOrEmpty(Selected))
         {
@@ -65,7 +65,7 @@ public partial class LogsPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ExportLog()
+    public async Task Export()
     {
         var result = await _localFileManager.SaveInternalTextFile(Selected, Path.Combine(_basePath, Selected));
 
@@ -78,11 +78,11 @@ public partial class LogsPageViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task ClearLog()
+    public async Task Delete()
     {
         var shouldDelete = await _dialogService.DisplayAlert(
-            "Clear Selected Logs File",
-            $"You are about to clear {Selected} Are you sure?",
+            "Delete Selected Logs File",
+            $"Are you sure you want to delete {Selected}?",
             "Yes",
             "Cancel"
         );
@@ -93,8 +93,10 @@ public partial class LogsPageViewModel : ObservableObject
         }
 
         var fullPath = Path.Combine(_basePath, Selected);
-        await File.WriteAllTextAsync(fullPath, string.Empty);
+        File.Delete(fullPath);
         LogsText = string.Empty;
+        LogFileNames.Remove(Selected);
+        Selected = string.Empty;
     }
 
     partial void OnSelectedChanged(string value)
