@@ -69,12 +69,18 @@ public partial class LogsPageViewModel : ObservableObject
     {
         var result = await _localFileManager.SaveInternalTextFile(Selected, Path.Combine(_basePath, Selected));
 
-        if (result.IsFailure && result.Error.Code != ErrorCode.OperationCanceled)
+        if (result.IsFailure && result.Error.Code == ErrorCode.OperationCanceled)
+        {
+            return;
+        }
+        else if (result.IsFailure)
         {
             await _dialogService.DisplayError(result.Error);
         }
-
-        await _dialogService.DisplayAlert("Export Successful", $"{Selected} has been exported successfully.", "Ok");
+        else
+        {
+            await _dialogService.DisplayAlert("Export Successful", $"{Selected} has been exported successfully.", "Ok");
+        }
     }
 
     [RelayCommand]

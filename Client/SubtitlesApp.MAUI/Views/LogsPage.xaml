@@ -34,7 +34,7 @@
     <Button
       Grid.Row="1"
       Grid.Column="2"
-      Text="Delete File"
+      Text="Delete"
       Command="{Binding DeleteCommand}"
       IsEnabled="{Binding Selected, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
     />
