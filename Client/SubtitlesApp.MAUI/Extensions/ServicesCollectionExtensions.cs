@@ -99,7 +99,7 @@ public static class ServicesCollectionExtensions
                     rollingInterval: RollingInterval.Day,
                     fileSizeLimitBytes: 10000000,
                     retainedFileCountLimit: 7,
-                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] ({SourceContext}) {Message:lj}{NewLine}{Exception}"
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj} ({SourceContext}){NewLine}{Exception}"
                 )
                 .CreateLogger()
         );
