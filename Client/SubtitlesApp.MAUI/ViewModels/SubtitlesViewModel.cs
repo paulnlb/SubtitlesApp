@@ -164,10 +164,15 @@ public partial class SubtitlesViewModel : ObservableObject
 
         await foreach (var result in results)
         {
-            if (result.IsFailure)
+            if (result.IsFailure && result.Error.Code == ErrorCode.OperationCanceled)
+            {
+                IsTranscriptionLoading = false;
+
+                return;
+            }
+            else if (result.IsFailure)
             {
                 await _builtInDialogService.DisplayError(result.Error);
-
                 IsTranscriptionLoading = false;
 
                 return;
@@ -231,10 +236,15 @@ public partial class SubtitlesViewModel : ObservableObject
 
         await foreach (var result in results)
         {
-            if (result.IsFailure)
+            if (result.IsFailure && result.Error.Code == ErrorCode.OperationCanceled)
+            {
+                IsTranslationLoading = false;
+
+                return;
+            }
+            else if (result.IsFailure)
             {
                 await _builtInDialogService.DisplayError(result.Error);
-
                 IsTranslationLoading = false;
 
                 return;
