@@ -14,4 +14,6 @@
   <toolkit:TimeSpanToSecondsConverter x:Key="TimeSpanToSecondsConverter" />
   <customConverters:SizeAndOrientationConverter x:Key="SizeAndOrientationConverter" />
   <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsStringNotNullOrEmptyConverter" />
+  <toolkit:IsStringNullOrEmptyConverter x:Key="IsStringNullOrEmptyConverter" />
+  <customConverters:AllTrueConverter x:Key="AllTrueConverter" />
 </ResourceDictionary>
