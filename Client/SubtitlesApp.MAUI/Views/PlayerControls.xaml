@@ -53,7 +53,7 @@
       Grid.Row="1"
       Grid.Column="0"
       VerticalOptions="Center"
-      HorizontalOptions="Center"
+      HorizontalOptions="End"
       BackgroundColor="#33FFFFFF"
       Clicked="OnRewindTapped"
     />
@@ -99,7 +99,7 @@
       Grid.Row="1"
       Grid.Column="2"
       VerticalOptions="Center"
-      HorizontalOptions="Center"
+      HorizontalOptions="Start"
       BackgroundColor="#33FFFFFF"
       Clicked="OnFastForwardTapped"
     />

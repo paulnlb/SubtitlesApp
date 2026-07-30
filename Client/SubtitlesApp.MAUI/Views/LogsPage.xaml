@@ -42,7 +42,7 @@
       Grid.Row="2"
       Grid.ColumnSpan="3"
       Text="Scroll To The Bottom"
-      Clicked="OnScrollToBottom"
+      Clicked="OnScrollBtnClicked"
       IsEnabled="{Binding LogsText, Converter={x:StaticResource IsStringNotNullOrEmptyConverter}}"
     />
     <ScrollView x:Name="scrollView" Grid.Row="3" Grid.ColumnSpan="3" Orientation="Both">

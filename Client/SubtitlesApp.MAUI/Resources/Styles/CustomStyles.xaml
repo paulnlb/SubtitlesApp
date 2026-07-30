@@ -91,7 +91,7 @@
 
   <Style x:Key="PresetButton" TargetType="Button">
     <Setter Property="TextColor" Value="{StaticResource White}" />
-    <Setter Property="Background" Value="#9d5ebf" />
+    <Setter Property="Background" Value="{StaticResource Primary}" />
     <Setter Property="CornerRadius" Value="20" />
     <Setter Property="Padding" Value="20,0" />
     <Setter Property="VisualStateManager.VisualStateGroups">
