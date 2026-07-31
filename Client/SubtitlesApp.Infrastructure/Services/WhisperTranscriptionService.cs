@@ -48,6 +48,8 @@ public partial class WhisperTranscriptionService(
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        LogTranscriptionStart(timeInterval.StartTime, timeInterval.EndTime, languageCode);
+
         List<WhisperSubtitle> buffer = [];
         TimeSpan bufferChunkEnd = TimeSpan.Zero;
         TimeSpan GetAnchor()
@@ -222,7 +224,7 @@ public partial class WhisperTranscriptionService(
 
     [LoggerMessage(
         Level = LogLevel.Debug,
-        Message = "Subtitiles have been gererated. Earliest subtitle ST: {StartTime}. Latest subtitle ET: {EndTime}"
+        Message = "Subtitiles have been generated. Earliest subtitle ST: {StartTime}. Latest subtitle ET: {EndTime}"
     )]
     private partial void LogSubsRange(TimeSpan startTime, TimeSpan endTime);
 
@@ -231,4 +233,10 @@ public partial class WhisperTranscriptionService(
         Message = "Removed {Count} subtitles because their time intervals were outside the audio chunk's time range. If the message says \"Removed 0\", it means the ET of the last subtitle was outside the range and has been adjusted"
     )]
     private partial void LogRemovedExtra(int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Transcription started. Time interval: [{StartTime}, {EndTime}]. Language code: {LanguageCode}"
+    )]
+    private partial void LogTranscriptionStart(TimeSpan startTime, TimeSpan endTime, string languageCode);
 }
