@@ -298,7 +298,7 @@ public partial class SubtitlesViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
         {
-            _logger.LogWarning("Cannot load subtitles from cache: no file name is specified");
+            _logger.LogError("Cannot load subtitles from cache: no file name is specified");
         }
         else
         {
@@ -319,7 +319,7 @@ public partial class SubtitlesViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
         {
-            _logger.LogWarning("Cannot load translations from cache: no file name is specified");
+            _logger.LogError("Cannot load translations from cache: no file name is specified");
         }
         else
         {
@@ -422,7 +422,7 @@ public partial class SubtitlesViewModel : ObservableObject
                 break;
 
             default:
-                _logger.LogWarning(
+                _logger.LogError(
                     "Although the \"{ActionName}\" action was provided, no subtitles were updated because none of the conditions was met",
                     action
                 );
@@ -447,7 +447,7 @@ public partial class SubtitlesViewModel : ObservableObject
                 break;
 
             default:
-                _logger.LogWarning(
+                _logger.LogError(
                     "Although the \"{ActionName}\" action was provided, no subtitles were updated because none of the conditions was met",
                     action
                 );
