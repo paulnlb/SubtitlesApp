@@ -108,7 +108,8 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         string title,
         IEnumerable<T> sourceItems,
         Func<T, string> displaySelector,
-        T? selected
+        T? selected,
+        string? description = null
     )
     {
         var queryAttributes = new Dictionary<string, object>
@@ -117,6 +118,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(RadioButtonPopupVm<>.SourceItems), sourceItems },
             { nameof(RadioButtonPopupVm<>.DisplaySelector), displaySelector },
             { nameof(RadioButtonPopupVm<>.SelectedItem), selected ?? default },
+            { nameof(RadioButtonPopupVm<>.Description), description },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<RadioButtonPopupVm<T>, T>(

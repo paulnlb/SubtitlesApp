@@ -38,6 +38,9 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
     [ObservableProperty]
     private ObservableCollection<SelectedItemVm<T>> _sourceVms = [];
 
+    [ObservableProperty]
+    private string? _description;
+
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         query.TryGetValue(nameof(SourceItems), out var items);
@@ -46,6 +49,7 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
         query.TryGetValue(nameof(Title), out var titleValue);
         query.TryGetValue(nameof(AcceptText), out var acceptTextValue);
         query.TryGetValue(nameof(CancelText), out var cancelTextValue);
+        query.TryGetValue(nameof(Description), out var descriptonValue);
 
         if (titleValue is string title)
         {
@@ -70,6 +74,10 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
         if (selectedValue is T selectedItem)
         {
             SelectedItem = selectedItem;
+        }
+        if (descriptonValue is string description)
+        {
+            Description = description;
         }
 
         foreach (var item in SourceItems)

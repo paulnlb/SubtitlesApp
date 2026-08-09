@@ -1,3 +1,4 @@
+using CommunityToolkit.Maui.Converters;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.Converters;
 using SubtitlesApp.Helpers;
@@ -18,7 +19,20 @@ public partial class RadioButtonPopup<T> : Popup<T>
     private void InitializeComponentEquivalent()
     {
         ControlTemplate = (ControlTemplate?)Application.Current?.Resources["PopupTemplate"];
-        Resources = new ResourceDictionary { { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() } };
+        Resources = new ResourceDictionary
+        {
+            { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() },
+            { "IsNotNullConverter", new IsNotNullConverter() },
+        };
+
+        var description = new Label { Margin = new Thickness(0, 0, 0, 10) };
+
+        description.SetBinding(Label.TextProperty, nameof(RadioButtonPopupVm<>.Description));
+        description.SetBinding(
+            Label.IsVisibleProperty,
+            nameof(RadioButtonPopupVm<>.Description),
+            converter: (IValueConverter)Resources["IsNotNullConverter"]
+        );
 
         var collectionView = new CollectionView { SelectionMode = Microsoft.Maui.Controls.SelectionMode.Single };
 
@@ -44,6 +58,17 @@ public partial class RadioButtonPopup<T> : Popup<T>
             return radioButton;
         });
 
-        Content = collectionView;
+        var grid = new Grid { description, collectionView };
+
+        grid.RowDefinitions =
+        [
+            new RowDefinition(new GridLength(0, GridUnitType.Auto)),
+            new RowDefinition(new GridLength(1, GridUnitType.Star)),
+        ];
+
+        Grid.SetRow(description, 0);
+        Grid.SetRow(collectionView, 1);
+
+        Content = grid;
     }
 }
