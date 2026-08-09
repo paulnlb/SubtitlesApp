@@ -41,7 +41,7 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<ILlmClient, GenericLlmClient>();
         services.AddKeyedSingleton<ILlmClient, GeminiLlmClient>(LlmProviderConstants.Gemini);
         services.AddKeyedSingleton<ILlmClient, OpenAiLlmClient>(LlmProviderConstants.OpenAi);
-        services.AddSingleton<ISubtitlesRepository, SubtitlesRepository>();
+        services.AddSingleton<ISubtitlesCache, SubtitlesCache>();
         services.AddSingleton<IVideoSessionRepository, VideoSessionRepository>();
         #endregion
 

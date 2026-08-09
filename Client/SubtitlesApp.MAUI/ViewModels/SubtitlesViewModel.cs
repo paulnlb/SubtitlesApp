@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using Android.Telephony.Mbms;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Enums;
@@ -18,6 +18,11 @@ namespace SubtitlesApp.ViewModels;
 
 public partial class SubtitlesViewModel : ObservableObject
 {
+    #region public properties
+    public string? CachedSubtitlesFile { get; set; }
+    public string? CachedTranslationsFile { get; set; }
+    #endregion
+
     #region observable properties
 
     [ObservableProperty]
@@ -54,6 +59,8 @@ public partial class SubtitlesViewModel : ObservableObject
     private readonly IBuiltInDialogService _builtInDialogService;
     private readonly LanguageService _languageService;
     private readonly LocalFileManager _localFileManager;
+    private readonly ISubtitlesCache _subtitlesCache;
+    private readonly ILogger<SubtitlesViewModel> _logger;
 
     #endregion
 
@@ -65,20 +72,15 @@ public partial class SubtitlesViewModel : ObservableObject
 
     #endregion
 
-    #region events
-
-    public event Func<Task>? SubtitlesUpdated;
-    public event Func<Task>? TranslationsUpdated;
-
-    #endregion
-
     public SubtitlesViewModel(
         ITranslationService translationService,
         LanguageService languageService,
         ICustomPopupService popupService,
         ITranscriptionService transcriptionService,
         IBuiltInDialogService builtInDialogService,
-        LocalFileManager localFileManager
+        LocalFileManager localFileManager,
+        ISubtitlesCache subtitlesCache,
+        ILogger<SubtitlesViewModel> logger
     )
     {
         #region observable properties
@@ -94,6 +96,8 @@ public partial class SubtitlesViewModel : ObservableObject
         _builtInDialogService = builtInDialogService;
         _languageService = languageService;
         _localFileManager = localFileManager;
+        _subtitlesCache = subtitlesCache;
+        _logger = logger;
     }
 
     #region commands
@@ -190,19 +194,16 @@ public partial class SubtitlesViewModel : ObservableObject
 
         stream?.Dispose();
 
-        try
+        if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
         {
-            await InvokeAsync(SubtitlesUpdated);
+            _logger.LogWarning("Cannot save subtitles to cache: no file name is specified");
         }
-        catch (Exception ex)
+        else
         {
-            var error = new Error(ErrorCode.SubtitlesPersistenceError, ex.Message);
-            await _builtInDialogService.DisplayError(error);
+            await _subtitlesCache.Save(CachedSubtitlesFile, Subtitles);
         }
-        finally
-        {
-            IsTranscriptionLoading = false;
-        }
+
+        IsTranscriptionLoading = false;
     }
 
     [RelayCommand]
@@ -253,21 +254,63 @@ public partial class SubtitlesViewModel : ObservableObject
             Translations.Insert(SubtitlesMapper.ToVisualSubtitle(result.Value), NeighborRemovalMode.FullOverlap);
         }
 
-        try
+        if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
         {
-            await InvokeAsync(TranslationsUpdated);
+            _logger.LogWarning("Cannot save translations to cache: no file name is specified");
         }
-        catch (Exception ex)
+        else
         {
-            var error = new Error(ErrorCode.SubtitlesPersistenceError, ex.Message);
-            await _builtInDialogService.DisplayError(error);
+            await _subtitlesCache.Save(CachedTranslationsFile, Translations);
         }
-        finally
-        {
-            IsTranslationLoading = false;
-        }
+
+        IsTranslationLoading = false;
     }
 
+    #endregion
+
+    #region public methods
+
+    public async Task LoadSubtitlesFromCache()
+    {
+        IsTranscriptionLoading = true;
+
+        if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
+        {
+            _logger.LogWarning("Cannot load subtitles from cache: no file name is specified");
+        }
+        else
+        {
+            var items = await _subtitlesCache.Get(CachedSubtitlesFile);
+
+            if (items?.Any() == true)
+            {
+                Subtitles = SubtitlesMapper.ToVisualSubtitles(items);
+            }
+        }
+
+        IsTranscriptionLoading = false;
+    }
+
+    public async Task LoadTranslationsFromCache()
+    {
+        IsTranslationLoading = true;
+
+        if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
+        {
+            _logger.LogWarning("Cannot load translations from cache: no file name is specified");
+        }
+        else
+        {
+            var items = await _subtitlesCache.Get(CachedTranslationsFile);
+
+            if (items?.Any() == true)
+            {
+                Translations = SubtitlesMapper.ToVisualSubtitles(items);
+            }
+        }
+
+        IsTranslationLoading = false;
+    }
     #endregion
 
     private static int FindNewIndex(TimeSpan currPosition, ObservableCollection<VisualSubtitle> subtitles, int currIndex)
@@ -310,20 +353,5 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         return newIndex;
-    }
-
-    private static async Task InvokeAsync(Func<Task>? eventToInvoke)
-    {
-        if (eventToInvoke is null)
-        {
-            return;
-        }
-
-        var handlers = eventToInvoke.GetInvocationList();
-
-        foreach (var handler in handlers.Cast<Func<Task>>())
-        {
-            await handler();
-        }
     }
 }
