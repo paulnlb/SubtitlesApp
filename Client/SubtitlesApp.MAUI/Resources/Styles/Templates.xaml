@@ -23,7 +23,12 @@
 
         <BoxView Grid.Row="3" StyleClass="Divider" Margin="0" />
         <FlexLayout Grid.Row="4" JustifyContent="End" Margin="10, 5">
-          <Button Text="{Binding CancelText}" Command="{Binding CancelCommand}" StyleClass="TextButton, Dialog.Button2" />
+          <Button
+            Text="{Binding CancelText}"
+            Command="{Binding CancelCommand}"
+            StyleClass="TextButton, Dialog.Button2"
+            IsVisible="{Binding IsCancelVisible}"
+          />
           <Button
             Text="{Binding AcceptText}"
             Command="{Binding AcceptCommand}"

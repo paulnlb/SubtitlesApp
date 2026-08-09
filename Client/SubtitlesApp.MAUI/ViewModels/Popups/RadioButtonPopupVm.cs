@@ -50,6 +50,7 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
         query.TryGetValue(nameof(AcceptText), out var acceptTextValue);
         query.TryGetValue(nameof(CancelText), out var cancelTextValue);
         query.TryGetValue(nameof(Description), out var descriptonValue);
+        query.TryGetValue(nameof(IsCancelVisible), out var isCancelVisibleValue);
 
         if (titleValue is string title)
         {
@@ -78,6 +79,10 @@ public partial class RadioButtonPopupVm<T>(ICustomPopupService popupService) : B
         if (descriptonValue is string description)
         {
             Description = description;
+        }
+        if (isCancelVisibleValue is bool isCancelVisible)
+        {
+            IsCancelVisible = isCancelVisible;
         }
 
         foreach (var item in SourceItems)

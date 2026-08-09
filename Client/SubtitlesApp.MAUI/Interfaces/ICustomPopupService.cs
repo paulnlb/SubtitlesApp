@@ -28,7 +28,8 @@ public interface ICustomPopupService
         IEnumerable<T> sourceItems,
         Func<T, string> displaySelector,
         T? selected,
-        string? description = null
+        string? description = null,
+        bool showCancelBtn = true
     );
 
     public Task CloseCurrentAsync();

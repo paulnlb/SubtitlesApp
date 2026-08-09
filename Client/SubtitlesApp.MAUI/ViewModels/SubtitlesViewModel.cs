@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Constants;
 using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
@@ -166,20 +167,15 @@ public partial class SubtitlesViewModel : ObservableObject
             );
         }
 
+        var totalResult = Result.Success();
+        var anyGenerated = false;
+
         await foreach (var result in results)
         {
-            if (result.IsFailure && result.Error.Code == ErrorCode.OperationCanceled)
+            if (result.IsFailure)
             {
-                IsTranscriptionLoading = false;
-
-                return;
-            }
-            else if (result.IsFailure)
-            {
-                await _builtInDialogService.DisplayError(result.Error);
-                IsTranscriptionLoading = false;
-
-                return;
+                totalResult = Result.Failure(result.Error);
+                break;
             }
 
             var subtitle = result.Value;
@@ -190,17 +186,33 @@ public partial class SubtitlesViewModel : ObservableObject
             subtitle.TimeInterval = new TimeInterval(newStart, newEnd);
 
             Subtitles.Insert(SubtitlesMapper.ToVisualSubtitle(subtitle), NeighborRemovalMode.FullOverlap);
+
+            anyGenerated = true;
         }
 
         stream?.Dispose();
 
-        if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
+        if (totalResult.IsSuccess)
         {
-            _logger.LogWarning("Cannot save subtitles to cache: no file name is specified");
+            await ApplySubtitlesAction(SubtitlesActionConstants.Save);
+            IsTranscriptionLoading = false;
+
+            return;
+        }
+
+        if (totalResult.Error.Code != ErrorCode.OperationCanceled)
+        {
+            await _builtInDialogService.DisplayError(totalResult.Error);
+        }
+
+        if (anyGenerated)
+        {
+            var action = await GetActionOnPartiallyGenerated();
+            await ApplySubtitlesAction(action);
         }
         else
         {
-            await _subtitlesCache.Save(CachedSubtitlesFile, Subtitles);
+            await ApplySubtitlesAction(SubtitlesActionConstants.Restore);
         }
 
         IsTranscriptionLoading = false;
@@ -235,32 +247,42 @@ public partial class SubtitlesViewModel : ObservableObject
 
         var results = _translationService.TranslateAsync(subtitles, newSettings.TargetLanguage, cancellationToken);
 
+        var totalResult = Result.Success();
+        var anyGenerated = false;
+
         await foreach (var result in results)
         {
-            if (result.IsFailure && result.Error.Code == ErrorCode.OperationCanceled)
+            if (result.IsFailure)
             {
-                IsTranslationLoading = false;
-
-                return;
-            }
-            else if (result.IsFailure)
-            {
-                await _builtInDialogService.DisplayError(result.Error);
-                IsTranslationLoading = false;
-
-                return;
+                totalResult = Result.Failure(result.Error);
+                break;
             }
 
             Translations.Insert(SubtitlesMapper.ToVisualSubtitle(result.Value), NeighborRemovalMode.FullOverlap);
+            anyGenerated = true;
         }
 
-        if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
+        if (totalResult.IsSuccess)
         {
-            _logger.LogWarning("Cannot save translations to cache: no file name is specified");
+            await ApplyTranslationsAction(SubtitlesActionConstants.Save);
+            IsTranslationLoading = false;
+
+            return;
+        }
+
+        if (totalResult.Error.Code != ErrorCode.OperationCanceled)
+        {
+            await _builtInDialogService.DisplayError(totalResult.Error);
+        }
+
+        if (anyGenerated)
+        {
+            var action = await GetActionOnPartiallyGenerated();
+            await ApplyTranslationsAction(action);
         }
         else
         {
-            await _subtitlesCache.Save(CachedTranslationsFile, Translations);
+            await ApplyTranslationsAction(SubtitlesActionConstants.Restore);
         }
 
         IsTranslationLoading = false;
@@ -353,5 +375,83 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         return newIndex;
+    }
+
+    private async Task<string> GetActionOnPartiallyGenerated()
+    {
+        var options = new List<PickerItem>
+        {
+            new() { Title = "Keep new (old items will be lost)", Action = SubtitlesActionConstants.Save },
+            new() { Title = "Discard new, restore old", Action = SubtitlesActionConstants.Restore },
+            new() { Title = "Keep new until the video is closed", Action = SubtitlesActionConstants.DoNothing },
+        };
+
+        var result = await _popupService.ShowRadioButtons(
+            "Partially completed",
+            options,
+            x => x.Title,
+            options[0],
+            "Items generation was interrupted by an error or cancelled. Select one of the actions below to proceed.",
+            false
+        );
+
+        if (result is null)
+        {
+            return SubtitlesActionConstants.DoNothing;
+        }
+        else
+        {
+            return result.Action;
+        }
+    }
+
+    private async Task ApplySubtitlesAction(string action)
+    {
+        switch (action)
+        {
+            case SubtitlesActionConstants.DoNothing:
+                return;
+
+            case SubtitlesActionConstants.Save when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
+                await _subtitlesCache.Save(CachedSubtitlesFile, Subtitles);
+                break;
+
+            case SubtitlesActionConstants.Restore when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
+                var subtitles = await _subtitlesCache.Get(CachedSubtitlesFile) ?? [];
+                Subtitles = SubtitlesMapper.ToVisualSubtitles(subtitles);
+                break;
+
+            default:
+                _logger.LogWarning(
+                    "Although the \"{ActionName}\" action was provided, no subtitles were updated because none of the conditions was met",
+                    action
+                );
+                break;
+        }
+    }
+
+    private async Task ApplyTranslationsAction(string action)
+    {
+        switch (action)
+        {
+            case SubtitlesActionConstants.DoNothing:
+                return;
+
+            case SubtitlesActionConstants.Save when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
+                await _subtitlesCache.Save(CachedTranslationsFile, Subtitles);
+                break;
+
+            case SubtitlesActionConstants.Restore when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
+                var subtitles = await _subtitlesCache.Get(CachedTranslationsFile) ?? [];
+                Translations = SubtitlesMapper.ToVisualSubtitles(subtitles);
+                break;
+
+            default:
+                _logger.LogWarning(
+                    "Although the \"{ActionName}\" action was provided, no subtitles were updated because none of the conditions was met",
+                    action
+                );
+                break;
+        }
     }
 }

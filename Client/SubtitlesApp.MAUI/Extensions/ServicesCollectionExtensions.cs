@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using Serilog;
+using SubtitlesApp.ClientModels;
 using SubtitlesApp.Constants;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Interfaces.ExternalClients;
@@ -64,13 +65,14 @@ public static class ServicesCollectionExtensions
         services.AddSingleton<IGeminiClientSettings, GeminiClientSettings>();
         services.AddSingleton<ITranscriptionClientSettings, TranscriptionClientSettings>();
         services.AddSingleton<ILlmTranslationSettings, LlmTranslationSettings>();
-        services.AddSingleton<ITranscriptionSettings, TranscriptionSettings>();
+        services.AddSingleton<ITranscriptionSettings, Settings.TranscriptionSettings>();
         services.AddSingleton<IPersistenceSettings, PersistenceSettings>();
         #endregion
 
         #region popups
         services.AddTransientPopup<RadioButtonPopup<Language>, RadioButtonPopupVm<Language>>();
         services.AddTransientPopup<RadioButtonPopup<string>, RadioButtonPopupVm<string>>();
+        services.AddTransientPopup<RadioButtonPopup<PickerItem>, RadioButtonPopupVm<PickerItem>>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
         services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
         services.AddTransientPopup<EntryPopup, StringEntryPopupVm>();
