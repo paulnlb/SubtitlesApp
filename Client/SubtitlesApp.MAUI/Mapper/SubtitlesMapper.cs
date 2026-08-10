@@ -2,6 +2,7 @@
 using CommunityToolkit.Maui.Core.Extensions;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Infrastructure.Services;
 
 namespace SubtitlesApp.Mapper;
 
@@ -28,6 +29,16 @@ public static class SubtitlesMapper
         };
     }
 
+    public static Subtitle ToSubtitle(SrtItem srtItem)
+    {
+        return new Subtitle { Text = srtItem.Text, TimeInterval = new TimeInterval(srtItem.StartTime, srtItem.EndTime) };
+    }
+
+    public static SrtItem ToSrtItem(Subtitle subtitle, int index = 0)
+    {
+        return new SrtItem(index, subtitle.TimeInterval.StartTime, subtitle.TimeInterval.EndTime, subtitle.Text);
+    }
+
     public static List<Subtitle> ToSubtitleList(IEnumerable<VisualSubtitle> visualSubtitles)
     {
         return visualSubtitles.Select(ToSubtitle).ToList();
@@ -36,5 +47,19 @@ public static class SubtitlesMapper
     public static ObservableCollection<VisualSubtitle> ToVisualSubtitles(IEnumerable<Subtitle> subtitles)
     {
         return subtitles.Select(ToVisualSubtitle).ToObservableCollection();
+    }
+
+    public static List<SrtItem> ToSrtItems(IEnumerable<Subtitle> subtitles)
+    {
+        var result = new List<SrtItem>();
+        var i = 0;
+
+        foreach (var subtitle in subtitles)
+        {
+            result.Add(ToSrtItem(subtitle, i));
+            i++;
+        }
+
+        return result;
     }
 }

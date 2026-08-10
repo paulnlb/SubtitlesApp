@@ -62,6 +62,7 @@ public partial class SubtitlesViewModel : ObservableObject
     private readonly LocalFileManager _localFileManager;
     private readonly ISubtitlesCache _subtitlesCache;
     private readonly ILogger<SubtitlesViewModel> _logger;
+    private readonly SubtitlesFileService _subtitlesFileService;
 
     #endregion
 
@@ -81,7 +82,8 @@ public partial class SubtitlesViewModel : ObservableObject
         IBuiltInDialogService builtInDialogService,
         LocalFileManager localFileManager,
         ISubtitlesCache subtitlesCache,
-        ILogger<SubtitlesViewModel> logger
+        ILogger<SubtitlesViewModel> logger,
+        SubtitlesFileService subtitlesFileService
     )
     {
         #region observable properties
@@ -99,6 +101,7 @@ public partial class SubtitlesViewModel : ObservableObject
         _localFileManager = localFileManager;
         _subtitlesCache = subtitlesCache;
         _logger = logger;
+        _subtitlesFileService = subtitlesFileService;
     }
 
     #region commands
@@ -288,6 +291,43 @@ public partial class SubtitlesViewModel : ObservableObject
         IsTranslationLoading = false;
     }
 
+    [RelayCommand]
+    public async Task ShowAdditionalOptions()
+    {
+        var userChoise = await _builtInDialogService.DisplayActionSheet(
+            "Additonal options",
+            "Cancel",
+            null,
+            "Export subtitles as .srt",
+            "Import .srt subtitles"
+        );
+
+        Result actionResult;
+
+        if (userChoise == "Export subtitles as .srt")
+        {
+            actionResult = await ExportToSrt();
+        }
+        else if (userChoise == "Import .srt subtitles")
+        {
+            actionResult = await ImportSrt();
+        }
+        else
+        {
+            return;
+        }
+
+        if (actionResult.IsFailure && actionResult.Error.Code == ErrorCode.OperationCanceled)
+        {
+            return;
+        }
+        else if (actionResult.IsFailure)
+        {
+            await _builtInDialogService.DisplayError(actionResult.Error);
+            return;
+        }
+    }
+
     #endregion
 
     #region public methods
@@ -302,12 +342,7 @@ public partial class SubtitlesViewModel : ObservableObject
         }
         else
         {
-            var items = await _subtitlesCache.Get(CachedSubtitlesFile);
-
-            if (items?.Any() == true)
-            {
-                Subtitles = SubtitlesMapper.ToVisualSubtitles(items);
-            }
+            await ApplySubtitlesAction(SubtitlesActionConstants.Restore);
         }
 
         IsTranscriptionLoading = false;
@@ -323,12 +358,7 @@ public partial class SubtitlesViewModel : ObservableObject
         }
         else
         {
-            var items = await _subtitlesCache.Get(CachedTranslationsFile);
-
-            if (items?.Any() == true)
-            {
-                Translations = SubtitlesMapper.ToVisualSubtitles(items);
-            }
+            await ApplyTranslationsAction(SubtitlesActionConstants.Restore);
         }
 
         IsTranslationLoading = false;
@@ -453,5 +483,38 @@ public partial class SubtitlesViewModel : ObservableObject
                 );
                 break;
         }
+    }
+
+    private async Task<Result> ImportSrt()
+    {
+        var subtitlesResult = await _subtitlesFileService.ImportSrt();
+
+        if (subtitlesResult.IsFailure)
+        {
+            return Result.Failure(subtitlesResult.Error);
+        }
+
+        Subtitles = SubtitlesMapper.ToVisualSubtitles(subtitlesResult.Value);
+        await ApplySubtitlesAction(SubtitlesActionConstants.Save);
+
+        return Result.Success();
+    }
+
+    private Task<Result> ExportToSrt()
+    {
+        string fileName;
+        var fileNameParts = FileInfo!.Name.Split('.').ToList();
+
+        if (fileNameParts.Count > 1)
+        {
+            fileNameParts.RemoveAt(fileNameParts.Count - 1);
+            fileName = string.Join(string.Empty, fileNameParts);
+        }
+        else
+        {
+            fileName = FileInfo!.Name;
+        }
+
+        return _subtitlesFileService.ExportSrt(Subtitles, fileName);
     }
 }

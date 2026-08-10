@@ -18,11 +18,10 @@
     <Style x:Key="ButtonContainerStyle" TargetType="customControls:LoadingButton">
       <Setter Property="WidthRequest" Value="40" />
       <Setter Property="HeightRequest" Value="40" />
-      <Setter Property="Margin" Value="5,0,0,0" />
       <Setter Property="SpinnerColor" Value="{AppThemeBinding Dark=#FFFFFF, Light=#000000}" />
     </Style>
   </ContentView.Resources>
-  <Grid x:Name="mainGrid" RowDefinitions="60, *" ColumnDefinitions="11*, Auto, Auto" Padding="5, 0">
+  <Grid x:Name="mainGrid" RowDefinitions="60, *" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="5" Padding="5, 0">
     <!--!Transcribe button-->
     <customControls:LoadingButton
       Grid.Row="0"
@@ -47,7 +46,16 @@
       IsEnabled="{Binding IsTranscriptionLoading, Converter={x:StaticResource InvertedBoolConverter}}"
     />
 
-    <material:TabView x:Name="tabView" Grid.Row="1" Grid.ColumnSpan="3" CachingStrategy="CacheOnLayout">
+    <!--Additional options button-->
+    <Button
+      Grid.Row="0"
+      Grid.Column="3"
+      ImageSource="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
+      Style="{StaticResource ButtonStyle}"
+      Command="{Binding ShowAdditionalOptionsCommand}"
+    />
+
+    <material:TabView x:Name="tabView" Grid.Row="1" Grid.ColumnSpan="4" CachingStrategy="CacheOnLayout">
       <material:TabItem Title="Subtitles">
         <material:TabItem.Content>
           <views:SubtitleCollection

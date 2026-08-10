@@ -35,6 +35,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<SubtitlesViewModel>();
         services.AddTransient<ICustomPopupService, CustomPopupService>();
         services.AddTransient<LocalFileManager>();
+        services.AddTransient<SubtitlesFileService>();
         #endregion
 
         #region singleton
