@@ -2,7 +2,7 @@
 
 namespace SubtitlesApp.CustomControls;
 
-public class ExtendedMediaElement : MediaElement
+public partial class ExtendedMediaElement : MediaElement
 {
     protected override Size MeasureOverride(double widthConstraint, double heightConstraint)
     {
@@ -36,6 +36,12 @@ public class ExtendedMediaElement : MediaElement
             measureWithoutMargins.Height + margin.VerticalThickness
         );
     }
+
+    public partial void SelectAudioTrack(int selectedTrackNo);
+
+    public partial List<string> GetAudioTracks();
+
+    public partial List<string> GetSubtitleTracks();
 
     private static Size GetMediaSize(double mediaWidth, double mediaHeight, double widthConstraint, double heightConstraint)
     {

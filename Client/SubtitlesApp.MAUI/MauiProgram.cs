@@ -4,6 +4,7 @@ using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
+using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
 using SubtitlesApp.Services;
 using UraniumUI;
