@@ -15,6 +15,9 @@
     <Style x:Key="ButtonStyle" TargetType="Button" BasedOn="{StaticResource TranslucentButton}">
       <Setter Property="Padding" Value="3" />
     </Style>
+    <Style x:Key="TransparentButtonStyle" TargetType="Button" BasedOn="{StaticResource TransparentButton}">
+      <Setter Property="Padding" Value="3" />
+    </Style>
     <Style x:Key="ButtonContainerStyle" TargetType="customControls:LoadingButton">
       <Setter Property="WidthRequest" Value="40" />
       <Setter Property="HeightRequest" Value="40" />
@@ -50,8 +53,8 @@
     <Button
       Grid.Row="0"
       Grid.Column="3"
-      ImageSource="{AppThemeBinding Dark=settings_light.png, Light=settings_dark.png}"
-      Style="{StaticResource ButtonStyle}"
+      ImageSource="{AppThemeBinding Dark=more_vert_light.png, Light=more_vert_dark.png}"
+      Style="{StaticResource TransparentButtonStyle}"
       Command="{Binding ShowAdditionalOptionsCommand}"
     />
 

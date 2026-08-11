@@ -299,7 +299,9 @@ public partial class SubtitlesViewModel : ObservableObject
             "Cancel",
             null,
             "Export subtitles as .srt",
-            "Import .srt subtitles"
+            "Export translation as .srt",
+            "Import subtitles (.srt)",
+            "Import translation (.srt)"
         );
 
         Result actionResult;
@@ -308,9 +310,17 @@ public partial class SubtitlesViewModel : ObservableObject
         {
             actionResult = await ExportToSrt();
         }
-        else if (userChoise == "Import .srt subtitles")
+        else if (userChoise == "Export translation as .srt")
+        {
+            actionResult = await ExportTranslationToSrt();
+        }
+        else if (userChoise == "Import subtitles (.srt)")
         {
             actionResult = await ImportSrt();
+        }
+        else if (userChoise == "Import translation (.srt)")
+        {
+            actionResult = await ImportTranslationSrt();
         }
         else
         {
@@ -500,6 +510,21 @@ public partial class SubtitlesViewModel : ObservableObject
         return Result.Success();
     }
 
+    private async Task<Result> ImportTranslationSrt()
+    {
+        var translationsResult = await _subtitlesFileService.ImportSrt();
+
+        if (translationsResult.IsFailure)
+        {
+            return Result.Failure(translationsResult.Error);
+        }
+
+        Translations = SubtitlesMapper.ToVisualSubtitles(translationsResult.Value);
+        await ApplyTranslationsAction(SubtitlesActionConstants.Save);
+
+        return Result.Success();
+    }
+
     private Task<Result> ExportToSrt()
     {
         string fileName;
@@ -516,5 +541,24 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         return _subtitlesFileService.ExportSrt(Subtitles, fileName);
+    }
+
+    private Task<Result> ExportTranslationToSrt()
+    {
+        string fileName;
+        var fileNameParts = FileInfo!.Name.Split('.').ToList();
+
+        if (fileNameParts.Count > 1)
+        {
+            fileNameParts.RemoveAt(fileNameParts.Count - 1);
+            fileNameParts.Add("(translation)");
+            fileName = string.Join(string.Empty, fileNameParts);
+        }
+        else
+        {
+            fileName = FileInfo!.Name;
+        }
+
+        return _subtitlesFileService.ExportSrt(Translations, fileName);
     }
 }
