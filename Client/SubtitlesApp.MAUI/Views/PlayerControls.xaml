@@ -15,7 +15,7 @@
     BackgroundColor="#80000000"
     IsVisible="{Binding PlayerControlsVisible}"
     RowDefinitions="50, *, 30, 20"
-    RowSpacing="3"
+    RowSpacing="7"
     ColumnDefinitions="*, *, *"
   >
     <Label
@@ -29,27 +29,33 @@
       FontSize="16"
     />
 
-    <customControls:StateIconButton
-      x:Name="immersiveBtn"
-      State1Icon="expand_content.png"
-      State2Icon="collapse_content.png"
-      Clicked="OnImmersiveClicked"
-      Grid.Row="0"
-      Grid.Column="3"
-      VerticalOptions="Center"
-      HorizontalOptions="End"
-      Padding="2"
-      BackgroundColor="Transparent"
-      WidthRequest="30"
-      HeightRequest="30"
-      IsToggled="{Binding IsImmersiveOn, Mode=TwoWay}"
-    />
+    <HorizontalStackLayout Grid.Row="0" Grid.Column="3" Spacing="10" HorizontalOptions="End" VerticalOptions="Center">
+      <Button
+        ImageSource="music_note.png"
+        WidthRequest="30"
+        HeightRequest="30"
+        Padding="3"
+        BackgroundColor="Transparent"
+        Clicked="OnAudioSelectClicked"
+      />
+      <customControls:StateIconButton
+        x:Name="immersiveBtn"
+        State1Icon="expand_content.png"
+        State2Icon="collapse_content.png"
+        Clicked="OnImmersiveClicked"
+        Padding="2"
+        BackgroundColor="Transparent"
+        WidthRequest="30"
+        HeightRequest="30"
+        IsToggled="{Binding IsImmersiveOn, Mode=TwoWay}"
+      />
+    </HorizontalStackLayout>
 
     <!--Second Row 
              Button for Rewind, Play/Pause, and Forward-->
     <Button
       ImageSource="fast_rewind_icon.png"
-      HeightRequest="50"
+      HeightRequest="43"
       Grid.Row="1"
       Grid.Column="0"
       VerticalOptions="Center"
@@ -95,7 +101,7 @@
 
     <Button
       ImageSource="fast_forward_icon.png"
-      HeightRequest="50"
+      HeightRequest="43"
       Grid.Row="1"
       Grid.Column="2"
       VerticalOptions="Center"

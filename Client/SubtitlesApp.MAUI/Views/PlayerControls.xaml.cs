@@ -3,6 +3,8 @@ using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels.CustomEventArgs;
+using SubtitlesApp.CustomControls;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.Views;
 
@@ -10,15 +12,25 @@ public partial class PlayerControls : ContentView, IDisposable
 {
     private bool _disposed = false;
     private MediaElementState? _stateBeforeRewind;
+    private readonly ICustomPopupService _popupService;
 
     public PlayerControls()
     {
         InitializeComponent();
+
+        var popupService = IPlatformApplication.Current?.Services.GetRequiredService<ICustomPopupService>();
+
+        if (popupService is null)
+        {
+            throw new ArgumentNullException(nameof(popupService));
+        }
+
+        _popupService = popupService;
     }
 
     public static readonly BindableProperty MauiMediaElementProperty = BindableProperty.Create(
         nameof(MauiMediaElement),
-        typeof(MediaElement),
+        typeof(ExtendedMediaElement),
         typeof(PlayerControls),
         null,
         propertyChanged: OnMauiMediaElementPropertyChanged
@@ -64,9 +76,9 @@ public partial class PlayerControls : ContentView, IDisposable
         string.Empty
     );
 
-    public MediaElement MauiMediaElement
+    public ExtendedMediaElement MauiMediaElement
     {
-        get => (MediaElement)GetValue(MauiMediaElementProperty);
+        get => (ExtendedMediaElement)GetValue(MauiMediaElementProperty);
         set => SetValue(MauiMediaElementProperty, value);
     }
 
@@ -139,11 +151,11 @@ public partial class PlayerControls : ContentView, IDisposable
     private static void OnMauiMediaElementPropertyChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var root = ((PlayerControls)bindable);
-        if (oldValue is MediaElement oldMediaElement)
+        if (oldValue is ExtendedMediaElement oldMediaElement)
         {
             oldMediaElement.PropertyChanged -= root.MediaElementPropertyChanged;
         }
-        if (newValue is MediaElement newMediaElement)
+        if (newValue is ExtendedMediaElement newMediaElement)
         {
             newMediaElement.PropertyChanged += root.MediaElementPropertyChanged;
         }
@@ -241,6 +253,25 @@ public partial class PlayerControls : ContentView, IDisposable
         {
             ImmersiveModeToggledCommand.Execute(null);
         }
+    }
+
+    private async void OnAudioSelectClicked(object? sender, EventArgs e)
+    {
+        var audioTracks = MauiMediaElement.GetAudioTracks();
+
+        var result = await _popupService.ShowRadioButtons(
+            "Select Audio Track",
+            audioTracks,
+            x => x.Name,
+            audioTracks.FirstOrDefault(x => x.IsSelected)
+        );
+
+        if (result is null)
+        {
+            return;
+        }
+
+        MauiMediaElement.SelectAudioTrack(result.TrackNo);
     }
 
     #endregion

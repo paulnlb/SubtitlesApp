@@ -4,6 +4,7 @@ using AndroidX.Media3.UI;
 using CommunityToolkit.Maui.Core.Handlers;
 using CommunityToolkit.Maui.Core.Views;
 using CommunityToolkit.Maui.Views;
+using SubtitlesApp.ClientModels;
 
 namespace SubtitlesApp.CustomControls;
 
@@ -25,6 +26,7 @@ public partial class ExtendedMediaElement : MediaElement
             return;
 
         var trackNo = 1;
+        var isSelected = false;
 
         foreach (Tracks.Group group in currentGroups)
         {
@@ -45,20 +47,30 @@ public partial class ExtendedMediaElement : MediaElement
                         .AddOverride(trackOverride)
                         .Build();
 
-                    break;
+                    isSelected = true;
                 }
                 else
                 {
                     trackNo++;
                     continue;
                 }
+
+                if (isSelected)
+                {
+                    break;
+                }
+            }
+
+            if (isSelected)
+            {
+                break;
             }
         }
     }
 
-    public partial List<string> GetAudioTracks()
+    public partial List<MediaTrack> GetAudioTracks()
     {
-        var trackList = new List<string>();
+        var trackList = new List<MediaTrack>();
 
         if (Handler is not MediaElementHandler mediaElementHandler)
             return [];
@@ -91,7 +103,14 @@ public partial class ExtendedMediaElement : MediaElement
                 var name = format.Label ?? $"Audio Track {trackNo}";
                 name += $" - {format.Language}";
 
-                trackList.Add(name);
+                trackList.Add(
+                    new MediaTrack()
+                    {
+                        TrackNo = trackNo,
+                        Name = name,
+                        IsSelected = group.IsTrackSelected(i),
+                    }
+                );
 
                 trackNo++;
             }
@@ -100,9 +119,9 @@ public partial class ExtendedMediaElement : MediaElement
         return trackList;
     }
 
-    public partial List<string> GetSubtitleTracks()
+    public partial List<MediaTrack> GetSubtitleTracks()
     {
-        var trackList = new List<string>();
+        var trackList = new List<MediaTrack>();
 
         if (Handler is not MediaElementHandler mediaElementHandler)
             return [];
@@ -135,7 +154,14 @@ public partial class ExtendedMediaElement : MediaElement
                 var name = format.Label ?? $"Subtitle Track {trackNo}";
                 name += $" - {format.Language}";
 
-                trackList.Add(name);
+                trackList.Add(
+                    new MediaTrack()
+                    {
+                        TrackNo = trackNo,
+                        Name = name,
+                        IsSelected = group.IsTrackSelected(i),
+                    }
+                );
 
                 trackNo++;
             }

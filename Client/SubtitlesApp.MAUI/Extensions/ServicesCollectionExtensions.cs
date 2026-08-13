@@ -74,6 +74,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<RadioButtonPopup<Language>, RadioButtonPopupVm<Language>>();
         services.AddTransientPopup<RadioButtonPopup<string>, RadioButtonPopupVm<string>>();
         services.AddTransientPopup<RadioButtonPopup<PickerItem>, RadioButtonPopupVm<PickerItem>>();
+        services.AddTransientPopup<RadioButtonPopup<MediaTrack>, RadioButtonPopupVm<MediaTrack>>();
         services.AddTransientPopup<TranscribePopup, TranscribePopupViewModel>();
         services.AddTransientPopup<TranslatePopup, TranslatePopupViewModel>();
         services.AddTransientPopup<EntryPopup, StringEntryPopupVm>();
