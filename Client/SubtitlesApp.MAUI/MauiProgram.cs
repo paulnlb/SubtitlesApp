@@ -1,12 +1,7 @@
 ﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Core.Services;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.LifecycleEvents;
-using Microsoft.Maui.Platform;
-using SubtitlesApp.CustomControls;
 using SubtitlesApp.Extensions;
-using SubtitlesApp.Services;
 using UraniumUI;
 
 namespace SubtitlesApp;
@@ -45,36 +40,7 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-#if ANDROID
-        builder.ConfigureLifecycleEvents(static lifecycleBuilder =>
-        {
-            lifecycleBuilder.AddAndroid(static androidBuilder =>
-            {
-                androidBuilder.OnCreate(
-                    static (activity, _) =>
-                    {
-                        if (activity is not AndroidX.AppCompat.App.AppCompatActivity componentActivity)
-                        {
-                            return;
-                        }
-
-                        if (
-                            componentActivity.GetFragmentManager()
-                            is not AndroidX.Fragment.App.FragmentManager fragmentManager
-                        )
-                        {
-                            return;
-                        }
-
-                        fragmentManager.RegisterFragmentLifecycleCallbacks(
-                            new FragmentLifecycleManager(new PopupDialogFragmentService()),
-                            false
-                        );
-                    }
-                );
-            });
-        });
-#endif
+        builder.AddPlatformSpecificBehavior();
 
         builder.Services.AddSubtitlesAppServices();
         builder.Services.AddAppLogging();

@@ -1,6 +1,5 @@
 using CommunityToolkit.Maui.Converters;
 using CommunityToolkit.Maui.Views;
-using SubtitlesApp.Converters;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
@@ -19,11 +18,7 @@ public partial class RadioButtonPopup<T> : Popup<T>
     private void InitializeComponentEquivalent()
     {
         ControlTemplate = (ControlTemplate?)Application.Current?.Resources["PopupTemplate"];
-        Resources = new ResourceDictionary
-        {
-            { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() },
-            { "IsNotNullConverter", new IsNotNullConverter() },
-        };
+        Resources = new ResourceDictionary { { "IsNotNullConverter", new IsNotNullConverter() } };
 
         var description = new Label { Margin = new Thickness(0, 0, 0, 10) };
 
@@ -45,11 +40,7 @@ public partial class RadioButtonPopup<T> : Popup<T>
 
             radioButton.SetBinding(
                 RadioButton.ContentProperty,
-                new Binding(
-                    nameof(SelectedItemVm<>.Title),
-                    BindingMode.OneWay,
-                    converter: (IValueConverter)Resources["AddSpaceBeforeStringConverter"]
-                )
+                new Binding(nameof(SelectedItemVm<>.Title), BindingMode.OneWay)
             );
             radioButton.SetBinding(RadioButton.IsCheckedProperty, nameof(SelectedItemVm<>.IsSelected));
             radioButton.SetBinding(RadioButton.ValueProperty, nameof(SelectedItemVm<>.Value));
