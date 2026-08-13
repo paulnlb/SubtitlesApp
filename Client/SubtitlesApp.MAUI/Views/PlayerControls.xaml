@@ -29,7 +29,7 @@
       FontSize="16"
     />
 
-    <HorizontalStackLayout Grid.Row="0" Grid.Column="3" Spacing="10" HorizontalOptions="End" VerticalOptions="Center">
+    <HorizontalStackLayout Grid.Row="0" Grid.Column="3" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
       <Button
         ImageSource="music_note.png"
         WidthRequest="30"
