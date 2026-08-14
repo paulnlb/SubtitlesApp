@@ -139,36 +139,12 @@ public partial class SubtitlesViewModel : ObservableObject
 
         Subtitles.RemoveInside(timeInterval);
 
-        IAsyncEnumerable<Result<Subtitle>> results;
-        Stream? stream = null;
-
-        if (FileInfo.Type == FileResourceType.Remote)
-        {
-            results = _transcriptionService.TranscribeAsync(
-                FileInfo.Uri,
-                timeInterval,
-                newSettings.SubtitlesLanguage.Code,
-                cancellationToken
-            );
-        }
-        else
-        {
-            var streamResult = _localFileManager.GetFileStream(FileInfo.Uri);
-
-            if (streamResult.IsFailure)
-            {
-                await _builtInDialogService.DisplayError(streamResult.Error);
-            }
-
-            stream = streamResult.Value;
-
-            results = _transcriptionService.TranscribeAsync(
-                stream,
-                timeInterval,
-                newSettings.SubtitlesLanguage.Code,
-                cancellationToken
-            );
-        }
+        var results = _transcriptionService.TranscribeAsync(
+            FileInfo.Uri,
+            timeInterval,
+            newSettings.SubtitlesLanguage.Code,
+            cancellationToken
+        );
 
         var totalResult = Result.Success();
         var anyGenerated = false;
@@ -192,8 +168,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
             anyGenerated = true;
         }
-
-        stream?.Dispose();
 
         if (totalResult.IsSuccess)
         {

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.10.35013.160
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.11919.86 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{6D39E6BD-C05F-4081-A87C-D1AB96CD9870}"
 EndProject
@@ -24,6 +24,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitlesApp.Infrastructure", "Client\SubtitlesApp.Infrastructure\SubtitlesApp.Infrastructure.csproj", "{05E0E9B9-83BF-465D-BCA9-4D881F795071}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenAiMockServer", "Tests\OpenAiMockServer\OpenAiMockServer.csproj", "{8AABAB88-37D7-426E-967B-A4A57DB7AA88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FfmpegKitAndroid", "Client\FfmpegKitAndroid\FfmpegKitAndroid.csproj", "{1AE160E1-20EE-4A09-97A9-F52895C55C97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,6 +123,18 @@ Global
 		{8AABAB88-37D7-426E-967B-A4A57DB7AA88}.Release|x64.Build.0 = Release|Any CPU
 		{8AABAB88-37D7-426E-967B-A4A57DB7AA88}.Release|x86.ActiveCfg = Release|Any CPU
 		{8AABAB88-37D7-426E-967B-A4A57DB7AA88}.Release|x86.Build.0 = Release|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Debug|x64.Build.0 = Debug|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Debug|x86.Build.0 = Debug|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Release|x64.ActiveCfg = Release|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Release|x64.Build.0 = Release|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Release|x86.ActiveCfg = Release|Any CPU
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -133,6 +147,7 @@ Global
 		{D1C67582-A55C-4B42-8B14-7D43D68E1BE7} = {242051E4-12EF-4B74-9D46-4403D46F5BAF}
 		{05E0E9B9-83BF-465D-BCA9-4D881F795071} = {6D39E6BD-C05F-4081-A87C-D1AB96CD9870}
 		{8AABAB88-37D7-426E-967B-A4A57DB7AA88} = {F72A6DB8-9085-42D9-A6AA-902E2384E388}
+		{1AE160E1-20EE-4A09-97A9-F52895C55C97} = {6D39E6BD-C05F-4081-A87C-D1AB96CD9870}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2C3905E-23CD-4D77-BC65-BC8A2DF406B4}

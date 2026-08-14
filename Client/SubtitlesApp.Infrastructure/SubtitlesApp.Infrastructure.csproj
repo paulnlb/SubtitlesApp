@@ -14,15 +14,4 @@
     <PackageReference Include="OpenAI" Version="2.10.0" />
     <PackageReference Include="sqlite-net-pcl" Version="1.11.272-beta" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Services\FfmpegNative\FfmpegAudioExtractorStream.cs">
-      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
-    </Compile>
-    <Compile Update="Services\FfmpegNative\FfmpegAudioExtractor.cs">
-      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
-    </Compile>
-    <Compile Update="Services\FfmpegNative\FfmpegNativeWrapper.cs">
-      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
-    </Compile>
-  </ItemGroup>
 </Project>

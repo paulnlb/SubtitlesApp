@@ -7,48 +7,26 @@ using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
 using SubtitlesApp.Infrastructure.Models;
-using SubtitlesApp.Infrastructure.Services.FfmpegNative;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
 public partial class WhisperTranscriptionService(
     OpenAiTranscriptionClent transcriptionsClient,
     ITranscriptionSettings settings,
-    ILogger<WhisperTranscriptionService> logger
+    ILogger<WhisperTranscriptionService> logger,
+    IAudioExtractor audioExtractor
 ) : ITranscriptionService
 {
-    public IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
+    public async IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
         string mediaPath,
-        TimeInterval timeInterval,
-        string languageCode,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var audioExtractor = new FfmpegAudioExtractor(mediaPath);
-
-        return TranscribeAsync(audioExtractor, timeInterval, languageCode, cancellationToken);
-    }
-
-    public IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
-        Stream media,
-        TimeInterval timeInterval,
-        string languageCode,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var audioExtractor = new FfmpegAudioExtractorStream(media);
-
-        return TranscribeAsync(audioExtractor, timeInterval, languageCode, cancellationToken);
-    }
-
-    private async IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
-        IAudioExtractor audioExtractor,
         TimeInterval timeInterval,
         string languageCode,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
         LogTranscriptionStart(timeInterval.StartTime, timeInterval.EndTime, languageCode);
+
+        audioExtractor.SetAudio(mediaPath);
 
         List<WhisperSubtitle> buffer = [];
         TimeSpan bufferChunkEnd = TimeSpan.Zero;
@@ -79,6 +57,7 @@ public partial class WhisperTranscriptionService(
             }
 
             var audioChunk = audioChunkResult.Value;
+            using var audioStream = audioChunk.Audio;
 
             LogAudioChunk(audioChunk.StartTime, audioChunk.EndTime);
 
@@ -88,7 +67,7 @@ public partial class WhisperTranscriptionService(
             LogPrompt(prompt);
 
             var subtitlesResult = await transcriptionsClient.GetSubsAsync(
-                audioChunk.Audio,
+                audioStream,
                 languageCode,
                 prompt,
                 cancellationToken

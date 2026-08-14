@@ -28,7 +28,7 @@
     <ApplicationDisplayVersion>0.6.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
@@ -85,11 +85,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FfmpegKitAndroid\FfmpegKitAndroid.csproj" />
     <ProjectReference Include="..\SubtitlesApp.Infrastructure\SubtitlesApp.Infrastructure.csproj" />
     <ProjectReference Include="..\..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Services\FfmpegAudioExtractor.Shared.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
     <Compile Update="Views\PlayerControls.xaml.cs">
       <DependentUpon>PlayerControls.xaml</DependentUpon>
     </Compile>
@@ -174,32 +178,6 @@
     <MauiXaml Update="Views\TranscriptionSettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-  </ItemGroup>
-
-  <ItemGroup>
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libswresample.so" />
-
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libswresample.so" />
-
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libswresample.so" />
-
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libswresample.so" />
   </ItemGroup>
 
 	<!-- Android -->
