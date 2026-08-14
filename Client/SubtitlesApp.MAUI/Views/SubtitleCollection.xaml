@@ -22,7 +22,7 @@
     >
       <customControls:ExdendedVirtualList.ItemTemplate>
         <DataTemplate x:DataType="clientModels:VisualSubtitle">
-          <Label Text="{Binding Text}" FontSize="16" VerticalTextAlignment="Center" Padding="5">
+          <Label Text="{Binding Text}" FontSize="16" VerticalTextAlignment="Center" Padding="5" TextType="Html">
             <Label.GestureRecognizers>
               <TapGestureRecognizer NumberOfTapsRequired="2" CommandParameter="{Binding .}" Tapped="OnSubtitleTapped" />
               <PointerGestureRecognizer
