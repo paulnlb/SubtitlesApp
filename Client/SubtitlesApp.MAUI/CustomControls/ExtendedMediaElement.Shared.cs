@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Maui.Views;
-using SubtitlesApp.ClientModels;
 
 namespace SubtitlesApp.CustomControls;
 
@@ -39,10 +38,6 @@ public partial class ExtendedMediaElement : MediaElement
     }
 
     public partial void SelectAudioTrack(int selectedTrackNo);
-
-    public partial List<MediaTrack> GetAudioTracks();
-
-    public partial List<MediaTrack> GetSubtitleTracks();
 
     private static Size GetMediaSize(double mediaWidth, double mediaHeight, double widthConstraint, double heightConstraint)
     {

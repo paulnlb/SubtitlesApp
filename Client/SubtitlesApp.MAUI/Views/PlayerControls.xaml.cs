@@ -147,11 +147,6 @@ public partial class PlayerControls : ContentView, IDisposable
 
     #region private event handlers
 
-    private void TracksChanged(object? sender, EventArgs e)
-    {
-        var tracks = MauiMediaElement.GetAudioTracks();
-    }
-
     private static void OnMauiMediaElementPropertyChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var root = ((PlayerControls)bindable);
