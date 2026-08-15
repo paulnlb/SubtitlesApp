@@ -53,6 +53,7 @@
         ShouldShowPlaybackControls="False"
         VerticalOptions="Center"
         HorizontalOptions="Center"
+        AudioTracks="{Binding SubtitlesVm.AudioTracks}"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerHorizontalLength, Mode=TwoWay}"
       >

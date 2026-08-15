@@ -1,5 +1,4 @@
-﻿using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Models;
+﻿using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Core.Interfaces;
@@ -18,6 +17,7 @@ public interface ITranscriptionService
         string mediaPath,
         TimeInterval timeInterval,
         string languageCode,
+        int audioTrackIndex = 0,
         CancellationToken cancellationToken = default
     );
 }

@@ -37,7 +37,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<ICustomPopupService, CustomPopupService>();
         services.AddTransient<LocalFileManager>();
         services.AddTransient<SubtitlesFileService>();
-        services.AddTransient<IAudioExtractor, FfmpegAudioExtractor>();
+        services.AddTransient<IMediaProcessingService, FfmpegService>();
         #endregion
 
         #region singleton

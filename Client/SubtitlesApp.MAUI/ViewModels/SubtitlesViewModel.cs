@@ -50,6 +50,9 @@ public partial class SubtitlesViewModel : ObservableObject
     [ObservableProperty]
     private MediaFileInfo? _fileInfo;
 
+    [ObservableProperty]
+    private ReadOnlyCollection<MediaTrack> _audioTracks;
+
     #endregion
 
     #region services
@@ -117,6 +120,16 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public async Task Transcribe(CancellationToken cancellationToken)
     {
+        var audioTrack = AudioTracks.FirstOrDefault(x => x.IsSelected);
+
+        if (audioTrack is null)
+        {
+            await _builtInDialogService.DisplayError(
+                new Error(ErrorCode.InvalidAudio, "Media file contains no audio or audio is disabled")
+            );
+            return;
+        }
+
         var subtitlesLang = _transcriptionSettings?.SubtitlesLanguage ?? _languageService.GetDefaultLanguage();
 
         var popupResult = await _popupService.ShowTranscriptionSettings(
@@ -143,6 +156,7 @@ public partial class SubtitlesViewModel : ObservableObject
             FileInfo.Uri,
             timeInterval,
             newSettings.SubtitlesLanguage.Code,
+            audioTrack.TrackIndex,
             cancellationToken
         );
 

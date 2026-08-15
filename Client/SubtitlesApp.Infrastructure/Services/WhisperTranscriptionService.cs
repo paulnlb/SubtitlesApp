@@ -14,19 +14,18 @@ public partial class WhisperTranscriptionService(
     OpenAiTranscriptionClent transcriptionsClient,
     ITranscriptionSettings settings,
     ILogger<WhisperTranscriptionService> logger,
-    IAudioExtractor audioExtractor
+    IMediaProcessingService audioExtractor
 ) : ITranscriptionService
 {
     public async IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeInterval,
         string languageCode,
+        int audioTrackIndex = 0,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
         LogTranscriptionStart(timeInterval.StartTime, timeInterval.EndTime, languageCode);
-
-        audioExtractor.SetAudio(mediaPath);
 
         List<WhisperSubtitle> buffer = [];
         TimeSpan bufferChunkEnd = TimeSpan.Zero;
@@ -48,7 +47,15 @@ public partial class WhisperTranscriptionService(
 
         var audioChunker = new DynamicOverlapChunker(audioExtractor, settings.ChunkLength, settings.OverlapSize);
 
-        await foreach (var audioChunkResult in audioChunker.ChunkAsync(timeInterval, GetAnchor, cancellationToken))
+        await foreach (
+            var audioChunkResult in audioChunker.ChunkAsync(
+                mediaPath,
+                timeInterval,
+                GetAnchor,
+                audioTrackIndex,
+                cancellationToken
+            )
+        )
         {
             if (audioChunkResult.IsFailure)
             {

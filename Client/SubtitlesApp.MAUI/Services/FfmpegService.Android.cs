@@ -5,15 +5,17 @@ using SubtitlesApp.Infrastructure.Interfaces;
 
 namespace SubtitlesApp.Services;
 
-public partial class FfmpegAudioExtractor : IAudioExtractor
+public partial class FfmpegService : IMediaProcessingService
 {
     public async partial Task<Stream> ExtractAudioAsync(
+        string mediaPath,
         TimeSpan startTime,
         TimeSpan endTime,
+        int audioTrackIndex,
         CancellationToken cancellationToken
     )
     {
-        if (string.IsNullOrWhiteSpace(_sourcePath))
+        if (string.IsNullOrWhiteSpace(mediaPath))
         {
             throw new InvalidOperationException("Source media path is not set");
         }
@@ -25,14 +27,14 @@ public partial class FfmpegAudioExtractor : IAudioExtractor
 
         string inputPath;
 
-        if (!IsRemoteUrl(_sourcePath))
+        if (!IsRemoteUrl(mediaPath))
         {
-            var uri = Android.Net.Uri.Parse(_sourcePath);
+            var uri = Android.Net.Uri.Parse(mediaPath);
             inputPath = FFmpegKitConfig.GetSafParameterForRead(Platform.CurrentActivity, uri);
         }
         else
         {
-            inputPath = _sourcePath;
+            inputPath = mediaPath;
         }
 
         var output = FFmpegKitOutputBuffer.Create(AudioFormats.Wave);
@@ -41,7 +43,7 @@ public partial class FfmpegAudioExtractor : IAudioExtractor
             $"-ss {startTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
                 + $"-to {endTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
                 + $"-i '{inputPath}' "
-                + "-vn "
+                + $"-map 0:a:{audioTrackIndex} "
                 + $"-ar 16000 "
                 + $"-ac 1 "
                 + "-y "

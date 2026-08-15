@@ -6,11 +6,13 @@ using SubtitlesApp.Infrastructure.Interfaces;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class FixedSizeChunker(IAudioExtractor audioExtractor, TimeSpan chunkLength, TimeSpan overlapSize)
+public class FixedSizeChunker(IMediaProcessingService audioExtractor, TimeSpan chunkLength, TimeSpan overlapSize)
 {
     public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
+        string mediaPath,
         TimeInterval timeInterval,
-        [EnumeratorCancellation] CancellationToken cancellationToken
+        int audioTrackIndex = 0,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
         if (chunkLength < TimeSpan.FromSeconds(30))
@@ -37,7 +39,13 @@ public class FixedSizeChunker(IAudioExtractor audioExtractor, TimeSpan chunkLeng
 
             try
             {
-                audioChunk = await audioExtractor.ExtractAudioAsync(subIntervalStart, subIntervalEnd, cancellationToken);
+                audioChunk = await audioExtractor.ExtractAudioAsync(
+                    mediaPath,
+                    subIntervalStart,
+                    subIntervalEnd,
+                    audioTrackIndex,
+                    cancellationToken
+                );
             }
             catch (Exception ex)
             {

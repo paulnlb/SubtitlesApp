@@ -91,7 +91,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Services\FfmpegAudioExtractor.Shared.cs">
+    <Compile Update="Services\FfmpegService.Shared.cs">
       <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
     </Compile>
     <Compile Update="Views\PlayerControls.xaml.cs">

@@ -6,12 +6,14 @@ using SubtitlesApp.Infrastructure.Interfaces;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class DynamicOverlapChunker(IAudioExtractor audioExtractor, TimeSpan chunkLength, TimeSpan maxOverlap)
+public class DynamicOverlapChunker(IMediaProcessingService audioExtractor, TimeSpan chunkLength, TimeSpan maxOverlap)
 {
     public async IAsyncEnumerable<Result<AudioChunkDto>> ChunkAsync(
+        string mediaPath,
         TimeInterval timeInterval,
         Func<TimeSpan> getAnchor,
-        [EnumeratorCancellation] CancellationToken cancellationToken
+        int audioTrackIndex = 0,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
         if (chunkLength < TimeSpan.FromSeconds(30))
@@ -38,7 +40,13 @@ public class DynamicOverlapChunker(IAudioExtractor audioExtractor, TimeSpan chun
 
             try
             {
-                audioChunk = await audioExtractor.ExtractAudioAsync(subIntervalStart, subIntervalEnd, cancellationToken);
+                audioChunk = await audioExtractor.ExtractAudioAsync(
+                    mediaPath,
+                    subIntervalStart,
+                    subIntervalEnd,
+                    audioTrackIndex,
+                    cancellationToken
+                );
             }
             catch (Exception ex)
             {
