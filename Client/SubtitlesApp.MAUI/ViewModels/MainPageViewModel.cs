@@ -59,15 +59,14 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     public async Task OpenMediaFile()
     {
-        var result = await _dialogService.DisplayActionSheet(
-            "Choose a source",
-            "Cancel",
-            null,
-            LoadOnlineVideo,
-            LoadLocalResource
-        );
+        var actions = new List<PickerItem>
+        {
+            new() { Title = LoadOnlineVideo, Action = LoadOnlineVideo },
+            new() { Title = LoadLocalResource, Action = LoadLocalResource },
+        };
+        var result = await _popupService.ShowActionList<PickerItem>("Choose a source", actions, x => x.Title);
 
-        switch (result)
+        switch (result?.Action)
         {
             case LoadOnlineVideo:
 

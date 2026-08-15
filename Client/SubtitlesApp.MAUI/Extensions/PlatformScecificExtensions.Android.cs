@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Core.Services;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Platform;
+using SubtitlesApp.CustomControls;
 using SubtitlesApp.Services;
 
 namespace SubtitlesApp.Extensions;
@@ -56,6 +57,19 @@ public static partial class PlatformScecificExtensions
 
                     nativeRadioButton.SetPaddingRelative(spacingInPx, 0, 0, 0);
                 }
+            }
+        );
+
+        ButtonHandler.Mapper.AppendToMapping(
+            "CustomButtonAlignment",
+            (handler, view) =>
+            {
+                if (view is not LeftAlignedButton)
+                {
+                    return;
+                }
+
+                handler.PlatformView.Gravity = Android.Views.GravityFlags.Left | Android.Views.GravityFlags.CenterVertical;
             }
         );
     }

@@ -232,4 +232,30 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
 
         return popupResult.Result;
     }
+
+    public async Task<T?> ShowActionList<T>(
+        string title,
+        IEnumerable<T> sourceItems,
+        Func<T, string> displaySelector,
+        string? description = null,
+        string? emptyText = null
+    )
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(ActionListPopupVm<>.Title), title },
+            { nameof(ActionListPopupVm<>.SourceItems), sourceItems },
+            { nameof(ActionListPopupVm<>.DisplaySelector), displaySelector },
+            { nameof(ActionListPopupVm<>.Description), description },
+            { nameof(ActionListPopupVm<>.EmptyText), emptyText },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<ActionListPopupVm<T>, T>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
 }

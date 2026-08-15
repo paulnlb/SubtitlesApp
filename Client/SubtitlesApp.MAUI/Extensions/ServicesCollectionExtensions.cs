@@ -84,6 +84,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<UrlEntryPopup, UrlEntryPopupVm>();
         services.AddTransientPopup<CounterPopup, CounterPopupVm>();
         services.AddTransientPopup<DoubleEntryPopup, DoubleEntryPopupVm>();
+        services.AddTransientPopup<ActionListPopup<PickerItem>, ActionListPopupVm<PickerItem>>();
         #endregion
     }
 
