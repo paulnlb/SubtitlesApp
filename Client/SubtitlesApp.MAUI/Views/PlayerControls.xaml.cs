@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using CommunityToolkit.Maui.Core;
-using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.CustomControls;
 using SubtitlesApp.Interfaces;
@@ -148,6 +147,11 @@ public partial class PlayerControls : ContentView, IDisposable
 
     #region private event handlers
 
+    private void TracksChanged(object? sender, EventArgs e)
+    {
+        var tracks = MauiMediaElement.GetAudioTracks();
+    }
+
     private static void OnMauiMediaElementPropertyChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var root = ((PlayerControls)bindable);
@@ -257,13 +261,11 @@ public partial class PlayerControls : ContentView, IDisposable
 
     private async void OnAudioSelectClicked(object? sender, EventArgs e)
     {
-        var audioTracks = MauiMediaElement.GetAudioTracks();
-
         var result = await _popupService.ShowRadioButtons(
             "Select Audio Track",
-            audioTracks,
+            MauiMediaElement.AudioTracks,
             x => x.Name,
-            audioTracks.FirstOrDefault(x => x.IsSelected)
+            MauiMediaElement.AudioTracks.FirstOrDefault(x => x.IsSelected)
         );
 
         if (result is null)
@@ -271,7 +273,7 @@ public partial class PlayerControls : ContentView, IDisposable
             return;
         }
 
-        MauiMediaElement.SelectAudioTrack(result.TrackNo);
+        MauiMediaElement.SelectAudioTrack(result.TrackIndex);
     }
 
     #endregion

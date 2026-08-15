@@ -31,12 +31,14 @@
 
     <HorizontalStackLayout Grid.Row="0" Grid.Column="3" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
       <Button
+        x:Name="trackSelectBtn"
         ImageSource="music_note.png"
         WidthRequest="30"
         HeightRequest="30"
         Padding="3"
         BackgroundColor="Transparent"
         Clicked="OnAudioSelectClicked"
+        IsVisible="{Binding MauiMediaElement.AudioTracks, Converter={x:StaticResource ContainsManyTracksConverter}}"
       />
       <customControls:StateIconButton
         x:Name="immersiveBtn"

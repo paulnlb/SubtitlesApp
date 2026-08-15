@@ -88,8 +88,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         Vm.PropertyChanged -= OnVmPropertyChanged;
         Vm.SeekRequested -= OnSeekRequested;
         mauiMediaElement.Stop();
-        mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
+        mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
         mauiMediaElement.MediaFailed -= OnMediaFailed;
         playerControls.Dispose();

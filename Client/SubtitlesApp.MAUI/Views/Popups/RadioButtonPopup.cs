@@ -33,6 +33,7 @@ public partial class RadioButtonPopup<T> : Popup<T>
 
         collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(RadioButtonPopupVm<>.SourceVms));
         collectionView.SetBinding(CollectionView.SelectedItemProperty, nameof(RadioButtonPopupVm<>.SelectedVm));
+        collectionView.SetBinding(CollectionView.EmptyViewProperty, nameof(RadioButtonPopupVm<>.EmptyText));
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {

@@ -89,11 +89,11 @@ public partial class MainPageViewModel : ObservableObject
 
             case LoadLocalResource:
 
-                var loalInfo = await _localFileManager.PickFile(["video/*", "audio/*"]);
+                var localInfo = await _localFileManager.PickFile(["video/*", "audio/*"]);
 
-                if (loalInfo is not null)
+                if (localInfo is not null)
                 {
-                    await OpenPlayerWithSubtitlesPage(loalInfo);
+                    await OpenPlayerWithSubtitlesPage(localInfo);
                 }
 
                 break;

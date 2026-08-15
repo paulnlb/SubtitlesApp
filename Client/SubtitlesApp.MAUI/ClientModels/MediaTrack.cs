@@ -2,7 +2,7 @@
 
 public class MediaTrack
 {
-    public int TrackNo { get; set; }
+    public int TrackIndex { get; set; }
 
     public string Name { get; set; }
 

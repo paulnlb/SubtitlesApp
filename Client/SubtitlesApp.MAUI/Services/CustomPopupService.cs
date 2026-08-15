@@ -110,7 +110,8 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         Func<T, string> displaySelector,
         T? selected,
         string? description = null,
-        bool showCancelBtn = true
+        bool showCancelBtn = true,
+        string? emptyText = null
     )
     {
         var queryAttributes = new Dictionary<string, object>
@@ -121,6 +122,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(RadioButtonPopupVm<>.SelectedItem), selected ?? default },
             { nameof(RadioButtonPopupVm<>.Description), description },
             { nameof(RadioButtonPopupVm<>.IsCancelVisible), showCancelBtn },
+            { nameof(RadioButtonPopupVm<>.EmptyText), emptyText },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<RadioButtonPopupVm<T>, T>(
