@@ -45,6 +45,30 @@ public static class MauiProgram
         builder.Services.AddSubtitlesAppServices();
         builder.Services.AddAppLogging();
 
-        return builder.Build();
+        var app = builder.Build();
+
+        InitializeGlobalExceptionLogging(app.Services.GetRequiredService<ILogger<App>>());
+
+        return app;
+    }
+
+    private static void InitializeGlobalExceptionLogging(ILogger logger)
+    {
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            if (args.ExceptionObject is Exception ex)
+            {
+                logger.LogCritical(ex, "Unhandled AppDomain exception occurred.");
+                Serilog.Log.CloseAndFlush();
+            }
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            logger.LogError(args.Exception, "Unobserved Task exception occurred.");
+
+            // Prevents the application from escalating the error and crashing
+            args.SetObserved();
+        };
     }
 }
