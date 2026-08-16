@@ -34,6 +34,19 @@ public static class SubtitlesMapper
         return new Subtitle { Text = srtItem.Text, TimeInterval = new TimeInterval(srtItem.StartTime, srtItem.EndTime) };
     }
 
+    public static VisualSubtitle ToVisualSubtitle(SrtItem srtItem)
+    {
+        var visualSubtitle = new VisualSubtitle
+        {
+            Text = srtItem.Text,
+            TimeInterval = new TimeInterval(srtItem.StartTime, srtItem.EndTime),
+        };
+
+        visualSubtitle.AdditionalInfo = visualSubtitle.ToString();
+
+        return visualSubtitle;
+    }
+
     public static SrtItem ToSrtItem(Subtitle subtitle, int index = 0)
     {
         return new SrtItem(index, subtitle.TimeInterval.StartTime, subtitle.TimeInterval.EndTime, subtitle.Text);
@@ -61,5 +74,10 @@ public static class SubtitlesMapper
         }
 
         return result;
+    }
+
+    public static ObservableCollection<VisualSubtitle> ToVisualSubtitles(IEnumerable<SrtItem> srtItems)
+    {
+        return srtItems.Select(ToVisualSubtitle).ToObservableCollection();
     }
 }

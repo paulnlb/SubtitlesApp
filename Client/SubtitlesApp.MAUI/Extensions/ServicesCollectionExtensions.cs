@@ -38,6 +38,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<LocalFileManager>();
         services.AddTransient<SubtitlesFileService>();
         services.AddTransient<IMediaProcessingService, FfmpegService>();
+        services.AddTransient<FfmpegService>();
         #endregion
 
         #region singleton
@@ -85,6 +86,7 @@ public static class ServicesCollectionExtensions
         services.AddTransientPopup<CounterPopup, CounterPopupVm>();
         services.AddTransientPopup<DoubleEntryPopup, DoubleEntryPopupVm>();
         services.AddTransientPopup<ActionListPopup<PickerItem>, ActionListPopupVm<PickerItem>>();
+        services.AddTransientPopup<ActionListPopup<MediaTrack>, ActionListPopupVm<MediaTrack>>();
         #endregion
     }
 

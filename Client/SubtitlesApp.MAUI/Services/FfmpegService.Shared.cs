@@ -11,4 +11,18 @@ public partial class FfmpegService : IMediaProcessingService
         int audioTrackIndex = 0,
         CancellationToken cancellationToken = default
     );
+
+    public partial Task<Stream> CopySubtitlesAsync(
+        string mediaPath,
+        string format,
+        int subtitleTrackIndex = 0,
+        CancellationToken cancellationToken = default
+    );
+
+    public partial Task<Stream> ExtractSubtitlesAsync(
+        string mediaPath,
+        string outputFormat,
+        int subtitleTrackIndex = 0,
+        CancellationToken cancellationToken = default
+    );
 }

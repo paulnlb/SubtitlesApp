@@ -15,49 +15,24 @@ public partial class FfmpegService : IMediaProcessingService
         CancellationToken cancellationToken
     )
     {
-        if (string.IsNullOrWhiteSpace(mediaPath))
-        {
-            throw new InvalidOperationException("Source media path is not set");
-        }
-
-        var tcs = new TaskCompletionSource<int>();
-        var callback = new FfmpegCallback(tcs);
-
-        FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
-
-        string inputPath;
-
-        if (!IsRemoteUrl(mediaPath))
-        {
-            var uri = Android.Net.Uri.Parse(mediaPath);
-            inputPath = FFmpegKitConfig.GetSafParameterForRead(Platform.CurrentActivity, uri);
-        }
-        else
-        {
-            inputPath = mediaPath;
-        }
-
+        var inputPath = PrepareInputPath(mediaPath);
         var output = FFmpegKitOutputBuffer.Create(AudioFormats.Wave);
 
-        FFmpegKit.ExecuteAsync(
+        var ffmpegSession = await ExecuteCommandAsync(
             $"-ss {startTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
                 + $"-to {endTime.TotalSeconds.ToString(CultureInfo.InvariantCulture)} "
                 + $"-i '{inputPath}' "
                 + $"-map 0:a:{audioTrackIndex} "
                 + $"-ar 16000 "
                 + $"-ac 1 "
-                + "-y "
                 + $"-f {AudioFormats.Wave} "
-                + output.Url,
-            callback
+                + output.Url
         );
 
-        var exitCode = await tcs.Task;
-
-        if (exitCode != 0)
+        if (ffmpegSession.ReturnCode?.IsValueError == true)
         {
             output.Close();
-            throw new InvalidOperationException($"FFmpeg extraction failed with exit code {exitCode}.");
+            throw new InvalidOperationException($"FFmpeg extraction failed with error {GetErrorLogs(ffmpegSession)}.");
         }
 
         var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
@@ -65,6 +40,91 @@ public partial class FfmpegService : IMediaProcessingService
         output.Close();
 
         return memoryStream;
+    }
+
+    public async partial Task<Stream> CopySubtitlesAsync(
+        string mediaPath,
+        string format,
+        int subtitleTrackIndex,
+        CancellationToken cancellationToken
+    )
+    {
+        var inputPath = PrepareInputPath(mediaPath);
+        var output = FFmpegKitOutputBuffer.Create(format);
+
+        var ffmpegSession = await ExecuteCommandAsync(
+            $"-i '{inputPath}' -map 0:s:{subtitleTrackIndex} -c copy {output.Url}"
+        );
+
+        if (ffmpegSession.ReturnCode?.IsValueError == true)
+        {
+            output.Close();
+            throw new InvalidOperationException($"FFmpeg extraction failed with error {GetErrorLogs(ffmpegSession)}.");
+        }
+
+        var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
+
+        output.Close();
+
+        return memoryStream;
+    }
+
+    public async partial Task<Stream> ExtractSubtitlesAsync(
+        string mediaPath,
+        string outputFormat,
+        int subtitleTrackIndex,
+        CancellationToken cancellationToken
+    )
+    {
+        var inputPath = PrepareInputPath(mediaPath);
+        var output = FFmpegKitOutputBuffer.Create(outputFormat);
+
+        var ffmpegSession = await ExecuteCommandAsync($"-i '{inputPath}' -map 0:s:{subtitleTrackIndex} {output.Url}");
+
+        if (ffmpegSession.ReturnCode?.IsValueError == true)
+        {
+            output.Close();
+            throw new InvalidOperationException($"FFmpeg extraction failed with error {GetErrorLogs(ffmpegSession)}.");
+        }
+
+        var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
+
+        output.Close();
+
+        return memoryStream;
+    }
+
+    private string PrepareInputPath(string mediaPath)
+    {
+        if (string.IsNullOrWhiteSpace(mediaPath))
+        {
+            throw new InvalidOperationException("Source media path is not set");
+        }
+
+        if (!IsRemoteUrl(mediaPath))
+        {
+            var uri = Android.Net.Uri.Parse(mediaPath);
+            return FFmpegKitConfig.GetSafParameterForRead(Platform.CurrentActivity, uri);
+        }
+
+        return mediaPath;
+    }
+
+    private Task<FFmpegSession> ExecuteCommandAsync(string command)
+    {
+        var tcs = new TaskCompletionSource<FFmpegSession>();
+        var callback = new FfmpegCallback(tcs);
+
+        FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
+
+        FFmpegKit.ExecuteAsync(command, callback);
+
+        return tcs.Task;
+    }
+
+    private string GetErrorLogs(FFmpegSession session)
+    {
+        return string.Join(Environment.NewLine, session.Logs.Where(x => x.Level == Level.AvLogError).Select(x => x.Message));
     }
 
     private bool IsRemoteUrl(string path)
@@ -76,9 +136,9 @@ public partial class FfmpegService : IMediaProcessingService
 
 public class FfmpegCallback : Java.Lang.Object, IFFmpegSessionCompleteCallback
 {
-    private readonly TaskCompletionSource<int> _tcs;
+    private readonly TaskCompletionSource<FFmpegSession> _tcs;
 
-    public FfmpegCallback(TaskCompletionSource<int> tcs)
+    public FfmpegCallback(TaskCompletionSource<FFmpegSession> tcs)
     {
         _tcs = tcs;
     }
@@ -90,8 +150,6 @@ public class FfmpegCallback : Java.Lang.Object, IFFmpegSessionCompleteCallback
             _tcs.SetException(new ArgumentNullException());
             return;
         }
-
-        var returnCode = p0.ReturnCode;
-        _tcs.SetResult(returnCode.Value);
+        _tcs.SetResult(p0);
     }
 }

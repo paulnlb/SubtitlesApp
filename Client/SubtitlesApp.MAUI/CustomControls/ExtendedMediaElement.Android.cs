@@ -253,48 +253,15 @@ public class PlayerListener(
 
     private List<MediaTrack> GetAudioTracks(Tracks tracks)
     {
-        var trackList = new List<MediaTrack>();
-
-        var currentGroups = tracks.Groups;
-
-        if (currentGroups is null)
-        {
-            return [];
-        }
-
-        var trackIndex = 0;
-
-        foreach (Tracks.Group group in currentGroups)
-        {
-            if (group.Type != C.TrackTypeAudio)
-            {
-                continue;
-            }
-
-            for (int i = 0; i < group.Length; i++)
-            {
-                var format = group.GetTrackFormat(i);
-
-                var name = format.Label ?? $"Audio Track {trackIndex + 1}";
-                name += $" - {format.Language}";
-
-                trackList.Add(
-                    new MediaTrack()
-                    {
-                        TrackIndex = trackIndex,
-                        Name = name,
-                        IsSelected = group.IsTrackSelected(i),
-                    }
-                );
-
-                trackIndex++;
-            }
-        }
-
-        return trackList;
+        return GetTracks(tracks, C.TrackTypeAudio);
     }
 
     private List<MediaTrack> GetSubtitleTracks(Tracks tracks)
+    {
+        return GetTracks(tracks, C.TrackTypeText);
+    }
+
+    private List<MediaTrack> GetTracks(Tracks tracks, int trackType)
     {
         var trackList = new List<MediaTrack>();
 
@@ -309,7 +276,7 @@ public class PlayerListener(
 
         foreach (Tracks.Group group in currentGroups)
         {
-            if (group.Type != C.TrackTypeText)
+            if (group.Type != trackType)
             {
                 continue;
             }
@@ -318,8 +285,40 @@ public class PlayerListener(
             {
                 var format = group.GetTrackFormat(i);
 
-                var name = format.Label ?? $"Subtitle Track {trackIndex + 1}";
+                string name;
+
+                if (format?.Label is not null)
+                {
+                    name = format.Label;
+                }
+                else if (trackType == C.TrackTypeAudio)
+                {
+                    name = $"Audio Track {trackIndex + 1}";
+                }
+                else if (trackType == C.TrackTypeText)
+                {
+                    name = $"Subtitle Track {trackIndex + 1}";
+                }
+                else
+                {
+                    name = $"Track {trackIndex + 1}";
+                }
+
                 name += $" - {format.Language}";
+
+                string? mimeType;
+
+                if (
+                    format.SampleMimeType == "application/x-media3-cues"
+                    || format.SampleMimeType == "application/x-exoplayer-cues"
+                )
+                {
+                    mimeType = format.Codecs;
+                }
+                else
+                {
+                    mimeType = format.SampleMimeType;
+                }
 
                 trackList.Add(
                     new MediaTrack()
@@ -327,6 +326,7 @@ public class PlayerListener(
                         TrackIndex = trackIndex,
                         Name = name,
                         IsSelected = group.IsTrackSelected(i),
+                        MimeType = mimeType,
                     }
                 );
 

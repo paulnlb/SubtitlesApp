@@ -60,8 +60,8 @@ public partial class MainPageViewModel : ObservableObject
     {
         var actions = new List<PickerItem>
         {
-            new() { Title = "Load Remote Media File", Action = FileActionConstants.LoadRemote },
-            new() { Title = "Open Local Media File", Action = FileActionConstants.LoadLocal },
+            new() { Title = "Remote File", Action = FileActionConstants.LoadRemote },
+            new() { Title = "Local File", Action = FileActionConstants.LoadLocal },
         };
 
         var result = await _popupService.ShowActionList("Choose a Source", actions, x => x.Title);

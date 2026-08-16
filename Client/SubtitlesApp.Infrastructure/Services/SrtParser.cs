@@ -35,6 +35,11 @@ public sealed class SrtParserOptions
     /// Line separator used when joining multi-line subtitle text. Defaults to "\n".
     /// </summary>
     public string TargetNewLine { get; set; } = "\n";
+
+    /// <summary>
+    /// When true, removes HTML formatting (&lt;i&gt;) and SSA styling tags ({\an8}).
+    /// </summary>
+    public bool StripFormatting { get; set; } = false;
 }
 
 public sealed class SrtSerializerOptions
@@ -149,6 +154,10 @@ public static class SrtParser
             if (hasTimeCode)
             {
                 string text = string.Join(options.TargetNewLine, textLines);
+                if (options.StripFormatting)
+                {
+                    text = SrtUtility.StripFormatting(text);
+                }
                 yield return new SrtItem(index, startTime, endTime, text);
                 autoIndex = index + 1;
             }
@@ -236,6 +245,10 @@ public static class SrtParser
             if (hasTimeCode)
             {
                 string text = string.Join(options.TargetNewLine, textLines);
+                if (options.StripFormatting)
+                {
+                    text = SrtUtility.StripFormatting(text);
+                }
                 yield return new SrtItem(index, startTime, endTime, text);
                 autoIndex = index + 1;
             }
@@ -406,5 +419,95 @@ public static class SrtSerializer
         buffer[9] = (char)('0' + (millis / 100));
         buffer[10] = (char)('0' + ((millis / 10) % 10));
         buffer[11] = (char)('0' + (millis % 10));
+    }
+}
+
+public static class SrtUtility
+{
+    /// <summary>
+    /// Zero-alloc/Low-alloc removal of HTML formatting (&lt;i&gt;) and SSA styling tags ({\an8}).
+    /// </summary>
+    public static string StripFormatting(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+        if (!input.Contains('<') && !input.Contains('{'))
+            return input;
+
+        Span<char> result = input.Length <= 512 ? stackalloc char[input.Length] : new char[input.Length];
+        int writeIndex = 0;
+        bool inAngle = false;
+        bool inCurly = false;
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+
+            if (c == '<')
+            {
+                inAngle = true;
+                continue;
+            }
+            if (c == '>')
+            {
+                inAngle = false;
+                continue;
+            }
+            if (c == '{')
+            {
+                inCurly = true;
+                continue;
+            }
+            if (c == '}')
+            {
+                inCurly = false;
+                continue;
+            }
+
+            if (!inAngle && !inCurly)
+            {
+                result[writeIndex++] = c;
+            }
+        }
+
+        return new string(result[..writeIndex]);
+    }
+
+    /// <summary>
+    /// Zero-alloc/Low-alloc removal of SSA styling tags (e.g. {\an8}).
+    /// </summary>
+    public static string StripSsaTags(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return string.Empty;
+        if (!input.Contains('{'))
+            return input;
+
+        Span<char> result = input.Length <= 512 ? stackalloc char[input.Length] : new char[input.Length];
+        int writeIndex = 0;
+        bool inCurly = false;
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+
+            if (c == '{')
+            {
+                inCurly = true;
+                continue;
+            }
+            if (c == '}')
+            {
+                inCurly = false;
+                continue;
+            }
+
+            if (!inCurly)
+            {
+                result[writeIndex++] = c;
+            }
+        }
+
+        return new string(result[..writeIndex]);
     }
 }

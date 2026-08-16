@@ -7,4 +7,6 @@ public class MediaTrack
     public string Name { get; set; }
 
     public bool IsSelected { get; set; }
+
+    public string? MimeType { get; set; }
 }
