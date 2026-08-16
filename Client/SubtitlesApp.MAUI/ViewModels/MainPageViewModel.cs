@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Constants;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Services;
 using SubtitlesApp.Views;
@@ -10,8 +11,6 @@ namespace SubtitlesApp.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    private const string LoadOnlineVideo = "Load Online Video";
-    private const string LoadLocalResource = "Choose Local Video From Device";
     private readonly List<string> _mainLabelList =
     [
         "Rare case when AI is actually useful",
@@ -61,14 +60,15 @@ public partial class MainPageViewModel : ObservableObject
     {
         var actions = new List<PickerItem>
         {
-            new() { Title = LoadOnlineVideo, Action = LoadOnlineVideo },
-            new() { Title = LoadLocalResource, Action = LoadLocalResource },
+            new() { Title = "Load Remote Media File", Action = FileActionConstants.LoadRemote },
+            new() { Title = "Open Local Media File", Action = FileActionConstants.LoadLocal },
         };
-        var result = await _popupService.ShowActionList<PickerItem>("Choose a source", actions, x => x.Title);
+
+        var result = await _popupService.ShowActionList("Choose a Source", actions, x => x.Title);
 
         switch (result?.Action)
         {
-            case LoadOnlineVideo:
+            case FileActionConstants.LoadRemote:
 
                 var url = await _popupService.ShowUrlEntry();
 
@@ -86,7 +86,7 @@ public partial class MainPageViewModel : ObservableObject
 
                 break;
 
-            case LoadLocalResource:
+            case FileActionConstants.LoadLocal:
 
                 var localInfo = await _localFileManager.PickFile(["video/*", "audio/*"]);
 
