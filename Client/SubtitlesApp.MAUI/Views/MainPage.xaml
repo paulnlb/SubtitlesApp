@@ -25,8 +25,8 @@
     <Button
       Grid.Row="3"
       x:Name="CounterBtn"
-      Text="Open Video"
-      SemanticProperties.Hint="Opens a video"
+      Text="Open Media"
+      SemanticProperties.Hint="Opens a media file"
       HorizontalOptions="Fill"
       Command="{Binding OpenMediaFileCommand}"
     />
