@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Com.Arthenica.Ffmpegkit;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces;
 
@@ -7,7 +8,7 @@ namespace SubtitlesApp.Services;
 
 public partial class FfmpegService : IMediaProcessingService
 {
-    public async partial Task<Stream> ExtractAudioAsync(
+    public async partial Task<Result<Stream>> ExtractAudioAsync(
         string mediaPath,
         TimeSpan startTime,
         TimeSpan endTime,
@@ -26,23 +27,24 @@ public partial class FfmpegService : IMediaProcessingService
                 + $"-ar 16000 "
                 + $"-ac 1 "
                 + $"-f {AudioFormats.Wave} "
-                + output.Url
+                + output.Url,
+            cancellationToken
         );
 
-        if (ffmpegSession.ReturnCode?.IsValueError == true)
+        if (!IsSucceeded(ffmpegSession, out var error))
         {
             output.Close();
-            throw new InvalidOperationException($"FFmpeg extraction failed with error {GetErrorLogs(ffmpegSession)}.");
+            return Result<Stream>.Failure(error!);
         }
 
         var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
 
         output.Close();
 
-        return memoryStream;
+        return Result<Stream>.Success(memoryStream);
     }
 
-    public async partial Task<Stream> CopySubtitlesAsync(
+    public async partial Task<Result<Stream>> CopySubtitlesAsync(
         string mediaPath,
         string format,
         int subtitleTrackIndex,
@@ -53,23 +55,24 @@ public partial class FfmpegService : IMediaProcessingService
         var output = FFmpegKitOutputBuffer.Create(format);
 
         var ffmpegSession = await ExecuteCommandAsync(
-            $"-i '{inputPath}' -map 0:s:{subtitleTrackIndex} -c copy {output.Url}"
+            $"-i '{inputPath}' -map 0:s:{subtitleTrackIndex} -c:s copy {output.Url}",
+            cancellationToken
         );
 
-        if (ffmpegSession.ReturnCode?.IsValueError == true)
+        if (!IsSucceeded(ffmpegSession, out var error))
         {
             output.Close();
-            throw new InvalidOperationException($"FFmpeg extraction failed with error {GetErrorLogs(ffmpegSession)}.");
+            return Result<Stream>.Failure(error!);
         }
 
         var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
 
         output.Close();
 
-        return memoryStream;
+        return Result<Stream>.Success(memoryStream);
     }
 
-    public async partial Task<Stream> ExtractSubtitlesAsync(
+    public async partial Task<Result<Stream>> ExtractSubtitlesAsync(
         string mediaPath,
         string outputFormat,
         int subtitleTrackIndex,
@@ -79,19 +82,22 @@ public partial class FfmpegService : IMediaProcessingService
         var inputPath = PrepareInputPath(mediaPath);
         var output = FFmpegKitOutputBuffer.Create(outputFormat);
 
-        var ffmpegSession = await ExecuteCommandAsync($"-i '{inputPath}' -map 0:s:{subtitleTrackIndex} {output.Url}");
+        var ffmpegSession = await ExecuteCommandAsync(
+            $"-i '{inputPath}' -map 0:s:{subtitleTrackIndex} {output.Url}",
+            cancellationToken
+        );
 
-        if (ffmpegSession.ReturnCode?.IsValueError == true)
+        if (!IsSucceeded(ffmpegSession, out var error))
         {
             output.Close();
-            throw new InvalidOperationException($"FFmpeg extraction failed with error {GetErrorLogs(ffmpegSession)}.");
+            return Result<Stream>.Failure(error!);
         }
 
         var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
 
         output.Close();
 
-        return memoryStream;
+        return Result<Stream>.Success(memoryStream);
     }
 
     private string PrepareInputPath(string mediaPath)
@@ -110,14 +116,16 @@ public partial class FfmpegService : IMediaProcessingService
         return mediaPath;
     }
 
-    private Task<FFmpegSession> ExecuteCommandAsync(string command)
+    private Task<FFmpegSession> ExecuteCommandAsync(string command, CancellationToken cancellationToken)
     {
         var tcs = new TaskCompletionSource<FFmpegSession>();
         var callback = new FfmpegCallback(tcs);
 
         FFmpegKitConfig.IgnoreSignal(Signal.Sigxcpu);
 
-        FFmpegKit.ExecuteAsync(command, callback);
+        var session = FFmpegKit.ExecuteAsync(command, callback);
+
+        cancellationToken.Register(() => FFmpegKit.Cancel(session.SessionId));
 
         return tcs.Task;
     }
@@ -131,6 +139,45 @@ public partial class FfmpegService : IMediaProcessingService
     {
         var uriCreated = Uri.TryCreate(path, UriKind.Absolute, out var uriResult);
         return uriCreated && (uriResult!.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+    }
+
+    private bool IsSucceeded(FFmpegSession ffmpegSession, out Error? error)
+    {
+        bool isSucceeded;
+
+        if (ffmpegSession.ReturnCode?.IsValueSuccess is true)
+        {
+            error = null;
+            isSucceeded = true;
+        }
+        else if (ffmpegSession.ReturnCode?.IsValueCancel is true)
+        {
+            error = new Error(ErrorCode.OperationCancelled);
+            isSucceeded = false;
+        }
+        else if (ffmpegSession.ReturnCode?.IsValueError is true)
+        {
+            error = new Error(
+                ErrorCode.MediaProcessingError,
+                $"FFmpeg extraction failed with error:\n {GetErrorLogs(ffmpegSession)}."
+            );
+            isSucceeded = false;
+        }
+        else if (ffmpegSession.ReturnCode is null)
+        {
+            error = new Error(ErrorCode.MediaProcessingError, $"FfmpegKit session has no returning code");
+            isSucceeded = false;
+        }
+        else
+        {
+            error = new Error(
+                ErrorCode.MediaProcessingError,
+                $"FfmpegKit returned an unknown return code. Value: {ffmpegSession.ReturnCode}"
+            );
+            isSucceeded = false;
+        }
+
+        return isSucceeded;
     }
 }
 

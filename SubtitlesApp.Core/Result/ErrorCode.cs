@@ -3,17 +3,9 @@
 public enum ErrorCode
 {
     Unspecified,
-    BadRequest,
-    InternalServerError,
     InternalClientError,
-    ConnectionError,
     InvalidAudio,
-    OperationCanceled,
-    AuthenticationError,
-    Unauthorized,
-    BadGateway,
-    TokenExpired,
-    Forbidden,
+    OperationCancelled,
     ValidationFailed,
     FailedServerResponse,
     RetryLimitExceeded,
@@ -21,4 +13,5 @@ public enum ErrorCode
     InvalidInput,
     SubtitlesPersistenceError,
     MediaPlayerError,
+    MediaProcessingError,
 }

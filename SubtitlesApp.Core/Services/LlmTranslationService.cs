@@ -69,7 +69,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return ListResult<Subtitle>.Failure(new Error(ErrorCode.OperationCanceled));
+            return ListResult<Subtitle>.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
         var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles, context);

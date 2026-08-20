@@ -30,31 +30,21 @@ public class FixedSizeChunker(IMediaProcessingService audioExtractor, TimeSpan c
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                yield return Result<AudioChunkDto>.Failure(new Error(ErrorCode.OperationCanceled));
+                yield return Result<AudioChunkDto>.Failure(new Error(ErrorCode.OperationCancelled));
                 yield break;
             }
 
-            Stream? audioChunk = null;
-            Error? extractingError = null;
+            var result = await audioExtractor.ExtractAudioAsync(
+                mediaPath,
+                subIntervalStart,
+                subIntervalEnd,
+                audioTrackIndex,
+                cancellationToken
+            );
 
-            try
+            if (result.IsFailure)
             {
-                audioChunk = await audioExtractor.ExtractAudioAsync(
-                    mediaPath,
-                    subIntervalStart,
-                    subIntervalEnd,
-                    audioTrackIndex,
-                    cancellationToken
-                );
-            }
-            catch (Exception ex)
-            {
-                extractingError = new Error(ErrorCode.InternalClientError, ex.Message);
-            }
-
-            if (extractingError is not null)
-            {
-                yield return Result<AudioChunkDto>.Failure(extractingError);
+                yield return Result<AudioChunkDto>.Failure(result.Error);
                 yield break;
             }
 
@@ -63,7 +53,7 @@ public class FixedSizeChunker(IMediaProcessingService audioExtractor, TimeSpan c
                 {
                     StartTime = subIntervalStart,
                     EndTime = subIntervalEnd,
-                    Audio = audioChunk!,
+                    Audio = result.Value,
                 }
             );
 

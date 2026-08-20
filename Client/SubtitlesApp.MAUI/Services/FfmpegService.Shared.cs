@@ -1,10 +1,11 @@
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces;
 
 namespace SubtitlesApp.Services;
 
 public partial class FfmpegService : IMediaProcessingService
 {
-    public partial Task<Stream> ExtractAudioAsync(
+    public partial Task<Result<Stream>> ExtractAudioAsync(
         string mediaPath,
         TimeSpan startTime,
         TimeSpan endTime,
@@ -12,14 +13,14 @@ public partial class FfmpegService : IMediaProcessingService
         CancellationToken cancellationToken = default
     );
 
-    public partial Task<Stream> CopySubtitlesAsync(
+    public partial Task<Result<Stream>> CopySubtitlesAsync(
         string mediaPath,
         string format,
         int subtitleTrackIndex = 0,
         CancellationToken cancellationToken = default
     );
 
-    public partial Task<Stream> ExtractSubtitlesAsync(
+    public partial Task<Result<Stream>> ExtractSubtitlesAsync(
         string mediaPath,
         string outputFormat,
         int subtitleTrackIndex = 0,

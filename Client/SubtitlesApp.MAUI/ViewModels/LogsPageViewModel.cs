@@ -69,7 +69,7 @@ public partial class LogsPageViewModel : ObservableObject
     {
         var result = await _localFileManager.SaveInternalTextFile(Selected, Path.Combine(_basePath, Selected));
 
-        if (result.IsFailure && result.Error.Code == ErrorCode.OperationCanceled)
+        if (result.IsFailure && result.Error.Code == ErrorCode.OperationCancelled)
         {
             return;
         }

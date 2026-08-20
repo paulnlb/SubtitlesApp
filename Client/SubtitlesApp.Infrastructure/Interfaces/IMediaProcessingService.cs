@@ -1,8 +1,10 @@
-﻿namespace SubtitlesApp.Infrastructure.Interfaces;
+﻿using SubtitlesApp.Core.Result;
+
+namespace SubtitlesApp.Infrastructure.Interfaces;
 
 public interface IMediaProcessingService
 {
-    Task<Stream> ExtractAudioAsync(
+    Task<Result<Stream>> ExtractAudioAsync(
         string mediaPath,
         TimeSpan startTime,
         TimeSpan endTime,

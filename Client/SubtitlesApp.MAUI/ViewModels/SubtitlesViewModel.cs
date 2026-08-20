@@ -10,7 +10,6 @@ using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
-using SubtitlesApp.Infrastructure.Mapper;
 using SubtitlesApp.Infrastructure.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
@@ -135,8 +134,8 @@ public partial class SubtitlesViewModel : ObservableObject
 
         var actions = new List<PickerItem>
         {
-            new() { Title = "Select From Embedded", Action = SubtitlesRetrievalConstants.GetEmbedded },
-            new() { Title = "Generate Transcription", Action = SubtitlesRetrievalConstants.Generate },
+            new() { Title = "Select From Embedded", Action = SubtitlesAction.GetEmbedded },
+            new() { Title = "Generate Transcription", Action = SubtitlesAction.Create },
         };
 
         var result = await _popupService.ShowActionList("Transcription", actions, x => x.Title);
@@ -145,11 +144,27 @@ public partial class SubtitlesViewModel : ObservableObject
         {
             return;
         }
-        else if (result.Action == SubtitlesRetrievalConstants.GetEmbedded)
+        else if (result.Action == SubtitlesAction.GetEmbedded)
         {
-            await ExtractEmbeddedSubtitles(cancellationToken);
+            var chosenTrack = await _popupService.ShowActionList("Select Subtitles Track", SubtitleTracks, x => x.Name);
+
+            if (chosenTrack is null)
+            {
+                return;
+            }
+
+            IsTranscriptionLoading = true;
+            var subtitles = await ExtractEmbeddedSubtitles(chosenTrack, cancellationToken);
+            IsTranscriptionLoading = false;
+
+            if (subtitles is null)
+            {
+                return;
+            }
+
+            Subtitles = subtitles;
         }
-        else if (result.Action == SubtitlesRetrievalConstants.Generate)
+        else if (result.Action == SubtitlesAction.Create)
         {
             await GenerateSubtitles(cancellationToken);
         }
@@ -157,6 +172,173 @@ public partial class SubtitlesViewModel : ObservableObject
 
     [RelayCommand]
     public async Task Translate(CancellationToken cancellationToken)
+    {
+        if (SubtitleTracks.Count == 0)
+        {
+            await GenerateTranslation(cancellationToken);
+            return;
+        }
+
+        var actions = new List<PickerItem>
+        {
+            new() { Title = "Select From Embedded", Action = SubtitlesAction.GetEmbedded },
+            new() { Title = "Translate current subtitles", Action = SubtitlesAction.Create },
+        };
+
+        var result = await _popupService.ShowActionList("Translation", actions, x => x.Title);
+
+        if (result is null)
+        {
+            return;
+        }
+        else if (result.Action == SubtitlesAction.GetEmbedded)
+        {
+            var chosenTrack = await _popupService.ShowActionList("Select Subtitles Track", SubtitleTracks, x => x.Name);
+
+            if (chosenTrack is null)
+            {
+                return;
+            }
+
+            IsTranslationLoading = true;
+            var translations = await ExtractEmbeddedSubtitles(chosenTrack, cancellationToken);
+            IsTranslationLoading = false;
+
+            if (translations is null)
+            {
+                return;
+            }
+
+            Translations = translations;
+        }
+        else if (result.Action == SubtitlesAction.Create)
+        {
+            await GenerateTranslation(cancellationToken);
+        }
+    }
+
+    [RelayCommand]
+    public async Task ShowAdditionalOptions()
+    {
+        var userChoise = await _builtInDialogService.DisplayActionSheet(
+            "Additonal options",
+            "Cancel",
+            null,
+            "Export subtitles as .srt",
+            "Export translation as .srt",
+            "Import subtitles (.srt)",
+            "Import translation (.srt)"
+        );
+
+        Result actionResult;
+
+        if (userChoise == "Export subtitles as .srt")
+        {
+            actionResult = await ExportToSrt();
+        }
+        else if (userChoise == "Export translation as .srt")
+        {
+            actionResult = await ExportTranslationToSrt();
+        }
+        else if (userChoise == "Import subtitles (.srt)")
+        {
+            actionResult = await ImportSrt();
+        }
+        else if (userChoise == "Import translation (.srt)")
+        {
+            actionResult = await ImportTranslationSrt();
+        }
+        else
+        {
+            return;
+        }
+
+        if (actionResult.IsFailure && actionResult.Error.Code == ErrorCode.OperationCancelled)
+        {
+            return;
+        }
+        else if (actionResult.IsFailure)
+        {
+            await _builtInDialogService.DisplayError(actionResult.Error);
+            return;
+        }
+    }
+
+    #endregion
+
+    #region public methods
+
+    public async Task LoadSubtitlesFromCache()
+    {
+        IsTranscriptionLoading = true;
+
+        if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
+        {
+            _logger.LogError("Cannot load subtitles from cache: no file name is specified");
+        }
+        else
+        {
+            await ApplySubtitlesAction(SubtitlesAction.RestoreCached);
+        }
+
+        IsTranscriptionLoading = false;
+    }
+
+    public async Task LoadTranslationsFromCache()
+    {
+        IsTranslationLoading = true;
+
+        if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
+        {
+            _logger.LogError("Cannot load translations from cache: no file name is specified");
+        }
+        else
+        {
+            await ApplyTranslationsAction(SubtitlesAction.RestoreCached);
+        }
+
+        IsTranslationLoading = false;
+    }
+    #endregion
+
+    private async Task<ObservableCollection<VisualSubtitle>?> ExtractEmbeddedSubtitles(
+        MediaTrack subtitlesTrack,
+        CancellationToken cancellationToken
+    )
+    {
+        Result<Stream> subtitlesResult;
+
+        if (subtitlesTrack.MimeType == MimeTypeConstants.SubtitleSrt)
+        {
+            subtitlesResult = await _ffmpegService.CopySubtitlesAsync(
+                FileInfo.Uri,
+                "srt",
+                subtitlesTrack.TrackIndex,
+                cancellationToken
+            );
+        }
+        else
+        {
+            subtitlesResult = await _ffmpegService.ExtractSubtitlesAsync(
+                FileInfo.Uri,
+                "srt",
+                subtitlesTrack.TrackIndex,
+                cancellationToken
+            );
+        }
+
+        if (subtitlesResult.IsFailure)
+        {
+            await _builtInDialogService.DisplayError(subtitlesResult.Error);
+            return null;
+        }
+
+        using var streamReader = new StreamReader(subtitlesResult.Value);
+        var srtItems = SrtParser.Parse(streamReader, new SrtParserOptions { StripFormatting = true });
+        return SubtitlesMapper.ToVisualSubtitles(srtItems);
+    }
+
+    private async Task GenerateTranslation(CancellationToken cancellationToken)
     {
         var popupResult = await _popupService.ShowTranslationSettings(
             MediaDuration,
@@ -201,13 +383,13 @@ public partial class SubtitlesViewModel : ObservableObject
 
         if (totalResult.IsSuccess)
         {
-            await ApplyTranslationsAction(SubtitlesActionConstants.Save);
+            await ApplyTranslationsAction(SubtitlesAction.Save);
             IsTranslationLoading = false;
 
             return;
         }
 
-        if (totalResult.Error.Code != ErrorCode.OperationCanceled)
+        if (totalResult.Error.Code != ErrorCode.OperationCancelled)
         {
             await _builtInDialogService.DisplayError(totalResult.Error);
         }
@@ -219,133 +401,10 @@ public partial class SubtitlesViewModel : ObservableObject
         }
         else
         {
-            await ApplyTranslationsAction(SubtitlesActionConstants.Restore);
+            await ApplyTranslationsAction(SubtitlesAction.RestoreCached);
         }
 
         IsTranslationLoading = false;
-    }
-
-    [RelayCommand]
-    public async Task ShowAdditionalOptions()
-    {
-        var userChoise = await _builtInDialogService.DisplayActionSheet(
-            "Additonal options",
-            "Cancel",
-            null,
-            "Export subtitles as .srt",
-            "Export translation as .srt",
-            "Import subtitles (.srt)",
-            "Import translation (.srt)"
-        );
-
-        Result actionResult;
-
-        if (userChoise == "Export subtitles as .srt")
-        {
-            actionResult = await ExportToSrt();
-        }
-        else if (userChoise == "Export translation as .srt")
-        {
-            actionResult = await ExportTranslationToSrt();
-        }
-        else if (userChoise == "Import subtitles (.srt)")
-        {
-            actionResult = await ImportSrt();
-        }
-        else if (userChoise == "Import translation (.srt)")
-        {
-            actionResult = await ImportTranslationSrt();
-        }
-        else
-        {
-            return;
-        }
-
-        if (actionResult.IsFailure && actionResult.Error.Code == ErrorCode.OperationCanceled)
-        {
-            return;
-        }
-        else if (actionResult.IsFailure)
-        {
-            await _builtInDialogService.DisplayError(actionResult.Error);
-            return;
-        }
-    }
-
-    #endregion
-
-    #region public methods
-
-    public async Task LoadSubtitlesFromCache()
-    {
-        IsTranscriptionLoading = true;
-
-        if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
-        {
-            _logger.LogError("Cannot load subtitles from cache: no file name is specified");
-        }
-        else
-        {
-            await ApplySubtitlesAction(SubtitlesActionConstants.Restore);
-        }
-
-        IsTranscriptionLoading = false;
-    }
-
-    public async Task LoadTranslationsFromCache()
-    {
-        IsTranslationLoading = true;
-
-        if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
-        {
-            _logger.LogError("Cannot load translations from cache: no file name is specified");
-        }
-        else
-        {
-            await ApplyTranslationsAction(SubtitlesActionConstants.Restore);
-        }
-
-        IsTranslationLoading = false;
-    }
-    #endregion
-
-    private async Task ExtractEmbeddedSubtitles(CancellationToken cancellationToken)
-    {
-        var result = await _popupService.ShowActionList("Select Subtitles Track", SubtitleTracks, x => x.Name);
-
-        if (result is null)
-        {
-            return;
-        }
-
-        Stream subtitlesStream;
-
-        IsTranscriptionLoading = true;
-
-        if (result.MimeType == MimeTypeConstants.SubtitleSrt)
-        {
-            subtitlesStream = await _ffmpegService.CopySubtitlesAsync(
-                FileInfo.Uri,
-                "txt",
-                result.TrackIndex,
-                cancellationToken
-            );
-        }
-        else
-        {
-            subtitlesStream = await _ffmpegService.ExtractSubtitlesAsync(
-                FileInfo.Uri,
-                "srt",
-                result.TrackIndex,
-                cancellationToken
-            );
-        }
-
-        IsTranscriptionLoading = false;
-
-        using var streamReader = new StreamReader(subtitlesStream);
-        var srtItems = SrtParser.Parse(streamReader, new SrtParserOptions { StripFormatting = true });
-        Subtitles = SubtitlesMapper.ToVisualSubtitles(srtItems);
     }
 
     private async Task GenerateSubtitles(CancellationToken cancellationToken)
@@ -415,13 +474,13 @@ public partial class SubtitlesViewModel : ObservableObject
 
         if (totalResult.IsSuccess)
         {
-            await ApplySubtitlesAction(SubtitlesActionConstants.Save);
+            await ApplySubtitlesAction(SubtitlesAction.Save);
             IsTranscriptionLoading = false;
 
             return;
         }
 
-        if (totalResult.Error.Code != ErrorCode.OperationCanceled)
+        if (totalResult.Error.Code != ErrorCode.OperationCancelled)
         {
             await _builtInDialogService.DisplayError(totalResult.Error);
         }
@@ -433,7 +492,7 @@ public partial class SubtitlesViewModel : ObservableObject
         }
         else
         {
-            await ApplySubtitlesAction(SubtitlesActionConstants.Restore);
+            await ApplySubtitlesAction(SubtitlesAction.RestoreCached);
         }
 
         IsTranscriptionLoading = false;
@@ -485,9 +544,9 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         var options = new List<PickerItem>
         {
-            new() { Title = "Keep new (old items will be lost)", Action = SubtitlesActionConstants.Save },
-            new() { Title = "Discard new, restore old", Action = SubtitlesActionConstants.Restore },
-            new() { Title = "Keep new until the video is closed", Action = SubtitlesActionConstants.DoNothing },
+            new() { Title = "Keep new (old items will be lost)", Action = SubtitlesAction.Save },
+            new() { Title = "Discard new, restore old", Action = SubtitlesAction.RestoreCached },
+            new() { Title = "Keep new until the video is closed", Action = SubtitlesAction.DoNothing },
         };
 
         var result = await _popupService.ShowRadioButtons(
@@ -501,7 +560,7 @@ public partial class SubtitlesViewModel : ObservableObject
 
         if (result is null)
         {
-            return SubtitlesActionConstants.DoNothing;
+            return SubtitlesAction.DoNothing;
         }
         else
         {
@@ -513,14 +572,14 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         switch (action)
         {
-            case SubtitlesActionConstants.DoNothing:
+            case SubtitlesAction.DoNothing:
                 return;
 
-            case SubtitlesActionConstants.Save when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
+            case SubtitlesAction.Save when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
                 await _subtitlesCache.Save(CachedSubtitlesFile, Subtitles);
                 break;
 
-            case SubtitlesActionConstants.Restore when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
+            case SubtitlesAction.RestoreCached when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
                 var subtitles = await _subtitlesCache.Get(CachedSubtitlesFile) ?? [];
                 Subtitles = SubtitlesMapper.ToVisualSubtitles(subtitles);
                 break;
@@ -538,14 +597,14 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         switch (action)
         {
-            case SubtitlesActionConstants.DoNothing:
+            case SubtitlesAction.DoNothing:
                 return;
 
-            case SubtitlesActionConstants.Save when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
-                await _subtitlesCache.Save(CachedTranslationsFile, Subtitles);
+            case SubtitlesAction.Save when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
+                await _subtitlesCache.Save(CachedTranslationsFile, Translations);
                 break;
 
-            case SubtitlesActionConstants.Restore when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
+            case SubtitlesAction.RestoreCached when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
                 var subtitles = await _subtitlesCache.Get(CachedTranslationsFile) ?? [];
                 Translations = SubtitlesMapper.ToVisualSubtitles(subtitles);
                 break;
@@ -569,7 +628,7 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         Subtitles = SubtitlesMapper.ToVisualSubtitles(subtitlesResult.Value);
-        await ApplySubtitlesAction(SubtitlesActionConstants.Save);
+        await ApplySubtitlesAction(SubtitlesAction.Save);
 
         return Result.Success();
     }
@@ -584,7 +643,7 @@ public partial class SubtitlesViewModel : ObservableObject
         }
 
         Translations = SubtitlesMapper.ToVisualSubtitles(translationsResult.Value);
-        await ApplyTranslationsAction(SubtitlesActionConstants.Save);
+        await ApplyTranslationsAction(SubtitlesAction.Save);
 
         return Result.Success();
     }

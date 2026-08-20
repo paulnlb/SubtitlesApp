@@ -56,7 +56,7 @@ public partial class LocalFileManager
 
         if (uri is null)
         {
-            return Result.Failure(new Error(ErrorCode.OperationCanceled));
+            return Result.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
         var resolver = Platform.CurrentActivity!.ContentResolver!;
@@ -85,7 +85,7 @@ public partial class LocalFileManager
 
         if (uri is null)
         {
-            return Result.Failure(new Error(ErrorCode.OperationCanceled));
+            return Result.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
         var resolver = Platform.CurrentActivity!.ContentResolver!;

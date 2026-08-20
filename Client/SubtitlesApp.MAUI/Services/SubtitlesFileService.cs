@@ -18,7 +18,7 @@ public class SubtitlesFileService(LocalFileManager fileManager)
 
         if (fileInfo is null)
         {
-            return ListResult<Subtitle>.Failure(new Error(ErrorCode.OperationCanceled));
+            return ListResult<Subtitle>.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
         var streamResult = fileManager.GetFileStream(fileInfo.Uri);

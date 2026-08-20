@@ -127,7 +127,7 @@ public partial class WhisperTranscriptionService(
 
             if (cancellationToken.IsCancellationRequested)
             {
-                yield return Result<Subtitle>.Failure(new Error(ErrorCode.OperationCanceled));
+                yield return Result<Subtitle>.Failure(new Error(ErrorCode.OperationCancelled));
                 yield break;
             }
         }
