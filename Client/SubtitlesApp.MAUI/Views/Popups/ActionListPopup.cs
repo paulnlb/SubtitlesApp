@@ -40,7 +40,7 @@ public partial class ActionListPopup<T> : Popup<T>
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
             var buttonStyle = (Style?)Application.Current?.Resources["TransparentButton"];
-            var button = new LeftAlignedButton { Style = buttonStyle };
+            var button = new LeftAlignedButton { Style = buttonStyle, Padding = new Thickness(2, 15) };
 
             button.SetBinding(
                 LeftAlignedButton.TextProperty,
@@ -53,8 +53,6 @@ public partial class ActionListPopup<T> : Popup<T>
 
             return button;
         });
-
-        collectionView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical) { ItemSpacing = 10 };
 
         var grid = new Grid { description, collectionView };
 

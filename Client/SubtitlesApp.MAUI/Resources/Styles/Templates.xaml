@@ -16,9 +16,9 @@
           Grid.Row="2"
           Padding="20, 15"
           VerticalOptions="Center"
-          MinimumWidthRequest="{Binding Source={x:RelativeSource TemplatedParent}, Path=MinimumWidthRequest}"
-          MaximumWidthRequest="{Binding Source={x:RelativeSource TemplatedParent}, Path=MaximumWidthRequest}"
-          WidthRequest="{Binding Source={x:RelativeSource TemplatedParent}, Path=WidthRequest}"
+          MinimumWidthRequest="{TemplateBinding MinimumWidthRequest}"
+          MaximumWidthRequest="{TemplateBinding MaximumWidthRequest}"
+          WidthRequest="{TemplateBinding WidthRequest}"
         />
 
         <BoxView Grid.Row="3" StyleClass="Divider" Margin="0" />
