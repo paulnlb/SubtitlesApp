@@ -304,7 +304,7 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         Result<Stream> subtitlesResult;
 
-        if (subtitlesTrack.MimeType == MimeTypeConstants.SubtitleSrt)
+        if (subtitlesTrack.MimeType == MimeTypes.SubtitleSrt)
         {
             subtitlesResult = await _ffmpegService.CopySubtitlesAsync(
                 FileInfo.Uri,
