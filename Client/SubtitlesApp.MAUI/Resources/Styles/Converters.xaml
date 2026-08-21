@@ -18,4 +18,5 @@
   <toolkit:IsStringNullOrEmptyConverter x:Key="IsStringNullOrEmptyConverter" />
   <customConverters:AllTrueConverter x:Key="AllTrueConverter" />
   <customConverters:ContainsManyConverter x:Key="ContainsManyTracksConverter" x:TypeArguments="clientModels:MediaTrack" />
+  <customConverters:AnyTrueConverter x:Key="AnyTrueConverter" />
 </ResourceDictionary>

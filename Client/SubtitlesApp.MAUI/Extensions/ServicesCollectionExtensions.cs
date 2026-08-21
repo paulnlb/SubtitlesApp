@@ -60,6 +60,7 @@ public static class ServicesCollectionExtensions
             nameof(TranscriptionSettingsPage)
         );
         services.AddTransientWithShellRoute<LogsPage, LogsPageViewModel>(nameof(LogsPage));
+        services.AddTransientWithShellRoute<SessionCachePage, SessionCacheVm>(nameof(SessionCachePage));
         #endregion
 
         #region preferences

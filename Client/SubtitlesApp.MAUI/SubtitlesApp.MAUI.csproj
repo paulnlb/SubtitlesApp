@@ -169,6 +169,9 @@
     <MauiXaml Update="Views\PlayerControls.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\SessionCachePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\SubtitleCollection.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>

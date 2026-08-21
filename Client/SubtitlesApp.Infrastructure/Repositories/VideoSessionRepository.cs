@@ -38,11 +38,14 @@ public class VideoSessionRepository(IPersistenceSettings persistenceSettings) : 
     {
         await Init();
 
-        var entity =
-            await _database.Table<VideoSessionEntity>().Where(x => x.VideoId == videoId).FirstOrDefaultAsync()
-            ?? throw new InvalidOperationException($"Item with id {videoId} does not exist");
+        await _database.DeleteAsync<VideoSessionEntity>(videoId);
+    }
 
-        await _database.DeleteAsync(entity);
+    public async Task DeleteMany(List<string> videoIds)
+    {
+        await Init();
+
+        await _database.Table<VideoSessionEntity>().DeleteAsync(x => videoIds.Contains(x.VideoId));
     }
 
     public async Task<VideoSessionDto?> Get(string videoId)
@@ -57,6 +60,29 @@ public class VideoSessionRepository(IPersistenceSettings persistenceSettings) : 
         }
 
         return VideoSessionMapper.ToDto(entity);
+    }
+
+    public async Task<List<VideoSessionDto>> GetMany(
+        DateTimeOffset? minModifiedOn = null,
+        DateTimeOffset? maxModifiedOn = null
+    )
+    {
+        await Init();
+
+        var query = _database.Table<VideoSessionEntity>();
+
+        if (minModifiedOn is not null)
+        {
+            query = query.Where(x => x.ModifiedOn >= minModifiedOn);
+        }
+        if (maxModifiedOn is not null)
+        {
+            query = query.Where(x => x.ModifiedOn <= maxModifiedOn);
+        }
+
+        var result = await query.ToListAsync();
+
+        return VideoSessionMapper.ToDtos(result).ToList();
     }
 
     public async Task Update(VideoSessionDto videoSession)

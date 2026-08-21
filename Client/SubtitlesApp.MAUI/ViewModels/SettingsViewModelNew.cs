@@ -53,7 +53,7 @@ public partial class SettingsViewModelNew : ObservableObject
             SettingsItems.Add(new SettingsItemsGroup(AppSettings.OnlineLlmTranslationGroup, [.. _geminiSettings]));
         }
 
-        AddLogsPage();
+        AddOtherSettings();
     }
 
     private void UpdateLlmProvider(string? newValue)
@@ -193,11 +193,12 @@ public partial class SettingsViewModelNew : ObservableObject
         _geminiSettings.Add(apiKeySettings);
     }
 
-    private void AddLogsPage()
+    private void AddOtherSettings()
     {
         var logsPage = new PageSettingsItem(nameof(LogsPage)) { Title = "Open App Logs" };
+        var sessionCachePage = new PageSettingsItem(nameof(SessionCachePage)) { Title = "Clear Video Session Cache" };
 
-        SettingsItems.Add(new SettingsItemsGroup(AppSettings.LogsGroup, [logsPage]));
+        SettingsItems.Add(new SettingsItemsGroup(AppSettings.OtherSettingsGroup, [logsPage, sessionCachePage]));
     }
 
     private void AddLlmProviderSettings()
