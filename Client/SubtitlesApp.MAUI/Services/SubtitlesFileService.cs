@@ -1,4 +1,5 @@
-﻿using SubtitlesApp.Core.Models;
+﻿using SubtitlesApp.Constants;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Services;
 using SubtitlesApp.Mapper;
@@ -10,10 +11,10 @@ public class SubtitlesFileService(LocalFileManager fileManager)
     public async Task<ListResult<Subtitle>> ImportSrt()
     {
         var fileInfo = await fileManager.PickFile([
-            "application/x-subrip", // Standard for Android 10 (API 29) and above
-            "application/octet-stream", // Fallback for Android 9 and below
-            "text/plain",
-            "text/srt",
+            MimeTypes.SubtitleSrt, // Standard for Android 10 (API 29) and above
+            MimeTypes.Binary, // Fallback for Android 9 and below
+            MimeTypes.PlainText,
+            MimeTypes.SubtitleTextSrt,
         ]);
 
         if (fileInfo is null)
@@ -46,6 +47,6 @@ public class SubtitlesFileService(LocalFileManager fileManager)
     {
         var srtItems = SubtitlesMapper.ToSrtItems(subtitles);
         var serialized = SrtSerializer.Serialize(srtItems);
-        return fileManager.SaveTextFile(fileName + ".srt", serialized);
+        return fileManager.SaveSrtFile(fileName + ".srt", serialized);
     }
 }

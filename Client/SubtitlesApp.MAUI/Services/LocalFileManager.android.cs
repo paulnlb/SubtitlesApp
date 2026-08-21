@@ -14,10 +14,8 @@ public partial class LocalFileManager
 {
     public async partial Task<MediaFileInfo?> PickFile(string[] mimeTypes)
     {
-        MainActivity.Instance.FilePickerActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
-        MainActivity.Instance.FilePickerLauncher?.Launch(mimeTypes);
-
-        var uri = await MainActivity.Instance.FilePickerActivityCallback.Tcs.Task;
+        var activity = (MainActivity)Platform.CurrentActivity!;
+        var uri = await activity.LaunchFilePickingActivity(mimeTypes);
 
         if (uri is null)
         {
@@ -49,17 +47,15 @@ public partial class LocalFileManager
 
     public async partial Task<Result> SaveTextFile(string fileName, string content)
     {
-        MainActivity.Instance.CreateTextFileActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
-        MainActivity.Instance.CreateTextFileLauncher?.Launch(fileName);
-
-        var uri = await MainActivity.Instance.CreateTextFileActivityCallback.Tcs.Task;
+        var activity = (MainActivity)Platform.CurrentActivity!;
+        var uri = await activity.LaunchTextFileSavingActivity(fileName);
 
         if (uri is null)
         {
             return Result.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
-        var resolver = Platform.CurrentActivity!.ContentResolver!;
+        var resolver = activity.ContentResolver!;
 
         using var stream = resolver.OpenOutputStream(uri);
 
@@ -78,17 +74,15 @@ public partial class LocalFileManager
 
     public async partial Task<Result> SaveInternalTextFile(string outputFileName, string sourcePath)
     {
-        MainActivity.Instance.CreateTextFileActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
-        MainActivity.Instance.CreateTextFileLauncher?.Launch(outputFileName);
-
-        var uri = await MainActivity.Instance.CreateTextFileActivityCallback.Tcs.Task;
+        var activity = (MainActivity)Platform.CurrentActivity!;
+        var uri = await activity.LaunchTextFileSavingActivity(outputFileName);
 
         if (uri is null)
         {
             return Result.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
-        var resolver = Platform.CurrentActivity!.ContentResolver!;
+        var resolver = activity.ContentResolver!;
 
         using var outputStream = resolver.OpenOutputStream(uri);
 
@@ -101,6 +95,33 @@ public partial class LocalFileManager
 
         using var srcStream = File.OpenRead(sourcePath);
         await srcStream.CopyToAsync(outputStream);
+
+        return Result.Success();
+    }
+
+    public async partial Task<Result> SaveSrtFile(string fileName, string content)
+    {
+        var activity = (MainActivity)Platform.CurrentActivity!;
+        var uri = await activity.LaunchSrtFileSavingActivity(fileName);
+
+        if (uri is null)
+        {
+            return Result.Failure(new Error(ErrorCode.OperationCancelled));
+        }
+
+        var resolver = activity.ContentResolver!;
+
+        using var stream = resolver.OpenOutputStream(uri);
+
+        if (stream is null)
+        {
+            return Result.Failure(
+                new Error(ErrorCode.InternalClientError, $"File stream is null for Uri: {uri.ToString()}")
+            );
+        }
+
+        using var writer = new StreamWriter(stream);
+        await writer.WriteAsync(content);
 
         return Result.Success();
     }

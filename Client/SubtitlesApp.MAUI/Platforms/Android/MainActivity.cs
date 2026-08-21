@@ -3,6 +3,7 @@ using Android.Content.PM;
 using Android.OS;
 using AndroidX.Activity.Result;
 using AndroidX.Activity.Result.Contract;
+using SubtitlesApp.Constants;
 using SubtitlesApp.Services;
 
 namespace SubtitlesApp;
@@ -21,36 +22,64 @@ namespace SubtitlesApp;
 )]
 public class MainActivity : MauiAppCompatActivity
 {
-    internal static MainActivity Instance { get; private set; }
-
-    public ActivityResultLauncher? FilePickerLauncher { get; private set; }
-    public FilePickerActivityCallback FilePickerActivityCallback { get; private set; }
-
-    public ActivityResultLauncher? CreateTextFileLauncher { get; private set; }
-    public FilePickerActivityCallback CreateTextFileActivityCallback { get; private set; }
+    private FilePickerActivityCallback _filePickerActivityCallback;
+    private ActivityResultLauncher? _filePickerLauncher;
+    private ActivityResultLauncher? _createTextFileLauncher;
+    private ActivityResultLauncher? _createSrtFileLauncher;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        Instance = this;
 
-        FilePickerActivityCallback = new FilePickerActivityCallback();
-
-        FilePickerLauncher = RegisterForActivityResult(
-            new ActivityResultContracts.OpenDocument(),
-            FilePickerActivityCallback
-        );
-
-        CreateTextFileActivityCallback = new FilePickerActivityCallback();
-
-        CreateTextFileLauncher = RegisterForActivityResult(
-            new ActivityResultContracts.CreateDocument("text/plain"),
-            CreateTextFileActivityCallback
-        );
+        RegisterForActivityResults();
     }
 
     public void ChangeOrientation(bool toLandscape)
     {
         RequestedOrientation = toLandscape ? ScreenOrientation.SensorLandscape : ScreenOrientation.Unspecified;
+    }
+
+    public Task<Android.Net.Uri?> LaunchTextFileSavingActivity(string fileName)
+    {
+        _filePickerActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
+        _createTextFileLauncher?.Launch(fileName);
+
+        return _filePickerActivityCallback.Tcs.Task;
+    }
+
+    public Task<Android.Net.Uri?> LaunchSrtFileSavingActivity(string fileName)
+    {
+        _filePickerActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
+        _createSrtFileLauncher?.Launch(fileName);
+
+        return _filePickerActivityCallback.Tcs.Task;
+    }
+
+    public Task<Android.Net.Uri?> LaunchFilePickingActivity(string[] mimeTypes)
+    {
+        _filePickerActivityCallback.Tcs = new TaskCompletionSource<Android.Net.Uri?>();
+        _filePickerLauncher?.Launch(mimeTypes);
+
+        return _filePickerActivityCallback.Tcs.Task;
+    }
+
+    private void RegisterForActivityResults()
+    {
+        _filePickerActivityCallback = new FilePickerActivityCallback();
+
+        _filePickerLauncher = RegisterForActivityResult(
+            new ActivityResultContracts.OpenDocument(),
+            _filePickerActivityCallback
+        );
+
+        _createTextFileLauncher = RegisterForActivityResult(
+            new ActivityResultContracts.CreateDocument(MimeTypes.PlainText),
+            _filePickerActivityCallback
+        );
+
+        _createSrtFileLauncher = RegisterForActivityResult(
+            new ActivityResultContracts.CreateDocument(MimeTypes.SubtitleSrt),
+            _filePickerActivityCallback
+        );
     }
 }
