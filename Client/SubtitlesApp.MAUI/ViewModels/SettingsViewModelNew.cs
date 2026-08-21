@@ -46,11 +46,11 @@ public partial class SettingsViewModelNew : ObservableObject
 
         if (llmClientSettings.LlmProvider == LlmProviderConstants.OpenAi)
         {
-            SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.OnlineLlmTranslationGroup, [.. _openAiSettings]));
+            SettingsItems.Add(new SettingsItemsGroup(AppSettings.OnlineLlmTranslationGroup, [.. _openAiSettings]));
         }
         else if (llmClientSettings.LlmProvider == LlmProviderConstants.Gemini)
         {
-            SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.OnlineLlmTranslationGroup, [.. _geminiSettings]));
+            SettingsItems.Add(new SettingsItemsGroup(AppSettings.OnlineLlmTranslationGroup, [.. _geminiSettings]));
         }
 
         AddLogsPage();
@@ -58,7 +58,7 @@ public partial class SettingsViewModelNew : ObservableObject
 
     private void UpdateLlmProvider(string? newValue)
     {
-        var group = SettingsItems.Single(x => x.Name == AppSettingsConstants.OnlineLlmTranslationGroup);
+        var group = SettingsItems.Single(x => x.Name == AppSettings.OnlineLlmTranslationGroup);
 
         if (newValue == LlmProviderConstants.OpenAi)
         {
@@ -123,7 +123,7 @@ public partial class SettingsViewModelNew : ObservableObject
 
         SettingsItems.Add(
             new SettingsItemsGroup(
-                AppSettingsConstants.OnlineTranscriptionGroup,
+                AppSettings.OnlineTranscriptionGroup,
                 [modelSettings, apiKeySettings, endpointSettings, advancedSettings]
             )
         );
@@ -197,7 +197,7 @@ public partial class SettingsViewModelNew : ObservableObject
     {
         var logsPage = new PageSettingsItem(nameof(LogsPage)) { Title = "Open App Logs" };
 
-        SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.LogsGroup, [logsPage]));
+        SettingsItems.Add(new SettingsItemsGroup(AppSettings.LogsGroup, [logsPage]));
     }
 
     private void AddLlmProviderSettings()
@@ -213,6 +213,6 @@ public partial class SettingsViewModelNew : ObservableObject
             AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
         };
 
-        SettingsItems.Add(new SettingsItemsGroup(AppSettingsConstants.LlmTranslationGroup, [llmProviderSettings]));
+        SettingsItems.Add(new SettingsItemsGroup(AppSettings.LlmTranslationGroup, [llmProviderSettings]));
     }
 }

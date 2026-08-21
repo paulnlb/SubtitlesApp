@@ -1,6 +1,6 @@
 ﻿namespace SubtitlesApp.Constants;
 
-public static class AppSettingsConstants
+public static class AppSettings
 {
     public const string LlmTranslationGroup = "LLM Translation";
     public const string OnlineLlmTranslationGroup = "Online LLM Translation";

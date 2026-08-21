@@ -92,7 +92,7 @@ public static class ServicesCollectionExtensions
 
     public static void AddAppLogging(this IServiceCollection services)
     {
-        Directory.CreateDirectory(Path.Combine(FileSystem.Current.AppDataDirectory, FileConstants.LogsDir));
+        Directory.CreateDirectory(Path.Combine(FileSystem.Current.AppDataDirectory, FileNames.LogsDir));
 
 #if DEBUG
         var logConfig = new LoggerConfiguration().MinimumLevel.Verbose();
@@ -104,7 +104,7 @@ public static class ServicesCollectionExtensions
         services.AddSerilog(
             logConfig
                 .WriteTo.File(
-                    Path.Combine(FileSystem.Current.AppDataDirectory, FileConstants.LogsDir, FileConstants.LogsFile),
+                    Path.Combine(FileSystem.Current.AppDataDirectory, FileNames.LogsDir, FileNames.LogsFile),
                     rollingInterval: RollingInterval.Day,
                     fileSizeLimitBytes: 10000000,
                     retainedFileCountLimit: 7,

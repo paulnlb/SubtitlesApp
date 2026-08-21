@@ -52,15 +52,15 @@ public partial class MainPageViewModel : ObservableObject
     {
         var actions = new List<PickerItem>
         {
-            new() { Title = "Remote File", Action = FileActionConstants.LoadRemote },
-            new() { Title = "Local File", Action = FileActionConstants.LoadLocal },
+            new() { Title = "Remote File", Action = FileActions.LoadRemote },
+            new() { Title = "Local File", Action = FileActions.LoadLocal },
         };
 
         var result = await _popupService.ShowActionList("Choose a Source", actions, x => x.Title);
 
         switch (result?.Action)
         {
-            case FileActionConstants.LoadRemote:
+            case FileActions.LoadRemote:
 
                 var url = await _popupService.ShowUrlEntry();
 
@@ -78,7 +78,7 @@ public partial class MainPageViewModel : ObservableObject
 
                 break;
 
-            case FileActionConstants.LoadLocal:
+            case FileActions.LoadLocal:
 
                 var localInfo = await _localFileManager.PickFile([MimeTypes.AnyVideo, MimeTypes.AnyAudio]);
 

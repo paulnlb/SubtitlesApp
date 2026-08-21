@@ -72,7 +72,7 @@ public class TranscriptionSettingsVm : ObservableObject
 
         SettingsItems.Add(
             new SettingsItemsGroup(
-                AppSettingsConstants.TranscriptionChunkingGroup,
+                AppSettings.TranscriptionChunkingGroup,
                 [chunkLengthSettings, lastSubtitlesAsPrompt, chunkOverlapSettings]
             )
         );
@@ -116,7 +116,7 @@ public class TranscriptionSettingsVm : ObservableObject
 
         SettingsItems.Add(
             new SettingsItemsGroup(
-                AppSettingsConstants.WhisperSegmentThresholds,
+                AppSettings.WhisperSegmentThresholds,
                 [noSpeechProbSettings, avgLogProbSettings, compesRatioSettings]
             )
         );

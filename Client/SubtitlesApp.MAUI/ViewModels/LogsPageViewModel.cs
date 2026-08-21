@@ -27,7 +27,7 @@ public partial class LogsPageViewModel : ObservableObject
 
     public LogsPageViewModel(IBuiltInDialogService dialogService, LocalFileManager localFileManager)
     {
-        _basePath = Path.Combine(FileSystem.Current.AppDataDirectory, FileConstants.LogsDir);
+        _basePath = Path.Combine(FileSystem.Current.AppDataDirectory, FileNames.LogsDir);
         _dialogService = dialogService;
         _localFileManager = localFileManager;
 
