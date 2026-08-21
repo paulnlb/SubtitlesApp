@@ -26,7 +26,7 @@ public class FloatEntrySettingsItem : VirtualSettingsItem<float?>
 
         if (_valueAsSubtitle)
         {
-            SubTitle = GetValue().ToString();
+            SubTitle = GetValue()?.ToString();
         }
     }
 

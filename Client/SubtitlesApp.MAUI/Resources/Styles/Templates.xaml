@@ -60,27 +60,32 @@
         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="0" Padding="15">
           <BindableLayout.ItemTemplate>
             <DataTemplate x:DataType="settingsItems:SettingsItem">
-              <VerticalStackLayout
+              <Grid
+                RowDefinitions="*, Auto"
                 Padding="0, 10"
                 IsEnabled="{Binding EditValueCommand.IsRunning, Converter={x:StaticResource InvertedBoolConverter}}"
+                MinimumHeightRequest="58"
               >
-                <VerticalStackLayout.GestureRecognizers>
+                <Grid.GestureRecognizers>
                   <TapGestureRecognizer Command="{Binding EditValueCommand}" CommandParameter="{Binding .}" />
-                </VerticalStackLayout.GestureRecognizers>
+                </Grid.GestureRecognizers>
                 <Label
+                  Grid.Row="0"
+                  VerticalOptions="Center"
                   Text="{Binding Title}"
                   FontSize="15"
                   FontAttributes="None"
                   TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource LightTextPrimary}}"
                 />
                 <Label
+                  Grid.Row="1"
                   IsVisible="{Binding SubTitle, Converter={x:StaticResource IsNotNullConverter}}"
                   Text="{Binding SubTitle}"
                   FontAttributes="None"
                   TextColor="{AppThemeBinding Light={StaticResource Gray}, Dark={StaticResource LightTextSecondary}}"
                   FontSize="13"
                 />
-              </VerticalStackLayout>
+              </Grid>
             </DataTemplate>
           </BindableLayout.ItemTemplate>
         </VerticalStackLayout>

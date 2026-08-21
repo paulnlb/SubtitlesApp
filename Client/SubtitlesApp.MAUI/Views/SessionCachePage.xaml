@@ -7,6 +7,7 @@
   Title="Clear Video Session Cache"
   x:DataType="viewModels:SessionCacheVm"
   Padding="20"
+  SafeAreaEdges="Container"
 >
   <ContentPage.Resources>
     <Style Class="TopMarginBig" TargetType="View" ApplyToDerivedTypes="True">
@@ -19,7 +20,7 @@
       <Setter Property="IsVisible" Value="{Binding IsCustom}" />
     </Style>
   </ContentPage.Resources>
-  <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*,*">
+  <Grid RowDefinitions="Auto, Auto, Auto, *" ColumnDefinitions="*,*">
     <Label Grid.Row="0" Grid.Column="0" Text="Period of Time" VerticalOptions="Center" TextColor="LightGray" />
     <Picker
       Grid.Row="0"
@@ -41,6 +42,7 @@
       Text="Clear Cache"
       Command="{Binding ClearCacheCommand}"
       StyleClass="TopMarginBig"
+      VerticalOptions="End"
     >
       <Button.IsEnabled>
         <MultiBinding Converter="{StaticResource AnyTrueConverter}">
