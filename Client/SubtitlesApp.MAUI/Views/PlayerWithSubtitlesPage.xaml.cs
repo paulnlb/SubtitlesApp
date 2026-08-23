@@ -8,7 +8,6 @@ using SubtitlesApp.Core.Result;
 using SubtitlesApp.Helpers;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Layouts;
-using SubtitlesApp.Services;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
 
@@ -39,11 +38,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         set => SetValue(LayoutSettingsProperty, value);
     }
 
-    public PlayerWithSubtitlesPage(
-        PlayerWithSubtitlesViewModel vm,
-        IBuiltInDialogService builtInDialogService,
-        LocalFileManager localFileManager
-    )
+    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm, IBuiltInDialogService builtInDialogService)
     {
         InitializeComponent();
 
@@ -58,9 +53,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         vm.PropertyChanged += OnVmPropertyChanged;
         vm.SeekRequested += OnSeekRequested;
-        mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
-        adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
-        mauiMediaElement.MediaFailed += OnMediaFailed;
 
         mauiMediaElement.SetBinding(
             MediaElement.DurationProperty,
@@ -88,11 +80,8 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.Stop();
         mauiMediaElement.Dispose();
         mauiMediaElement.Handler?.DisconnectHandler();
-        mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
-        mauiMediaElement.MediaFailed -= OnMediaFailed;
         playerControls.Dispose();
         subtitlesView.Dispose();
-        adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
     }
 
     protected override bool OnBackButtonPressed()

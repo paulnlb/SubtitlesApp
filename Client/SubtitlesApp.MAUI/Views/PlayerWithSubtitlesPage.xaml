@@ -44,6 +44,7 @@
       ZIndex="0"
       AbsoluteLayout.LayoutBounds="0,0,1,1"
       AbsoluteLayout.LayoutFlags="SizeProportional"
+      PropertyChanged="OnLayoutPropertyChanged"
     >
       <customControls:ExtendedMediaElement
         x:Name="mauiMediaElement"
@@ -53,6 +54,8 @@
         HorizontalOptions="Center"
         AudioTracks="{Binding SubtitlesVm.AudioTracks}"
         SubtitleTracks="{Binding SubtitlesVm.SubtitleTracks}"
+        MediaFailed="OnMediaFailed"
+        PropertyChanged="OnMediaPlayerPropertyChanged"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerHorizontalLength, Mode=TwoWay}"
       >
