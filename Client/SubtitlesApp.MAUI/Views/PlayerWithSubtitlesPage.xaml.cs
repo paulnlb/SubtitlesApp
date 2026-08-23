@@ -23,6 +23,9 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private readonly LayoutSettings _expandedLayoutSettings;
     private readonly IBuiltInDialogService _builtInDialogService;
 
+    private CancellationTokenSource? _playerHideCts;
+    private readonly TimeSpan _playerHideDelay = TimeSpan.FromSeconds(3);
+
     private PlayerWithSubtitlesViewModel Vm => (PlayerWithSubtitlesViewModel)BindingContext;
 
     private static readonly BindableProperty LayoutSettingsProperty = BindableProperty.Create(
@@ -155,6 +158,32 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
+    private void OnPlayerStateChanged(object? sender, MediaStateChangedEventArgs e)
+    {
+        if (e.NewState == MediaElementState.Playing)
+        {
+            StartPlayerHideTimer();
+        }
+        else
+        {
+            CancelPlayerHideTimer();
+        }
+    }
+
+    private void OnPlayerTapped(object? sender, TappedEventArgs e)
+    {
+        playerControls.PlayerControlsVisible = !playerControls.PlayerControlsVisible;
+
+        if (playerControls.PlayerControlsVisible)
+        {
+            StartPlayerHideTimer();
+        }
+        else
+        {
+            CancelPlayerHideTimer();
+        }
+    }
+
     #region helper methods
 
     private void RecalculateVerticalLayout(double videoHeightPx, double videoWidthPx)
@@ -205,6 +234,40 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             adaptiveLayout.SafeAreaEdges =
             this.SafeAreaEdges =
                 new SafeAreaEdges(SafeAreaRegions.Container);
+    }
+
+    private void StartPlayerHideTimer()
+    {
+        CancelPlayerHideTimer();
+
+        _playerHideCts = new CancellationTokenSource();
+        var token = _playerHideCts.Token;
+
+        _ = HideAfterDelayAsync(token);
+    }
+
+    private async Task HideAfterDelayAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(_playerHideDelay, token);
+
+            if (!token.IsCancellationRequested)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    playerControls.PlayerControlsVisible = false;
+                });
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void CancelPlayerHideTimer()
+    {
+        _playerHideCts?.Cancel();
+        _playerHideCts?.Dispose();
+        _playerHideCts = null;
     }
 
     #endregion

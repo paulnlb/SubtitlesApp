@@ -26,6 +26,7 @@
     >
       <views:PlayerControls.GestureRecognizers>
         <PanGestureRecognizer x:Name="playerControlsGestureRecognizer" PanUpdated="HandlePanGesture" />
+        <TapGestureRecognizer Tapped="OnPlayerTapped" />
       </views:PlayerControls.GestureRecognizers>
       <AbsoluteLayout.LayoutBounds>
         <MultiBinding Converter="{StaticResource SizeAndOrientationConverter}">
@@ -56,6 +57,7 @@
         SubtitleTracks="{Binding SubtitlesVm.SubtitleTracks}"
         MediaFailed="OnMediaFailed"
         PropertyChanged="OnMediaPlayerPropertyChanged"
+        StateChanged="OnPlayerStateChanged"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerHorizontalLength, Mode=TwoWay}"
       >

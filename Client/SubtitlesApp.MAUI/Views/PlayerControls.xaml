@@ -8,9 +8,6 @@
   x:DataType="views:PlayerControls"
   x:Name="root"
 >
-  <ContentView.GestureRecognizers>
-    <TapGestureRecognizer Tapped="OnViewTapped" />
-  </ContentView.GestureRecognizers>
   <Grid
     BindingContext="{x:Reference root}"
     x:Name="controls"

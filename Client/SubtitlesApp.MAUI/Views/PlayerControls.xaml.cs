@@ -271,10 +271,5 @@ public partial class PlayerControls : ContentView, IDisposable
         MauiMediaElement.SelectAudioTrack(result.TrackIndex);
     }
 
-    private void OnViewTapped(object? sender, TappedEventArgs e)
-    {
-        PlayerControlsVisible = !PlayerControlsVisible;
-    }
-
     #endregion
 }
