@@ -155,7 +155,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
             IsTranscriptionLoading = true;
             var subtitles = await ExtractEmbeddedSubtitles(chosenTrack, cancellationToken);
-            IsTranscriptionLoading = false;
 
             if (subtitles is null)
             {
@@ -163,6 +162,9 @@ public partial class SubtitlesViewModel : ObservableObject
             }
 
             Subtitles = subtitles;
+
+            await ApplySubtitlesAction(SubtitlesActions.SaveToCache);
+            IsTranscriptionLoading = false;
         }
         else if (result.Action == SubtitlesActions.Create)
         {
@@ -202,7 +204,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
             IsTranslationLoading = true;
             var translations = await ExtractEmbeddedSubtitles(chosenTrack, cancellationToken);
-            IsTranslationLoading = false;
 
             if (translations is null)
             {
@@ -210,6 +211,9 @@ public partial class SubtitlesViewModel : ObservableObject
             }
 
             Translations = translations;
+
+            await ApplyTranslationsAction(SubtitlesActions.SaveToCache);
+            IsTranslationLoading = false;
         }
         else if (result.Action == SubtitlesActions.Create)
         {
