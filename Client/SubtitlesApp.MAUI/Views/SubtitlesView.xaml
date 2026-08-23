@@ -21,7 +21,6 @@
     <Style x:Key="ButtonContainerStyle" TargetType="customControls:LoadingButton">
       <Setter Property="WidthRequest" Value="40" />
       <Setter Property="HeightRequest" Value="40" />
-      <Setter Property="SpinnerColor" Value="{AppThemeBinding Dark=#FFFFFF, Light=#000000}" />
     </Style>
   </ContentView.Resources>
   <Grid x:Name="mainGrid" RowDefinitions="60, *" ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="5" Padding="5, 0">
@@ -53,8 +52,8 @@
     <Button
       Grid.Row="0"
       Grid.Column="3"
-      ImageSource="{AppThemeBinding Dark=more_vert_light.png, Light=more_vert_dark.png}"
-      Style="{StaticResource TransparentButtonStyle}"
+      ImageSource="{AppThemeBinding Dark=more_horiz_light.png, Light=more_horiz_dark.png}"
+      Style="{StaticResource ButtonStyle}"
       Command="{Binding ShowAdditionalOptionsCommand}"
     />
 

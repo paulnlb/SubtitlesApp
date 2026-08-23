@@ -182,7 +182,7 @@ public partial class SubtitlesViewModel : ObservableObject
         var actions = new List<PickerItem>
         {
             new() { Title = "Select From Embedded", Action = SubtitlesActions.GetEmbedded },
-            new() { Title = "Translate current subtitles", Action = SubtitlesActions.Create },
+            new() { Title = "Translate Current Subtitles", Action = SubtitlesActions.Create },
         };
 
         var result = await _popupService.ShowActionList("Translation", actions, x => x.Title);
@@ -222,13 +222,13 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         var pickerItems = new List<PickerItem>
         {
-            new() { Title = "Export subtitles as .srt", Action = SubtitlesActions.ExportSubtitlesSrt },
-            new() { Title = "Export translation as .srt", Action = SubtitlesActions.ExportTranslationSrt },
-            new() { Title = "Import subtitles (.srt)", Action = SubtitlesActions.ImportSubtitlesSrt },
-            new() { Title = "Import translation (.srt)", Action = SubtitlesActions.ImportTranslationSrt },
+            new() { Title = "Export Subtitles as .srt", Action = SubtitlesActions.ExportSubtitlesSrt },
+            new() { Title = "Export Translation as .srt", Action = SubtitlesActions.ExportTranslationSrt },
+            new() { Title = "Import Subtitles (.srt)", Action = SubtitlesActions.ImportSubtitlesSrt },
+            new() { Title = "Import Translation (.srt)", Action = SubtitlesActions.ImportTranslationSrt },
         };
 
-        var userChoise = await _popupService.ShowActionList("Additonal options", pickerItems, x => x.Title);
+        var userChoise = await _popupService.ShowActionList("Additonal Options", pickerItems, x => x.Title);
 
         var actionResult = Result.Success();
 

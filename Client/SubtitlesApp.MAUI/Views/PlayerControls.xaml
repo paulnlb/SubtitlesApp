@@ -56,14 +56,15 @@
     <!--Second Row 
              Button for Rewind, Play/Pause, and Forward-->
     <Button
-      ImageSource="fast_rewind_icon.png"
-      HeightRequest="43"
+      ImageSource="replay_5.png"
+      HeightRequest="45"
       Grid.Row="1"
       Grid.Column="0"
       VerticalOptions="Center"
       HorizontalOptions="End"
       BackgroundColor="#33FFFFFF"
       Clicked="OnRewindTapped"
+      Padding="10,7"
     />
 
     <Button
@@ -75,6 +76,7 @@
       HorizontalOptions="Center"
       BackgroundColor="#33FFFFFF"
       Clicked="OnPlayPauseTapped"
+      Padding="10,5"
     >
       <Button.Triggers>
         <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Paused">
@@ -102,14 +104,15 @@
     </ActivityIndicator>
 
     <Button
-      ImageSource="fast_forward_icon.png"
-      HeightRequest="43"
+      ImageSource="forward_5.png"
+      HeightRequest="45"
       Grid.Row="1"
       Grid.Column="2"
       VerticalOptions="Center"
       HorizontalOptions="Start"
       BackgroundColor="#33FFFFFF"
       Clicked="OnFastForwardTapped"
+      Padding="10,7"
     />
 
     <!--Third Row 

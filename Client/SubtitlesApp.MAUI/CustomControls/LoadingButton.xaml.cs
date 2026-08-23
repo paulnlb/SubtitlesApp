@@ -37,13 +37,6 @@ public partial class LoadingButton : ContentView
         string.Empty
     );
 
-    public static readonly BindableProperty SpinnerColorProperty = BindableProperty.Create(
-        nameof(SpinnerColor),
-        typeof(Color),
-        typeof(LoadingButton),
-        Colors.White
-    );
-
     public static readonly BindableProperty ButtonStyleProperty = BindableProperty.Create(
         nameof(ButtonStyle),
         typeof(Style),
@@ -80,12 +73,6 @@ public partial class LoadingButton : ContentView
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
-    }
-
-    public Color SpinnerColor
-    {
-        get => (Color)GetValue(SpinnerColorProperty);
-        set => SetValue(SpinnerColorProperty, value);
     }
 
     public Style ButtonStyle

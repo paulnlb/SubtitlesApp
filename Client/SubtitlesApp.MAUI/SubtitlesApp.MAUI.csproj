@@ -62,8 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Images\fast_forward_icon.png" />
-    <None Remove="Resources\Images\fast_rewind_icon.png" />
     <None Remove="Resources\Images\pause_icon.png" />
     <None Remove="Resources\Images\play_icon.png" />
   </ItemGroup>
