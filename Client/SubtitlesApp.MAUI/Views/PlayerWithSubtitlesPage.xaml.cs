@@ -24,7 +24,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private readonly IBuiltInDialogService _builtInDialogService;
 
     private CancellationTokenSource? _playerHideCts;
-    private readonly TimeSpan _playerHideDelay = TimeSpan.FromSeconds(3);
+    private readonly TimeSpan _playerHideDelay = TimeSpan.FromSeconds(2);
 
     private PlayerWithSubtitlesViewModel Vm => (PlayerWithSubtitlesViewModel)BindingContext;
 

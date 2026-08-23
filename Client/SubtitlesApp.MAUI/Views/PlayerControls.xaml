@@ -64,19 +64,19 @@
       HorizontalOptions="End"
       BackgroundColor="#33FFFFFF"
       Clicked="OnRewindTapped"
-      Padding="10,7"
+      Padding="12,8"
     />
 
     <Button
       ImageSource="play_icon.png"
-      HeightRequest="50"
+      HeightRequest="53"
       Grid.Row="1"
       Grid.Column="1"
       VerticalOptions="Center"
       HorizontalOptions="Center"
       BackgroundColor="#33FFFFFF"
       Clicked="OnPlayPauseTapped"
-      Padding="10,5"
+      Padding="12,8"
     >
       <Button.Triggers>
         <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Paused">
@@ -112,7 +112,7 @@
       HorizontalOptions="Start"
       BackgroundColor="#33FFFFFF"
       Clicked="OnFastForwardTapped"
-      Padding="10,7"
+      Padding="12,8"
     />
 
     <!--Third Row 
