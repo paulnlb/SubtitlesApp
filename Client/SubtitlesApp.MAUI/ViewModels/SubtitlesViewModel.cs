@@ -222,11 +222,25 @@ public partial class SubtitlesViewModel : ObservableObject
     {
         var pickerItems = new List<PickerItem>
         {
-            new() { Title = "Export Subtitles as .srt", Action = SubtitlesActions.ExportSubtitlesSrt },
-            new() { Title = "Export Translation as .srt", Action = SubtitlesActions.ExportTranslationSrt },
             new() { Title = "Import Subtitles (.srt)", Action = SubtitlesActions.ImportSubtitlesSrt },
             new() { Title = "Import Translation (.srt)", Action = SubtitlesActions.ImportTranslationSrt },
         };
+
+        if (Translations.Count != 0)
+        {
+            pickerItems.Insert(
+                0,
+                new() { Title = "Export Translation as .srt", Action = SubtitlesActions.ExportTranslationSrt }
+            );
+        }
+
+        if (Subtitles.Count != 0)
+        {
+            pickerItems.Insert(
+                0,
+                new() { Title = "Export Subtitles as .srt", Action = SubtitlesActions.ExportSubtitlesSrt }
+            );
+        }
 
         var userChoise = await _popupService.ShowActionList("Additonal Options", pickerItems, x => x.Title);
 
