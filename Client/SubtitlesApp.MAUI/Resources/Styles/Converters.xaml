@@ -19,4 +19,5 @@
   <customConverters:AllTrueConverter x:Key="AllTrueConverter" />
   <customConverters:ContainsManyConverter x:Key="ContainsManyTracksConverter" x:TypeArguments="clientModels:MediaTrack" />
   <customConverters:AnyTrueConverter x:Key="AnyTrueConverter" />
+  <customConverters:ContainsAnyConverter x:Key="ContainsAnyPresetConverter" x:TypeArguments="clientModels:TimePreset" />
 </ResourceDictionary>

@@ -36,6 +36,7 @@
       Orientation="Horizontal"
       HorizontalScrollBarVisibility="Never"
       VerticalScrollBarVisibility="Never"
+      IsVisible="{Binding Presets, Converter={x:StaticResource ContainsAnyPresetConverter}}"
     >
       <StackLayout
         x:Name="presetsCollection"
