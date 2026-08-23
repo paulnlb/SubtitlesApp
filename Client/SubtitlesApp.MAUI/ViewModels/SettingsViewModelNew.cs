@@ -116,7 +116,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Endpoint",
-            SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible Whisper APIs",
+            SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible Whisper API",
         };
 
         var advancedSettings = new PageSettingsItem(nameof(TranscriptionSettingsPage)) { Title = "Advanced Settings" };
@@ -159,7 +159,7 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "Endpoint",
-            SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible LLM APIs",
+            SubTitle = "Set endpoint to use third-party/self-hosted OpenAi-compatible LLM API",
         };
 
         _openAiSettings.Add(modelSettings);
@@ -211,7 +211,11 @@ public partial class SettingsViewModelNew : ObservableObject
         )
         {
             Title = "LLM Provider",
-            AllValues = [LlmProviderConstants.OpenAi, LlmProviderConstants.Gemini],
+            AllValues =
+            [
+                new() { Title = "OpenAi/OpenAi-compatible API", Action = LlmProviderConstants.OpenAi },
+                new() { Title = "Gemini", Action = LlmProviderConstants.Gemini },
+            ],
         };
 
         SettingsItems.Add(new SettingsItemsGroup(AppSettings.LlmTranslationGroup, [llmProviderSettings]));
