@@ -66,8 +66,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             MediaElement.DurationProperty,
             new Binding(nameof(vm.SubtitlesVm.MediaDuration), BindingMode.OneWayToSource, source: vm.SubtitlesVm)
         );
-
-        SubscribeToGestures();
     }
 
     private async void OnMediaFailed(object? sender, MediaFailedEventArgs e)
@@ -94,8 +92,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         mauiMediaElement.MediaFailed -= OnMediaFailed;
         playerControls.Dispose();
         subtitlesView.Dispose();
-        playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
-        subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
         adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
     }
 
@@ -204,12 +200,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         {
             CurrentLayoutSettings.CopyFrom(_expandedLayoutSettings);
         }
-    }
-
-    private void SubscribeToGestures()
-    {
-        subtitlesGestureRecognizer.PanUpdated += HandlePanGesture;
-        playerControlsGestureRecognizer.PanUpdated += HandlePanGesture;
     }
 
     private void ImmersiveOn()
