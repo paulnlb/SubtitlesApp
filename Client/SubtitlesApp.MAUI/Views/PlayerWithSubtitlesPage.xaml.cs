@@ -174,7 +174,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     {
         playerControls.PlayerControlsVisible = !playerControls.PlayerControlsVisible;
 
-        if (playerControls.PlayerControlsVisible)
+        if (playerControls.PlayerControlsVisible && mauiMediaElement.CurrentState == MediaElementState.Playing)
         {
             StartPlayerHideTimer();
         }
