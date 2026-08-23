@@ -21,15 +21,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     #region observable properties
 
     [ObservableProperty]
-    private bool _playerControlsVisible;
-
-    [ObservableProperty]
-    private bool _isImmersiveOn;
-
-    [ObservableProperty]
-    private bool _isFullScreenOn;
-
-    [ObservableProperty]
     private SubtitlesViewModel _subtitlesVm;
 
     [ObservableProperty]
@@ -42,7 +33,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     public PlayerWithSubtitlesViewModel(SubtitlesViewModel captionsViewModel, IVideoSessionRepository videoSessionRepository)
     {
         _videoSessionRepository = videoSessionRepository;
-        PlayerControlsVisible = true;
         SubtitlesVm = captionsViewModel;
         StartRefreshingSession();
     }
@@ -67,12 +57,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
 
             await _videoSessionRepository.Update(_session);
         }
-    }
-
-    [RelayCommand]
-    public void TogglePlayerControlsVisibility()
-    {
-        PlayerControlsVisible = !PlayerControlsVisible;
     }
 
     [RelayCommand]
@@ -116,17 +100,6 @@ public partial class PlayerWithSubtitlesViewModel : ObservableObject, IQueryAttr
     public void StopRefreshingSession()
     {
         _shouldRefreshPosition = false;
-    }
-
-    partial void OnIsFullScreenOnChanged(bool value)
-    {
-        IsImmersiveOn = value;
-        PlayerControlsVisible = false;
-    }
-
-    partial void OnIsImmersiveOnChanged(bool value)
-    {
-        PlayerControlsVisible = false;
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)

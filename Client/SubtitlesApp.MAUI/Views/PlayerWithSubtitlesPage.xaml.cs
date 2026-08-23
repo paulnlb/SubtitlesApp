@@ -132,25 +132,41 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Vm.IsImmersiveOn))
-        {
-            if (Vm.IsImmersiveOn)
-            {
-                ImmersiveOn();
-            }
-            else
-            {
-                ImmersiveOff();
-            }
-        }
-        else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
-        {
-            ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
-        }
-        else if (e.PropertyName == nameof(Vm.FileInfo) && Vm.FileInfo is not null)
+        if (e.PropertyName == nameof(Vm.FileInfo) && Vm.FileInfo is not null)
         {
             mauiMediaElement.Source = MediaSource.FromUri(Vm.FileInfo.Uri);
             playerControls.Title = Vm.FileInfo.Name;
+        }
+    }
+
+    private void OnFullScreenToggled(object? sender, StateBtnEventArgs e)
+    {
+        ScreenStateHelper.ChangeOrientation(e.IsToggled);
+
+        playerControls.PlayerControlsVisible = false;
+        playerControls.IsImmersiveOn = e.IsToggled;
+
+        if (e.IsToggled)
+        {
+            ImmersiveOn();
+        }
+        else
+        {
+            ImmersiveOff();
+        }
+    }
+
+    private void OnImmersiveModeToggled(object? sender, StateBtnEventArgs e)
+    {
+        playerControls.PlayerControlsVisible = false;
+
+        if (e.IsToggled)
+        {
+            ImmersiveOn();
+        }
+        else
+        {
+            ImmersiveOff();
         }
     }
 
@@ -229,10 +245,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 panGestureState = new() { Id = e.GestureId, Locked = true };
 
-                if (BindingContext is PlayerWithSubtitlesViewModel vm)
-                {
-                    vm.PlayerControlsVisible = false;
-                }
+                playerControls.PlayerControlsVisible = false;
 
                 RefreshLayoutStates();
 
