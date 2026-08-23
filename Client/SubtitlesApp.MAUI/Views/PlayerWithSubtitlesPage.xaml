@@ -25,7 +25,7 @@
       FullScreenToggled="OnFullScreenToggled"
     >
       <views:PlayerControls.GestureRecognizers>
-        <PanGestureRecognizer x:Name="playerControlsGestureRecognizer" PanUpdated="HandlePanGesture" />
+        <PanGestureRecognizer PanUpdated="HandlePanGesture" />
         <TapGestureRecognizer Tapped="OnPlayerTapped" />
       </views:PlayerControls.GestureRecognizers>
       <AbsoluteLayout.LayoutBounds>
@@ -85,7 +85,7 @@
         BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
       >
         <views:SubtitlesView.GestureRecognizers>
-          <PanGestureRecognizer x:Name="subtitlesGestureRecognizer" PanUpdated="HandlePanGesture" />
+          <PanGestureRecognizer PanUpdated="HandlePanGesture" />
         </views:SubtitlesView.GestureRecognizers>
       </views:SubtitlesView>
     </layouts:AdaptiveLayout>
