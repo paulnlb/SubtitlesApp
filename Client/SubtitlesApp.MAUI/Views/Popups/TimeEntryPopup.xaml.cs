@@ -17,6 +17,8 @@ public partial class TimeEntryPopup : Popup<TimeSpan>
 
         vm.TimeScopeChanged += OnTimeScopeChanged;
         Shell.Current.Window.SizeChanged += OnSizeChanged;
+
+        Closed += (s, e) => Shell.Current.Window.SizeChanged -= OnSizeChanged;
     }
 
     private void OnSizeChanged(object? sender, EventArgs e)
