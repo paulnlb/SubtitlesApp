@@ -5,6 +5,7 @@
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
+  xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
   x:DataType="viewModels:TimeEntryPopupVm"
   x:Class="SubtitlesApp.Views.Popups.TimeEntryPopup"
   x:TypeArguments="x:TimeSpan"
@@ -45,7 +46,7 @@
         Spacing="10"
       >
         <BindableLayout.ItemTemplate>
-          <DataTemplate>
+          <DataTemplate x:DataType="clientModels:TimePreset">
             <Button
               HeightRequest="30"
               Text="{Binding Title}"
