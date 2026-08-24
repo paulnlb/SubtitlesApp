@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.Constants;
@@ -91,7 +92,7 @@ public static class ServicesCollectionExtensions
         #endregion
     }
 
-    public static void AddAppLogging(this IServiceCollection services)
+    public static void AddAppLogging(this ILoggingBuilder loggingBuilder)
     {
         Directory.CreateDirectory(Path.Combine(FileSystem.Current.AppDataDirectory, FileNames.LogsDir));
 
@@ -102,7 +103,7 @@ public static class ServicesCollectionExtensions
         var logConfig = new LoggerConfiguration().MinimumLevel.Warning();
 #endif
 
-        services.AddSerilog(
+        loggingBuilder.AddSerilog(
             logConfig
                 .WriteTo.File(
                     Path.Combine(FileSystem.Current.AppDataDirectory, FileNames.LogsDir, FileNames.LogsFile),
@@ -111,7 +112,8 @@ public static class ServicesCollectionExtensions
                     retainedFileCountLimit: 7,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj} ({SourceContext}){NewLine}{Exception}"
                 )
-                .CreateLogger()
+                .CreateLogger(),
+            dispose: true
         );
     }
 }

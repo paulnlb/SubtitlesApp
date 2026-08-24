@@ -41,9 +41,8 @@ public static class MauiProgram
 #endif
 
         builder.AddPlatformSpecificBehavior();
-
         builder.Services.AddSubtitlesAppServices();
-        builder.Services.AddAppLogging();
+        builder.Logging.AddAppLogging();
 
         var app = builder.Build();
 
@@ -59,16 +58,12 @@ public static class MauiProgram
             if (args.ExceptionObject is Exception ex)
             {
                 logger.LogCritical(ex, "Unhandled AppDomain exception occurred.");
-                Serilog.Log.CloseAndFlush();
             }
         };
 
         TaskScheduler.UnobservedTaskException += (sender, args) =>
         {
             logger.LogError(args.Exception, "Unobserved Task exception occurred.");
-
-            // Prevents the application from escalating the error and crashing
-            args.SetObserved();
         };
     }
 }
