@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8" ?>
-
-
 <ContentPage
   xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -8,7 +6,6 @@
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
   xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
-  xmlns:converters="clr-namespace:SubtitlesApp.Converters"
   xmlns:layouts="clr-namespace:SubtitlesApp.Layouts"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   Shell.NavBarIsVisible="false"
@@ -17,27 +14,20 @@
   x:Name="playerSubtitlesPage"
   SafeAreaEdges="Container"
 >
-  <ContentPage.Resources>
-    <ResourceDictionary>
-      <converters:SizeAndOrientationConverter x:Key="SizeAndOrientationConverter" />
-    </ResourceDictionary>
-  </ContentPage.Resources>
-
   <AbsoluteLayout x:Name="absoluteLayout">
     <!--Player controls overlay-->
-    <customControls:PlayerControls
+    <views:PlayerControls
       x:Name="playerControls"
       MauiMediaElement="{x:Reference mauiMediaElement}"
-      PlayerControlsVisible="{Binding PlayerControlsVisible}"
-      IsFullScreenOn="{Binding IsFullScreenOn, Mode=TwoWay}"
-      IsImmersiveOn="{Binding IsImmersiveOn, Mode=TwoWay}"
       ZIndex="1"
       AbsoluteLayout.LayoutFlags="SizeProportional"
+      ImmersiveModeToggled="OnImmersiveModeToggled"
+      FullScreenToggled="OnFullScreenToggled"
     >
-      <customControls:PlayerControls.GestureRecognizers>
-        <TapGestureRecognizer Command="{Binding TogglePlayerControlsVisibilityCommand}" />
-        <PanGestureRecognizer x:Name="playerControlsGestureRecognizer" />
-      </customControls:PlayerControls.GestureRecognizers>
+      <views:PlayerControls.GestureRecognizers>
+        <PanGestureRecognizer PanUpdated="HandlePanGesture" />
+        <TapGestureRecognizer Tapped="OnPlayerTapped" />
+      </views:PlayerControls.GestureRecognizers>
       <AbsoluteLayout.LayoutBounds>
         <MultiBinding Converter="{StaticResource SizeAndOrientationConverter}">
           <Binding Source="{x:Reference playerSubtitlesPage}" Path="CurrentLayoutSettings.PlayerHorizontalLength" />
@@ -45,7 +35,7 @@
           <Binding Source="{x:Reference adaptiveLayout}" Path="Orientation" />
         </MultiBinding>
       </AbsoluteLayout.LayoutBounds>
-    </customControls:PlayerControls>
+    </views:PlayerControls>
 
     <!--Main layout-->
     <layouts:AdaptiveLayout
@@ -55,14 +45,19 @@
       ZIndex="0"
       AbsoluteLayout.LayoutBounds="0,0,1,1"
       AbsoluteLayout.LayoutFlags="SizeProportional"
+      PropertyChanged="OnLayoutPropertyChanged"
     >
       <customControls:ExtendedMediaElement
         x:Name="mauiMediaElement"
-        Source="{Binding MediaPath}"
         ShouldAutoPlay="False"
         ShouldShowPlaybackControls="False"
         VerticalOptions="Center"
         HorizontalOptions="Center"
+        AudioTracks="{Binding SubtitlesVm.AudioTracks}"
+        SubtitleTracks="{Binding SubtitlesVm.SubtitleTracks}"
+        MediaFailed="OnMediaFailed"
+        PropertyChanged="OnMediaPlayerPropertyChanged"
+        StateChanged="OnPlayerStateChanged"
         layouts:AdaptiveLayout.RelativeVerticalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerVerticalLength, Mode=TwoWay}"
         layouts:AdaptiveLayout.RelativeHorizontalLength="{Binding Source={x:Reference playerSubtitlesPage}, Path=CurrentLayoutSettings.PlayerHorizontalLength, Mode=TwoWay}"
       >
@@ -90,7 +85,7 @@
         BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkBackground}}"
       >
         <views:SubtitlesView.GestureRecognizers>
-          <PanGestureRecognizer x:Name="subtitlesGestureRecognizer" />
+          <PanGestureRecognizer PanUpdated="HandlePanGesture" />
         </views:SubtitlesView.GestureRecognizers>
       </views:SubtitlesView>
     </layouts:AdaptiveLayout>

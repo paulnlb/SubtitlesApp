@@ -1,5 +1,4 @@
-﻿using SubtitlesApp.Core.DTOs;
-using SubtitlesApp.Core.Models;
+﻿using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 
 namespace SubtitlesApp.Core.Interfaces;
@@ -14,10 +13,11 @@ public interface ITranscriptionService
     /// <param name="languageCode">Language code of the language in which the media is spoken</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Result of transcription. If the result is successfull, it will contain a list of transcribed subtitles</returns>
-    IAsyncEnumerable<Result<SubtitleDto>> TranscribeAsync(
+    IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
         string mediaPath,
         TimeInterval timeInterval,
         string languageCode,
+        int audioTrackIndex = 0,
         CancellationToken cancellationToken = default
     );
 }

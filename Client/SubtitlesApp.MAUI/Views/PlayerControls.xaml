@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
+  xmlns:views="clr-namespace:SubtitlesApp.Views"
+  x:Class="SubtitlesApp.Views.PlayerControls"
+  x:DataType="views:PlayerControls"
+  x:Name="root"
+>
+  <Grid
+    BindingContext="{x:Reference root}"
+    x:Name="controls"
+    Padding="10"
+    BackgroundColor="#80000000"
+    IsVisible="{Binding PlayerControlsVisible}"
+    RowDefinitions="50, *, 30, 20"
+    RowSpacing="7"
+    ColumnDefinitions="*, *, *"
+  >
+    <Label
+      Text="{Binding Title}"
+      TextColor="White"
+      Grid.Row="0"
+      Grid.ColumnSpan="2"
+      LineBreakMode="TailTruncation"
+      VerticalOptions="Center"
+      HorizontalOptions="Start"
+      FontSize="16"
+    />
+
+    <HorizontalStackLayout Grid.Row="0" Grid.Column="3" Spacing="15" HorizontalOptions="End" VerticalOptions="Center">
+      <Button
+        x:Name="trackSelectBtn"
+        ImageSource="music_note.png"
+        WidthRequest="30"
+        HeightRequest="30"
+        Padding="3"
+        BackgroundColor="Transparent"
+        Clicked="OnAudioSelectClicked"
+        IsVisible="{Binding MauiMediaElement.AudioTracks, Converter={x:StaticResource ContainsManyTracksConverter}}"
+      />
+      <customControls:StateIconButton
+        x:Name="immersiveBtn"
+        State1Icon="expand_content.png"
+        State2Icon="collapse_content.png"
+        Clicked="OnImmersiveClicked"
+        Padding="2"
+        BackgroundColor="Transparent"
+        WidthRequest="30"
+        HeightRequest="30"
+        IsToggled="{Binding IsImmersiveOn, Mode=TwoWay}"
+      />
+    </HorizontalStackLayout>
+
+    <!--Second Row 
+             Button for Rewind, Play/Pause, and Forward-->
+    <Button
+      ImageSource="replay_5.png"
+      HeightRequest="45"
+      Grid.Row="1"
+      Grid.Column="0"
+      VerticalOptions="Center"
+      HorizontalOptions="End"
+      BackgroundColor="#33FFFFFF"
+      Clicked="OnRewindTapped"
+      Padding="12,8"
+    />
+
+    <Button
+      ImageSource="play_icon.png"
+      HeightRequest="53"
+      Grid.Row="1"
+      Grid.Column="1"
+      VerticalOptions="Center"
+      HorizontalOptions="Center"
+      BackgroundColor="#33FFFFFF"
+      Clicked="OnPlayPauseTapped"
+      Padding="12,8"
+    >
+      <Button.Triggers>
+        <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Paused">
+          <Setter Property="ImageSource" Value="play_icon.png" />
+        </DataTrigger>
+        <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Playing">
+          <Setter Property="ImageSource" Value="pause_icon.png" />
+        </DataTrigger>
+
+        <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Stopped">
+          <Setter Property="ImageSource" Value="replay.png" />
+        </DataTrigger>
+        <DataTrigger TargetType="Button" Binding="{Binding MauiMediaElement.CurrentState}" Value="Buffering">
+          <Setter Property="IsVisible" Value="False" />
+        </DataTrigger>
+      </Button.Triggers>
+    </Button>
+
+    <ActivityIndicator HeightRequest="50" Grid.Row="1" Grid.Column="1" IsRunning="False">
+      <ActivityIndicator.Triggers>
+        <DataTrigger TargetType="ActivityIndicator" Binding="{Binding MauiMediaElement.CurrentState}" Value="Buffering">
+          <Setter Property="IsRunning" Value="True" />
+        </DataTrigger>
+      </ActivityIndicator.Triggers>
+    </ActivityIndicator>
+
+    <Button
+      ImageSource="forward_5.png"
+      HeightRequest="45"
+      Grid.Row="1"
+      Grid.Column="2"
+      VerticalOptions="Center"
+      HorizontalOptions="Start"
+      BackgroundColor="#33FFFFFF"
+      Clicked="OnFastForwardTapped"
+      Padding="12,8"
+    />
+
+    <!--Third Row 
+             Time display-->
+    <Label TextColor="White" Grid.Row="2" Grid.Column="0" VerticalOptions="Center" HorizontalOptions="Start">
+      <Label.Text>
+        <MultiBinding StringFormat="{}{0}/{1}">
+          <Binding
+            Path="Value"
+            Source="{x:Reference PositionSlider}"
+            Converter="{StaticResource SecondsToStringConverter}"
+          />
+          <Binding
+            Path="Maximum"
+            Source="{x:Reference PositionSlider}"
+            Converter="{StaticResource SecondsToStringConverter}"
+          />
+        </MultiBinding>
+      </Label.Text>
+    </Label>
+
+    <customControls:StateIconButton
+      x:Name="fullscreenBtn"
+      State1Icon="fullscreen.png"
+      State2Icon="fullscreen_exit.png"
+      Clicked="OnFullScreenClicked"
+      Grid.Row="2"
+      Grid.Column="2"
+      VerticalOptions="Center"
+      HorizontalOptions="End"
+      Padding="2"
+      BackgroundColor="Transparent"
+      WidthRequest="30"
+      HeightRequest="30"
+      IsToggled="{Binding IsFullScreenOn, Mode=TwoWay}"
+    />
+
+    <!--Fourth Row
+             Seek bar-->
+    <Slider
+      x:Name="PositionSlider"
+      Grid.Row="3"
+      Grid.ColumnSpan="3"
+      MaximumTrackColor="White"
+      MinimumTrackColor="White"
+      ThumbColor="White"
+      DragStarted="OnDragStarted"
+      DragCompleted="OnDragCompleted"
+    />
+  </Grid>
+</ContentView>

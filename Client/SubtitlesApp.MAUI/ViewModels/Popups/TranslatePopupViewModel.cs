@@ -1,6 +1,8 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Services;
 using SubtitlesApp.Interfaces;
@@ -27,10 +29,7 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
     private TimeSpan _mediaDuration;
 
     [ObservableProperty]
-    private bool _isStartTimeValid;
-
-    [ObservableProperty]
-    private bool _isEndTimeValid;
+    private ObservableCollection<TimePreset> _timePresets = [];
 
     public required string SourceLanguageCode;
 
@@ -73,6 +72,8 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
             ToTime = toTime;
         }
 
+        AddTimePresets();
+
         query.Clear();
     }
 
@@ -109,6 +110,58 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         await popupService.CloseCurrentAsync();
     }
 
+    private void AddTimePresets()
+    {
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = TimeSpan.Zero,
+                Title = "Start",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Absolute,
+                Time = MediaDuration,
+                Title = "End",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromSeconds(5),
+                Title = "+5s",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromSeconds(30),
+                Title = "+30s",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromMinutes(5),
+                Title = "+5m",
+            }
+        );
+        TimePresets.Add(
+            new()
+            {
+                Type = TimePresetType.Incremental,
+                Time = TimeSpan.FromMinutes(30),
+                Title = "+30m",
+            }
+        );
+    }
+
     partial void OnFromTimeChanged(TimeSpan value)
     {
         IsTimeRangeValid = value < ToTime;
@@ -125,16 +178,6 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         ToTime = value;
     }
 
-    partial void OnIsEndTimeValidChanged(bool value)
-    {
-        IsAcceptEnabled = CanTranslate();
-    }
-
-    partial void OnIsStartTimeValidChanged(bool value)
-    {
-        IsAcceptEnabled = CanTranslate();
-    }
-
     partial void OnIsTimeRangeValidChanged(bool value)
     {
         IsAcceptEnabled = CanTranslate();
@@ -145,5 +188,5 @@ public partial class TranslatePopupViewModel(ICustomPopupService popupService, L
         IsAcceptEnabled = CanTranslate();
     }
 
-    private bool CanTranslate() => TargetLanguage is not null && IsStartTimeValid && IsEndTimeValid && IsTimeRangeValid;
+    private bool CanTranslate() => TargetLanguage is not null && IsTimeRangeValid;
 }

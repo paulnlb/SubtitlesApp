@@ -19,13 +19,13 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public async IAsyncEnumerable<Result<SubtitleDto>> TranslateAsync(
-        List<SubtitleDto> sourceSubtitles,
+    public async IAsyncEnumerable<Result<Subtitle>> TranslateAsync(
+        List<Subtitle> sourceSubtitles,
         Language targetLanguage,
         [EnumeratorCancellation] CancellationToken cancellationToken
     )
     {
-        var context = new List<SubtitleDto>();
+        var context = new List<Subtitle>();
 
         foreach (var chunk in sourceSubtitles.Chunk(settings.ChunkSize))
         {
@@ -38,7 +38,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
 
             if (translatedSubs.IsFailure)
             {
-                yield return Result<SubtitleDto>.Failure(translatedSubs.Error);
+                yield return Result<Subtitle>.Failure(translatedSubs.Error);
                 yield break;
             }
 
@@ -51,16 +51,16 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
                     yield break;
                 }
 
-                yield return Result<SubtitleDto>.Success(subtitle);
+                yield return Result<Subtitle>.Success(subtitle);
             }
         }
     }
 
     #region Private Methods
 
-    private async Task<ListResult<SubtitleDto>> TranslateAsyncInternal(
-        SubtitleDto[] sourceSubtitles,
-        List<SubtitleDto> context,
+    private async Task<ListResult<Subtitle>> TranslateAsyncInternal(
+        Subtitle[] sourceSubtitles,
+        List<Subtitle> context,
         Language targetLanguage,
         CancellationToken cancellationToken
     )
@@ -69,7 +69,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.OperationCanceled));
+            return ListResult<Subtitle>.Failure(new Error(ErrorCode.OperationCancelled));
         }
 
         var userPrompt = FormUserPrompt(targetLanguage.Name, sourceSubtitles, context);
@@ -88,7 +88,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
 
         if (llmResult.IsFailure)
         {
-            return ListResult<SubtitleDto>.Failure(llmResult.Error);
+            return ListResult<Subtitle>.Failure(llmResult.Error);
         }
 
         var llmSubtitles = llmResult.Value.Items;
@@ -96,15 +96,15 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
 
         if (!isTranlationValid)
         {
-            return ListResult<SubtitleDto>.Failure(new Error(ErrorCode.InvalidLlmTranslation));
+            return ListResult<Subtitle>.Failure(new Error(ErrorCode.InvalidLlmTranslation));
         }
 
         var translatedSubs = MapTranslationsToSubs(targetLanguage.Code, llmSubtitles, sourceSubtitles);
 
-        return ListResult<SubtitleDto>.Success(translatedSubs);
+        return ListResult<Subtitle>.Success(translatedSubs);
     }
 
-    private static string FormUserPrompt(string targetLang, SubtitleDto[] sourceSubs, List<SubtitleDto> context)
+    private static string FormUserPrompt(string targetLang, Subtitle[] sourceSubs, List<Subtitle> context)
     {
         int id = 1;
         var llmSubsList = new LlmSubtitleListDto { Items = [] };
@@ -135,13 +135,13 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         }
     }
 
-    private static List<SubtitleDto> MapTranslationsToSubs(
+    private static List<Subtitle> MapTranslationsToSubs(
         string targetLangCode,
         List<LlmSubtitleDto> llmSubtitles,
-        SubtitleDto[] sourceSubs
+        Subtitle[] sourceSubs
     )
     {
-        List<SubtitleDto> results = [];
+        List<Subtitle> results = [];
 
         foreach (var (srcSub, llmSub) in sourceSubs.Zip(llmSubtitles))
         {
@@ -150,8 +150,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
                 {
                     LanguageCode = targetLangCode,
                     Text = llmSub.Text,
-                    StartTime = srcSub.StartTime,
-                    EndTime = srcSub.EndTime,
+                    TimeInterval = srcSub.TimeInterval,
                 }
             );
         }
@@ -172,7 +171,7 @@ public class LlmTranslationService(ILlmTranslationSettings settings, ILlmClient 
         return true;
     }
 
-    private static void UpdateContext(List<SubtitleDto> context, SubtitleDto[] sourceSubtitles)
+    private static void UpdateContext(List<Subtitle> context, Subtitle[] sourceSubtitles)
     {
         context.Clear();
 

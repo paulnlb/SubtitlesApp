@@ -9,7 +9,7 @@ public abstract partial class SettingsItem : ObservableObject
     public string _title = string.Empty;
 
     [ObservableProperty]
-    private string? _subTitle = string.Empty;
+    private string? _subTitle;
 
     [RelayCommand]
     public abstract Task EditValueAsync();

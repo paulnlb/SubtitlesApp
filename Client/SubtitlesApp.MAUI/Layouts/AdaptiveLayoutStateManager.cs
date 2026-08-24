@@ -7,6 +7,7 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
 {
     private AdaptiveLayoutState? _currentState = null;
     private AdaptiveLayoutState? _nextState = null;
+    private readonly Easing _animationEasing = Easing.SinOut;
 
     public void SaveCurrentState()
     {
@@ -33,14 +34,21 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
             var translateX = NativeAnimation.AnimateAsync(
                 visualElement.TranslationX,
                 0,
-                (v) => visualElement.TranslationX = v
+                (v) => visualElement.TranslationX = v,
+                easing: _animationEasing
             );
             var translateY = NativeAnimation.AnimateAsync(
                 visualElement.TranslationY,
                 0,
-                (v) => visualElement.TranslationY = v
+                (v) => visualElement.TranslationY = v,
+                easing: _animationEasing
             );
-            var scale = NativeAnimation.AnimateAsync(visualElement.Scale, 1, (v) => visualElement.Scale = v);
+            var scale = NativeAnimation.AnimateAsync(
+                visualElement.Scale,
+                1,
+                (v) => visualElement.Scale = v,
+                easing: _animationEasing
+            );
 
             tasksList.Add(translateX);
             tasksList.Add(translateY);
@@ -72,17 +80,20 @@ public class AdaptiveLayoutStateManager(AdaptiveLayout layout)
             var translateX = NativeAnimation.AnimateAsync(
                 visualElement.TranslationX,
                 transformation.TranslateX,
-                (v) => visualElement.TranslationX = v
+                (v) => visualElement.TranslationX = v,
+                easing: _animationEasing
             );
             var translateY = NativeAnimation.AnimateAsync(
                 visualElement.TranslationY,
                 transformation.TranslateY,
-                (v) => visualElement.TranslationY = v
+                (v) => visualElement.TranslationY = v,
+                easing: _animationEasing
             );
             var scale = NativeAnimation.AnimateAsync(
                 visualElement.Scale,
                 transformation.Scale,
-                (v) => visualElement.Scale = v
+                (v) => visualElement.Scale = v,
+                easing: _animationEasing
             );
 
             tasksList.Add(translateX);

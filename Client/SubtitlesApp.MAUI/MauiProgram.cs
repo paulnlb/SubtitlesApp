@@ -1,11 +1,7 @@
 ﻿using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Core.Services;
 using MauiPageFullScreen;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.LifecycleEvents;
-using Microsoft.Maui.Platform;
 using SubtitlesApp.Extensions;
-using SubtitlesApp.Services;
 using UraniumUI;
 
 namespace SubtitlesApp;
@@ -32,7 +28,7 @@ public static class MauiProgram
                 );
                 options.SetShouldUseStatusBarBehaviorOnAndroidModalPage(false);
             })
-            .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: false)
+            .UseMauiCommunityToolkitMediaElement(isAndroidForegroundServiceEnabled: true)
             .UseVirtualListView()
             .ConfigureFonts(fonts =>
             {
@@ -44,39 +40,30 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-#if ANDROID
-        builder.ConfigureLifecycleEvents(static lifecycleBuilder =>
-        {
-            lifecycleBuilder.AddAndroid(static androidBuilder =>
-            {
-                androidBuilder.OnCreate(
-                    static (activity, _) =>
-                    {
-                        if (activity is not AndroidX.AppCompat.App.AppCompatActivity componentActivity)
-                        {
-                            return;
-                        }
-
-                        if (
-                            componentActivity.GetFragmentManager()
-                            is not AndroidX.Fragment.App.FragmentManager fragmentManager
-                        )
-                        {
-                            return;
-                        }
-
-                        fragmentManager.RegisterFragmentLifecycleCallbacks(
-                            new FragmentLifecycleManager(new PopupDialogFragmentService()),
-                            false
-                        );
-                    }
-                );
-            });
-        });
-#endif
-
+        builder.AddPlatformSpecificBehavior();
         builder.Services.AddSubtitlesAppServices();
+        builder.Logging.AddAppLogging();
 
-        return builder.Build();
+        var app = builder.Build();
+
+        InitializeGlobalExceptionLogging(app.Services.GetRequiredService<ILogger<App>>());
+
+        return app;
+    }
+
+    private static void InitializeGlobalExceptionLogging(ILogger logger)
+    {
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            if (args.ExceptionObject is Exception ex)
+            {
+                logger.LogCritical(ex, "Unhandled AppDomain exception occurred.");
+            }
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            logger.LogError(args.Exception, "Unobserved Task exception occurred.");
+        };
     }
 }

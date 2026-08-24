@@ -17,6 +17,9 @@ public abstract partial class BasePopupVm : ObservableObject
     [ObservableProperty]
     private bool _isAcceptEnabled = true;
 
+    [ObservableProperty]
+    private bool _isCancelVisible = true;
+
     [RelayCommand]
     public abstract Task Accept();
 

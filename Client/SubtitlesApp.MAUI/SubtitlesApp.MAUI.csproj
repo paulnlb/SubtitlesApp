@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0-android</TargetFrameworks>
     <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-    <!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
+    <!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
 
     <!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -25,10 +25,10 @@
     <ApplicationId>com.paulnlb.subtitlesapp</ApplicationId>
 
     <!-- Versions -->
-    <ApplicationDisplayVersion>0.5.0</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>0.6.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">13.0</SupportedOSPlatformVersion>
@@ -43,16 +43,12 @@
     <AndroidPackageFormat>apk</AndroidPackageFormat>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
   <ItemGroup>
     <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" />
 
     <!-- Splash Screen -->
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#282828" BaseSize="288, 288" />
 
     <!-- Images -->
     <MauiImage Include="Resources\Images\*" />
@@ -66,8 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Images\fast_forward_icon.png" />
-    <None Remove="Resources\Images\fast_rewind_icon.png" />
     <None Remove="Resources\Images\pause_icon.png" />
     <None Remove="Resources\Images\play_icon.png" />
   </ItemGroup>
@@ -82,21 +76,38 @@
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.70" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.8" />
     <PackageReference Include="Redth.Maui.VirtualListView" Version="0.4.0" />
-    <PackageReference Include="Riok.Mapperly" Version="4.3.1" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="UraniumUI.Material" Version="2.16.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FfmpegKitAndroid\FfmpegKitAndroid.csproj" />
     <ProjectReference Include="..\SubtitlesApp.Infrastructure\SubtitlesApp.Infrastructure.csproj" />
     <ProjectReference Include="..\..\SubtitlesApp.Core\SubtitlesApp.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="CustomControls\PlayerControls.xaml.cs">
+    <Compile Update="Resources\Strings\MainLabelTexts.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MainLabelTexts.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Services\FfmpegService.Shared.cs">
+      <ExcludeFromCurrentConfiguration>false</ExcludeFromCurrentConfiguration>
+    </Compile>
+    <Compile Update="Views\PlayerControls.xaml.cs">
       <DependentUpon>PlayerControls.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Styles\Templates.xaml.cs">
+      <DependentUpon>Templates.xaml</DependentUpon>
     </Compile>
     <Compile Update="Views\Popups\CounterPopup.xaml.cs">
       <DependentUpon>CounterPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Popups\DoubleEntryPopup.xaml.cs">
+      <DependentUpon>DoubleEntryPopup.xaml</DependentUpon>
     </Compile>
     <Compile Update="Views\Popups\EntryPopup.xaml.cs">
       <DependentUpon>EntryPopup.xaml</DependentUpon>
@@ -119,10 +130,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Resources\Strings\MainLabelTexts.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>MainLabelTexts.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <MauiXaml Update="CustomControls\LoadingButton.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="CustomControls\TimeSelector.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Resources\Styles\Converters.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\LogsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
     <MauiXaml Update="Views\Popups\CounterPopup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\Popups\DoubleEntryPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Views\Popups\EntryPopup.xaml">
@@ -134,10 +164,13 @@
     <MauiXaml Update="Views\Popups\UrlEntryPopup.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\PlayerControls.xaml">
+    <MauiXaml Update="Views\PlayerControls.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
-    <MauiXaml Update="CustomControls\SubtitleCollection.xaml">
+    <MauiXaml Update="Views\SessionCachePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
+    <MauiXaml Update="Views\SubtitleCollection.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
     <MauiXaml Update="Resources\Styles\ContentTemplates.xaml">
@@ -155,31 +188,32 @@
     <MauiXaml Update="Views\SettingsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </MauiXaml>
+    <MauiXaml Update="Views\TranscriptionSettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </MauiXaml>
   </ItemGroup>
 
-  <ItemGroup>
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86_64\libswresample.so" />
+	<!-- Android -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net10.0-android')) != true">
+		<Compile Remove="**\*.Android.cs" />
+		<None Include="**\*.Android.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
 
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libswresample.so" />
+	<!-- iOS -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net10.0-ios')) != true">
+		<Compile Remove="**\*.iOS.cs" />
+		<None Include="**\*.iOS.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
 
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\armeabi-v7a\libswresample.so" />
+	<!-- Mac Catalyst -->
+	<ItemGroup Condition="$(TargetFramework.StartsWith('net10.0-maccatalyst')) != true">
+		<Compile Remove="**\*.MacCatalyst.cs" />
+		<None Include="**\*.MacCatalyst.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
 
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libffmpegwrapper.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavcodec.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavformat.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libavutil.so" />
-    <AndroidNativeLibrary Include="Platforms\Android\lib\x86\libswresample.so" />
-  </ItemGroup>
+	<!-- Windows -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
+		<Compile Remove="**\*.Windows.cs" />
+		<None Include="**\*.Windows.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
 </Project>

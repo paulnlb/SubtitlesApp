@@ -4,30 +4,168 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
-  xmlns:constants="clr-namespace:SubtitlesApp.Constants"
-  xmlns:conv="clr-namespace:SubtitlesApp.Converters"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
+  xmlns:clientModels="clr-namespace:SubtitlesApp.ClientModels"
   x:DataType="viewModels:TimeEntryPopupVm"
   x:Class="SubtitlesApp.Views.Popups.TimeEntryPopup"
   x:TypeArguments="x:TimeSpan"
   ControlTemplate="{StaticResource PopupTemplate}"
-  WidthRequest="300"
   x:Name="root"
 >
   <toolkit:Popup.Resources>
-    <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
+    <Style TargetType="Button" Class="KeypadBtn" ApplyToDerivedTypes="True" CanCascade="True">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="FontSize" Value="22" />
+      <Setter Property="MinimumWidthRequest" Value="40" />
+    </Style>
   </toolkit:Popup.Resources>
-
-  <Entry Text="{Binding Value, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}, ConverterParameter={x:Static constants:TimeSpanConverterConstants.MinutesMode}}">
-    <Entry.Behaviors>
-      <toolkit:TextValidationBehavior
-        x:Name="fromValidationBehavior"
-        BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
-        InvalidStyle="{StaticResource InvalidEntryStyle}"
-        ValidStyle="{StaticResource DefaultEntryStyle}"
-        Flags="ValidateOnValueChanged"
-        RegexPattern="^[0-5]\d:[0-5]\d$"
-        IsValid="{Binding IsInputValid, Mode=OneWayToSource}"
+  <StackLayout x:Name="rootLayout" Orientation="Vertical" Spacing="20">
+    <Label x:Name="timeLabel" HorizontalOptions="Center" VerticalOptions="Center">
+      <Label.FormattedText>
+        <FormattedString>
+          <Span Text="{Binding HourSection}" FontSize="28" />
+          <Span Text="h " FontSize="18" />
+          <Span Text="{Binding MinuteSection}" FontSize="28" />
+          <Span Text="m " FontSize="18" />
+          <Span Text="{Binding SecondSection}" FontSize="28" />
+          <Span Text="s" FontSize="18" />
+        </FormattedString>
+      </Label.FormattedText>
+    </Label>
+    <ScrollView
+      x:Name="presetsCollectionScroll"
+      Orientation="Horizontal"
+      HorizontalScrollBarVisibility="Never"
+      VerticalScrollBarVisibility="Never"
+      IsVisible="{Binding Presets, Converter={x:StaticResource ContainsAnyPresetConverter}}"
+    >
+      <StackLayout
+        x:Name="presetsCollection"
+        Orientation="Horizontal"
+        BindableLayout.ItemsSource="{Binding Presets}"
+        Spacing="10"
+      >
+        <BindableLayout.ItemTemplate>
+          <DataTemplate x:DataType="clientModels:TimePreset">
+            <Button
+              HeightRequest="30"
+              Text="{Binding Title}"
+              Style="{StaticResource PresetButton}"
+              Command="{Binding Source={x:Reference root}, Path=BindingContext.ApplyPresetCommand}"
+              CommandParameter="{Binding .}"
+            />
+          </DataTemplate>
+        </BindableLayout.ItemTemplate>
+      </StackLayout>
+    </ScrollView>
+    <Grid RowDefinitions="*, *, *, *" ColumnDefinitions="*, *, *" RowSpacing="10" ColumnSpacing="10">
+      <Button
+        Grid.Row="0"
+        Grid.Column="0"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="1"
+        Command="{Binding AddCommand}"
+        CommandParameter="1"
       />
-    </Entry.Behaviors>
-  </Entry>
+      <Button
+        Grid.Row="0"
+        Grid.Column="1"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="2"
+        Command="{Binding AddCommand}"
+        CommandParameter="2"
+      />
+      <Button
+        Grid.Row="0"
+        Grid.Column="2"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="3"
+        Command="{Binding AddCommand}"
+        CommandParameter="3"
+      />
+      <Button
+        Grid.Row="1"
+        Grid.Column="0"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="4"
+        Command="{Binding AddCommand}"
+        CommandParameter="4"
+      />
+      <Button
+        Grid.Row="1"
+        Grid.Column="1"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="5"
+        Command="{Binding AddCommand}"
+        CommandParameter="5"
+      />
+      <Button
+        Grid.Row="1"
+        Grid.Column="2"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="6"
+        Command="{Binding AddCommand}"
+        CommandParameter="6"
+      />
+      <Button
+        Grid.Row="2"
+        Grid.Column="0"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="7"
+        Command="{Binding AddCommand}"
+        CommandParameter="7"
+      />
+      <Button
+        Grid.Row="2"
+        Grid.Column="1"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="8"
+        Command="{Binding AddCommand}"
+        CommandParameter="8"
+      />
+      <Button
+        Grid.Row="2"
+        Grid.Column="2"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="9"
+        Command="{Binding AddCommand}"
+        CommandParameter="9"
+      />
+      <Button
+        Grid.Row="3"
+        Grid.Column="0"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="00"
+        Command="{Binding AddCommand}"
+        CommandParameter="00"
+      />
+      <Button
+        Grid.Row="3"
+        Grid.Column="1"
+        Style="{StaticResource TranslucentButton}"
+        StyleClass="KeypadBtn"
+        Text="0"
+        Command="{Binding AddCommand}"
+        CommandParameter="0"
+      />
+      <Button
+        Grid.Row="3"
+        Grid.Column="2"
+        Style="{StaticResource TranslucentButton}"
+        Padding="5"
+        ImageSource="{AppThemeBinding Light=backspace_dark, Dark=backspace_light}"
+        Command="{Binding RemoveCommand}"
+      />
+    </Grid>
+  </StackLayout>
 </toolkit:Popup>

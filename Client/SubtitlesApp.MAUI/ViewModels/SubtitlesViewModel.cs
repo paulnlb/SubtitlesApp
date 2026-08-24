@@ -1,21 +1,29 @@
 ﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.Constants;
+using SubtitlesApp.Core.Enums;
 using SubtitlesApp.Core.Extensions;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Core.Services;
+using SubtitlesApp.Infrastructure.Services;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.Mapper;
-using SubtitlesApp.ViewModels.Popups;
+using SubtitlesApp.Services;
 
 namespace SubtitlesApp.ViewModels;
 
 public partial class SubtitlesViewModel : ObservableObject
 {
+    #region public properties
+    public string? CachedSubtitlesFile { get; set; }
+    public string? CachedTranslationsFile { get; set; }
+    #endregion
+
     #region observable properties
 
     [ObservableProperty]
@@ -23,9 +31,6 @@ public partial class SubtitlesViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<VisualSubtitle> _translations;
-
-    [ObservableProperty]
-    private string? _mediaPath;
 
     [ObservableProperty]
     private int _currentSubtitleIndex = -1;
@@ -42,6 +47,15 @@ public partial class SubtitlesViewModel : ObservableObject
     [ObservableProperty]
     private bool _isTranslationLoading;
 
+    [ObservableProperty]
+    private MediaFileInfo? _fileInfo;
+
+    [ObservableProperty]
+    private ReadOnlyCollection<MediaTrack> _audioTracks;
+
+    [ObservableProperty]
+    private ReadOnlyCollection<MediaTrack> _subtitleTracks;
+
     #endregion
 
     #region services
@@ -51,21 +65,19 @@ public partial class SubtitlesViewModel : ObservableObject
     private readonly ITranscriptionService _transcriptionService;
     private readonly IBuiltInDialogService _builtInDialogService;
     private readonly LanguageService _languageService;
+    private readonly LocalFileManager _localFileManager;
+    private readonly ISubtitlesCache _subtitlesCache;
+    private readonly ILogger<SubtitlesViewModel> _logger;
+    private readonly SubtitlesFileService _subtitlesFileService;
+    private readonly FfmpegService _ffmpegService;
 
     #endregion
 
     #region private fields
 
-    private readonly SubtitlesMapper _subtitlesMapper;
     private TranscriptionSettings? _transcriptionSettings;
     private TranslationSettings? _translationSettings;
-
-    #endregion
-
-    #region events
-
-    public event Func<Task>? SubtitlesUpdated;
-    public event Func<Task>? TranslationsUpdated;
+    private TimeSpan _currentMediaTime;
 
     #endregion
 
@@ -73,14 +85,17 @@ public partial class SubtitlesViewModel : ObservableObject
         ITranslationService translationService,
         LanguageService languageService,
         ICustomPopupService popupService,
-        SubtitlesMapper subtitlesMapper,
         ITranscriptionService transcriptionService,
-        IBuiltInDialogService builtInDialogService
+        IBuiltInDialogService builtInDialogService,
+        LocalFileManager localFileManager,
+        ISubtitlesCache subtitlesCache,
+        ILogger<SubtitlesViewModel> logger,
+        SubtitlesFileService subtitlesFileService,
+        FfmpegService ffmpegService
     )
     {
         #region observable properties
 
-        MediaPath = null;
         Subtitles = [];
         Translations = [];
 
@@ -91,8 +106,11 @@ public partial class SubtitlesViewModel : ObservableObject
         _transcriptionService = transcriptionService;
         _builtInDialogService = builtInDialogService;
         _languageService = languageService;
-
-        _subtitlesMapper = subtitlesMapper;
+        _localFileManager = localFileManager;
+        _subtitlesCache = subtitlesCache;
+        _logger = logger;
+        _subtitlesFileService = subtitlesFileService;
+        _ffmpegService = ffmpegService;
     }
 
     #region commands
@@ -100,78 +118,241 @@ public partial class SubtitlesViewModel : ObservableObject
     [RelayCommand]
     public void UpdateIndexes(TimeSpan currentPosition)
     {
+        _currentMediaTime = currentPosition;
         CurrentSubtitleIndex = FindNewIndex(currentPosition, Subtitles, CurrentSubtitleIndex);
         CurrentTranslationIndex = FindNewIndex(currentPosition, Translations, CurrentTranslationIndex);
     }
 
     [RelayCommand]
-    public async Task Transcribe()
+    public async Task Transcribe(CancellationToken cancellationToken)
     {
-        var subtitlesLang = _transcriptionSettings?.SubtitlesLanguage ?? _languageService.GetDefaultLanguage();
-
-        var popupResult = await _popupService.ShowTranscriptionSettings(
-            MediaDuration,
-            subtitlesLang,
-            _transcriptionSettings?.FromTime,
-            _transcriptionSettings?.ToTime
-        );
-
-        if (popupResult is not TranscriptionSettings newSettings)
+        if (SubtitleTracks.Count == 0)
         {
+            await GenerateSubtitles(cancellationToken);
             return;
         }
 
-        _transcriptionSettings = newSettings;
-        IsTranscriptionLoading = true;
-
-        var timeInterval = new TimeInterval(newSettings.FromTime, newSettings.ToTime);
-
-        Subtitles.RemoveInside(timeInterval);
-
-        var results = _transcriptionService.TranscribeAsync(
-            MediaPath,
-            timeInterval,
-            newSettings.SubtitlesLanguage.Code,
-            default
-        );
-
-        await foreach (var result in results)
+        var actions = new List<PickerItem>
         {
-            if (result.IsFailure)
+            new() { Title = "Select From Embedded", Action = SubtitlesActions.GetEmbedded },
+            new() { Title = "Generate Transcription", Action = SubtitlesActions.Create },
+        };
+
+        var result = await _popupService.ShowActionList("Transcription", actions, x => x.Title);
+
+        if (result is null)
+        {
+            return;
+        }
+        else if (result.Action == SubtitlesActions.GetEmbedded)
+        {
+            var chosenTrack = await _popupService.ShowActionList("Select Subtitles Track", SubtitleTracks, x => x.Name);
+
+            if (chosenTrack is null)
             {
-                await _builtInDialogService.DisplayError(result.Error);
-
-                IsTranscriptionLoading = false;
-
                 return;
             }
 
-            var subtitleDto = result.Value;
+            IsTranscriptionLoading = true;
+            var subtitles = await ExtractEmbeddedSubtitles(chosenTrack, cancellationToken);
 
-            // Workaround that reduces timestamp precision to roughly match seeking precision
-            subtitleDto.StartTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.StartTime.TotalMilliseconds));
-            subtitleDto.EndTime = TimeSpan.FromMilliseconds(Math.Round(subtitleDto.EndTime.TotalMilliseconds));
+            if (subtitles is null)
+            {
+                return;
+            }
 
-            Subtitles.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(subtitleDto));
-        }
+            Subtitles = subtitles;
 
-        try
-        {
-            await InvokeAsync(SubtitlesUpdated);
-        }
-        catch (Exception ex)
-        {
-            var error = new Error(ErrorCode.SubtitlesPersistenceError, ex.Message);
-            await _builtInDialogService.DisplayError(error);
-        }
-        finally
-        {
+            await ApplySubtitlesAction(SubtitlesActions.SaveToCache);
             IsTranscriptionLoading = false;
+        }
+        else if (result.Action == SubtitlesActions.Create)
+        {
+            await GenerateSubtitles(cancellationToken);
         }
     }
 
     [RelayCommand]
-    public async Task Translate()
+    public async Task Translate(CancellationToken cancellationToken)
+    {
+        if (SubtitleTracks.Count == 0)
+        {
+            await GenerateTranslation(cancellationToken);
+            return;
+        }
+
+        var actions = new List<PickerItem>
+        {
+            new() { Title = "Select From Embedded", Action = SubtitlesActions.GetEmbedded },
+            new() { Title = "Translate Current Subtitles", Action = SubtitlesActions.Create },
+        };
+
+        var result = await _popupService.ShowActionList("Translation", actions, x => x.Title);
+
+        if (result is null)
+        {
+            return;
+        }
+        else if (result.Action == SubtitlesActions.GetEmbedded)
+        {
+            var chosenTrack = await _popupService.ShowActionList("Select Subtitles Track", SubtitleTracks, x => x.Name);
+
+            if (chosenTrack is null)
+            {
+                return;
+            }
+
+            IsTranslationLoading = true;
+            var translations = await ExtractEmbeddedSubtitles(chosenTrack, cancellationToken);
+
+            if (translations is null)
+            {
+                return;
+            }
+
+            Translations = translations;
+
+            await ApplyTranslationsAction(SubtitlesActions.SaveToCache);
+            IsTranslationLoading = false;
+        }
+        else if (result.Action == SubtitlesActions.Create)
+        {
+            await GenerateTranslation(cancellationToken);
+        }
+    }
+
+    [RelayCommand]
+    public async Task ShowAdditionalOptions()
+    {
+        var pickerItems = new List<PickerItem>
+        {
+            new() { Title = "Import Subtitles (.srt)", Action = SubtitlesActions.ImportSubtitlesSrt },
+            new() { Title = "Import Translation (.srt)", Action = SubtitlesActions.ImportTranslationSrt },
+        };
+
+        if (Translations.Count != 0)
+        {
+            pickerItems.Insert(
+                0,
+                new() { Title = "Export Translation as .srt", Action = SubtitlesActions.ExportTranslationSrt }
+            );
+        }
+
+        if (Subtitles.Count != 0)
+        {
+            pickerItems.Insert(
+                0,
+                new() { Title = "Export Subtitles as .srt", Action = SubtitlesActions.ExportSubtitlesSrt }
+            );
+        }
+
+        var userChoise = await _popupService.ShowActionList("Additonal Options", pickerItems, x => x.Title);
+
+        var actionResult = Result.Success();
+
+        if (userChoise is null)
+        {
+            return;
+        }
+        else if (userChoise.Action == SubtitlesActions.ExportSubtitlesSrt)
+        {
+            actionResult = await ExportToSrt();
+        }
+        else if (userChoise.Action == SubtitlesActions.ExportTranslationSrt)
+        {
+            actionResult = await ExportTranslationToSrt();
+        }
+        else if (userChoise.Action == SubtitlesActions.ImportSubtitlesSrt)
+        {
+            actionResult = await ImportSrt();
+        }
+        else if (userChoise.Action == SubtitlesActions.ImportTranslationSrt)
+        {
+            actionResult = await ImportTranslationSrt();
+        }
+
+        if (actionResult.IsFailure && actionResult.Error.Code != ErrorCode.OperationCancelled)
+        {
+            await _builtInDialogService.DisplayError(actionResult.Error);
+            return;
+        }
+    }
+
+    #endregion
+
+    #region public methods
+
+    public async Task LoadSubtitlesFromCache()
+    {
+        IsTranscriptionLoading = true;
+
+        if (string.IsNullOrWhiteSpace(CachedSubtitlesFile))
+        {
+            _logger.LogError("Cannot load subtitles from cache: no file name is specified");
+        }
+        else
+        {
+            await ApplySubtitlesAction(SubtitlesActions.RestoreCached);
+        }
+
+        IsTranscriptionLoading = false;
+    }
+
+    public async Task LoadTranslationsFromCache()
+    {
+        IsTranslationLoading = true;
+
+        if (string.IsNullOrWhiteSpace(CachedTranslationsFile))
+        {
+            _logger.LogError("Cannot load translations from cache: no file name is specified");
+        }
+        else
+        {
+            await ApplyTranslationsAction(SubtitlesActions.RestoreCached);
+        }
+
+        IsTranslationLoading = false;
+    }
+    #endregion
+
+    private async Task<ObservableCollection<VisualSubtitle>?> ExtractEmbeddedSubtitles(
+        MediaTrack subtitlesTrack,
+        CancellationToken cancellationToken
+    )
+    {
+        Result<Stream> subtitlesResult;
+
+        if (subtitlesTrack.MimeType == MimeTypes.SubtitleSrt)
+        {
+            subtitlesResult = await _ffmpegService.CopySubtitlesAsync(
+                FileInfo.Uri,
+                "srt",
+                subtitlesTrack.TrackIndex,
+                cancellationToken
+            );
+        }
+        else
+        {
+            subtitlesResult = await _ffmpegService.ExtractSubtitlesAsync(
+                FileInfo.Uri,
+                "srt",
+                subtitlesTrack.TrackIndex,
+                cancellationToken
+            );
+        }
+
+        if (subtitlesResult.IsFailure)
+        {
+            await _builtInDialogService.DisplayError(subtitlesResult.Error);
+            return null;
+        }
+
+        using var streamReader = new StreamReader(subtitlesResult.Value);
+        var srtItems = SrtParser.Parse(streamReader, new SrtParserOptions { StripFormatting = true });
+        return SubtitlesMapper.ToVisualSubtitles(srtItems);
+    }
+
+    private async Task GenerateTranslation(CancellationToken cancellationToken)
     {
         var popupResult = await _popupService.ShowTranslationSettings(
             MediaDuration,
@@ -191,44 +372,145 @@ public partial class SubtitlesViewModel : ObservableObject
             s.TimeInterval.StartTime >= newSettings.FromTime && s.TimeInterval.EndTime <= newSettings.ToTime
         );
 
-        var subtitlesDtos = _subtitlesMapper.VisualSubtitlesToSubtitleDtoList(subtitlesToTranslate);
+        var subtitles = SubtitlesMapper.ToSubtitleList(subtitlesToTranslate);
 
         IsTranslationLoading = true;
 
         Translations.RemoveInside(new(newSettings.FromTime, newSettings.ToTime));
 
-        var results = _translationService.TranslateAsync(subtitlesDtos, newSettings.TargetLanguage, default);
+        var results = _translationService.TranslateAsync(subtitles, newSettings.TargetLanguage, cancellationToken);
+
+        var totalResult = Result.Success();
+        var anyGenerated = false;
 
         await foreach (var result in results)
         {
             if (result.IsFailure)
             {
-                await _builtInDialogService.DisplayError(result.Error);
-
-                IsTranslationLoading = false;
-
-                return;
+                totalResult = Result.Failure(result.Error);
+                break;
             }
 
-            Translations.Insert(_subtitlesMapper.SubtitleDtoToVisualSubtitle(result.Value));
+            Translations.Insert(SubtitlesMapper.ToVisualSubtitle(result.Value), NeighborRemovalMode.FullOverlap);
+            anyGenerated = true;
         }
 
-        try
+        if (totalResult.IsSuccess)
         {
-            await InvokeAsync(TranslationsUpdated);
-        }
-        catch (Exception ex)
-        {
-            var error = new Error(ErrorCode.SubtitlesPersistenceError, ex.Message);
-            await _builtInDialogService.DisplayError(error);
-        }
-        finally
-        {
+            await ApplyTranslationsAction(SubtitlesActions.SaveToCache);
             IsTranslationLoading = false;
+
+            return;
         }
+
+        if (totalResult.Error.Code != ErrorCode.OperationCancelled)
+        {
+            await _builtInDialogService.DisplayError(totalResult.Error);
+        }
+
+        if (anyGenerated)
+        {
+            var action = await GetActionOnPartiallyGenerated();
+            await ApplyTranslationsAction(action);
+        }
+        else
+        {
+            await ApplyTranslationsAction(SubtitlesActions.RestoreCached);
+        }
+
+        IsTranslationLoading = false;
     }
 
-    #endregion
+    private async Task GenerateSubtitles(CancellationToken cancellationToken)
+    {
+        var audioTrack = AudioTracks.FirstOrDefault(x => x.IsSelected);
+
+        if (audioTrack is null)
+        {
+            await _builtInDialogService.DisplayError(
+                new Error(ErrorCode.InvalidAudio, "Media file contains no audio or audio is disabled")
+            );
+            return;
+        }
+
+        var subtitlesLang = _transcriptionSettings?.SubtitlesLanguage ?? _languageService.GetDefaultLanguage();
+
+        var popupResult = await _popupService.ShowTranscriptionSettings(
+            MediaDuration,
+            _currentMediaTime,
+            subtitlesLang,
+            _transcriptionSettings?.FromTime,
+            _transcriptionSettings?.ToTime
+        );
+
+        if (popupResult is not TranscriptionSettings newSettings)
+        {
+            return;
+        }
+
+        _transcriptionSettings = newSettings;
+        IsTranscriptionLoading = true;
+
+        var timeInterval = new TimeInterval(newSettings.FromTime, newSettings.ToTime);
+
+        Subtitles.RemoveInside(timeInterval);
+
+        var results = _transcriptionService.TranscribeAsync(
+            FileInfo.Uri,
+            timeInterval,
+            newSettings.SubtitlesLanguage.Code,
+            audioTrack.TrackIndex,
+            cancellationToken
+        );
+
+        var totalResult = Result.Success();
+        var anyGenerated = false;
+
+        await foreach (var result in results)
+        {
+            if (result.IsFailure)
+            {
+                totalResult = Result.Failure(result.Error);
+                break;
+            }
+
+            var subtitle = result.Value;
+
+            // Workaround that reduces timestamp precision to roughly match seeking precision
+            var newStart = TimeSpan.FromMilliseconds(Math.Round(subtitle.TimeInterval.StartTime.TotalMilliseconds));
+            var newEnd = TimeSpan.FromMilliseconds(Math.Round(subtitle.TimeInterval.EndTime.TotalMilliseconds));
+            subtitle.TimeInterval = new TimeInterval(newStart, newEnd);
+
+            Subtitles.Insert(SubtitlesMapper.ToVisualSubtitle(subtitle), NeighborRemovalMode.FullOverlap);
+
+            anyGenerated = true;
+        }
+
+        if (totalResult.IsSuccess)
+        {
+            await ApplySubtitlesAction(SubtitlesActions.SaveToCache);
+            IsTranscriptionLoading = false;
+
+            return;
+        }
+
+        if (totalResult.Error.Code != ErrorCode.OperationCancelled)
+        {
+            await _builtInDialogService.DisplayError(totalResult.Error);
+        }
+
+        if (anyGenerated)
+        {
+            var action = await GetActionOnPartiallyGenerated();
+            await ApplySubtitlesAction(action);
+        }
+        else
+        {
+            await ApplySubtitlesAction(SubtitlesActions.RestoreCached);
+        }
+
+        IsTranscriptionLoading = false;
+    }
 
     private static int FindNewIndex(TimeSpan currPosition, ObservableCollection<VisualSubtitle> subtitles, int currIndex)
     {
@@ -272,18 +554,148 @@ public partial class SubtitlesViewModel : ObservableObject
         return newIndex;
     }
 
-    private static async Task InvokeAsync(Func<Task>? eventToInvoke)
+    private async Task<string> GetActionOnPartiallyGenerated()
     {
-        if (eventToInvoke is null)
+        var options = new List<PickerItem>
         {
-            return;
+            new() { Title = "Keep new (old items will be lost)", Action = SubtitlesActions.SaveToCache },
+            new() { Title = "Discard new, restore old", Action = SubtitlesActions.RestoreCached },
+            new() { Title = "Keep new until the video is closed", Action = SubtitlesActions.DoNothing },
+        };
+
+        var result = await _popupService.ShowRadioButtons(
+            "Partially completed",
+            options,
+            x => x.Title,
+            options[0],
+            "Items generation was interrupted by an error or cancelled. Select one of the actions below to proceed.",
+            false
+        );
+
+        if (result is null)
+        {
+            return SubtitlesActions.DoNothing;
+        }
+        else
+        {
+            return result.Action;
+        }
+    }
+
+    private async Task ApplySubtitlesAction(string action)
+    {
+        switch (action)
+        {
+            case SubtitlesActions.DoNothing:
+                return;
+
+            case SubtitlesActions.SaveToCache when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
+                await _subtitlesCache.Save(CachedSubtitlesFile, Subtitles);
+                break;
+
+            case SubtitlesActions.RestoreCached when !string.IsNullOrWhiteSpace(CachedSubtitlesFile):
+                var subtitles = await _subtitlesCache.Get(CachedSubtitlesFile) ?? [];
+                Subtitles = SubtitlesMapper.ToVisualSubtitles(subtitles);
+                break;
+
+            default:
+                _logger.LogError(
+                    "Although the \"{ActionName}\" action was provided, no subtitles were updated because none of the conditions was met",
+                    action
+                );
+                break;
+        }
+    }
+
+    private async Task ApplyTranslationsAction(string action)
+    {
+        switch (action)
+        {
+            case SubtitlesActions.DoNothing:
+                return;
+
+            case SubtitlesActions.SaveToCache when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
+                await _subtitlesCache.Save(CachedTranslationsFile, Translations);
+                break;
+
+            case SubtitlesActions.RestoreCached when !string.IsNullOrWhiteSpace(CachedTranslationsFile):
+                var subtitles = await _subtitlesCache.Get(CachedTranslationsFile) ?? [];
+                Translations = SubtitlesMapper.ToVisualSubtitles(subtitles);
+                break;
+
+            default:
+                _logger.LogError(
+                    "Although the \"{ActionName}\" action was provided, no subtitles were updated because none of the conditions was met",
+                    action
+                );
+                break;
+        }
+    }
+
+    private async Task<Result> ImportSrt()
+    {
+        var subtitlesResult = await _subtitlesFileService.ImportSrt();
+
+        if (subtitlesResult.IsFailure)
+        {
+            return Result.Failure(subtitlesResult.Error);
         }
 
-        var handlers = eventToInvoke.GetInvocationList();
+        Subtitles = SubtitlesMapper.ToVisualSubtitles(subtitlesResult.Value);
+        await ApplySubtitlesAction(SubtitlesActions.SaveToCache);
 
-        foreach (var handler in handlers.Cast<Func<Task>>())
+        return Result.Success();
+    }
+
+    private async Task<Result> ImportTranslationSrt()
+    {
+        var translationsResult = await _subtitlesFileService.ImportSrt();
+
+        if (translationsResult.IsFailure)
         {
-            await handler();
+            return Result.Failure(translationsResult.Error);
         }
+
+        Translations = SubtitlesMapper.ToVisualSubtitles(translationsResult.Value);
+        await ApplyTranslationsAction(SubtitlesActions.SaveToCache);
+
+        return Result.Success();
+    }
+
+    private Task<Result> ExportToSrt()
+    {
+        string fileName;
+        var fileNameParts = FileInfo!.Name.Split('.').ToList();
+
+        if (fileNameParts.Count > 1)
+        {
+            fileNameParts.RemoveAt(fileNameParts.Count - 1);
+            fileName = string.Join(string.Empty, fileNameParts);
+        }
+        else
+        {
+            fileName = FileInfo!.Name;
+        }
+
+        return _subtitlesFileService.ExportSrt(Subtitles, fileName);
+    }
+
+    private Task<Result> ExportTranslationToSrt()
+    {
+        string fileName;
+        var fileNameParts = FileInfo!.Name.Split('.').ToList();
+
+        if (fileNameParts.Count > 1)
+        {
+            fileNameParts.RemoveAt(fileNameParts.Count - 1);
+            fileNameParts.Add("(translation)");
+            fileName = string.Join(string.Empty, fileNameParts);
+        }
+        else
+        {
+            fileName = FileInfo!.Name;
+        }
+
+        return _subtitlesFileService.ExportSrt(Translations, fileName);
     }
 }

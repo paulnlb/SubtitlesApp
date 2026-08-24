@@ -1,33 +1,39 @@
+using CommunityToolkit.Maui.Converters;
 using CommunityToolkit.Maui.Views;
-using SubtitlesApp.Converters;
+using SubtitlesApp.Helpers;
 using SubtitlesApp.ViewModels;
 using SubtitlesApp.ViewModels.Popups;
-using UraniumUI.Extensions;
 
 namespace SubtitlesApp.Views.Popups;
 
 public partial class RadioButtonPopup<T> : Popup<T>
 {
-    public RadioButtonPopup(RadioButtonPopupVm<T> viewModel)
+    public RadioButtonPopup(RadioButtonPopupVm<T> vm)
     {
         InitializeComponentEquivalent();
-        BindingContext = viewModel;
-
-        var calculatedSize = CalculateSize(Shell.Current.CurrentPage);
-
-        MaximumWidthRequest = calculatedSize.Width;
-        MaximumHeightRequest = calculatedSize.Height;
+        BindingContext = vm;
+        ViewSizeHelper.SetPopupSize(this);
     }
 
     private void InitializeComponentEquivalent()
     {
         ControlTemplate = (ControlTemplate?)Application.Current?.Resources["PopupTemplate"];
-        Resources = new ResourceDictionary { { "AddSpaceBeforeStringConverter", new AddSpaceBeforeStringConverter() } };
+        Resources = new ResourceDictionary { { "IsNotNullConverter", new IsNotNullConverter() } };
+
+        var description = new Label { Margin = new Thickness(0, 0, 0, 10) };
+
+        description.SetBinding(Label.TextProperty, nameof(RadioButtonPopupVm<>.Description));
+        description.SetBinding(
+            Label.IsVisibleProperty,
+            nameof(RadioButtonPopupVm<>.Description),
+            converter: (IValueConverter)Resources["IsNotNullConverter"]
+        );
 
         var collectionView = new CollectionView { SelectionMode = Microsoft.Maui.Controls.SelectionMode.Single };
 
         collectionView.SetBinding(CollectionView.ItemsSourceProperty, nameof(RadioButtonPopupVm<>.SourceVms));
         collectionView.SetBinding(CollectionView.SelectedItemProperty, nameof(RadioButtonPopupVm<>.SelectedVm));
+        collectionView.SetBinding(CollectionView.EmptyViewProperty, nameof(RadioButtonPopupVm<>.EmptyText));
 
         collectionView.ItemTemplate = new DataTemplate(() =>
         {
@@ -35,11 +41,7 @@ public partial class RadioButtonPopup<T> : Popup<T>
 
             radioButton.SetBinding(
                 RadioButton.ContentProperty,
-                new Binding(
-                    nameof(SelectedItemVm<>.Title),
-                    BindingMode.OneWay,
-                    converter: (IValueConverter)Resources["AddSpaceBeforeStringConverter"]
-                )
+                new Binding(nameof(SelectedItemVm<>.Title), BindingMode.OneWay)
             );
             radioButton.SetBinding(RadioButton.IsCheckedProperty, nameof(SelectedItemVm<>.IsSelected));
             radioButton.SetBinding(RadioButton.ValueProperty, nameof(SelectedItemVm<>.Value));
@@ -48,29 +50,17 @@ public partial class RadioButtonPopup<T> : Popup<T>
             return radioButton;
         });
 
-        Content = collectionView;
-    }
+        var grid = new Grid { description, collectionView };
 
-    private Size CalculateSize(Page page)
-    {
-        if (DeviceInfo.Current.Idiom == DeviceIdiom.Desktop || DeviceInfo.Current.Idiom == DeviceIdiom.Tablet)
-        {
-            return new Size(400, 400);
-        }
+        grid.RowDefinitions =
+        [
+            new RowDefinition(new GridLength(0, GridUnitType.Auto)),
+            new RowDefinition(new GridLength(1, GridUnitType.Star)),
+        ];
 
-        if (DeviceInfo.Current.Idiom == DeviceIdiom.Phone)
-        {
-            var baseValue = page.Width;
-            if (page.Width > page.Height)
-            {
-                baseValue = page.Height;
-            }
+        Grid.SetRow(description, 0);
+        Grid.SetRow(collectionView, 1);
 
-            var edge = (baseValue * .8).Clamp(200, 600);
-
-            return new Size(edge, edge * .9);
-        }
-
-        return new Size(100, 100);
+        Content = grid;
     }
 }

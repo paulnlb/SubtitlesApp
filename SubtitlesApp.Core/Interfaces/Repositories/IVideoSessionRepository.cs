@@ -11,4 +11,8 @@ public interface IVideoSessionRepository
     Task Update(VideoSessionDto videoSession);
 
     Task Delete(string videoId);
+
+    Task DeleteMany(List<string> videoIds);
+
+    Task<List<VideoSessionDto>> GetMany(DateTimeOffset? minModifiedOn = null, DateTimeOffset? maxModifiedOn = null);
 }

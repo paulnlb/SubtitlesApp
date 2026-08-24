@@ -19,7 +19,7 @@ public class BuiltInDialogService : IBuiltInDialogService
         return CurrentPage.DisplayAlertAsync(title, message, cancel);
     }
 
-    public Task DisplayAlert(string title, string message, string accept, string cancel)
+    public Task<bool> DisplayAlert(string title, string message, string accept, string cancel)
     {
         return CurrentPage.DisplayAlertAsync(title, message, accept, cancel);
     }

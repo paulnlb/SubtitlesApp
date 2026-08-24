@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.SettingsItems;
@@ -9,6 +10,7 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
     private readonly ICustomPopupService _popupService;
     private readonly TimeSpan? _min;
     private readonly TimeSpan? _max;
+    private readonly TimeEntryScope _timeScope;
 
     public TimeEntrySettingsItem(
         ICustomPopupService popupService,
@@ -16,7 +18,8 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
         Func<TimeSpan>? getter = null,
         Action<TimeSpan>? setter = null,
         TimeSpan? min = null,
-        TimeSpan? max = null
+        TimeSpan? max = null,
+        TimeEntryScope timeScope = TimeEntryScope.Hours
     )
         : base(getter, setter)
     {
@@ -24,6 +27,7 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
         _valueAsSubtitle = valueAsSubTitle;
         _min = min;
         _max = max;
+        _timeScope = timeScope;
 
         if (valueAsSubTitle)
         {
@@ -34,7 +38,7 @@ public class TimeEntrySettingsItem : VirtualSettingsItem<TimeSpan>
     public override async Task EditValueAsync()
     {
         var value = GetValue();
-        var result = await _popupService.ShowTimeEntry(Title, value, _min, _max);
+        var result = await _popupService.ShowTimeEntry(Title, value, _min, _max, _timeScope);
 
         if (result is null || result == value)
         {

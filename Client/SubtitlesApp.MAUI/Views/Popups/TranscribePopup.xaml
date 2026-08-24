@@ -5,19 +5,15 @@
   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
   xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels.Popups"
   xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
-  xmlns:conv="clr-namespace:SubtitlesApp.Converters"
   xmlns:clientmodels="clr-namespace:SubtitlesApp.ClientModels"
+  xmlns:customControls="clr-namespace:SubtitlesApp.CustomControls"
   x:Class="SubtitlesApp.Views.Popups.TranscribePopup"
   x:DataType="viewModels:TranscribePopupViewModel"
   x:TypeArguments="clientmodels:TranscriptionSettings"
-  WidthRequest="300"
   ControlTemplate="{StaticResource PopupTemplate}"
   x:Name="root"
 >
-  <toolkit:Popup.Resources>
-    <conv:TimeSpanConverter x:Key="TimeSpanConverter" />
-  </toolkit:Popup.Resources>
-  <Grid RowDefinitions="Auto, 20, 50" ColumnDefinitions="*, *">
+  <Grid RowDefinitions="Auto, 20, 40" ColumnDefinitions="*, *" RowSpacing="10" ColumnSpacing="10">
     <uranium:StatefulContentView
       Grid.Row="0"
       Grid.ColumnSpan="2"
@@ -35,41 +31,22 @@
     <Label Grid.Row="1" Grid.Column="0" Text="From" VerticalTextAlignment="End" />
     <Label Grid.Row="1" Grid.Column="1" Text="To" VerticalTextAlignment="End" />
 
-    <Entry
-      Placeholder="From"
+    <customControls:TimeSelector
       Grid.Row="2"
       Grid.Column="0"
-      Text="{Binding FromTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
-    >
-      <Entry.Behaviors>
-        <toolkit:TextValidationBehavior
-          x:Name="fromValidationBehavior"
-          BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
-          InvalidStyle="{StaticResource InvalidEntryStyle}"
-          ValidStyle="{StaticResource DefaultEntryStyle}"
-          Flags="ValidateOnValueChanged"
-          RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
-          IsValid="{Binding IsStartTimeValid, Mode=OneWayToSource}"
-        />
-      </Entry.Behaviors>
-    </Entry>
-    <Entry
-      Placeholder="To"
+      Value="{Binding FromTime, Mode=TwoWay}"
+      MaxValue="{Binding ToTime}"
+      Title="Transcription Start Time"
+      Presets="{Binding TimePresets}"
+    />
+    <customControls:TimeSelector
       Grid.Row="2"
       Grid.Column="1"
-      Text="{Binding ToTime, Mode=TwoWay, Converter={StaticResource TimeSpanConverter}}"
-    >
-      <Entry.Behaviors>
-        <toolkit:TextValidationBehavior
-          x:Name="toValidationBehavior"
-          BindingContext="{Binding Source={x:Reference root}, Path=BindingContext}"
-          InvalidStyle="{StaticResource InvalidEntryStyle}"
-          ValidStyle="{StaticResource DefaultEntryStyle}"
-          Flags="ValidateOnValueChanged"
-          RegexPattern="^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$"
-          IsValid="{Binding IsEndTimeValid, Mode=OneWayToSource}"
-        />
-      </Entry.Behaviors>
-    </Entry>
+      Value="{Binding ToTime, Mode=TwoWay}"
+      MinValue="{Binding FromTime}"
+      MaxValue="{Binding MediaDuration}"
+      Title="Transcription End Time"
+      Presets="{Binding TimePresets}"
+    />
   </Grid>
 </toolkit:Popup>

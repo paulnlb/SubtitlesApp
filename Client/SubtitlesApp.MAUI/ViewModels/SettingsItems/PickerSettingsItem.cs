@@ -1,4 +1,5 @@
-﻿using SubtitlesApp.Interfaces;
+﻿using SubtitlesApp.ClientModels;
+using SubtitlesApp.Interfaces;
 
 namespace SubtitlesApp.ViewModels.SettingsItems;
 
@@ -7,7 +8,7 @@ public partial class PickerSettingsItem : VirtualSettingsItem<string>
     private bool _valueAsSubtitle;
     private readonly ICustomPopupService _popupService;
 
-    public required string[] AllValues { get; set; }
+    public required PickerItem[] AllValues { get; set; }
 
     public PickerSettingsItem(
         ICustomPopupService popupService,
@@ -28,18 +29,20 @@ public partial class PickerSettingsItem : VirtualSettingsItem<string>
 
     public override async Task EditValueAsync()
     {
-        var result = await _popupService.ShowRadioButtons(Title, AllValues, x => x, GetValue());
+        var selected = AllValues.FirstOrDefault(x => x.Action == GetValue());
+
+        var result = await _popupService.ShowRadioButtons(Title, AllValues, x => x.Title, selected);
 
         if (result is null)
         {
             return;
         }
 
-        SetValue(result);
+        SetValue(result.Action);
 
         if (_valueAsSubtitle)
         {
-            SubTitle = result;
+            SubTitle = result.Action;
         }
     }
 }

@@ -1,9 +1,12 @@
 using System.ComponentModel;
+using CommunityToolkit.Maui.Core;
 using CommunityToolkit.Maui.Views;
 using SubtitlesApp.ClientModels;
 using SubtitlesApp.ClientModels.CustomEventArgs;
 using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Helpers;
+using SubtitlesApp.Interfaces;
 using SubtitlesApp.Layouts;
 using SubtitlesApp.Settings;
 using SubtitlesApp.ViewModels;
@@ -18,6 +21,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
     private readonly AdaptiveLayoutStateManager _layoutStateManager;
     private readonly LayoutSettings _normalLayoutSettings;
     private readonly LayoutSettings _expandedLayoutSettings;
+    private readonly IBuiltInDialogService _builtInDialogService;
+
+    private CancellationTokenSource? _playerHideCts;
+    private readonly TimeSpan _playerHideDelay = TimeSpan.FromSeconds(2);
 
     private PlayerWithSubtitlesViewModel Vm => (PlayerWithSubtitlesViewModel)BindingContext;
 
@@ -34,13 +41,14 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         set => SetValue(LayoutSettingsProperty, value);
     }
 
-    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm)
+    public PlayerWithSubtitlesPage(PlayerWithSubtitlesViewModel vm, IBuiltInDialogService builtInDialogService)
     {
         InitializeComponent();
 
         _normalLayoutSettings = new(false);
         _expandedLayoutSettings = new(true);
         CurrentLayoutSettings = new(false);
+        _builtInDialogService = builtInDialogService;
 
         BindingContext = vm;
 
@@ -48,15 +56,16 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
         vm.PropertyChanged += OnVmPropertyChanged;
         vm.SeekRequested += OnSeekRequested;
-        mauiMediaElement.PropertyChanged += OnMediaPlayerPropertyChanged;
-        adaptiveLayout.PropertyChanged += OnLayoutPropertyChanged;
 
         mauiMediaElement.SetBinding(
             MediaElement.DurationProperty,
             new Binding(nameof(vm.SubtitlesVm.MediaDuration), BindingMode.OneWayToSource, source: vm.SubtitlesVm)
         );
+    }
 
-        SubscribeToGestures();
+    private async void OnMediaFailed(object? sender, MediaFailedEventArgs e)
+    {
+        await _builtInDialogService.DisplayError(new Error(ErrorCode.MediaPlayerError, e.ErrorMessage));
     }
 
     protected override async void OnNavigatedFrom(NavigatedFromEventArgs args)
@@ -72,14 +81,10 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         Vm.PropertyChanged -= OnVmPropertyChanged;
         Vm.SeekRequested -= OnSeekRequested;
         mauiMediaElement.Stop();
-        mauiMediaElement.Handler?.DisconnectHandler();
         mauiMediaElement.Dispose();
-        mauiMediaElement.PropertyChanged -= OnMediaPlayerPropertyChanged;
+        mauiMediaElement.Handler?.DisconnectHandler();
         playerControls.Dispose();
         subtitlesView.Dispose();
-        playerControlsGestureRecognizer.PanUpdated -= HandlePanGesture;
-        subtitlesGestureRecognizer.PanUpdated -= HandlePanGesture;
-        adaptiveLayout.PropertyChanged -= OnLayoutPropertyChanged;
     }
 
     protected override bool OnBackButtonPressed()
@@ -115,20 +120,67 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Vm.IsImmersiveOn))
+        if (e.PropertyName == nameof(Vm.FileInfo) && Vm.FileInfo is not null)
         {
-            if (Vm.IsImmersiveOn)
-            {
-                ImmersiveOn();
-            }
-            else
-            {
-                ImmersiveOff();
-            }
+            mauiMediaElement.Source = MediaSource.FromUri(Vm.FileInfo.Uri);
+            playerControls.Title = Vm.FileInfo.Name;
         }
-        else if (e.PropertyName == nameof(Vm.IsFullScreenOn))
+    }
+
+    private void OnFullScreenToggled(object? sender, StateBtnEventArgs e)
+    {
+        ScreenStateHelper.ChangeOrientation(e.IsToggled);
+
+        playerControls.PlayerControlsVisible = false;
+        playerControls.IsImmersiveOn = e.IsToggled;
+
+        if (e.IsToggled)
         {
-            ScreenStateHelper.ChangeOrientation(Vm.IsFullScreenOn);
+            ImmersiveOn();
+        }
+        else
+        {
+            ImmersiveOff();
+        }
+    }
+
+    private void OnImmersiveModeToggled(object? sender, StateBtnEventArgs e)
+    {
+        playerControls.PlayerControlsVisible = false;
+
+        if (e.IsToggled)
+        {
+            ImmersiveOn();
+        }
+        else
+        {
+            ImmersiveOff();
+        }
+    }
+
+    private void OnPlayerStateChanged(object? sender, MediaStateChangedEventArgs e)
+    {
+        if (e.NewState == MediaElementState.Playing)
+        {
+            StartPlayerHideTimer();
+        }
+        else
+        {
+            CancelPlayerHideTimer();
+        }
+    }
+
+    private void OnPlayerTapped(object? sender, TappedEventArgs e)
+    {
+        playerControls.PlayerControlsVisible = !playerControls.PlayerControlsVisible;
+
+        if (playerControls.PlayerControlsVisible && mauiMediaElement.CurrentState == MediaElementState.Playing)
+        {
+            StartPlayerHideTimer();
+        }
+        else
+        {
+            CancelPlayerHideTimer();
         }
     }
 
@@ -168,12 +220,6 @@ public partial class PlayerWithSubtitlesPage : ContentPage
         }
     }
 
-    private void SubscribeToGestures()
-    {
-        subtitlesGestureRecognizer.PanUpdated += HandlePanGesture;
-        playerControlsGestureRecognizer.PanUpdated += HandlePanGesture;
-    }
-
     private void ImmersiveOn()
     {
         ScreenStateHelper.FullScreen();
@@ -188,6 +234,40 @@ public partial class PlayerWithSubtitlesPage : ContentPage
             adaptiveLayout.SafeAreaEdges =
             this.SafeAreaEdges =
                 new SafeAreaEdges(SafeAreaRegions.Container);
+    }
+
+    private void StartPlayerHideTimer()
+    {
+        CancelPlayerHideTimer();
+
+        _playerHideCts = new CancellationTokenSource();
+        var token = _playerHideCts.Token;
+
+        _ = HideAfterDelayAsync(token);
+    }
+
+    private async Task HideAfterDelayAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(_playerHideDelay, token);
+
+            if (!token.IsCancellationRequested)
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    playerControls.PlayerControlsVisible = false;
+                });
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void CancelPlayerHideTimer()
+    {
+        _playerHideCts?.Cancel();
+        _playerHideCts?.Dispose();
+        _playerHideCts = null;
     }
 
     #endregion
@@ -207,10 +287,7 @@ public partial class PlayerWithSubtitlesPage : ContentPage
 
                 panGestureState = new() { Id = e.GestureId, Locked = true };
 
-                if (BindingContext is PlayerWithSubtitlesViewModel vm)
-                {
-                    vm.PlayerControlsVisible = false;
-                }
+                playerControls.PlayerControlsVisible = false;
 
                 RefreshLayoutStates();
 

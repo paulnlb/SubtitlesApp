@@ -38,9 +38,9 @@ public static class ScreenStateHelper
 
     public static void ChangeOrientation(bool toLandscape)
     {
-        if (DeviceInfo.Current.Platform == DevicePlatform.Android)
+        if (DeviceInfo.Current.Platform == DevicePlatform.Android && Platform.CurrentActivity is MainActivity mainActivity)
         {
-            MainActivity.Instance.ChangeOrientation(toLandscape);
+            mainActivity.ChangeOrientation(toLandscape);
         }
     }
 }

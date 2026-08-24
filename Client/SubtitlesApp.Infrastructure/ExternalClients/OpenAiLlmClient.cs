@@ -122,14 +122,18 @@ public class OpenAiLlmClient(IOpenAiClientSettings settings) : ILlmClient
 
     private static async Task<ResponsesClient> InitClient(IOpenAiClientSettings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.Endpoint))
+        if (string.IsNullOrWhiteSpace(settings.Endpoint))
         {
-            return new(
-                new ApiKeyCredential(await settings.GetSecret()),
-                new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) }
-            );
+            return new(await settings.GetSecret());
         }
 
-        return new(await settings.GetSecret());
+        var apiKey = await settings.GetSecret();
+
+        if (string.IsNullOrEmpty(apiKey))
+        {
+            apiKey = " ";
+        }
+
+        return new(new ApiKeyCredential(apiKey), new OpenAIClientOptions { Endpoint = new Uri(settings.Endpoint!) });
     }
 }

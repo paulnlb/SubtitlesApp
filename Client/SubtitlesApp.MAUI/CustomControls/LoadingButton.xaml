@@ -8,33 +8,39 @@
   x:Name="root"
   x:DataType="customContols:LoadingButton"
 >
-  <ContentView.Resources>
-    <ResourceDictionary>
-      <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-    </ResourceDictionary>
-  </ContentView.Resources>
-  <Grid>
-    <Button
-      x:Name="MainButton"
-      Text="{Binding Source={x:Reference root}, Path=Text}"
-      MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
-      MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
-      ImageSource="{Binding Source={x:Reference root}, Path=ImageSource}"
-      Command="{Binding Source={x:Reference root}, Path=Command}"
-      CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
-      Style="{Binding Source={x:Reference root}, Path=ButtonStyle}"
-      IsVisible="{Binding Source={x:Reference root}, Path=IsLoading, Converter={x:StaticResource InvertedBoolConverter}}"
-    />
+  <Border x:Name="BtnBorder" StrokeThickness="0">
+    <Border.StrokeShape>
+      <RoundRectangle CornerRadius="{Binding Source={x:Reference MainButton}, Path=CornerRadius}" />
+    </Border.StrokeShape>
+    <Border.Stroke>
+      <LinearGradientBrush x:Name="LoadingBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{x:StaticResource Primary}" Offset="0.0" />
+        <GradientStop Color="{x:StaticResource PrimaryDark}" Offset="1.0" />
+      </LinearGradientBrush>
+    </Border.Stroke>
 
-    <ActivityIndicator
-      MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
-      MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
-      IsRunning="{Binding Source={x:Reference root}, Path=IsLoading}"
-      IsVisible="{Binding Source={x:Reference root}, Path=IsLoading}"
-      Color="{Binding Source={x:Reference root}, Path=SpinnerColor}"
-      HorizontalOptions="Center"
-      VerticalOptions="Center"
-      InputTransparent="True"
-    />
-  </Grid>
+    <Grid>
+      <Button
+        x:Name="MainButton"
+        Text="{Binding Source={x:Reference root}, Path=Text}"
+        MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
+        MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
+        ImageSource="{Binding Source={x:Reference root}, Path=ImageSource}"
+        Command="{Binding Source={x:Reference root}, Path=Command}"
+        CommandParameter="{Binding Source={x:Reference root}, Path=CommandParameter}"
+        Style="{Binding Source={x:Reference root}, Path=ButtonStyle}"
+        IsVisible="{Binding Source={x:Reference root}, Path=IsLoading, Converter={x:StaticResource InvertedBoolConverter}}"
+      />
+      <Button
+        x:Name="CancelButton"
+        MaximumWidthRequest="{Binding Source={x:Reference root}, Path=WidthRequest}"
+        MaximumHeightRequest="{Binding Source={x:Reference root}, Path=HeightRequest}"
+        Style="{Binding Source={x:Reference root}, Path=ButtonStyle}"
+        ImageSource="{AppThemeBinding Dark=close_light, Light=close_dark}"
+        IsVisible="{Binding Source={x:Reference root}, Path=IsLoading}"
+        IsEnabled="{Binding Source={x:Reference MainButton}, Path=Command.IsCancellationRequested, Converter={x:StaticResource InvertedBoolConverter}}"
+        Clicked="OnCancelBtnClicked"
+      />
+    </Grid>
+  </Border>
 </ContentView>

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Interfaces;
 using SubtitlesApp.ViewModels.Popups;
@@ -17,6 +18,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
 
     public async Task<TranscriptionSettings?> ShowTranscriptionSettings(
         TimeSpan mediaDuration,
+        TimeSpan currentMediaTime,
         Language language,
         TimeSpan? fromTime,
         TimeSpan? toTime
@@ -28,6 +30,7 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(TranscribePopupViewModel.SubtitlesLanguage), language },
             { nameof(TranscribePopupViewModel.Title), "Transcription" },
             { nameof(TranscribePopupViewModel.AcceptText), "Transcribe" },
+            { nameof(TranscribePopupViewModel.CurrentMediaTime), currentMediaTime },
         };
 
         if (fromTime is not null)
@@ -105,7 +108,10 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         string title,
         IEnumerable<T> sourceItems,
         Func<T, string> displaySelector,
-        T? selected
+        T? selected,
+        string? description = null,
+        bool showCancelBtn = true,
+        string? emptyText = null
     )
     {
         var queryAttributes = new Dictionary<string, object>
@@ -114,6 +120,9 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(RadioButtonPopupVm<>.SourceItems), sourceItems },
             { nameof(RadioButtonPopupVm<>.DisplaySelector), displaySelector },
             { nameof(RadioButtonPopupVm<>.SelectedItem), selected ?? default },
+            { nameof(RadioButtonPopupVm<>.Description), description },
+            { nameof(RadioButtonPopupVm<>.IsCancelVisible), showCancelBtn },
+            { nameof(RadioButtonPopupVm<>.EmptyText), emptyText },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<RadioButtonPopupVm<T>, T>(
@@ -155,7 +164,14 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         return popupResult.Result;
     }
 
-    public async Task<TimeSpan?> ShowTimeEntry(string title, TimeSpan value, TimeSpan? min = null, TimeSpan? max = null)
+    public async Task<TimeSpan?> ShowTimeEntry(
+        string title,
+        TimeSpan value,
+        TimeSpan? min = null,
+        TimeSpan? max = null,
+        TimeEntryScope timeScope = TimeEntryScope.Hours,
+        IEnumerable<TimePreset>? timePresets = null
+    )
     {
         var queryAttributes = new Dictionary<string, object>
         {
@@ -164,6 +180,8 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
             { nameof(TimeEntryPopupVm.Value), value },
             { nameof(TimeEntryPopupVm.Min), min },
             { nameof(TimeEntryPopupVm.Max), max },
+            { nameof(TimeEntryPopupVm.TimeScope), timeScope },
+            { nameof(TimeEntryPopupVm.Presets), timePresets },
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<TimeEntryPopupVm, TimeSpan?>(
@@ -187,6 +205,52 @@ public class CustomPopupService(IPopupService toolkitPopupService) : ICustomPopu
         };
 
         var popupResult = await toolkitPopupService.ShowPopupAsync<CounterPopupVm, int?>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+
+    public async Task<double?> ShowDoubleEntry(string title, double value, double? min = null, double? max = null)
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(DoubleEntryPopupVm.Title), title },
+            { nameof(DoubleEntryPopupVm.AcceptText), "Ok" },
+            { nameof(DoubleEntryPopupVm.Value), value },
+            { nameof(DoubleEntryPopupVm.Min), min },
+            { nameof(DoubleEntryPopupVm.Max), max },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<DoubleEntryPopupVm, double?>(
+            Shell.Current,
+            _popupOptions,
+            queryAttributes
+        );
+
+        return popupResult.Result;
+    }
+
+    public async Task<T?> ShowActionList<T>(
+        string title,
+        IEnumerable<T> sourceItems,
+        Func<T, string> displaySelector,
+        string? description = null,
+        string? emptyText = null
+    )
+    {
+        var queryAttributes = new Dictionary<string, object>
+        {
+            { nameof(ActionListPopupVm<>.Title), title },
+            { nameof(ActionListPopupVm<>.SourceItems), sourceItems },
+            { nameof(ActionListPopupVm<>.DisplaySelector), displaySelector },
+            { nameof(ActionListPopupVm<>.Description), description },
+            { nameof(ActionListPopupVm<>.EmptyText), emptyText },
+        };
+
+        var popupResult = await toolkitPopupService.ShowPopupAsync<ActionListPopupVm<T>, T>(
             Shell.Current,
             _popupOptions,
             queryAttributes

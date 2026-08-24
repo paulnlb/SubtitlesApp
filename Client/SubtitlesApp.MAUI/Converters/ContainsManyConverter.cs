@@ -1,0 +1,21 @@
+﻿using System.Globalization;
+
+namespace SubtitlesApp.Converters;
+
+internal class ContainsManyConverter<T> : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not ICollection<T> collection)
+        {
+            return false;
+        }
+
+        return collection.Count > 1;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return Binding.DoNothing;
+    }
+}

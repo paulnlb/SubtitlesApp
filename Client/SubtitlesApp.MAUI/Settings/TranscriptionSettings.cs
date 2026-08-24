@@ -1,14 +1,20 @@
-using SubtitlesApp.Core.Interfaces.Settings;
+using SubtitlesApp.Infrastructure.Interfaces.Settings;
 
 namespace SubtitlesApp.Settings;
 
 public class TranscriptionSettings : ITranscriptionSettings
 {
     private const string _chunkLengthKey = "chunk_length_key";
-    private const double _chunkLengthDefault = 30;
+    private const double _chunkLengthDefault = 600;
 
     private const string _subtitltesAsPromptKey = "subtitles_as_prompt_key";
     private const int _subtitltesAsPromptDefault = 0;
+
+    private const string _overlapKey = "overlap_seconds";
+    private const double _overlapDefault = 13;
+
+    private const string _epsilonKey = "epsilon_milliseconds";
+    private const double _epsilonDefault = 100;
 
     public TimeSpan ChunkLength
     {
@@ -22,7 +28,15 @@ public class TranscriptionSettings : ITranscriptionSettings
         set => Preferences.Set(_subtitltesAsPromptKey, value);
     }
 
-    public TimeSpan OverlapSize => TimeSpan.FromSeconds(2);
+    public TimeSpan OverlapSize
+    {
+        get => TimeSpan.FromSeconds(Preferences.Get(_overlapKey, _overlapDefault));
+        set => Preferences.Set(_overlapKey, value.TotalSeconds);
+    }
 
-    public TimeSpan Epsilon => TimeSpan.FromMilliseconds(300);
+    public TimeSpan Epsilon
+    {
+        get => TimeSpan.FromMilliseconds(Preferences.Get(_epsilonKey, _epsilonDefault));
+        set => Preferences.Set(_epsilonKey, value.TotalMilliseconds);
+    }
 }

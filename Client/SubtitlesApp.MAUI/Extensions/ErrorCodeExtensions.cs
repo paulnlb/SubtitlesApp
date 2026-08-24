@@ -9,23 +9,17 @@ public static class ErrorCodeExtensions
         return errorCode switch
         {
             ErrorCode.Unspecified => "Unknown error.",
-            ErrorCode.BadRequest => "Something is wrong with your request to the server.",
-            ErrorCode.InternalServerError => "Something has broken on the server side. Please try again later.",
             ErrorCode.InternalClientError => "An error has occurred on the client side",
-            ErrorCode.ConnectionError => "Error while connecting to the server. Check your connection and try again.",
             ErrorCode.InvalidAudio => "Provided audio file is invalid.",
-            ErrorCode.OperationCanceled => "Operation has been cancelled.",
-            ErrorCode.AuthenticationError => "Authentication failed: got error response from the identity provider.",
-            ErrorCode.Unauthorized => "Provided credentials are invalid. Check your credentials and try again.",
-            ErrorCode.BadGateway => "Something has broken on the server side (Bad Gateway). Please try again later.",
-            ErrorCode.TokenExpired => "Access token expired.",
-            ErrorCode.Forbidden => "You cannot access this resource.",
-            ErrorCode.ValidationFailed => "Sent data is invalid.",
+            ErrorCode.OperationCancelled => "Operation has been cancelled.",
+            ErrorCode.ValidationFailed => "Data is invalid.",
             ErrorCode.FailedServerResponse => "Received failed status from server.",
             ErrorCode.RetryLimitExceeded => "Retry limit exceeded.",
             ErrorCode.InvalidLlmTranslation => "LLM translation failed. Please try again.",
             ErrorCode.InvalidInput => "Error: provided data or configuration is invalid",
             ErrorCode.SubtitlesPersistenceError => "An unexpected error occurred while saving subtitles to disk",
+            ErrorCode.MediaPlayerError => "An error occured while trying to open your media",
+            ErrorCode.MediaProcessingError => "An error occured while trying to process your media",
             _ => string.Empty,
         };
     }

@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:popupVms="clr-namespace:SubtitlesApp.ViewModels.Popups"
+  xmlns:settingsItems="clr-namespace:SubtitlesApp.ViewModels.SettingsItems"
+  x:Class="SubtitlesApp.Resources.Styles.ControlTemplates"
+>
+  <ControlTemplate x:Key="PopupTemplate" x:DataType="popupVms:BasePopupVm">
+    <Border StyleClass="PopupBorder">
+      <Grid RowDefinitions="Auto, Auto, *, Auto, Auto" ColumnDefinitions="Auto" StyleClass="PopupView">
+        <Label x:Name="header" Grid.Row="0" Text="{Binding Title}" Margin="20,15" />
+        <BoxView StyleClass="Divider" Grid.Row="1" Margin="0" />
+
+        <ContentPresenter
+          Grid.Row="2"
+          Padding="20, 15"
+          VerticalOptions="Center"
+          MinimumWidthRequest="{TemplateBinding MinimumWidthRequest}"
+          MaximumWidthRequest="{TemplateBinding MaximumWidthRequest}"
+          WidthRequest="{TemplateBinding WidthRequest}"
+        />
+
+        <BoxView Grid.Row="3" StyleClass="Divider" Margin="0" />
+        <FlexLayout Grid.Row="4" JustifyContent="End" Margin="10, 5">
+          <Button
+            Text="{Binding CancelText}"
+            Command="{Binding CancelCommand}"
+            StyleClass="TextButton, Dialog.Button2"
+            IsVisible="{Binding IsCancelVisible}"
+          />
+          <Button
+            Text="{Binding AcceptText}"
+            Command="{Binding AcceptCommand}"
+            StyleClass="TextButton, Dialog.Button2"
+            IsEnabled="{Binding IsAcceptEnabled}"
+          />
+        </FlexLayout>
+      </Grid>
+    </Border>
+  </ControlTemplate>
+
+  <DataTemplate x:Key="SettingItemsGroup" x:DataType="settingsItems:SettingsItemsGroup">
+    <VerticalStackLayout Spacing="0" Margin="15, 0, 15, 10" MaximumWidthRequest="{StaticResource MaxLayoutWidth}">
+      <Label
+        Text="{Binding Name}"
+        Padding="0, 10, 0, 10"
+        FontSize="16"
+        FontAttributes="None"
+        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource LightTextPrimary}}"
+      />
+
+      <Border
+        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource CardBackground}}"
+        StrokeThickness="0"
+      >
+        <Border.StrokeShape>
+          <RoundRectangle CornerRadius="8" />
+        </Border.StrokeShape>
+        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="0" Padding="15">
+          <BindableLayout.ItemTemplate>
+            <DataTemplate x:DataType="settingsItems:SettingsItem">
+              <Grid
+                RowDefinitions="*, Auto"
+                Padding="0, 10"
+                IsEnabled="{Binding EditValueCommand.IsRunning, Converter={x:StaticResource InvertedBoolConverter}}"
+                MinimumHeightRequest="58"
+              >
+                <Grid.GestureRecognizers>
+                  <TapGestureRecognizer Command="{Binding EditValueCommand}" CommandParameter="{Binding .}" />
+                </Grid.GestureRecognizers>
+                <Label
+                  Grid.Row="0"
+                  VerticalOptions="Center"
+                  Text="{Binding Title}"
+                  FontSize="15"
+                  FontAttributes="None"
+                  TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource LightTextPrimary}}"
+                />
+                <Label
+                  Grid.Row="1"
+                  IsVisible="{Binding SubTitle, Converter={x:StaticResource IsNotNullConverter}}"
+                  Text="{Binding SubTitle}"
+                  FontAttributes="None"
+                  TextColor="{AppThemeBinding Light={StaticResource Gray}, Dark={StaticResource LightTextSecondary}}"
+                  FontSize="13"
+                />
+              </Grid>
+            </DataTemplate>
+          </BindableLayout.ItemTemplate>
+        </VerticalStackLayout>
+      </Border>
+    </VerticalStackLayout>
+  </DataTemplate>
+</ResourceDictionary>

@@ -40,6 +40,8 @@ public class TimeInterval
 
     public bool IsLaterThan(TimeSpan time) => StartTime > time && EndTime > time;
 
+    public bool IsLaterOrStartsWith(TimeSpan time) => StartTime >= time && EndTime > time;
+
     public bool Overlaps(TimeInterval other)
     {
         return EndTime > other.StartTime && StartTime < other.EndTime;
@@ -53,6 +55,11 @@ public class TimeInterval
     public bool OverlapsOrAdjacentTo(TimeInterval other)
     {
         return Overlaps(other) || IsAdjacentTo(other);
+    }
+
+    public bool Includes(TimeInterval other)
+    {
+        return StartTime <= other.StartTime && EndTime >= other.EndTime;
     }
 
     public TimeInterval Union(TimeInterval other)

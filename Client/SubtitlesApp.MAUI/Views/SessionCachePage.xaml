@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+  xmlns:viewModels="clr-namespace:SubtitlesApp.ViewModels"
+  x:Class="SubtitlesApp.Views.SessionCachePage"
+  Title="Clear Video Session Cache"
+  x:DataType="viewModels:SessionCacheVm"
+  Padding="20"
+  SafeAreaEdges="Container"
+>
+  <ContentPage.Resources>
+    <Style Class="TopMarginBig" TargetType="View" ApplyToDerivedTypes="True">
+      <Setter Property="Margin" Value="0, 50, 0, 0" />
+    </Style>
+    <Style Class="TopMarginSmall" TargetType="View" ApplyToDerivedTypes="True">
+      <Setter Property="Margin" Value="0, 20, 0, 0" />
+    </Style>
+    <Style Class="DateRangeView" TargetType="View" ApplyToDerivedTypes="True">
+      <Setter Property="IsVisible" Value="{Binding IsCustom}" />
+    </Style>
+  </ContentPage.Resources>
+  <Grid RowDefinitions="Auto, Auto, Auto, *" ColumnDefinitions="*,*">
+    <Label Grid.Row="0" Grid.Column="0" Text="Period of Time" VerticalOptions="Center" TextColor="LightGray" />
+    <Picker
+      Grid.Row="0"
+      Grid.Column="1"
+      ItemsSource="{Binding ClearOptions}"
+      SelectedItem="{Binding SelectedItem}"
+      Title="Select Period of Time"
+      ItemDisplayBinding="{Binding Title}"
+    />
+
+    <Label Grid.Row="1" Grid.Column="0" Text="From" StyleClass="TopMarginSmall, DateRangeView" />
+    <Label Grid.Row="1" Grid.Column="1" Text="To" StyleClass="TopMarginSmall, DateRangeView" />
+    <DatePicker Grid.Row="2" Grid.Column="0" Date="{Binding StartDate, Mode=TwoWay}" StyleClass="DateRangeView" />
+    <DatePicker Grid.Row="2" Grid.Column="1" Date="{Binding EndDate, Mode=TwoWay}" StyleClass="DateRangeView" />
+
+    <Button
+      Grid.Row="3"
+      Grid.ColumnSpan="2"
+      Text="Clear Cache"
+      Command="{Binding ClearCacheCommand}"
+      StyleClass="TopMarginBig"
+      VerticalOptions="End"
+    >
+      <Button.IsEnabled>
+        <MultiBinding Converter="{StaticResource AnyTrueConverter}">
+          <Binding Path="StartDate" Converter="{StaticResource IsNotNullConverter}" />
+          <Binding Path="EndDate" Converter="{StaticResource IsNotNullConverter}" />
+        </MultiBinding>
+      </Button.IsEnabled>
+    </Button>
+  </Grid>
+</ContentPage>

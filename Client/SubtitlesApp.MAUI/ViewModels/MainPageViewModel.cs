@@ -1,31 +1,33 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SubtitlesApp.ClientModels;
+using SubtitlesApp.ClientModels.Enums;
+using SubtitlesApp.Constants;
 using SubtitlesApp.Interfaces;
+using SubtitlesApp.Resources.Strings;
+using SubtitlesApp.Services;
 using SubtitlesApp.Views;
 
 namespace SubtitlesApp.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
-    private const string LoadOnlineVideo = "Load Online Video";
-    private const string LoadLocalResource = "Choose Local Video From Device";
-    private readonly List<string> _mainLabelList =
+    private readonly string[] _mainLabelList =
     [
-        "Rare case when AI is actually useful",
-        "Language barrier is not a thing anymore",
-        "Transcribe and translate any video",
-        "Nothing impressive. Just subtitles that are less distracting",
-        "Great tool for learning foreign languages",
-        "Nothing special as a service",
-        "The app is free and open source. The APIs - not necessarily",
-        "Transcribe, translate, swipe in, swipe away, scroll and navigate",
-        "Not just another API wrapper!",
-        "Video transcription is largely solved",
-        "This version is newer than anything we've ever released",
+        MainLabelTexts.AiUseful,
+        MainLabelTexts.ThisVersion,
+        MainLabelTexts.Tool,
+        MainLabelTexts.Features,
+        MainLabelTexts.Subtitles,
+        MainLabelTexts.OpenSource,
+        MainLabelTexts.TranscribeTranslate,
+        MainLabelTexts.TranscriptionSolved,
+        MainLabelTexts.LanguageBarrier,
+        MainLabelTexts.NotWrapper,
+        MainLabelTexts.Nsaas,
     ];
 
-    private readonly IBuiltInDialogService _dialogService;
-    private readonly IVideoPicker _videoPicker;
+    private readonly LocalFileManager _localFileManager;
     private readonly ICustomPopupService _popupService;
 
     [ObservableProperty]
@@ -34,60 +36,66 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private string _footerText = $"v{AppInfo.Current.VersionString} alpha. The app may crash.";
 
-    public MainPageViewModel(IBuiltInDialogService dialogService, IVideoPicker videoPicker, ICustomPopupService popupService)
+    public MainPageViewModel(LocalFileManager localFileManager, ICustomPopupService popupService)
     {
-        _dialogService = dialogService;
-        _videoPicker = videoPicker;
+        _localFileManager = localFileManager;
         _popupService = popupService;
 
-        var random = new Random();
-        var index = random.Next(_mainLabelList.Count);
-
-        MainLabelText = _mainLabelList[index];
+        MainLabelText = _mainLabelList[Random.Shared.Next(_mainLabelList.Length)];
     }
 
     [RelayCommand]
-    public void OpenSettings() => Shell.Current.GoToAsync(nameof(SettingsPage));
+    public Task OpenSettings() => Shell.Current.GoToAsync(nameof(SettingsPage));
 
     [RelayCommand]
     public async Task OpenMediaFile()
     {
-        var result = await _dialogService.DisplayActionSheet(
-            "Choose a source",
-            "Cancel",
-            null,
-            LoadOnlineVideo,
-            LoadLocalResource
-        );
-
-        switch (result)
+        var actions = new List<PickerItem>
         {
-            case LoadOnlineVideo:
+            new() { Title = "Remote File", Action = FileActions.LoadRemote },
+            new() { Title = "Local File", Action = FileActions.LoadLocal },
+        };
+
+        var result = await _popupService.ShowActionList("Choose a Source", actions, x => x.Title);
+
+        switch (result?.Action)
+        {
+            case FileActions.LoadRemote:
 
                 var url = await _popupService.ShowUrlEntry();
 
                 if (!string.IsNullOrEmpty(url))
                 {
-                    await OpenPlayerWithSubtitlesPage(url);
+                    var remoteInfo = new MediaFileInfo(
+                        FileResourceType.Remote,
+                        url,
+                        new Uri(url).Segments.Last().TrimEnd('/'),
+                        url
+                    );
+
+                    await OpenPlayerWithSubtitlesPage(remoteInfo);
                 }
 
                 break;
 
-            case LoadLocalResource:
+            case FileActions.LoadLocal:
 
-                var path = await _videoPicker.PickAsync();
+                var localInfo = await _localFileManager.PickFile([MimeTypes.AnyVideo, MimeTypes.AnyAudio]);
 
-                if (!string.IsNullOrEmpty(path))
+                if (localInfo is not null)
                 {
-                    await OpenPlayerWithSubtitlesPage(path);
+                    await OpenPlayerWithSubtitlesPage(localInfo);
                 }
 
                 break;
         }
     }
 
-    private static Task OpenPlayerWithSubtitlesPage(string path)
+    private static Task OpenPlayerWithSubtitlesPage(MediaFileInfo fileResource)
     {
-        return Shell.Current.GoToAsync($"{nameof(PlayerWithSubtitlesPage)}?open={path}");
+        return Shell.Current.GoToAsync(
+            nameof(PlayerWithSubtitlesPage),
+            new Dictionary<string, object> { { "open", fileResource } }
+        );
     }
 }
