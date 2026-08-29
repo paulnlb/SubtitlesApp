@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--
+      Enable trim analyzers for Android class libraries.
+      To learn more, see: https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming
+    -->
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+
+  <ItemGroup>
+  	<Content Include="models\**">
+  		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  	</Content>
+  </ItemGroup>
+</Project>
