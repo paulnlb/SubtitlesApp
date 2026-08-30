@@ -40,6 +40,7 @@ public static class ServicesCollectionExtensions
         services.AddTransient<SubtitlesFileService>();
         services.AddTransient<IMediaProcessingService, FfmpegService>();
         services.AddTransient<FfmpegService>();
+        services.AddTransient<AedService>();
         #endregion
 
         #region singleton

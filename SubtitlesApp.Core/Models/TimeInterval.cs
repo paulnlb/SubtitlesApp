@@ -85,37 +85,30 @@ public class TimeInterval
         return new TimeInterval(other.EndTime, EndTime);
     }
 
-    public IEnumerable<TimeInterval> Split(TimeSpan size, TimeSpan overlap = default)
+    public IEnumerable<TimeInterval> GetGapsBetween(IEnumerable<TimeInterval> intervals, bool alreadySorted = false)
     {
-        if (overlap >= size)
+        if (!alreadySorted)
         {
-            throw new ArgumentException("Overlap size must be smaller than sub-interval size.");
-        }
-        if (size == TimeSpan.Zero || size == EndTime - StartTime)
-        {
-            yield return this;
-            yield break;
+            intervals = intervals.OrderBy(i => i.StartTime);
         }
 
-        var currentStart = StartTime;
+        intervals = intervals.Where(i => i.EndTime > StartTime && i.StartTime < EndTime);
 
-        while (currentStart < EndTime)
+        var lastEnd = StartTime;
+
+        foreach (var interval in intervals)
         {
-            var currentEnd = currentStart + size;
-
-            if (currentEnd > EndTime)
+            if (interval.StartTime > lastEnd)
             {
-                currentEnd = EndTime;
+                yield return new TimeInterval(lastEnd, interval.StartTime);
             }
 
-            yield return new TimeInterval(currentStart, currentEnd);
+            lastEnd = interval.EndTime;
+        }
 
-            if (currentEnd == EndTime)
-            {
-                yield break;
-            }
-
-            currentStart = currentEnd - overlap;
+        if (lastEnd < EndTime)
+        {
+            yield return new TimeInterval(lastEnd, EndTime);
         }
     }
 }

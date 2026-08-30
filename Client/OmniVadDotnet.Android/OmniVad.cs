@@ -4,10 +4,11 @@ namespace OmniVadDotnet.Android;
 
 public static unsafe class OmniVad
 {
-    public static List<OmniAedSegment> AedDetect(float[] samples, OmniAedPostConfig? config = null)
+    public static List<OmniAedSegment> AedDetect(float[] samples, string bundlePath, OmniAedPostConfig? config = null)
     {
         var resultSegments = new List<OmniAedSegment>();
-        using var aed = OmniVadNative.omni_aed_create("models/aed.omnivad", out int err);
+
+        using var aed = OmniVadNative.omni_aed_create(bundlePath, out int err);
 
         if (aed.IsInvalid)
         {
@@ -34,7 +35,16 @@ public static unsafe class OmniVad
 
         for (int i = 0; i < count; i++)
         {
-            resultSegments.Add(segments[i]);
+            var seg = segments[i];
+            resultSegments.Add(
+                new()
+                {
+                    Start = seg.Start,
+                    End = seg.End,
+                    Cls = seg.Cls,
+                    Confidence = seg.Confidence,
+                }
+            );
         }
 
         if (segments != null)

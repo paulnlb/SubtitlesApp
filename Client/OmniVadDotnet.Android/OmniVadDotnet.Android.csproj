@@ -11,10 +11,4 @@
     -->
     <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
-
-  <ItemGroup>
-  	<Content Include="models\**">
-  		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  	</Content>
-  </ItemGroup>
 </Project>

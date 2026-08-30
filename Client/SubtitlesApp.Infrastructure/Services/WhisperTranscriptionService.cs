@@ -14,7 +14,8 @@ public partial class WhisperTranscriptionService(
     OpenAiTranscriptionClent transcriptionsClient,
     ITranscriptionSettings settings,
     ILogger<WhisperTranscriptionService> logger,
-    IMediaProcessingService audioExtractor
+    IMediaProcessingService audioExtractor,
+    AedService aedService
 ) : ITranscriptionService
 {
     public async IAsyncEnumerable<Result<Subtitle>> TranscribeAsync(
@@ -72,6 +73,13 @@ public partial class WhisperTranscriptionService(
                 settings.SubtitlesAsPromptCount > 0 ? ConstuctDynamicPrompt(buffer, audioChunk.StartTime) : string.Empty;
 
             LogPrompt(prompt);
+
+            var aedResult = aedService.Detect(audioStream);
+
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                LogAedSegments(aedResult);
+            }
 
             var subtitlesResult = await transcriptionsClient.GetSubsAsync(
                 audioStream,
@@ -202,6 +210,19 @@ public partial class WhisperTranscriptionService(
         return removedCount;
     }
 
+    private void LogAedSegments(AedResult aedResult)
+    {
+        foreach (var segment in aedResult.VoiceSegments)
+        {
+            LogVoiceSegment(segment.StartTime, segment.EndTime);
+        }
+
+        foreach (var segment in aedResult.NonVoiceSegments)
+        {
+            LogNonVoiceSegment(segment.StartTime, segment.EndTime);
+        }
+    }
+
     [LoggerMessage(Level = LogLevel.Debug, Message = "Audio chunk created. Start time: {StartTime}. End Time: {EndTime}")]
     private partial void LogAudioChunk(TimeSpan startTime, TimeSpan endTime);
 
@@ -225,4 +246,10 @@ public partial class WhisperTranscriptionService(
         Message = "Transcription started. Time interval: [{StartTime}, {EndTime}]. Language code: {LanguageCode}"
     )]
     private partial void LogTranscriptionStart(TimeSpan startTime, TimeSpan endTime, string languageCode);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice. St: {StartTime}, Et: {EndTime}")]
+    private partial void LogVoiceSegment(TimeSpan startTime, TimeSpan endTime);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice ansence. St: {StartTime}, Et: {EndTime}")]
+    private partial void LogNonVoiceSegment(TimeSpan startTime, TimeSpan endTime);
 }
