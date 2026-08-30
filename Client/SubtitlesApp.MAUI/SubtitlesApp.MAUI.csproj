@@ -62,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <MauiAsset Remove="Resources\Raw\models\aed.omnivad" />
+    <MauiAsset Remove="Resources\Models\aed.omnivad" />
   </ItemGroup>
 
   <ItemGroup>
@@ -71,7 +71,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AndroidAsset Include="Resources\Raw\models\aed.omnivad">
+    <AndroidAsset Include="Resources\Models\aed.omnivad">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidAsset>
   </ItemGroup>
