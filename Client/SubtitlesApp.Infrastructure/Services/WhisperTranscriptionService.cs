@@ -250,6 +250,6 @@ public partial class WhisperTranscriptionService(
     [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice. St: {StartTime}, Et: {EndTime}")]
     private partial void LogVoiceSegment(TimeSpan startTime, TimeSpan endTime);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice ansence. St: {StartTime}, Et: {EndTime}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice absence. St: {StartTime}, Et: {EndTime}")]
     private partial void LogNonVoiceSegment(TimeSpan startTime, TimeSpan endTime);
 }
