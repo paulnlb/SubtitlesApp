@@ -1,6 +1,7 @@
 ﻿using NAudio.Wave;
 using OmniVadDotnet.Android;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Infrastructure.Helpers;
 using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.Services;
@@ -40,15 +41,21 @@ public class AedService
         config.Music.MaxSpeechFrames = config.Speech.MaxSpeechFrames = config.Singing.MaxSpeechFrames = 2000;
         config.Music.ExtendSpeechFrames = config.Speech.ExtendSpeechFrames = config.Singing.ExtendSpeechFrames = 50;
 
-        var segments = OmniVad.AedDetect(allSamples.ToArray(), modelPath, config);
+        var allSamplesArr = allSamples.ToArray();
+        MediaHelper.PeakNormalize(allSamplesArr);
+
+        var segments = OmniVad.AedDetect(allSamplesArr, modelPath, config);
 
         var voiceSegments = segments
             .Where(s => s.Cls == OmniAedClass.Singing || s.Cls == OmniAedClass.Speech)
             .OrderBy(s => s.Start)
-            .Select(s => new TimeInterval(TimeSpan.FromSeconds(s.Start), TimeSpan.FromSeconds(s.End)));
+            .Select(s => new TimeInterval(TimeSpan.FromSeconds(s.Start), TimeSpan.FromSeconds(s.End)))
+            .ToList();
 
-        var nonVoiceSegments = new TimeInterval(TimeSpan.Zero, waveReader.TotalTime).GetGapsBetween(voiceSegments, true);
+        var nonVoiceSegments = new TimeInterval(TimeSpan.Zero, waveReader.TotalTime)
+            .GetGapsBetween(voiceSegments, true)
+            .ToList();
 
-        return new AedResult { VoiceSegments = voiceSegments.ToList(), NonVoiceSegments = nonVoiceSegments.ToList() };
+        return new AedResult { VoiceSegments = voiceSegments, NonVoiceSegments = nonVoiceSegments };
     }
 }

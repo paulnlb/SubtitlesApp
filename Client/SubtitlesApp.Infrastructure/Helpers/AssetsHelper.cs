@@ -1,4 +1,4 @@
-﻿namespace SubtitlesApp.Infrastructure;
+﻿namespace SubtitlesApp.Infrastructure.Helpers;
 
 public static class AssetsHelper
 {
