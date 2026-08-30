@@ -9,7 +9,7 @@ public class AedService
 {
     public AedResult Detect(Stream audio)
     {
-        var modelPath = AssetsHelper.ExtractAssetToAppData("models/aed.omnivad", "aed.omnivad", "models");
+        var modelPath = AssetsHelper.ExtractAssetToAppData("Resources/Models/aed.omnivad", "aed.omnivad", "models");
 
         using var waveReader = new WaveFileReader(audio);
         var sampleProvider = waveReader.ToSampleProvider();
@@ -32,7 +32,15 @@ public class AedService
             audio.Position = 0;
         }
 
-        var segments = OmniVad.AedDetect(allSamples.ToArray(), modelPath);
+        var config = OmniVad.GetDefaultAedConfig();
+
+        config.Speech.Threshold = 0.4f;
+
+        config.Music.MinSpeechFrames = config.Speech.MinSpeechFrames = config.Singing.MinSpeechFrames = 60;
+        config.Music.MaxSpeechFrames = config.Speech.MaxSpeechFrames = config.Singing.MaxSpeechFrames = 2000;
+        config.Music.ExtendSpeechFrames = config.Speech.ExtendSpeechFrames = config.Singing.ExtendSpeechFrames = 50;
+
+        var segments = OmniVad.AedDetect(allSamples.ToArray(), modelPath, config);
 
         var voiceSegments = segments
             .Where(s => s.Cls == OmniAedClass.Singing || s.Cls == OmniAedClass.Speech)

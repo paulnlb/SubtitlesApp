@@ -4,6 +4,8 @@ namespace OmniVadDotnet.Android;
 
 public static unsafe class OmniVad
 {
+    public static OmniAedPostConfig GetDefaultAedConfig() => OmniVadNative.omni_aed_post_config_default();
+
     public static List<OmniAedSegment> AedDetect(float[] samples, string bundlePath, OmniAedPostConfig? config = null)
     {
         var resultSegments = new List<OmniAedSegment>();
