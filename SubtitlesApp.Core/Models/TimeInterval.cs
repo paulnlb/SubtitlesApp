@@ -52,14 +52,22 @@ public class TimeInterval
         return EndTime == other.StartTime || StartTime == other.EndTime;
     }
 
-    public bool OverlapsOrAdjacentTo(TimeInterval other)
-    {
-        return Overlaps(other) || IsAdjacentTo(other);
-    }
-
     public bool Includes(TimeInterval other)
     {
         return StartTime <= other.StartTime && EndTime >= other.EndTime;
+    }
+
+    public bool IsNearTo(TimeInterval other, TimeSpan proximityThreshold = default)
+    {
+        if (proximityThreshold == default)
+        {
+            return IsAdjacentTo(other);
+        }
+
+        var isNearBefore = EndTime <= other.StartTime && EndTime >= other.StartTime - proximityThreshold;
+        var isNearAfter = StartTime <= other.EndTime + proximityThreshold && StartTime >= other.EndTime;
+
+        return isNearBefore || isNearAfter;
     }
 
     public TimeInterval Union(TimeInterval other)

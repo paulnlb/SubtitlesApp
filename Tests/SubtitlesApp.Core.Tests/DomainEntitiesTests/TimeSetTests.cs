@@ -1,6 +1,6 @@
 using SubtitlesApp.Core.Models;
 
-namespace SubtitlesApp.Core.Tests.ExtensionMethodsTests;
+namespace SubtitlesApp.Core.Tests.DomainEntitiesTests;
 
 public class TimeSetTests
 {
