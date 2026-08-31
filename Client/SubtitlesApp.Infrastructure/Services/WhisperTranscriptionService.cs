@@ -74,7 +74,7 @@ public partial class WhisperTranscriptionService(
 
             LogPrompt(prompt);
 
-            var aedResult = aedService.Detect(audioStream);
+            var aedResult = aedService.Detect(audioStream, TimeSpan.FromSeconds(3));
 
             if (logger.IsEnabled(LogLevel.Debug))
             {

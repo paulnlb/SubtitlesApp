@@ -55,11 +55,12 @@ public class TimeSet
     ///     - finds the nearest interval that is earlier than newInterval and inserts newInterval right after it.
     /// </summary>
     /// <param name="newInterval">Time interval to insert.</param>
-    /// <param name="mergeThreshold">Optional parameter that specifies the maximum distance in time
-    /// between the new time interval and its neighboring time interval to be automatically merged together.
-    /// If the time distance between the new interval and its neighbor is less than or equal to <param name="mergeThreshold">,
-    /// they are merged, and the result of the merge is inserted.
-    /// If not specified, current time interval is only merged with its neighbor when they overlap or are adjacent.</param>
+    /// <param name="mergeThreshold">
+    ///     If time distance between <param name="newInterval"> and any existing time interval is less than
+    ///     or equal to <param name="mergeThreshold">, <param name="newInterval"> will be merged into
+    ///     its neighboring time interval instead of being inserted.
+    ///     If not specified, <param name="newInterval"> is only merged into a neighbor when they overlap or are adjacent.
+    /// </param>
     /// <returns></returns>
     public void Insert(TimeInterval newInterval, TimeSpan mergeThreshold = default)
     {
@@ -110,12 +111,20 @@ public class TimeSet
     {
         if (_timeIntervals.Count == 0)
         {
+            return [];
+        }
+
+        return GetAllGapsInside(_timeIntervals.First!.Value.StartTime, _timeIntervals.Last!.Value.EndTime);
+    }
+
+    public IEnumerable<TimeInterval> GetAllGapsInside(TimeSpan startTime, TimeSpan endTime)
+    {
+        if (_timeIntervals.Count == 0 || startTime == endTime)
+        {
             yield break;
         }
 
-        var globalStart = _timeIntervals.First!.Value.StartTime;
-        var globalEnd = _timeIntervals.Last!.Value.EndTime;
-        var lastEnd = globalStart;
+        var lastEnd = startTime;
 
         foreach (var interval in _timeIntervals)
         {
@@ -127,9 +136,9 @@ public class TimeSet
             lastEnd = interval.EndTime;
         }
 
-        if (lastEnd < globalEnd)
+        if (lastEnd < endTime)
         {
-            yield return new TimeInterval(lastEnd, globalEnd);
+            yield return new TimeInterval(lastEnd, endTime);
         }
     }
 }

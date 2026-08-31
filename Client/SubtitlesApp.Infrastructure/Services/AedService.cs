@@ -8,7 +8,7 @@ namespace SubtitlesApp.Infrastructure.Services;
 
 public class AedService
 {
-    public AedResult Detect(Stream audio)
+    public AedResult Detect(Stream audio, TimeSpan minNoVoiceLength = default)
     {
         var modelPath = AssetsHelper.ExtractAssetToAppData("Resources/Models/aed.omnivad", "aed.omnivad", "models");
 
@@ -48,14 +48,14 @@ public class AedService
 
         var voiceSegments = segments
             .Where(s => s.Cls == OmniAedClass.Singing || s.Cls == OmniAedClass.Speech)
-            .OrderBy(s => s.Start)
-            .Select(s => new TimeInterval(TimeSpan.FromSeconds(s.Start), TimeSpan.FromSeconds(s.End)))
-            .ToList();
+            .Select(s => new TimeInterval(TimeSpan.FromSeconds(s.Start), TimeSpan.FromSeconds(s.End)));
 
-        var nonVoiceSegments = new TimeInterval(TimeSpan.Zero, waveReader.TotalTime)
-            .GetGapsBetween(voiceSegments, true)
-            .ToList();
+        var timeSet = new TimeSet(voiceSegments, minNoVoiceLength);
 
-        return new AedResult { VoiceSegments = voiceSegments, NonVoiceSegments = nonVoiceSegments };
+        return new AedResult
+        {
+            VoiceSegments = timeSet.GetAllIntervals().ToList(),
+            NonVoiceSegments = timeSet.GetAllGapsInside(TimeSpan.Zero, waveReader.TotalTime).ToList(),
+        };
     }
 }

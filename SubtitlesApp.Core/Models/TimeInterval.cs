@@ -92,31 +92,4 @@ public class TimeInterval
 
         return new TimeInterval(other.EndTime, EndTime);
     }
-
-    public IEnumerable<TimeInterval> GetGapsBetween(IEnumerable<TimeInterval> intervals, bool alreadySorted = false)
-    {
-        if (!alreadySorted)
-        {
-            intervals = intervals.OrderBy(i => i.StartTime);
-        }
-
-        intervals = intervals.Where(i => i.EndTime > StartTime && i.StartTime < EndTime);
-
-        var lastEnd = StartTime;
-
-        foreach (var interval in intervals)
-        {
-            if (interval.StartTime > lastEnd)
-            {
-                yield return new TimeInterval(lastEnd, interval.StartTime);
-            }
-
-            lastEnd = interval.EndTime;
-        }
-
-        if (lastEnd < EndTime)
-        {
-            yield return new TimeInterval(lastEnd, EndTime);
-        }
-    }
 }
