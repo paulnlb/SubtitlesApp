@@ -116,7 +116,7 @@ public partial class FfmpegService : IMediaProcessingService
         var textInput = FFmpegKitInputBuffer.FromByteArray(GenerateAudioDeleteInput(audioInput.Url, keepZones), "txt");
 
         var ffmpegSession = await ExecuteCommandAsync(
-            $"-f concat -i {textInput.Url} -c copy {output.Url}",
+            $"-f concat -safe 0 -i {textInput.Url} -c copy {output.Url}",
             cancellationToken
         );
 
@@ -229,6 +229,8 @@ public partial class FfmpegService : IMediaProcessingService
             writer.WriteLine($"outpoint {keepZone.EndTime.ToString(@"hh\:mm\:ss")}");
             writer.WriteLine();
         }
+
+        writer.Flush();
 
         return memStream.ToArray();
     }

@@ -94,4 +94,9 @@ public class TimeInterval
 
         return new TimeInterval(other.EndTime, EndTime);
     }
+
+    public TimeInterval Move(TimeSpan time)
+    {
+        return new TimeInterval(StartTime + time, EndTime + time);
+    }
 }

@@ -160,6 +160,8 @@ public partial class WhisperTranscriptionService(
     {
         var aedSegments = aedService.Detect(audioStream, TimeSpan.FromSeconds(3));
 
+        audioStream.Position = 0;
+
         if (!IsEnoughVoice(aedSegments.VoiceSegments))
         {
             return ListResult<WhisperSubtitle>.Success([]);
@@ -179,7 +181,24 @@ public partial class WhisperTranscriptionService(
 
         using var editedAudioStream = editedAudioResult.Value;
 
-        return await transcriptionsClient.GetSubsAsync(editedAudioStream, languageCode, prompt, cancellationToken);
+        var result = await transcriptionsClient.GetSubsAsync(editedAudioStream, languageCode, prompt, cancellationToken);
+
+        if (result.IsFailure || result.Value.Count == 0 || aedSegments.NonVoiceSegments.Count == 0)
+        {
+            return result;
+        }
+
+        foreach (var nonVoiceSegment in aedSegments.NonVoiceSegments)
+        {
+            foreach (
+                var subtitle in result.Value.Where(sub => sub.TimeInterval.IsLaterOrStartsWith(nonVoiceSegment.StartTime))
+            )
+            {
+                subtitle.TimeInterval = subtitle.TimeInterval.Move(nonVoiceSegment.Duration);
+            }
+        }
+
+        return result;
     }
 
     private string ConstuctDynamicPrompt(List<WhisperSubtitle> previousSubtitles, TimeSpan chunkStart)

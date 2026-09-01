@@ -29,11 +29,6 @@ public partial class AedService(ILogger<AedService> logger)
             }
         }
 
-        if (audio.CanSeek)
-        {
-            audio.Position = 0;
-        }
-
         var config = OmniVad.GetDefaultAedConfig();
 
         config.Speech.Threshold = 0.4f;
