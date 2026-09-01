@@ -2,6 +2,7 @@
 using NAudio.Wave;
 using OmniVadDotnet.Android;
 using SubtitlesApp.Core.Models;
+using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Helpers;
 using SubtitlesApp.Infrastructure.Models;
 
@@ -9,7 +10,7 @@ namespace SubtitlesApp.Infrastructure.Services;
 
 public partial class AedService(ILogger<AedService> logger)
 {
-    public AedSegments Detect(Stream audio, TimeSpan minNoVoiceLength = default)
+    public Result<AedSegments> Detect(Stream audio, TimeSpan minNoVoiceLength = default)
     {
         var modelPath = AssetsHelper.ExtractAssetToAppData("Resources/Models/aed.omnivad", "aed.omnivad", "models");
 
@@ -40,7 +41,16 @@ public partial class AedService(ILogger<AedService> logger)
         var allSamplesArr = allSamples.ToArray();
         MediaHelper.PeakNormalize(allSamplesArr);
 
-        var segments = OmniVad.AedDetect(allSamplesArr, modelPath, config);
+        List<OmniAedSegment> segments;
+
+        try
+        {
+            segments = OmniVad.AedDetect(allSamplesArr, modelPath, config);
+        }
+        catch (Exception ex)
+        {
+            return Result<AedSegments>.Failure(new Error(ErrorCode.InternalClientError, ex.Message));
+        }
 
         var voiceSegments = segments
             .Where(s => s.Cls == OmniAedClass.Singing || s.Cls == OmniAedClass.Speech)
@@ -48,15 +58,15 @@ public partial class AedService(ILogger<AedService> logger)
 
         var timeSet = new TimeSet(voiceSegments, minNoVoiceLength);
 
-        var result = new AedSegments
+        var aedSegments = new AedSegments
         {
             VoiceSegments = timeSet.GetAllIntervals().ToList(),
             NonVoiceSegments = timeSet.GetAllGapsInside(TimeSpan.Zero, waveReader.TotalTime).ToList(),
         };
 
-        LogAedSegments(result);
+        LogAedSegments(aedSegments);
 
-        return result;
+        return Result<AedSegments>.Success(aedSegments);
     }
 
     private void LogAedSegments(AedSegments aedResult)

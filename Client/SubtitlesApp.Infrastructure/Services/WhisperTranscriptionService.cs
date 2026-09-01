@@ -158,9 +158,16 @@ public partial class WhisperTranscriptionService(
         CancellationToken cancellationToken
     )
     {
-        var aedSegments = aedService.Detect(audioStream, TimeSpan.FromSeconds(3));
+        var aedResult = await Task.Run(() => aedService.Detect(audioStream, TimeSpan.FromSeconds(3)));
 
         audioStream.Position = 0;
+
+        if (aedResult.IsFailure)
+        {
+            return ListResult<WhisperSubtitle>.Failure(aedResult.Error);
+        }
+
+        var aedSegments = aedResult.Value;
 
         if (!IsEnoughVoice(aedSegments.VoiceSegments))
         {
