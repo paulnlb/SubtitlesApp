@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿using Microsoft.Extensions.Logging;
+using NAudio.Wave;
 using OmniVadDotnet.Android;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Infrastructure.Helpers;
@@ -6,9 +7,9 @@ using SubtitlesApp.Infrastructure.Models;
 
 namespace SubtitlesApp.Infrastructure.Services;
 
-public class AedService
+public partial class AedService(ILogger<AedService> logger)
 {
-    public AedResult Detect(Stream audio, TimeSpan minNoVoiceLength = default)
+    public AedSegments Detect(Stream audio, TimeSpan minNoVoiceLength = default)
     {
         var modelPath = AssetsHelper.ExtractAssetToAppData("Resources/Models/aed.omnivad", "aed.omnivad", "models");
 
@@ -52,10 +53,38 @@ public class AedService
 
         var timeSet = new TimeSet(voiceSegments, minNoVoiceLength);
 
-        return new AedResult
+        var result = new AedSegments
         {
             VoiceSegments = timeSet.GetAllIntervals().ToList(),
             NonVoiceSegments = timeSet.GetAllGapsInside(TimeSpan.Zero, waveReader.TotalTime).ToList(),
         };
+
+        LogAedSegments(result);
+
+        return result;
     }
+
+    private void LogAedSegments(AedSegments aedResult)
+    {
+        if (!logger.IsEnabled(LogLevel.Debug))
+        {
+            return;
+        }
+
+        foreach (var segment in aedResult.VoiceSegments)
+        {
+            LogVoiceSegment(segment.StartTime, segment.EndTime);
+        }
+
+        foreach (var segment in aedResult.NonVoiceSegments)
+        {
+            LogNonVoiceSegment(segment.StartTime, segment.EndTime);
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice. St: {StartTime}, Et: {EndTime}")]
+    private partial void LogVoiceSegment(TimeSpan startTime, TimeSpan endTime);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice absence. St: {StartTime}, Et: {EndTime}")]
+    private partial void LogNonVoiceSegment(TimeSpan startTime, TimeSpan endTime);
 }

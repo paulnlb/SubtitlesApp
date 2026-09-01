@@ -1,3 +1,4 @@
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Interfaces;
 
@@ -24,6 +25,13 @@ public partial class FfmpegService : IMediaProcessingService
         string mediaPath,
         string outputFormat,
         int subtitleTrackIndex = 0,
+        CancellationToken cancellationToken = default
+    );
+
+    public partial Task<Result<Stream>> DeleteAudioChunksAsync(
+        Stream srcAudio,
+        string audioFormat,
+        IEnumerable<TimeInterval> keepZones,
         CancellationToken cancellationToken = default
     );
 }

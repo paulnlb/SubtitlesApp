@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Com.Arthenica.Ffmpegkit;
+using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
 using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.Interfaces;
@@ -100,6 +101,42 @@ public partial class FfmpegService : IMediaProcessingService
         return Result<Stream>.Success(memoryStream);
     }
 
+    public async partial Task<Result<Stream>> DeleteAudioChunksAsync(
+        Stream srcAudio,
+        string audioFormat,
+        IEnumerable<TimeInterval> keepZones,
+        CancellationToken cancellationToken
+    )
+    {
+        using var audioInputMemStream = new MemoryStream();
+        await srcAudio.CopyToAsync(audioInputMemStream);
+
+        var audioInput = FFmpegKitInputBuffer.FromByteArray(audioInputMemStream.ToArray(), audioFormat);
+        var output = FFmpegKitOutputBuffer.Create(audioFormat);
+        var textInput = FFmpegKitInputBuffer.FromByteArray(GenerateAudioDeleteInput(audioInput.Url, keepZones), "txt");
+
+        var ffmpegSession = await ExecuteCommandAsync(
+            $"-f concat -i {textInput.Url} -c copy {output.Url}",
+            cancellationToken
+        );
+
+        if (!IsSucceeded(ffmpegSession, out var error))
+        {
+            textInput.Close();
+            audioInput.Close();
+            output.Close();
+            return Result<Stream>.Failure(error!);
+        }
+
+        var memoryStream = new MemoryStream(output.ToByteArray()) { Position = 0 };
+
+        textInput.Close();
+        audioInput.Close();
+        output.Close();
+
+        return Result<Stream>.Success(memoryStream);
+    }
+
     private string PrepareInputPath(string mediaPath)
     {
         if (string.IsNullOrWhiteSpace(mediaPath))
@@ -178,6 +215,22 @@ public partial class FfmpegService : IMediaProcessingService
         }
 
         return isSucceeded;
+    }
+
+    private byte[] GenerateAudioDeleteInput(string srcPath, IEnumerable<TimeInterval> keepZones)
+    {
+        using var memStream = new MemoryStream();
+        using var writer = new StreamWriter(memStream);
+
+        foreach (var keepZone in keepZones)
+        {
+            writer.WriteLine($"file '{srcPath}'");
+            writer.WriteLine($"inpoint {keepZone.StartTime.ToString(@"hh\:mm\:ss")}");
+            writer.WriteLine($"outpoint {keepZone.EndTime.ToString(@"hh\:mm\:ss")}");
+            writer.WriteLine();
+        }
+
+        return memStream.ToArray();
     }
 }
 

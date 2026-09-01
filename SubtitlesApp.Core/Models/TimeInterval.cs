@@ -34,6 +34,8 @@ public class TimeInterval
 
     public TimeSpan EndTime { get; }
 
+    public TimeSpan Duration => EndTime - StartTime;
+
     public bool ContainsTime(TimeSpan time) => StartTime <= time && EndTime > time;
 
     public bool IsEarlierThan(TimeSpan time) => StartTime < time && EndTime <= time;

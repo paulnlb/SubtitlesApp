@@ -2,7 +2,7 @@
 
 namespace SubtitlesApp.Infrastructure.Models;
 
-public class AedResult
+public class AedSegments
 {
     public required List<TimeInterval> VoiceSegments { get; set; }
 

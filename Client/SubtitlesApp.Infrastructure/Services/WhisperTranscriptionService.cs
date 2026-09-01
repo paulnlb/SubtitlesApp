@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SubtitlesApp.Core.Interfaces;
 using SubtitlesApp.Core.Models;
 using SubtitlesApp.Core.Result;
+using SubtitlesApp.Infrastructure.Constants;
 using SubtitlesApp.Infrastructure.ExternalClients;
 using SubtitlesApp.Infrastructure.Interfaces;
 using SubtitlesApp.Infrastructure.Interfaces.Settings;
@@ -26,6 +27,8 @@ public partial class WhisperTranscriptionService(
         [EnumeratorCancellation] CancellationToken cancellationToken = default
     )
     {
+        var isAedEnabled = true;
+
         LogTranscriptionStart(timeInterval.StartTime, timeInterval.EndTime, languageCode);
 
         List<WhisperSubtitle> buffer = [];
@@ -74,19 +77,21 @@ public partial class WhisperTranscriptionService(
 
             LogPrompt(prompt);
 
-            var aedResult = aedService.Detect(audioStream, TimeSpan.FromSeconds(3));
+            ListResult<WhisperSubtitle> subtitlesResult;
 
-            if (logger.IsEnabled(LogLevel.Debug))
+            if (isAedEnabled)
             {
-                LogAedSegments(aedResult);
+                subtitlesResult = await GetSubsWithAedAsync(audioStream, languageCode, prompt, cancellationToken);
             }
-
-            var subtitlesResult = await transcriptionsClient.GetSubsAsync(
-                audioStream,
-                languageCode,
-                prompt,
-                cancellationToken
-            );
+            else
+            {
+                subtitlesResult = await transcriptionsClient.GetSubsAsync(
+                    audioStream,
+                    languageCode,
+                    prompt,
+                    cancellationToken
+                );
+            }
 
             if (subtitlesResult.IsFailure)
             {
@@ -144,6 +149,37 @@ public partial class WhisperTranscriptionService(
         {
             yield return Result<Subtitle>.Success(item);
         }
+    }
+
+    private async Task<ListResult<WhisperSubtitle>> GetSubsWithAedAsync(
+        Stream audioStream,
+        string languageCode,
+        string prompt,
+        CancellationToken cancellationToken
+    )
+    {
+        var aedSegments = aedService.Detect(audioStream, TimeSpan.FromSeconds(3));
+
+        if (!IsEnoughVoice(aedSegments.VoiceSegments))
+        {
+            return ListResult<WhisperSubtitle>.Success([]);
+        }
+
+        var editedAudioResult = await audioExtractor.DeleteAudioChunksAsync(
+            audioStream,
+            AudioFormats.Wave,
+            aedSegments.VoiceSegments,
+            cancellationToken
+        );
+
+        if (editedAudioResult.IsFailure)
+        {
+            return ListResult<WhisperSubtitle>.Failure(editedAudioResult.Error);
+        }
+
+        using var editedAudioStream = editedAudioResult.Value;
+
+        return await transcriptionsClient.GetSubsAsync(editedAudioStream, languageCode, prompt, cancellationToken);
     }
 
     private string ConstuctDynamicPrompt(List<WhisperSubtitle> previousSubtitles, TimeSpan chunkStart)
@@ -210,17 +246,27 @@ public partial class WhisperTranscriptionService(
         return removedCount;
     }
 
-    private void LogAedSegments(AedResult aedResult)
+    private bool IsEnoughVoice(List<TimeInterval> voiceSegments)
     {
-        foreach (var segment in aedResult.VoiceSegments)
+        var minDuration = TimeSpan.FromSeconds(0.1);
+        var totalDuration = TimeSpan.Zero;
+
+        foreach (var segment in voiceSegments)
         {
-            LogVoiceSegment(segment.StartTime, segment.EndTime);
+            if (segment.Duration > minDuration)
+            {
+                return true;
+            }
+
+            totalDuration += segment.Duration;
+
+            if (totalDuration > minDuration)
+            {
+                return true;
+            }
         }
 
-        foreach (var segment in aedResult.NonVoiceSegments)
-        {
-            LogNonVoiceSegment(segment.StartTime, segment.EndTime);
-        }
+        return false;
     }
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Audio chunk created. Start time: {StartTime}. End Time: {EndTime}")]
@@ -246,10 +292,4 @@ public partial class WhisperTranscriptionService(
         Message = "Transcription started. Time interval: [{StartTime}, {EndTime}]. Language code: {LanguageCode}"
     )]
     private partial void LogTranscriptionStart(TimeSpan startTime, TimeSpan endTime, string languageCode);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice. St: {StartTime}, Et: {EndTime}")]
-    private partial void LogVoiceSegment(TimeSpan startTime, TimeSpan endTime);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice absence. St: {StartTime}, Et: {EndTime}")]
-    private partial void LogNonVoiceSegment(TimeSpan startTime, TimeSpan endTime);
 }
