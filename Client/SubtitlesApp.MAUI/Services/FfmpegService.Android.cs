@@ -225,8 +225,8 @@ public partial class FfmpegService : IMediaProcessingService
         foreach (var keepZone in keepZones)
         {
             writer.WriteLine($"file '{srcPath}'");
-            writer.WriteLine($"inpoint {keepZone.StartTime.ToString(@"hh\:mm\:ss")}");
-            writer.WriteLine($"outpoint {keepZone.EndTime.ToString(@"hh\:mm\:ss")}");
+            writer.WriteLine($"inpoint {keepZone.StartTime}");
+            writer.WriteLine($"outpoint {keepZone.EndTime}");
             writer.WriteLine();
         }
 
