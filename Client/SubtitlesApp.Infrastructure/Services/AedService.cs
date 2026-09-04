@@ -34,8 +34,7 @@ public partial class AedService(ILogger<AedService> logger)
 
         config.Speech.Threshold = 0.4f;
 
-        config.Music.MinSpeechFrames = config.Speech.MinSpeechFrames = config.Singing.MinSpeechFrames = 60;
-        config.Music.MaxSpeechFrames = config.Speech.MaxSpeechFrames = config.Singing.MaxSpeechFrames = 2000;
+        config.Singing.MinSpeechFrames = 60;
         config.Music.ExtendSpeechFrames = config.Speech.ExtendSpeechFrames = config.Singing.ExtendSpeechFrames = 50;
 
         var allSamplesArr = allSamples.ToArray();
@@ -46,6 +45,11 @@ public partial class AedService(ILogger<AedService> logger)
         try
         {
             segments = OmniVad.AedDetect(allSamplesArr, modelPath, config);
+
+            if (logger.IsEnabled(LogLevel.Trace))
+            {
+                LogAedSegments(segments);
+            }
         }
         catch (Exception ex)
         {
@@ -64,32 +68,25 @@ public partial class AedService(ILogger<AedService> logger)
             NonVoiceSegments = timeSet.GetAllGapsInside(TimeSpan.Zero, waveReader.TotalTime).ToList(),
         };
 
-        LogAedSegments(aedSegments);
-
         return Result<AedSegments>.Success(aedSegments);
     }
 
-    private void LogAedSegments(AedSegments aedResult)
+    private void LogAedSegments(List<OmniAedSegment> segments)
     {
-        if (!logger.IsEnabled(LogLevel.Debug))
+        foreach (var segment in segments)
         {
-            return;
-        }
-
-        foreach (var segment in aedResult.VoiceSegments)
-        {
-            LogVoiceSegment(segment.StartTime, segment.EndTime);
-        }
-
-        foreach (var segment in aedResult.NonVoiceSegments)
-        {
-            LogNonVoiceSegment(segment.StartTime, segment.EndTime);
+            LogSegment(
+                segment.Cls,
+                TimeSpan.FromSeconds(segment.Start),
+                TimeSpan.FromSeconds(segment.End),
+                segment.Confidence
+            );
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice. St: {StartTime}, Et: {EndTime}")]
-    private partial void LogVoiceSegment(TimeSpan startTime, TimeSpan endTime);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Detected voice absence. St: {StartTime}, Et: {EndTime}")]
-    private partial void LogNonVoiceSegment(TimeSpan startTime, TimeSpan endTime);
+    [LoggerMessage(
+        Level = LogLevel.Trace,
+        Message = "Omnivad AED segments: Cls: {Cls}, St: {StartTime}, Et: {EndTime}, Confidence: {Confidence}"
+    )]
+    private partial void LogSegment(OmniAedClass cls, TimeSpan startTime, TimeSpan endTime, float confidence);
 }

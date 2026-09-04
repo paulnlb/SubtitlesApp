@@ -35,11 +35,7 @@ public partial class WhisperTranscriptionService(
         TimeSpan bufferChunkEnd = TimeSpan.Zero;
         TimeSpan GetAnchor()
         {
-            if (buffer.Count == 0)
-            {
-                return TimeSpan.Zero;
-            }
-            else if (buffer.Last().TimeInterval.EndTime < bufferChunkEnd)
+            if (buffer.Count == 0 || buffer.Last().TimeInterval.EndTime < bufferChunkEnd)
             {
                 return bufferChunkEnd;
             }
@@ -188,24 +184,31 @@ public partial class WhisperTranscriptionService(
 
         using var editedAudioStream = editedAudioResult.Value;
 
-        var result = await transcriptionsClient.GetSubsAsync(editedAudioStream, languageCode, prompt, cancellationToken);
+        var subtitlesResult = await transcriptionsClient.GetSubsAsync(
+            editedAudioStream,
+            languageCode,
+            prompt,
+            cancellationToken
+        );
 
-        if (result.IsFailure || result.Value.Count == 0 || aedSegments.NonVoiceSegments.Count == 0)
+        if (subtitlesResult.IsFailure || subtitlesResult.Value.Count == 0 || aedSegments.NonVoiceSegments.Count == 0)
         {
-            return result;
+            return subtitlesResult;
         }
 
         foreach (var nonVoiceSegment in aedSegments.NonVoiceSegments)
         {
             foreach (
-                var subtitle in result.Value.Where(sub => sub.TimeInterval.IsLaterOrStartsWith(nonVoiceSegment.StartTime))
+                var subtitle in subtitlesResult.Value.Where(sub =>
+                    sub.TimeInterval.StartTime + sub.TimeInterval.Duration / 2 >= nonVoiceSegment.StartTime
+                )
             )
             {
                 subtitle.TimeInterval = subtitle.TimeInterval.Move(nonVoiceSegment.Duration);
             }
         }
 
-        return result;
+        return subtitlesResult;
     }
 
     private string ConstuctDynamicPrompt(List<WhisperSubtitle> previousSubtitles, TimeSpan chunkStart)
